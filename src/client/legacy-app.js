@@ -182,6 +182,11 @@ import {
   renderChatImagePreviewList
 } from "./components/chat-image-preview.js";
 import {
+  createGenerationChoiceOverlay,
+  hideGenerationChoiceOverlay,
+  showGenerationChoiceOverlay
+} from "./components/generation-choice-overlay.js";
+import {
   setActiveRailButton,
   setActiveRailPanelButton,
   toggleToolRailCollapsed
@@ -3921,38 +3926,17 @@ function chooseUploadMode(mode) {
 function ensureGenerationOverlay() {
   let overlay = document.querySelector(".generation-choice-overlay");
   if (overlay) return overlay;
-  overlay = document.createElement("div");
-  overlay.className = "generation-choice-overlay";
-  overlay.innerHTML = `
-    <button class="generation-choice-close" type="button" title="关闭">×</button>
-    <div class="generation-choice-stage">
-      <img class="generation-choice-image" alt="上传图片预览" />
-      <div class="floating-suggestions">
-        ${directorActions.slice(0, 4).map((action, index) => `
-          <button type="button" data-generate-choice="${action.type}">
-            <small>${String(index + 1).padStart(2, "0")}</small>
-            <span>${escapeHtml(action.title)}</span>
-          </button>
-        `).join("")}
-      </div>
-    </div>
-  `;
-  appRoot.appendChild(overlay);
-  overlay.querySelector(".generation-choice-close").addEventListener("click", hideGenerationOverlay);
-  overlay.addEventListener("click", async (event) => {
-    const button = event.target.closest("[data-generate-choice]");
-    if (!button || !generationOverlayState) return;
-    const action = directorActions.find((item) => item.type === button.dataset.generateChoice);
-    if (!action) return;
-    button.classList.add("running");
-    button.disabled = true;
-    try {
-      await uploadAndGenerateFromOverlay(action);
-    } finally {
-      button.classList.remove("running");
-      button.disabled = false;
+  overlay = createGenerationChoiceOverlay({
+    actions: directorActions,
+    escapeHtml,
+    onClose: hideGenerationOverlay,
+    onChoose: async (type) => {
+      if (!generationOverlayState) return;
+      const action = directorActions.find((item) => item.type === type);
+      if (action) await uploadAndGenerateFromOverlay(action);
     }
   });
+  appRoot.appendChild(overlay);
   return overlay;
 }
 
@@ -3960,19 +3944,17 @@ function showGenerationOverlay(files, point) {
   const [file] = getImageFiles(files);
   if (!file) return;
   const overlay = ensureGenerationOverlay();
-  const image = overlay.querySelector(".generation-choice-image");
-  if (generationOverlayState?.url) URL.revokeObjectURL(generationOverlayState.url);
-  const url = URL.createObjectURL(file);
-  generationOverlayState = { file, point, url };
-  image.src = url;
-  overlay.classList.add("open");
+  generationOverlayState = showGenerationChoiceOverlay({
+    overlay,
+    file,
+    point,
+    previousState: generationOverlayState
+  });
 }
 
 function hideGenerationOverlay() {
   const overlay = document.querySelector(".generation-choice-overlay");
-  overlay?.classList.remove("open");
-  if (generationOverlayState?.url) URL.revokeObjectURL(generationOverlayState.url);
-  generationOverlayState = null;
+  generationOverlayState = hideGenerationChoiceOverlay({ overlay, state: generationOverlayState });
 }
 
 async function uploadAndGenerateFromOverlay(action) {
