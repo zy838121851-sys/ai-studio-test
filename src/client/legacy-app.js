@@ -32,6 +32,28 @@ import {
   isLinearDrawToolName
 } from "./canvas/drawing-tools.js";
 import {
+  applyTextEditorStyle,
+  focusTextEditorAtEnd,
+  getTextEditorFromNode,
+  hasTextNodeInSet,
+  hideTextToolbar,
+  positionTextToolbar,
+  rgbToHexColor,
+  setTextNodeEditingState
+} from "./canvas/text-tool.js";
+import {
+  createDrawingPreviewElement,
+  createDrawingState,
+  getActiveShapeNode as getActiveShapeNodeFromSelection,
+  getShapeToolbarColorTarget,
+  getShapeToolbarNode,
+  hasShapeNodeInSet,
+  hideShapeToolbar,
+  positionShapeToolbar,
+  syncShapeSvgStyles,
+  updateDrawingPreviewElement
+} from "./canvas/shape-tool.js";
+import {
   MAX_ASCII_MODEL_BYTES as MODEL_MAX_ASCII_BYTES,
   MAX_PARSE_FACES as MODEL_MAX_PARSE_FACES,
   MAX_PREVIEW_MODEL_BYTES as MODEL_MAX_PREVIEW_BYTES,
@@ -1129,29 +1151,20 @@ function getCanvasNodeScreenRect(node) {
 }
 
 function getSelectedTextEditor() {
-  if (!selectedNode?.classList.contains("canvas-text")) return null;
-  return selectedNode.querySelector(".canvas-text-editor");
+  return getTextEditorFromNode(selectedNode);
 }
 
 function hideTextFormatToolbar() {
-  textFormatToolbar?.classList.remove("open");
+  hideTextToolbar(textFormatToolbar);
 }
 
 function setTextNodeEditing(node, editing) {
-  const editor = node?.querySelector(".canvas-text-editor");
+  const editor = setTextNodeEditingState(node, editing);
   if (!editor) return;
-  editor.contentEditable = editing ? "true" : "false";
-  node.classList.toggle("text-editing", editing);
   if (editing) {
     selectNode(node);
     window.setTimeout(() => {
-      editor.focus();
-      const range = document.createRange();
-      range.selectNodeContents(editor);
-      range.collapse(false);
-      const selection = window.getSelection();
-      selection.removeAllRanges();
-      selection.addRange(range);
+      focusTextEditorAtEnd(editor);
       positionTextFormatToolbar();
     }, 0);
   } else if (document.activeElement === editor) {
@@ -1213,22 +1226,15 @@ function ensureShapeFormatToolbar() {
 }
 
 function getActiveShapeNode() {
-  return selectedNode?.classList.contains("canvas-shape")
-    ? selectedNode
-    : document.querySelector(".canvas-shape.selected");
+  return getActiveShapeNodeFromSelection(selectedNode);
 }
 
 function getShapeNodeForToolbar(toolbar) {
-  const activeShape = getActiveShapeNode();
-  if (activeShape) return activeShape;
-  const nodeId = toolbar?.dataset.nodeId;
-  if (!nodeId) return null;
-  return Array.from(document.querySelectorAll(".canvas-shape"))
-    .find((node) => node.dataset.nodeId === nodeId) || null;
+  return getShapeToolbarNode(toolbar, getActiveShapeNode());
 }
 
 function getShapeToolbarTarget(toolbar) {
-  return toolbar?.dataset.colorTarget === "stroke" ? "stroke" : "fill";
+  return getShapeToolbarColorTarget(toolbar);
 }
 
 let shapeColorDrag = null;
@@ -1339,17 +1345,15 @@ function handleShapeToolbarClick(event) {
 }
 
 function hideShapeFormatToolbar() {
-  document.querySelector("#shapeFormatToolbar")?.classList.remove("open", "picker-open");
+  hideShapeToolbar();
 }
 
 function hasMovingShape(node) {
-  return node?.classList.contains("canvas-shape")
-    || Array.from(selectedNodes).some((item) => item.classList.contains("canvas-shape"));
+  return hasShapeNodeInSet(node, selectedNodes);
 }
 
 function hasMovingText(node) {
-  return node?.classList.contains("canvas-text")
-    || Array.from(selectedNodes).some((item) => item.classList.contains("canvas-text"));
+  return hasTextNodeInSet(node, selectedNodes);
 }
 
 function positionShapeFormatToolbar() {
@@ -1364,20 +1368,12 @@ function positionShapeFormatToolbar() {
   }
   const rect = getCanvasNodeScreenRect(selectedNode);
   if (!rect) return;
-  const fill = getComputedStyle(selectedNode).getPropertyValue("--shape-fill").trim() || "#ffffff";
-  const stroke = getComputedStyle(selectedNode).getPropertyValue("--shape-stroke").trim() || "#1f2933";
-  const strokeWidth = getComputedStyle(selectedNode).getPropertyValue("--shape-stroke-width").trim() || "3";
-  toolbar.dataset.nodeId = selectedNode.dataset.nodeId || "";
-  toolbar.querySelector('[data-shape-style="strokeWidth"]').value = parseFloat(strokeWidth) || 3;
-  toolbar.querySelector(".fill-swatch").style.background = fill;
-  toolbar.querySelector(".stroke-swatch").style.background = stroke;
-  toolbar.querySelector(".fill-swatch").classList.toggle("is-none", fill === "transparent" || fill === "none");
-  toolbar.querySelector(".stroke-swatch").classList.toggle("is-none", stroke === "transparent" || stroke === "none");
-  toolbar.classList.toggle("line-style-only", isLinearDrawTool(selectedNode.dataset.tool));
-  if (isLinearDrawTool(selectedNode.dataset.tool)) toolbar.dataset.colorTarget = "stroke";
-  toolbar.style.left = `${rect.left + rect.width / 2}px`;
-  toolbar.style.top = `${Math.max(16, rect.top - 58)}px`;
-  toolbar.classList.add("open");
+  positionShapeToolbar({
+    toolbar,
+    node: selectedNode,
+    nodeRect: rect,
+    isLinear: isLinearDrawTool(selectedNode.dataset.tool)
+  });
 }
 
 function hslToHex(h, s, l) {
@@ -1410,31 +1406,7 @@ function setShapeNodeColor(node, target, color) {
 }
 
 function syncShapeNodeStyles(node) {
-  const svg = node?.querySelector(".draw-shape svg");
-  if (!svg) return;
-  const computed = getComputedStyle(node);
-  const fill = node.style.getPropertyValue("--shape-fill").trim()
-    || computed.getPropertyValue("--shape-fill").trim()
-    || "transparent";
-  const stroke = node.style.getPropertyValue("--shape-stroke").trim()
-    || computed.getPropertyValue("--shape-stroke").trim()
-    || "#1f2933";
-  const strokeWidth = node.style.getPropertyValue("--shape-stroke-width").trim()
-    || computed.getPropertyValue("--shape-stroke-width").trim()
-    || "3";
-  svg.style.background = "transparent";
-  svg.style.setProperty("fill", fill, "important");
-  svg.style.setProperty("stroke", stroke, "important");
-  svg.style.setProperty("stroke-width", strokeWidth, "important");
-  svg.querySelectorAll("*").forEach((shape) => {
-    shape.setAttribute("fill", fill);
-    shape.setAttribute("stroke", stroke);
-    shape.setAttribute("stroke-width", strokeWidth);
-    shape.setAttribute("vector-effect", "non-scaling-stroke");
-    shape.style.setProperty("fill", fill, "important");
-    shape.style.setProperty("stroke", stroke, "important");
-    shape.style.setProperty("stroke-width", strokeWidth, "important");
-  });
+  syncShapeSvgStyles(node);
 }
 
 function isLinearDrawTool(tool) {
@@ -1483,27 +1455,23 @@ function positionTextFormatToolbar() {
   }
   const rect = getCanvasNodeScreenRect(selectedNode);
   if (!rect) return;
-  if (textColorInput) {
-    textColorInput.value = rgbToHex(getComputedStyle(editor).color);
-    textColorInput.closest(".text-color-picker")?.style.setProperty("--text-toolbar-color", textColorInput.value);
-  }
-  if (textFontSize) textFontSize.value = String(parseInt(getComputedStyle(editor).fontSize, 10) || 80);
-  textFormatToolbar.style.left = `${rect.left + rect.width / 2}px`;
-  textFormatToolbar.style.top = `${Math.max(16, rect.top - 64)}px`;
-  textFormatToolbar.classList.add("open");
+  positionTextToolbar({
+    toolbar: textFormatToolbar,
+    editor,
+    nodeRect: rect,
+    colorInput: textColorInput,
+    fontSizeInput: textFontSize
+  });
 }
 
 function applyTextStyle(style) {
   const editor = getSelectedTextEditor();
-  if (!editor) return;
-  Object.assign(editor.style, style);
+  if (!applyTextEditorStyle(editor, style)) return;
   positionTextFormatToolbar();
 }
 
 function rgbToHex(color) {
-  const values = color.match(/\d+(\.\d+)?/g)?.slice(0, 3).map(Number);
-  if (!values || values.length < 3) return "#0f172a";
-  return `#${values.map((value) => Math.max(0, Math.min(255, Math.round(value))).toString(16).padStart(2, "0")).join("")}`;
+  return rgbToHexColor(color);
 }
 
 function viewportPointToWorld(clientX, clientY) {
@@ -2354,55 +2322,26 @@ function setShapeTool(tool) {
 
 function createDrawingPreview(startClientX, startClientY, tool) {
   const rect = canvasViewport.getBoundingClientRect();
-  const preview = document.createElement("div");
-  preview.className = `canvas-drawing-preview preview-${tool}`;
-  preview.innerHTML = tool === "pen"
-    ? `<svg viewBox="0 0 ${rect.width} ${rect.height}" preserveAspectRatio="none"><path /></svg>`
-    : drawToolSvg(tool);
+  const preview = createDrawingPreviewElement({
+    viewportRect: rect,
+    tool,
+    renderSvg: drawToolSvg,
+    buildPenSvg: (viewportRect) => `<svg viewBox="0 0 ${viewportRect.width} ${viewportRect.height}" preserveAspectRatio="none"><path /></svg>`
+  });
   canvasViewport.appendChild(preview);
-  canvasDrawing = {
+  canvasDrawing = createDrawingState({
     tool,
     preview,
     startClientX,
     startClientY,
-    currentClientX: startClientX,
-    currentClientY: startClientY,
-    startX: startClientX - rect.left,
-    startY: startClientY - rect.top,
-    currentX: startClientX - rect.left,
-    currentY: startClientY - rect.top,
-    points: [{ x: startClientX - rect.left, y: startClientY - rect.top }]
-  };
+    viewportRect: rect
+  });
   canvasViewport.classList.add("drawing");
   updateDrawingPreview();
 }
 
 function updateDrawingPreview() {
-  if (!canvasDrawing) return;
-  if (canvasDrawing.tool === "pen") {
-    const last = canvasDrawing.points[canvasDrawing.points.length - 1];
-    if (!last || Math.hypot(canvasDrawing.currentX - last.x, canvasDrawing.currentY - last.y) > 2) {
-      canvasDrawing.points.push({ x: canvasDrawing.currentX, y: canvasDrawing.currentY });
-    }
-    Object.assign(canvasDrawing.preview.style, {
-      left: "0px",
-      top: "0px",
-      width: "100%",
-      height: "100%"
-    });
-    canvasDrawing.preview.querySelector("path")?.setAttribute("d", pointsToPath(canvasDrawing.points));
-    return;
-  }
-  const left = Math.min(canvasDrawing.startX, canvasDrawing.currentX);
-  const top = Math.min(canvasDrawing.startY, canvasDrawing.currentY);
-  const width = Math.max(1, Math.abs(canvasDrawing.currentX - canvasDrawing.startX));
-  const height = Math.max(1, Math.abs(canvasDrawing.currentY - canvasDrawing.startY));
-  Object.assign(canvasDrawing.preview.style, {
-    left: `${left}px`,
-    top: `${top}px`,
-    width: `${width}px`,
-    height: `${height}px`
-  });
+  updateDrawingPreviewElement(canvasDrawing, pointsToPath);
 }
 
 function finishCanvasDrawing() {
