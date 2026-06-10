@@ -10,6 +10,13 @@ import {
   positionImageTextPanel as positionImageTextPanelElement,
   renderImageTextInputs as renderImageTextInputList
 } from "./canvas/image-text-panel.js";
+import {
+  createImageCropControls,
+  getCropBoxForNode,
+  removeImageCropOverlay,
+  setCropBoxForNode,
+  updateCropRestoreButtonForNode
+} from "./canvas/image-crop.js";
 // TODO(architecture): This file is the compatibility layer for existing UI behavior.
 // Move remaining feature logic into /canvas, /agent, /ai, /components, or /utils before adding new workflows.
 import {
@@ -2414,48 +2421,17 @@ function finishEraserDrag() {
 }
 
 function ensureImageCropControls(node) {
-  const frame = node.querySelector(".image-frame");
-  let layer = node.querySelector(".node-crop-layer");
-  if (!layer) {
-    layer = document.createElement("div");
-    layer.className = "node-crop-layer";
-    layer.innerHTML = `
-      <div class="crop-box">
-        <span class="crop-corner crop-nw"></span>
-        <span class="crop-corner crop-ne"></span>
-        <span class="crop-corner crop-sw"></span>
-        <span class="crop-corner crop-se"></span>
-        <span class="crop-edge crop-n"></span>
-        <span class="crop-edge crop-s"></span>
-        <span class="crop-edge crop-w"></span>
-        <span class="crop-edge crop-e"></span>
-      </div>
-    `;
-    layer.addEventListener("pointerdown", handleCropPointerDown);
-    frame.appendChild(layer);
-  }
-  let actions = node.querySelector(".crop-actions");
-  if (!actions) {
-    actions = document.createElement("div");
-    actions.className = "crop-actions";
-    actions.innerHTML = `
-      <button type="button" data-crop-action="cancel">×</button>
-      <span></span>
-      <button type="button" data-crop-action="reset">复原</button>
-      <button type="button" data-crop-ratio="free">宽高比</button>
-      <button type="button" class="crop-confirm" data-crop-action="confirm">✓ 确认裁剪</button>
-    `;
-    actions.addEventListener("pointerdown", (event) => event.stopPropagation());
-    actions.addEventListener("click", (event) => {
-      const action = event.target.closest("[data-crop-action]")?.dataset.cropAction;
+  const controls = createImageCropControls({
+    node,
+    onPointerDown: handleCropPointerDown,
+    onAction: (action) => {
       if (action === "cancel") hideImageCropOverlay();
       if (action === "reset") restoreOriginalImageCrop();
       if (action === "confirm") confirmImageCrop();
-    });
-    node.appendChild(actions);
-  }
+    }
+  });
   updateCropRestoreButton(node);
-  return { frame, layer, actions, cropBox: layer.querySelector(".crop-box") };
+  return controls;
 }
 
 function startImageCrop(node) {
@@ -2478,32 +2454,11 @@ function startImageCrop(node) {
 }
 
 function setCropBox(box, node = croppingImageNode) {
-  if (!node) return;
-  const { frame, cropBox } = ensureImageCropControls(node);
-  const stageWidth = frame.offsetWidth || 1;
-  const stageHeight = frame.offsetHeight || 1;
-  const minSize = 80;
-  const width = Math.max(minSize, Math.min(box.width, stageWidth - box.x));
-  const height = Math.max(minSize, Math.min(box.height, stageHeight - box.y));
-  const x = Math.max(0, Math.min(box.x, stageWidth - width));
-  const y = Math.max(0, Math.min(box.y, stageHeight - height));
-  Object.assign(cropBox.style, {
-    left: `${x}px`,
-    top: `${y}px`,
-    width: `${width}px`,
-    height: `${height}px`,
-  });
+  setCropBoxForNode({ node, box, ensureControls: ensureImageCropControls });
 }
 
 function getCropBox(node = croppingImageNode) {
-  if (!node) return { x: 0, y: 0, width: 0, height: 0 };
-  const { cropBox } = ensureImageCropControls(node);
-  return {
-    x: parseFloat(cropBox.style.left || "0"),
-    y: parseFloat(cropBox.style.top || "0"),
-    width: cropBox.offsetWidth,
-    height: cropBox.offsetHeight,
-  };
+  return getCropBoxForNode({ node, ensureControls: ensureImageCropControls });
 }
 
 function handleCropPointerDown(event) {
@@ -2587,9 +2542,7 @@ function confirmImageCrop() {
 }
 
 function updateCropRestoreButton(node = croppingImageNode) {
-  const button = node?.querySelector('[data-crop-action="reset"]');
-  if (!button) return;
-  button.disabled = !node.dataset.cropOriginalSrc;
+  updateCropRestoreButtonForNode(node);
 }
 
 function restoreOriginalImageCrop() {
@@ -2625,9 +2578,7 @@ function restoreOriginalImageCrop() {
 
 function hideImageCropOverlay() {
   if (croppingImageNode) {
-    croppingImageNode.classList.remove("cropping");
-    croppingImageNode.querySelector(".node-crop-layer")?.remove();
-    croppingImageNode.querySelector(".crop-actions")?.remove();
+    removeImageCropOverlay(croppingImageNode);
   }
   croppingImageNode = null;
 }
