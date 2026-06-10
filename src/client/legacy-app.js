@@ -21,6 +21,11 @@ import {
   closeOpenImageToolbarMenus,
   createImageToolbar
 } from "./canvas/image-toolbar.js";
+import {
+  ensureImageLightbox as ensureImageLightboxElement,
+  hideImageLightboxElement,
+  showImageLightbox as showImageLightboxElement
+} from "./canvas/image-lightbox.js";
 // TODO(architecture): This file is the compatibility layer for existing UI behavior.
 // Move remaining feature logic into /canvas, /agent, /ai, /components, or /utils before adding new workflows.
 import {
@@ -2125,39 +2130,16 @@ function ensureImageToolbar(node) {
 }
 
 function ensureImageLightbox() {
-  let lightbox = document.querySelector(".image-lightbox");
-  if (lightbox) return lightbox;
-  lightbox = document.createElement("div");
-  lightbox.className = "image-lightbox";
-  lightbox.innerHTML = `
-    <button type="button" class="image-lightbox-close" aria-label="关闭预览">×</button>
-    <figure>
-      <img alt="" />
-      <figcaption></figcaption>
-    </figure>
-  `;
-  lightbox.addEventListener("click", (event) => {
-    if (event.target === lightbox) hideImageLightbox();
-  });
-  lightbox.querySelector(".image-lightbox-close").addEventListener("click", hideImageLightbox);
-  document.body.appendChild(lightbox);
-  return lightbox;
+  return ensureImageLightboxElement({ onClose: hideImageLightbox });
 }
 
 function showImageLightbox(src, title = "图片预览") {
   if (!src) return;
-  const lightbox = ensureImageLightbox();
-  const img = lightbox.querySelector("img");
-  const caption = lightbox.querySelector("figcaption");
-  img.src = src;
-  img.alt = title;
-  caption.textContent = title;
-  lightbox.classList.add("open");
+  showImageLightboxElement(ensureImageLightbox(), { src, title });
 }
 
 function hideImageLightbox() {
-  const lightbox = document.querySelector(".image-lightbox");
-  lightbox?.classList.remove("open");
+  hideImageLightboxElement();
 }
 
 function centerViewOnNode(node, targetZoom = 1.18) {
