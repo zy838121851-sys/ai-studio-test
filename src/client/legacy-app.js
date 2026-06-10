@@ -3526,15 +3526,11 @@ toggleToolRail?.addEventListener("click", () => {
   toggleToolRailCollapsed(toolRail, toggleToolRail);
 });
 
-function positionBrandMenu(trigger) {
-  positionFloatingMenu({ menu: brandMenu, trigger });
-}
-
 document.querySelectorAll("[data-brand-menu]").forEach((button) => {
   button.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
-    positionBrandMenu(button);
+    positionFloatingMenu({ menu: brandMenu, trigger: button });
     brandMenu?.classList.toggle("open");
     projectMenu?.classList.remove("open");
   });
