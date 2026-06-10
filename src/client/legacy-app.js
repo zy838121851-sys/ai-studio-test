@@ -171,6 +171,13 @@ import {
   renderProjectLibraryContent
 } from "./components/project-library.js";
 import {
+  appendChatImage,
+  appendChatMessage,
+  appendThinkingMessage,
+  updateChatMessage,
+  updateThinkingMessage
+} from "./components/chat-log.js";
+import {
   setActiveRailButton,
   setActiveRailPanelButton,
   toggleToolRailCollapsed
@@ -3246,55 +3253,23 @@ async function runDirectorAction(directorNode, action, options = {}) {
 }
 
 function addChat(role, text) {
-  chatPanel.classList.add("has-chat");
-  const message = document.createElement("div");
-  message.className = `message ${role}`;
-  message.textContent = text;
-  chatLog.appendChild(message);
-  chatLog.scrollTop = chatLog.scrollHeight;
-  return message;
+  return appendChatMessage({ chatPanel, chatLog, role, text });
 }
 
 function updateChat(message, text) {
-  message.classList.remove("loading");
-  message.textContent = text;
-  chatLog.scrollTop = chatLog.scrollHeight;
+  updateChatMessage({ chatLog, message, text });
 }
 
 function addThinking(title, steps = []) {
-  chatPanel.classList.add("has-chat");
-  const message = document.createElement("div");
-  message.className = "message assistant thinking";
-  message.innerHTML = `
-    <strong>${escapeHtml(title)}</strong>
-    <ul>
-      ${steps.map((step, index) => `<li class="${index === 0 ? "active" : ""}">${escapeHtml(step)}</li>`).join("")}
-    </ul>
-  `;
-  chatLog.appendChild(message);
-  chatLog.scrollTop = chatLog.scrollHeight;
-  return message;
+  return appendThinkingMessage({ chatPanel, chatLog, title, steps, escapeHtml });
 }
 
 function updateThinking(message, activeIndex, done = false) {
-  const items = message.querySelectorAll("li");
-  items.forEach((item, index) => {
-    item.classList.toggle("done", index < activeIndex || done);
-    item.classList.toggle("active", index === activeIndex && !done);
-  });
-  if (done) message.classList.add("complete");
+  updateThinkingMessage(message, activeIndex, done);
 }
 
 function addChatImage(role, imageUrl, caption) {
-  const message = document.createElement("div");
-  message.className = `message ${role} image-message`;
-  message.innerHTML = `
-    <img src="${imageUrl}" alt="${escapeHtml(caption || "生成图片")}" />
-    <span>${escapeHtml(caption || "生成图片")}</span>
-  `;
-  chatLog.appendChild(message);
-  chatLog.scrollTop = chatLog.scrollHeight;
-  return message;
+  return appendChatImage({ chatLog, role, imageUrl, caption, escapeHtml });
 }
 
 async function imageSourceToDataUrl(src) {
