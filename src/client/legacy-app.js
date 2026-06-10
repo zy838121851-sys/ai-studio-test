@@ -17,6 +17,10 @@ import {
   setCropBoxForNode,
   updateCropRestoreButtonForNode
 } from "./canvas/image-crop.js";
+import {
+  closeOpenImageToolbarMenus,
+  createImageToolbar
+} from "./canvas/image-toolbar.js";
 // TODO(architecture): This file is the compatibility layer for existing UI behavior.
 // Move remaining feature logic into /canvas, /agent, /ai, /components, or /utils before adding new workflows.
 import {
@@ -1996,6 +2000,46 @@ function ensureNodeControls(node) {
 
 function ensureImageToolbar(node) {
   if (node.querySelector(".image-node-toolbar")) return;
+  const managedToolbar = createImageToolbar((action, currentToolbar) => {
+    const img = node.querySelector(".image-frame img");
+    if (!img) return;
+    if (action === "more") {
+      currentToolbar.classList.toggle("menu-open");
+      return;
+    }
+    currentToolbar.classList.remove("menu-open");
+    if (action === "crop") return startImageCrop(node);
+    if (action === "zoom") {
+      node.classList.toggle("node-zoomed");
+      if (editingImageNode === node && imageEditPopover.classList.contains("open")) positionImageEditPopover();
+      positionTextFormatToolbar();
+      return;
+    }
+    if (action === "remove-bg") {
+      runImageEditCommand(node, "移除图片背景，保留主体完整边缘和真实细节，输出透明或纯净浅色背景，主体不要变形。", "移除背景");
+      return;
+    }
+    if (action === "expand-image") {
+      runImageEditCommand(node, "在保持主体不变的前提下向四周自然扩展画面，补全合理背景和光影，保持原图风格一致。", "扩展画面");
+      return;
+    }
+    if (action === "edit-text") {
+      selectNode(node);
+      showImageTextEditor(node);
+      return;
+    }
+    if (action === "download") {
+      const link = document.createElement("a");
+      link.href = img.src;
+      link.download = getStackTitle(node).replace(/^▧\s*/, "") || "image.png";
+      link.click();
+    }
+  });
+  node.appendChild(managedToolbar);
+  return;
+
+  // TODO(architecture): Remove legacy inline toolbar creation when this
+  // compatibility layer is retired.
   const toolbar = document.createElement("div");
   toolbar.className = "image-node-toolbar";
   toolbar.innerHTML = `
@@ -5738,7 +5782,7 @@ appRoot.addEventListener("click", (event) => {
     brandMenu?.classList.remove("open");
   }
   if (!event.target.closest(".image-node-toolbar")) {
-    document.querySelectorAll(".image-node-toolbar.menu-open").forEach((toolbar) => toolbar.classList.remove("menu-open"));
+    closeOpenImageToolbarMenus(document);
   }
   if (!event.target.closest(".shape-format-toolbar")) {
     document.querySelector("#shapeFormatToolbar")?.classList.remove("picker-open");
