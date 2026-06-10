@@ -58,6 +58,19 @@ import {
   getVisibleCanvasNodes
 } from "./canvas/node-query.js";
 import { ensureCanvasNodeId } from "./canvas/node-identity.js";
+import {
+  getSelectedNodeDeletePayload,
+  removeCanvasNodeDeep
+} from "./canvas/node-removal.js";
+import {
+  applySelectionBoxRect,
+  getSelectionBoxRect
+} from "./canvas/selection-box.js";
+import {
+  addSelectedNodeElement,
+  clearSelectedNodeElements,
+  replaceSelectedNodeElements
+} from "./canvas/canvas-selection.js";
 import { createCanvasNodeElement } from "./canvas/node-factory.js";
 import { renderToolSvg } from "./canvas/node-icons.js";
 import { renderNodeTemplate } from "./canvas/node-template.js";
@@ -104,6 +117,11 @@ import {
   renderHomeHistoryContent,
   renderProjectLibraryContent
 } from "./components/project-library.js";
+import {
+  setActiveRailButton,
+  setActiveRailPanelButton,
+  toggleToolRailCollapsed
+} from "./components/canvas-toolbar.js";
 import {
   createCanvasStateSnapshot,
   createNodeSnapshot
@@ -1766,9 +1784,7 @@ function nodeTemplate(kind, title, desc, media = {}) {
 }
 
 function clearSelection() {
-  selectedNodes.forEach((node) => node.classList.remove("selected"));
-  selectedNodes.clear();
-  selectedNode = null;
+  selectedNode = clearSelectedNodeElements(selectedNodes);
   hideTextFormatToolbar();
   hideShapeFormatToolbar();
 }
@@ -1778,10 +1794,7 @@ function selectNode(node, additive = false) {
     clearSelection();
     return;
   }
-  if (!additive) clearSelection();
-  selectedNodes.add(node);
-  selectedNode = node;
-  node.classList.add("selected");
+  selectedNode = addSelectedNodeElement(selectedNodes, node, additive);
   positionTextFormatToolbar();
   positionShapeFormatToolbar();
   recordCanvasEvent("select", { nodeId: node.dataset.nodeId });
@@ -1789,30 +1802,23 @@ function selectNode(node, additive = false) {
 }
 
 function selectNodes(nodes) {
-  clearSelection();
-  nodes.forEach((node) => {
-    selectedNodes.add(node);
-    node.classList.add("selected");
-  });
-  selectedNode = nodes[nodes.length - 1] || null;
+  selectedNode = replaceSelectedNodeElements(selectedNodes, nodes);
   positionTextFormatToolbar();
   positionShapeFormatToolbar();
 }
 
 function removeNodeDeep(node) {
-  const children = node._stackChildren || [];
-  children.forEach(removeNodeDeep);
-  if (node.dataset.objectUrl) URL.revokeObjectURL(node.dataset.objectUrl);
-  if (node.dataset.nodeId) {
-    document.querySelector(`.canvas-ai-suggestions[data-node-id="${node.dataset.nodeId}"]`)?.remove();
-  }
-  node.remove();
+  removeCanvasNodeDeep(node, {
+    removeSuggestionForNode: (nodeId) => {
+      document.querySelector(`.canvas-ai-suggestions[data-node-id="${nodeId}"]`)?.remove();
+    }
+  });
 }
 
 function deleteSelectedNode() {
   if (!selectedNodes.size) return;
-  const nodes = Array.from(selectedNodes);
-  recordCanvasEvent("delete", { count: nodes.length, nodeIds: nodes.map((node) => node.dataset.nodeId) });
+  const { nodes, eventPayload } = getSelectedNodeDeletePayload(selectedNodes);
+  recordCanvasEvent("delete", eventPayload);
   clearSelection();
   nodes.forEach(removeNodeDeep);
 }
@@ -2310,8 +2316,7 @@ function addCanvasToolNode(tool, options = {}) {
 function resetCanvasTool() {
   activeCanvasTool = "";
   canvasViewport.classList.remove("tool-draw", "tool-text", "tool-eraser");
-  document.querySelectorAll(".rail-btn").forEach((item) => item.classList.remove("active"));
-  document.querySelector('.rail-btn[data-tool="select"]')?.classList.add("active");
+  setActiveRailButton("select");
 }
 
 function runCanvasTool(tool) {
@@ -2344,8 +2349,7 @@ function setShapeTool(tool) {
   activeCanvasTool = tool;
   canvasViewport.classList.add("tool-draw");
   canvasViewport.classList.remove("tool-text", "tool-eraser");
-  document.querySelectorAll(".rail-btn").forEach((item) => item.classList.remove("active"));
-  document.querySelector('.rail-btn[data-tool="shape"]')?.classList.add("active");
+  setActiveRailButton("shape");
 }
 
 function createDrawingPreview(startClientX, startClientY, tool) {
@@ -2768,16 +2772,7 @@ function createSelectionBox() {
 
 function updateSelectionBox() {
   if (!selectionDrag) return;
-  const left = Math.min(selectionDrag.startX, selectionDrag.currentX);
-  const top = Math.min(selectionDrag.startY, selectionDrag.currentY);
-  const width = Math.abs(selectionDrag.currentX - selectionDrag.startX);
-  const height = Math.abs(selectionDrag.currentY - selectionDrag.startY);
-  Object.assign(selectionDrag.box.style, {
-    left: `${left}px`,
-    top: `${top}px`,
-    width: `${width}px`,
-    height: `${height}px`
-  });
+  applySelectionBoxRect(selectionDrag.box, getSelectionBoxRect(selectionDrag));
 }
 
 function finishSelectionBox() {
@@ -5525,8 +5520,7 @@ collapseChat.addEventListener("click", () => {
 
 document.querySelectorAll(".rail-btn[data-tool]").forEach((button) => {
   button.addEventListener("click", () => {
-    document.querySelectorAll(".rail-btn").forEach((item) => item.classList.remove("active"));
-    button.classList.add("active");
+    setActiveRailPanelButton(button);
     runCanvasTool(button.dataset.tool);
   });
 });
@@ -5569,9 +5563,7 @@ textFormatToolbar?.querySelectorAll("[data-text-align]").forEach((button) => {
 });
 
 toggleToolRail?.addEventListener("click", () => {
-  const collapsed = toolRail.classList.toggle("collapsed");
-  toggleToolRail.setAttribute("aria-expanded", String(!collapsed));
-  toggleToolRail.textContent = collapsed ? "☰" : "×";
+  toggleToolRailCollapsed(toolRail, toggleToolRail);
 });
 
 function positionBrandMenu(trigger) {
@@ -6134,8 +6126,7 @@ imageEditSubmit.addEventListener("click", async () => {
 
 document.querySelectorAll(".rail-btn[data-panel]").forEach((button) => {
   button.addEventListener("click", () => {
-    document.querySelectorAll(".rail-btn").forEach((item) => item.classList.remove("active"));
-    button.classList.add("active");
+    setActiveRailPanelButton(button);
     floatingLibrary.classList.add("open");
   });
 });
