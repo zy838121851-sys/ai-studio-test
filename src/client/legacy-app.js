@@ -98,6 +98,8 @@ import {
 } from "./canvas/node-removal.js";
 import {
   applySelectionBoxRect,
+  createSelectionBoxElement,
+  getWorldSelectionArea,
   getSelectionBoxRect
 } from "./canvas/selection-box.js";
 import {
@@ -1779,10 +1781,7 @@ function getNodeBounds(node) {
 }
 
 function createSelectionBox() {
-  const box = document.createElement("div");
-  box.className = "selection-box";
-  canvasViewport.appendChild(box);
-  return box;
+  return createSelectionBoxElement(canvasViewport);
 }
 
 function updateSelectionBox() {
@@ -1792,14 +1791,7 @@ function updateSelectionBox() {
 
 function finishSelectionBox() {
   if (!selectionDrag) return;
-  const start = viewportPointToWorld(selectionDrag.startClientX, selectionDrag.startClientY);
-  const end = viewportPointToWorld(selectionDrag.currentClientX, selectionDrag.currentClientY);
-  const area = {
-    x: Math.min(start.x, end.x),
-    y: Math.min(start.y, end.y),
-    width: Math.abs(end.x - start.x),
-    height: Math.abs(end.y - start.y)
-  };
+  const area = getWorldSelectionArea(selectionDrag, viewportPointToWorld);
   const selected = area.width < 4 && area.height < 4
     ? []
     : getVisibleCanvasNodes(canvasWorld).filter((node) => rectsIntersect(getNodeBounds(node), area));
