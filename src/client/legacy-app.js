@@ -192,6 +192,11 @@ import {
   showGenerationChoiceOverlay
 } from "./components/generation-choice-overlay.js";
 import {
+  hideUploadChoiceBubbles,
+  setUploadChoiceHover,
+  showUploadChoiceBubbles
+} from "./components/upload-choice-bubbles.js";
+import {
   applyHomeFileState,
   renderHomeFilePreview as renderHomeFilePreviewList,
   syncHomeModelPicker as syncHomeModelPickerView
@@ -2385,50 +2390,15 @@ function showUploadModeBubbles(files, point, clientX, clientY) {
     addUploadedFiles(files, point);
     return;
   }
-  pendingUploadChoice = { files: Array.from(files), point };
-  let bubbles = document.querySelector(".upload-choice-bubbles");
-  if (!bubbles) {
-    bubbles = document.createElement("div");
-    bubbles.className = "upload-choice-bubbles";
-    bubbles.innerHTML = `
-      <button type="button" data-upload-mode="reference">
-        <strong>参考图</strong>
-        <span>仅放到画布</span>
-      </button>
-      <button type="button" data-upload-mode="generate">
-        <strong>做生成</strong>
-        <span>让 AI 继续创作</span>
-      </button>
-    `;
-    appRoot.appendChild(bubbles);
-  }
-  const x = clientX ?? window.innerWidth / 2;
-  const y = clientY ?? window.innerHeight / 2;
-  const centered = clientX == null || clientY == null;
-  bubbles.classList.toggle("centered", centered);
-  if (!centered) {
-    bubbles.style.left = `${Math.min(window.innerWidth - 620, Math.max(24, x - 300))}px`;
-    bubbles.style.top = `${Math.min(window.innerHeight - 260, Math.max(24, y + 28))}px`;
-  } else {
-    bubbles.style.left = "";
-    bubbles.style.top = "";
-  }
-  appRoot.classList.add("upload-choosing");
-  bubbles.classList.add("open");
+  pendingUploadChoice = showUploadChoiceBubbles({ appRoot, files, point, clientX, clientY });
 }
-
 function hideUploadModeBubbles() {
-  document.querySelector(".upload-choice-bubbles")?.classList.remove("open");
-  appRoot.classList.remove("upload-choosing");
+  hideUploadChoiceBubbles({ appRoot });
   uploadDragDepth = 0;
 }
-
 function setUploadModeHover(mode) {
-  document.querySelectorAll("[data-upload-mode]").forEach((button) => {
-    button.classList.toggle("drop-hover", button.dataset.uploadMode === mode);
-  });
+  setUploadChoiceHover(mode);
 }
-
 function chooseUploadMode(mode) {
   if (!pendingUploadChoice) return;
   const { files, point } = pendingUploadChoice;
