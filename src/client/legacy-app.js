@@ -96,8 +96,6 @@ import {
 } from "./canvas/model-parser.js";
 import { initModelViewerPreview } from "./canvas/model-viewer.js";
 import {
-  applyNodePreviewSize,
-  buildGenerationPreviewConfig,
   buildUploadedNodeConfig,
   markUploadedNode
 } from "./canvas/upload-nodes.js";
@@ -121,9 +119,14 @@ import {
   clearSelectedNodeElements,
   replaceSelectedNodeElements
 } from "./canvas/canvas-selection.js";
-import { createCanvasNodeElement } from "./canvas/node-factory.js";
 import { renderToolSvg } from "./canvas/node-icons.js";
 import { renderNodeTemplate } from "./canvas/node-template.js";
+import {
+  createGenerationPreviewNode,
+  createWorkspaceNode,
+  replacePreviewNodeWithImage
+} from "./canvas/node-creation.js";
+import { addSourceBadgeElement } from "./canvas/source-badge.js";
 import {
   getActiveProjectId,
   getActiveProjectRecord,
@@ -199,6 +202,7 @@ import {
   renderHomeFilePreview as renderHomeFilePreviewList,
   syncHomeModelPicker as syncHomeModelPickerView
 } from "./components/home-composer.js";
+import { bindHomeLibraryInteractions } from "./components/home-library-interactions.js";
 import {
   bindAICoreWorkspaceElement,
   createAICoreWorkspaceElement
@@ -208,14 +212,17 @@ import {
   positionFloatingMenu
 } from "./components/menu-position.js";
 import {
+  initCanvasToolbar,
   setActiveRailButton,
   setActiveRailPanelButton,
   toggleToolRailCollapsed
 } from "./components/canvas-toolbar.js";
+import { initTaskBar } from "./components/task-bar.js";
 import {
   createCanvasStateSnapshot,
   createNodeSnapshot
 } from "./agent/canvas-state.js";
+import { normalizeAgentEventType } from "./agent/agent-events.js";
 import {
   applyAgentEnabledState,
   applyAgentState,
@@ -378,7 +385,7 @@ let libraryWheelLock = false;
 let libraryTransitionDirection = 0;
 const canvasEvents = getCanvasEventStore();
 const SHAPE_TEXT_TOOLS = new Set(["text-rect", "text-circle", "speech", "left-arrow", "right-arrow"]);
-let projects = loadProjects();
+let projects = loadProjectsFromStorage();
 let activeProjectId = getActiveProjectId();
 let libraryViewMode = getLibraryViewMode();
 let projectRuntime = null;
@@ -404,53 +411,7 @@ localStorage.removeItem("design-ai-theme");
 aiCore.classList.add("agent-disabled", "agent-idle");
 aiCoreHint.textContent = "点击启用 AI Core";
 
-function loadProjects() {
-  return loadProjectsFromStorage();
-}
 
-function saveProjects() {
-  saveProjectsToStorage(projects);
-}
-
-function makeDemoProjectThumb(title, index) {
-  return makeDemoThumb(title, index, escapeHtml);
-
-  // TODO(architecture): Remove legacy inline demo thumbnail generator after
-  // project initialization fully lives in /core.
-  const palettes = [
-    ["#f8fbff", "#dde8ff", "#4d9cff"],
-    ["#fff7ed", "#fed7aa", "#f97316"],
-    ["#f8fafc", "#c7d2fe", "#111827"],
-    ["#fdf2f8", "#fbcfe8", "#db2777"],
-    ["#ecfeff", "#bae6fd", "#0284c7"],
-    ["#f7fee7", "#d9f99d", "#65a30d"],
-    ["#faf5ff", "#e9d5ff", "#7c3aed"],
-    ["#fff1f2", "#fecdd3", "#e11d48"],
-    ["#f0fdf4", "#bbf7d0", "#16a34a"],
-    ["#f9fafb", "#d1d5db", "#374151"]
-  ];
-  const [a, b, c] = palettes[index % palettes.length];
-  const safeTitle = escapeHtml(title);
-  const svg = `
-    <svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
-      <defs>
-        <linearGradient id="g" x1="0" x2="1" y1="0" y2="1">
-          <stop offset="0" stop-color="${a}"/>
-          <stop offset="1" stop-color="${b}"/>
-        </linearGradient>
-      </defs>
-      <rect width="960" height="540" rx="28" fill="url(#g)"/>
-      <rect x="54" y="52" width="852" height="72" rx="20" fill="rgba(255,255,255,.74)"/>
-      <rect x="86" y="164" width="372" height="260" rx="28" fill="rgba(255,255,255,.78)"/>
-      <rect x="500" y="164" width="320" height="52" rx="18" fill="${c}" opacity=".9"/>
-      <rect x="500" y="242" width="250" height="24" rx="12" fill="#17202c" opacity=".2"/>
-      <rect x="500" y="292" width="300" height="24" rx="12" fill="#17202c" opacity=".14"/>
-      <circle cx="272" cy="294" r="86" fill="${c}" opacity=".18"/>
-      <text x="82" y="97" fill="#17202c" font-family="Arial, sans-serif" font-size="28" font-weight="800">${safeTitle}</text>
-      <text x="500" y="396" fill="#17202c" font-family="Arial, sans-serif" font-size="22" opacity=".58">AI Studio Board ${index + 1}</text>
-    </svg>`;
-  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svg)}`;
-}
 
 function ensureDemoProjects() {
   const nextProjects = buildDemoProjects({
@@ -461,41 +422,7 @@ function ensureDemoProjects() {
   });
   if (nextProjects === projects) return;
   projects = nextProjects;
-  saveProjects();
-  return;
-
-  // TODO(architecture): Remove legacy inline demo seeding after validation.
-  const titles = [
-    "潮玩公仔 3D 转化",
-    "蕾丝连衣裙主图",
-    "智能插座场景",
-    "香水海报视觉",
-    "咖啡杯产品页",
-    "运动鞋广告片",
-    "耳机光影海报",
-    "美妆套装详情",
-    "家具空间渲染",
-    "食品包装提案"
-  ];
-  const existingDemoIds = new Set(projects.filter((project) => project.isDemo).map((project) => project.id));
-  const missingTitles = titles
-    .map((title, index) => ({ title, index }))
-    .filter((item) => !existingDemoIds.has(`demo-project-${item.index + 1}`));
-  if (!missingTitles.length && hasDemoProjectsSeeded()) return;
-  const now = Date.now();
-  const demos = missingTitles.map(({ title, index }) => ({
-    id: `demo-project-${index + 1}`,
-    title,
-    prompt: `${title} 的历史画板`,
-    thumbnail: makeDemoProjectThumb(title, index),
-    createdAt: now - (index + 1) * 86400000,
-    updatedAt: now - index * 4860000,
-    itemCount: 1,
-    isDemo: true
-  }));
-  projects = [...demos, ...projects];
-  markDemoProjectsSeeded();
-  saveProjects();
+  saveProjectsToStorage(projects);
 }
 
 function createProject({ title = "Untitled Project", prompt = "", thumbnail = "" } = {}) {
@@ -543,12 +470,6 @@ function saveCurrentProject() {
   }
 }
 
-function formatProjectDate(time) {
-  return formatStoredProjectDate(time);
-  if (!time) return "刚刚";
-  const date = new Date(time);
-  return `${date.getMonth() + 1}月${date.getDate()}日 ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
-}
 
 function showView(view) {
   applyViewState({
@@ -567,155 +488,8 @@ function showView(view) {
   if (view === "library") renderProjectLibrary();
 }
 
-function wait(ms) {
-  return waitFor(ms);
-}
-
-function renderProjectLibraryLegacy() {
-  if (!projectGrid) return;
-  projectGrid.classList.toggle("mode-grid", libraryViewMode === "grid");
-  projectGrid.classList.toggle("mode-stack", libraryViewMode !== "grid");
-  projectGrid.classList.toggle("switch-next", libraryTransitionDirection > 0);
-  projectGrid.classList.toggle("switch-prev", libraryTransitionDirection < 0);
-  if (!projects.length) {
-    projectGrid.innerHTML = `
-      <button class="project-empty" type="button" data-new-project>
-        <span>＋</span>
-        <strong>创建第一个项目</strong>
-        <small>从一句描述开始生成图片</small>
-      </button>
-    `;
-    return;
-  }
-
-  const activeIndex = Math.max(0, projects.findIndex((project) => project.id === activeProjectId));
-  const timelineLimit = 4;
-  const timelineStart = Math.max(0, Math.min(activeIndex - 1, projects.length - timelineLimit));
-  const timelineProjects = projects.slice(timelineStart, timelineStart + timelineLimit);
-  const viewSwitch = `
-    <div class="library-bottom-tools" aria-label="项目库视图切换">
-      <div class="library-view-switch">
-        <button class="${libraryViewMode === "stack" ? "active" : ""}" type="button" data-library-mode="stack"><i></i>堆叠</button>
-        <button class="${libraryViewMode === "grid" ? "active" : ""}" type="button" data-library-mode="grid">卡片</button>
-      </div>
-      <div class="library-count-pill">☆ ${projects.length}</div>
-    </div>
-  `;
-
-  if (libraryViewMode === "grid") {
-    projectGrid.innerHTML = `
-      <section class="project-card-board" aria-label="项目卡片">
-        <button class="library-new-card" type="button" data-new-project>
-          <span>＋</span>
-          <strong>新建项目</strong>
-        </button>
-        ${projects.map((project) => `
-          <article class="library-small-card" data-project-id="${escapeHtml(project.id)}">
-            <button type="button" data-open-project="${escapeHtml(project.id)}">
-              <div>
-                ${project.thumbnail
-                  ? `<img src="${escapeHtml(project.thumbnail)}" alt="${escapeHtml(project.title)}" />`
-                  : `<span>✦</span>`}
-              </div>
-              <strong>${escapeHtml(project.title || "未命名")}</strong>
-              <small>更新于 ${formatProjectDate(project.updatedAt)}</small>
-            </button>
-          </article>
-        `).join("")}
-      </section>
-      ${viewSwitch}
-    `;
-    return;
-  }
-
-  const timeline = timelineProjects.map((project) => {
-    const index = projects.indexOf(project);
-    return `
-    <button class="timeline-item${index === activeIndex ? " active" : ""}" type="button" data-library-index="${index}">
-      <span>${String(projects.length - index).padStart(2, "0")}</span>
-      <strong>${formatProjectDate(project.updatedAt)}</strong>
-    </button>
-  `;
-  }).join("");
-
-  const boards = projects.map((project, index) => {
-    const rawDepth = (index - activeIndex + projects.length) % projects.length;
-    const depth = Math.min(rawDepth, 3);
-    return `
-    <article class="project-stack-card${index === activeIndex ? " active" : ""}${rawDepth > 3 ? " distant" : ""}" style="--stack-index:${index}; --stack-depth:${depth}" data-project-id="${escapeHtml(project.id)}">
-      <button class="project-board-preview" type="button" data-open-project="${escapeHtml(project.id)}">
-        ${project.thumbnail
-          ? `<img src="${escapeHtml(project.thumbnail)}" alt="${escapeHtml(project.title)}" />`
-          : `<span>✦</span>`}
-      </button>
-      <div class="project-board-meta">
-        <span>${index + 1} / ${projects.length}</span>
-        <strong>${escapeHtml(project.title)}</strong>
-        <p>${escapeHtml(project.prompt || "空白画布项目")}</p>
-      </div>
-    </article>
-  `;
-  }).join("");
-
-  projectGrid.innerHTML = `
-    <aside class="project-timeline" aria-label="历史时间轴">
-      <small>Timeline</small>
-      <div>${timeline}</div>
-    </aside>
-    <section class="project-stack" aria-label="历史画板">
-      <button class="stack-nav stack-nav-up" type="button" data-library-step="-1" aria-label="上一张"></button>
-      ${boards}
-      <button class="stack-nav stack-nav-down" type="button" data-library-step="1" aria-label="下一张"></button>
-    </section>
-    <aside class="project-count">
-      <strong>${projects.length}</strong>
-      <span>boards</span>
-    </aside>
-    ${viewSwitch}
-  `;
-}
-
-function renderHomeHistoryLegacy() {
-  if (!homeHistory) return;
-  if (!projects.length) {
-    homeHistory.innerHTML = "";
-    return;
-  }
-  const previewProjects = projects.slice(0, 3);
-  homeHistory.innerHTML = `
-    <button class="home-history-trigger" type="button" data-nav-view="library" aria-label="展开项目库">
-      <span class="home-history-stack">
-        ${previewProjects.map((project, index) => `
-          <i style="--home-stack-index:${index}">
-            ${project.thumbnail
-              ? `<img src="${escapeHtml(project.thumbnail)}" alt="${escapeHtml(project.title)}" />`
-              : `<b>✦</b>`}
-          </i>
-        `).join("")}
-      </span>
-      <span class="home-history-open">向上展开项目库</span>
-    </button>
-  `;
-}
-
-const demoProjectTitles = [
-  "潮玩公仔 3D 转化",
-  "蕾丝连衣裙主图",
-  "智能插座场景",
-  "香水海报视觉",
-  "咖啡杯产品页",
-  "运动鞋广告片",
-  "耳机光影海报",
-  "美妆套装详情",
-  "家具空间渲染",
-  "食品包装提案"
-];
 
 function getProjectDisplayTitle(project, index = 0) {
-  if (project?.isDemo) {
-    const idIndex = Number(String(project.id || "").match(/(\d+)$/)?.[1] || 0) - 1;
-    return demoProjectTitles[idIndex >= 0 ? idIndex : index] || project.title || "Fresh Ideas";
-  }
   return getStoredProjectDisplayTitle(project, index);
 }
 
@@ -725,140 +499,8 @@ function getProjectDisplayPrompt(project) {
 }
 
 function getProjectPreview(project, index = 0) {
-  if (project?.isDemo) return makeDemoProjectThumb(getProjectDisplayTitle(project, index), index);
+  if (project?.isDemo) return makeDemoThumb(getProjectDisplayTitle(project, index), index, escapeHtml);
   return getStoredProjectPreview(project, index);
-}
-
-function renderProjectLibraryBroken() {
-  if (!projectGrid) return;
-  projectGrid.classList.toggle("mode-grid", libraryViewMode === "grid");
-  projectGrid.classList.toggle("mode-stack", libraryViewMode !== "grid");
-  projectGrid.classList.toggle("switch-next", libraryTransitionDirection > 0);
-  projectGrid.classList.toggle("switch-prev", libraryTransitionDirection < 0);
-
-  if (!projects.length) {
-    projectGrid.innerHTML = `
-      <button class="project-empty" type="button" data-new-project>
-        <span>+</span>
-        <strong>创建第一个项目</strong>
-        <small>从一句描述开始生成图片</small>
-      </button>
-    `;
-    return;
-  }
-
-  const activeIndex = Math.max(0, projects.findIndex((project) => project.id === activeProjectId));
-  const timelineLimit = 4;
-  const timelineStart = Math.max(0, Math.min(activeIndex - 1, projects.length - timelineLimit));
-  const timelineProjects = projects.slice(timelineStart, timelineStart + timelineLimit);
-  const viewSwitch = `
-    <div class="library-bottom-tools" aria-label="项目库视图切换">
-      <div class="library-view-switch">
-        <button class="${libraryViewMode === "stack" ? "active" : ""}" type="button" data-library-mode="stack"><i></i>堆叠</button>
-        <button class="${libraryViewMode === "grid" ? "active" : ""}" type="button" data-library-mode="grid">卡片</button>
-      </div>
-      <div class="library-count-pill">☆ ${projects.length}</div>
-    </div>
-  `;
-
-  if (libraryViewMode === "grid") {
-    projectGrid.innerHTML = `
-      <section class="project-card-board" aria-label="项目卡片">
-        <button class="library-new-card" type="button" data-new-project>
-          <span>+</span>
-          <strong>新建项目</strong>
-        </button>
-        ${projects.map((project, index) => {
-          const preview = getProjectPreview(project, index);
-          return `
-            <article class="library-small-card" data-project-id="${escapeHtml(project.id)}">
-              <button type="button" data-open-project="${escapeHtml(project.id)}">
-                <div>
-                  ${preview
-                    ? `<img src="${escapeHtml(preview)}" alt="${escapeHtml(getProjectDisplayTitle(project, index))}" />`
-                    : `<span>D</span>`}
-                </div>
-                <strong>${escapeHtml(getProjectDisplayTitle(project, index))}</strong>
-                <small>更新于 ${formatProjectDate(project.updatedAt)}</small>
-              </button>
-            </article>
-          `;
-        }).join("")}
-      </section>
-      ${viewSwitch}
-    `;
-    return;
-  }
-
-  const timeline = timelineProjects.map((project) => {
-    const index = projects.indexOf(project);
-    return `
-      <button class="timeline-item${index === activeIndex ? " active" : ""}" type="button" data-library-index="${index}">
-        <span>${String(projects.length - index).padStart(2, "0")}</span>
-        <strong>${formatProjectDate(project.updatedAt)}</strong>
-      </button>
-    `;
-  }).join("");
-
-  const boards = projects.map((project, index) => {
-    const rawDepth = (index - activeIndex + projects.length) % projects.length;
-    const depth = Math.min(rawDepth, 3);
-    const preview = getProjectPreview(project, index);
-    return `
-      <article class="project-stack-card${index === activeIndex ? " active" : ""}${rawDepth > 3 ? " distant" : ""}" style="--stack-index:${index}; --stack-depth:${depth}" data-project-id="${escapeHtml(project.id)}">
-        <button class="project-board-preview" type="button" data-open-project="${escapeHtml(project.id)}">
-          ${preview
-            ? `<img src="${escapeHtml(preview)}" alt="${escapeHtml(getProjectDisplayTitle(project, index))}" />`
-            : `<span>D</span>`}
-        </button>
-        <div class="project-board-meta">
-          <span>${index + 1} / ${projects.length}</span>
-          <strong>${escapeHtml(getProjectDisplayTitle(project, index))}</strong>
-          <p>${escapeHtml(getProjectDisplayPrompt(project))}</p>
-        </div>
-      </article>
-    `;
-  }).join("");
-
-  projectGrid.innerHTML = `
-    <aside class="project-timeline" aria-label="历史时间轴">
-      <small>Timeline</small>
-      <div>${timeline}</div>
-    </aside>
-    <section class="project-stack" aria-label="历史画板">
-      <button class="stack-nav stack-nav-up" type="button" data-library-step="-1" aria-label="上一张"></button>
-      ${boards}
-      <button class="stack-nav stack-nav-down" type="button" data-library-step="1" aria-label="下一张"></button>
-    </section>
-    <aside class="project-count">
-      <strong>${projects.length}</strong>
-      <span>boards</span>
-    </aside>
-    ${viewSwitch}
-  `;
-}
-
-function renderHomeHistoryBroken() {
-  if (!homeHistory) return;
-  if (!projects.length) {
-    homeHistory.innerHTML = "";
-    return;
-  }
-  const previewProjects = projects.slice(0, 3);
-  homeHistory.innerHTML = `
-    <button class="home-history-trigger" type="button" data-nav-view="library" aria-label="展开项目库">
-      <span class="home-history-stack" aria-hidden="true">
-        ${previewProjects.map((project, index) => `
-          <i style="--home-stack-index:${index}">
-            ${project.thumbnail
-              ? `<img src="${escapeHtml(project.thumbnail)}" alt="" />`
-              : `<b>D</b>`}
-          </i>
-        `).join("")}
-      </span>
-      <span class="home-history-open" aria-hidden="true"></span>
-    </button>
-  `;
 }
 
 function renderProjectLibrary() {
@@ -874,150 +516,8 @@ function renderProjectLibrary() {
     getProjectPreview,
     getProjectDisplayTitle,
     getProjectDisplayPrompt,
-    formatProjectDate
+    formatProjectDate: formatStoredProjectDate
   });
-  return;
-  // TODO: remove legacy inline project-library renderer after visual verification.
-  projectGrid.classList.toggle("mode-grid", libraryViewMode === "grid");
-  projectGrid.classList.toggle("mode-stack", libraryViewMode !== "grid");
-  projectGrid.classList.toggle("switch-next", libraryTransitionDirection > 0);
-  projectGrid.classList.toggle("switch-prev", libraryTransitionDirection < 0);
-
-  if (!projects.length) {
-    projectGrid.innerHTML = `
-      <button class="project-empty" type="button" data-new-project>
-        <span>+</span>
-        <strong>创建第一个项目</strong>
-        <small>从一句描述开始生成图片</small>
-      </button>
-    `;
-    return;
-  }
-
-  const activeIndex = Math.max(0, projects.findIndex((project) => project.id === activeProjectId));
-  const timelineLimit = 4;
-  const timelineStart = Math.max(0, Math.min(activeIndex - 1, projects.length - timelineLimit));
-  const timelineProjects = projects.slice(timelineStart, timelineStart + timelineLimit);
-  const viewSwitch = `
-    <div class="library-bottom-tools" aria-label="项目库视图切换">
-      <div class="library-view-switch">
-        <button class="${libraryViewMode === "stack" ? "active" : ""}" type="button" data-library-mode="stack"><i></i>堆叠</button>
-        <button class="${libraryViewMode === "grid" ? "active" : ""}" type="button" data-library-mode="grid">卡片</button>
-      </div>
-      <div class="library-count-pill">☆ ${projects.length}</div>
-    </div>
-  `;
-
-  if (libraryViewMode === "grid") {
-    projectGrid.innerHTML = `
-      <section class="project-card-board" aria-label="项目卡片">
-        <button class="library-new-card" type="button" data-new-project>
-          <span>+</span>
-          <strong>新建项目</strong>
-        </button>
-        ${projects.map((project, index) => {
-          const preview = getProjectPreview(project, index);
-          return `
-            <article class="library-small-card" data-project-id="${escapeHtml(project.id)}">
-              <button type="button" data-open-project="${escapeHtml(project.id)}">
-                <div>
-                  ${preview
-                    ? `<img src="${escapeHtml(preview)}" alt="${escapeHtml(getProjectDisplayTitle(project, index))}" />`
-                    : `<span>D</span>`}
-                </div>
-                <strong>${escapeHtml(getProjectDisplayTitle(project, index))}</strong>
-                <small>更新于 ${formatProjectDate(project.updatedAt)}</small>
-              </button>
-            </article>
-          `;
-        }).join("")}
-      </section>
-      ${viewSwitch}
-    `;
-    return;
-  }
-
-  const timeline = timelineProjects.map((project) => {
-    const index = projects.indexOf(project);
-    return `
-      <button class="timeline-item${index === activeIndex ? " active" : ""}" type="button" data-library-index="${index}">
-        <span>${String(projects.length - index).padStart(2, "0")}</span>
-        <strong>${formatProjectDate(project.updatedAt)}</strong>
-      </button>
-    `;
-  }).join("");
-
-  const boards = projects.map((project, index) => {
-    const rawDepth = (index - activeIndex + projects.length) % projects.length;
-    const depth = Math.min(rawDepth, 3);
-    const preview = getProjectPreview(project, index);
-    return `
-      <article class="project-stack-card${index === activeIndex ? " active" : ""}${rawDepth > 3 ? " distant" : ""}" style="--stack-index:${index}; --stack-depth:${depth}" data-project-id="${escapeHtml(project.id)}">
-        <button class="project-board-preview" type="button" data-open-project="${escapeHtml(project.id)}">
-          ${preview
-            ? `<img src="${escapeHtml(preview)}" alt="${escapeHtml(getProjectDisplayTitle(project, index))}" />`
-            : `<span>D</span>`}
-        </button>
-        <div class="project-board-meta">
-          <span>${index + 1} / ${projects.length}</span>
-          <strong>${escapeHtml(getProjectDisplayTitle(project, index))}</strong>
-          <p>${escapeHtml(getProjectDisplayPrompt(project))}</p>
-        </div>
-      </article>
-    `;
-  }).join("");
-
-  projectGrid.innerHTML = `
-    <aside class="project-timeline" aria-label="历史时间轴">
-      <small>Timeline</small>
-      <div>${timeline}</div>
-    </aside>
-    <section class="project-stack" aria-label="历史画板">
-      <button class="stack-nav stack-nav-up" type="button" data-library-step="-1" aria-label="上一张"></button>
-      ${boards}
-      <button class="stack-nav stack-nav-down" type="button" data-library-step="1" aria-label="下一张"></button>
-    </section>
-    <aside class="project-count">
-      <strong>${projects.length}</strong>
-      <span>boards</span>
-    </aside>
-    ${viewSwitch}
-  `;
-}
-
-function renderHomeHistoryMojibake() {
-  if (!homeHistory) return;
-  if (!projects.length) {
-    homeHistory.innerHTML = `
-      <button class="home-history-trigger" type="button" data-nav-view="library" aria-label="展开项目库">
-        <span class="home-history-stack" aria-hidden="true">
-          <i style="--home-stack-index:0"><b>D</b></i>
-          <i style="--home-stack-index:1"><b>D</b></i>
-          <i style="--home-stack-index:2"><b>D</b></i>
-        </span>
-        <span class="home-history-open" aria-hidden="true"></span>
-      </button>
-    `;
-    return;
-  }
-  const previewProjects = projects.slice(0, 3);
-  homeHistory.innerHTML = `
-    <button class="home-history-trigger" type="button" data-nav-view="library" aria-label="展开项目库">
-      <span class="home-history-stack" aria-hidden="true">
-        ${previewProjects.map((project, index) => {
-          const preview = getProjectPreview(project, index);
-          return `
-            <i style="--home-stack-index:${index}">
-              ${preview
-                ? `<img src="${escapeHtml(preview)}" alt="" />`
-                : `<b>D</b>`}
-            </i>
-          `;
-        }).join("")}
-      </span>
-      <span class="home-history-open" aria-hidden="true"></span>
-    </button>
-  `;
 }
 
 function renderHomeHistory() {
@@ -1026,25 +526,6 @@ function renderHomeHistory() {
     projects,
     getProjectPreview
   });
-  return;
-  // TODO: remove legacy inline home-history renderer after visual verification.
-  const previewProjects = projects.length ? projects.slice(0, 3) : [];
-  const cards = (previewProjects.length ? previewProjects : [{ title: "Fresh Ideas" }, { title: "Fresh Ideas" }, { title: "Fresh Ideas" }])
-    .map((project, index) => {
-      const preview = project.id ? getProjectPreview(project, index) : "";
-      return `
-        <i style="--home-stack-index:${index}">
-          ${preview ? `<img src="${escapeHtml(preview)}" alt="" />` : `<b>D</b>`}
-        </i>
-      `;
-    }).join("");
-
-  homeHistory.innerHTML = `
-    <button class="home-history-trigger" type="button" data-nav-view="library" aria-label="展开项目库">
-      <span class="home-history-stack" aria-hidden="true">${cards}</span>
-      <span class="home-history-open" aria-hidden="true"></span>
-    </button>
-  `;
 }
 
 function selectLibraryProject(index) {
@@ -1113,7 +594,7 @@ function makeProjectTitle(prompt) {
 async function generateHomeProject(prompt, model, files = []) {
   const project = createProject({ title: makeProjectTitle(prompt), prompt });
   document.body.classList.add("home-transitioning");
-  await wait(260);
+  await waitFor(260);
   resetCanvasForProject();
   showView("canvas");
   document.body.classList.remove("home-transitioning");
@@ -1493,19 +974,6 @@ function positionShapeFormatToolbar() {
 
 function hslToHex(h, s, l) {
   return hslToHexColor(h, s, l);
-  // TODO: remove legacy inline color conversion after drawing-tool verification.
-  const saturation = s / 100;
-  const lightness = l / 100;
-  const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
-  const x = c * (1 - Math.abs((h / 60) % 2 - 1));
-  const m = lightness - c / 2;
-  const [r, g, b] = h < 60 ? [c, x, 0]
-    : h < 120 ? [x, c, 0]
-      : h < 180 ? [0, c, x]
-        : h < 240 ? [0, x, c]
-          : h < 300 ? [x, 0, c]
-            : [c, 0, x];
-  return `#${[r, g, b].map((value) => Math.round((value + m) * 255).toString(16).padStart(2, "0")).join("")}`;
 }
 
 function setSelectedShapeColor(target, color) {
@@ -1534,31 +1002,10 @@ function isFixedStrokeTool(tool) {
 
 function pointsToPath(points, offsetX = 0, offsetY = 0) {
   return buildPointsPath(points, offsetX, offsetY);
-  // TODO: remove legacy inline path builder after drawing-tool verification.
-  if (!points.length) return "";
-  if (points.length === 1) return `M${points[0].x - offsetX} ${points[0].y - offsetY}`;
-  return points.map((point, index) => `${index ? "L" : "M"}${point.x - offsetX} ${point.y - offsetY}`).join(" ");
 }
 
 function linearSvg(tool, width, height, start, end) {
   return buildLinearSvg(tool, width, height, start, end);
-  // TODO: remove legacy inline linear SVG builder after drawing-tool verification.
-  const sx = start.x;
-  const sy = start.y;
-  const ex = end.x;
-  const ey = end.y;
-  if (tool === "line") {
-    return `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none"><path d="M${sx} ${sy}L${ex} ${ey}" /></svg>`;
-  }
-  const angle = Math.atan2(ey - sy, ex - sx);
-  const head = Math.min(28, Math.max(14, Math.hypot(ex - sx, ey - sy) * 0.18));
-  const a1 = angle - Math.PI / 7;
-  const a2 = angle + Math.PI / 7;
-  const hx1 = ex - Math.cos(a1) * head;
-  const hy1 = ey - Math.sin(a1) * head;
-  const hx2 = ex - Math.cos(a2) * head;
-  const hy2 = ey - Math.sin(a2) * head;
-  return `<svg viewBox="0 0 ${width} ${height}" preserveAspectRatio="none"><path d="M${sx} ${sy}L${ex} ${ey}" /><path d="M${hx1} ${hy1}L${ex} ${ey}L${hx2} ${hy2}" /></svg>`;
 }
 
 function positionTextFormatToolbar() {
@@ -1607,148 +1054,6 @@ function viewportCenterPoint() {
   });
 }
 
-function detectKind(prompt) {
-  return detectGenerationKind(prompt);
-}
-
-function drawToolSvg(tool) {
-  return renderToolSvg(tool);
-}
-
-function nodeTemplateBroken(kind, title, desc, media = {}) {
-  const safeTitle = escapeHtml(title);
-  const safeDesc = escapeHtml(desc);
-
-  if (kind === "loading-image") {
-    return `
-      <div class="image-file-name">▧ ${safeTitle}</div>
-      <figure class="image-frame generation-frame">
-        <div class="generation-content">
-          <div class="generation-spinner"></div>
-          <strong>正在生成图片</strong>
-          <span>${safeDesc}</span>
-        </div>
-      </figure>
-    `;
-  }
-
-  if (kind === "image") {
-    return `
-      <div class="image-file-name">▧ ${safeTitle}</div>
-      <figure class="image-frame">
-        <img src="${media.url}" alt="${safeTitle}" draggable="false" />
-      </figure>
-    `;
-  }
-
-  if (kind === "model") {
-    return `
-      <div class="image-file-name model-file-name">◌ ${safeTitle}</div>
-      <div class="model-viewer">
-        <canvas data-model-viewer aria-label="${safeTitle} 3D 预览"></canvas>
-        <div class="model-loading">左键拖动 · 右键旋转 · 滚轮缩放</div>
-      </div>
-    `;
-  }
-
-  if (kind === "director") {
-    const start = Number(media.suggestionStart || 0);
-    const visibleActions = Array.from({ length: directorViewCount }, (_, index) => {
-      return directorActions[(start + index) % directorActions.length];
-    });
-    return `
-      <div class="director-head">
-        <span>✧ AI Suggestions</span>
-        <button type="button" class="director-refresh" data-director-action="refresh" title="换一组">↻</button>
-      </div>
-      <div class="director-actions">
-        ${visibleActions.map((action, index) => `
-          <button type="button" class="director-tile" data-director-action="${action.type}">
-            <small>${String(index + 1).padStart(2, "0")}</small>
-            <span>${escapeHtml(action.title)}</span>
-          </button>
-        `).join("")}
-        <button class="director-tile director-generate-all" type="button" data-director-action="all">
-          <small>04</small>
-          <span>生成全部</span>
-          <b>✦</b>
-        </button>
-      </div>
-    `;
-  }
-
-  if (kind === "draw") {
-    const tool = media.tool || "rect";
-    const label = media.label || safeTitle;
-    if (tool === "text") {
-      return `
-        <div class="draw-node draw-text">
-          <div class="canvas-text-editor" contenteditable="false" spellcheck="false">${escapeHtml(label)}</div>
-        </div>
-      `;
-    }
-    if (SHAPE_TEXT_TOOLS.has(tool)) {
-      return `
-        <div class="draw-node draw-${escapeHtml(tool)}">
-          <div class="draw-shape" aria-hidden="true">
-            ${drawToolSvg(tool)}
-          </div>
-          <div class="canvas-text-editor shape-text-editor" contenteditable="false" spellcheck="false">${escapeHtml(label)}</div>
-        </div>
-      `;
-    }
-    return `
-      <div class="draw-node draw-${escapeHtml(tool)}">
-        <div class="draw-shape" aria-hidden="true">
-          ${drawToolSvg(tool)}
-        </div>
-      </div>
-    `;
-  }
-
-  if (kind === "3d") {
-    return `
-      <div class="node-label">3D 预览</div>
-      <div class="cube-scene">
-        <div class="cube">
-          <span class="face front"></span>
-          <span class="face back"></span>
-          <span class="face right"></span>
-          <span class="face left"></span>
-          <span class="face top"></span>
-          <span class="face bottom"></span>
-        </div>
-      </div>
-      <p>${desc}</p>
-    `;
-  }
-
-  if (kind === "video" && media.url) {
-    return `
-      <div class="node-label">视频</div>
-      <video class="media-preview video-file-preview" src="${media.url}" controls></video>
-      <h3>${safeTitle}</h3>
-      <p>${safeDesc}</p>
-    `;
-  }
-
-  if (kind === "video") {
-    return `
-      <div class="node-label">视频预览</div>
-      <div class="video-preview">
-        <span class="play">▶</span>
-        <i></i>
-      </div>
-      <p>${desc}</p>
-    `;
-  }
-
-  return `
-    <div class="node-label">2D 页面</div>
-    <h3>${safeTitle}</h3>
-    <p>${safeDesc}</p>
-  `;
-}
 
 function nodeTemplate(kind, title, desc, media = {}) {
   return renderNodeTemplate({
@@ -1759,111 +1064,6 @@ function nodeTemplate(kind, title, desc, media = {}) {
     directorActions,
     directorViewCount
   });
-
-  // TODO: remove this legacy fallback after node-template.js is verified in production.
-  const safeTitle = escapeHtml(title);
-  const safeDesc = escapeHtml(desc);
-
-  if (kind === "loading-image") {
-    return `
-      <div class="image-file-name">▧ ${safeTitle}</div>
-      <figure class="image-frame generation-frame">
-        <div class="generation-content">
-          <div class="generation-spinner"></div>
-          <strong>正在生成图片</strong>
-          <span>${safeDesc}</span>
-        </div>
-      </figure>
-    `;
-  }
-
-  if (kind === "image") {
-    return `
-      <div class="image-file-name">▧ ${safeTitle}</div>
-      <figure class="image-frame">
-        <img src="${media.url}" alt="${safeTitle}" draggable="false" />
-      </figure>
-    `;
-  }
-
-  if (kind === "model") {
-    return `
-      <div class="image-file-name model-file-name">◌ ${safeTitle}</div>
-      <div class="model-viewer">
-        <canvas data-model-viewer aria-label="${safeTitle} 3D 预览"></canvas>
-        <div class="model-loading">左键拖动 · 右键旋转 · 滚轮缩放</div>
-      </div>
-    `;
-  }
-
-  if (kind === "director") {
-    const start = Number(media.suggestionStart || 0);
-    const visibleActions = Array.from({ length: directorViewCount }, (_, index) => {
-      return directorActions[(start + index) % directorActions.length];
-    });
-    return `
-      <div class="director-head">
-        <span>✦ AI 建议</span>
-        <button type="button" class="director-refresh" data-director-action="refresh" title="换一组">↻</button>
-      </div>
-      <div class="director-actions">
-        ${visibleActions.map((action, index) => `
-          <button type="button" class="director-tile" data-director-action="${action.type}">
-            <small>${String(index + 1).padStart(2, "0")}</small>
-            <span>${escapeHtml(action.title)}</span>
-          </button>
-        `).join("")}
-        <button class="director-tile director-generate-all" type="button" data-director-action="all">
-          <small>04</small>
-          <span>生成全部</span>
-          <b>✦</b>
-        </button>
-      </div>
-    `;
-  }
-
-  if (kind === "3d") {
-    return `
-      <div class="node-label">3D 预览</div>
-      <div class="cube-scene">
-        <div class="cube">
-          <span class="face front"></span>
-          <span class="face back"></span>
-          <span class="face right"></span>
-          <span class="face left"></span>
-          <span class="face top"></span>
-          <span class="face bottom"></span>
-        </div>
-      </div>
-      <p>${safeDesc}</p>
-    `;
-  }
-
-  if (kind === "video" && media.url) {
-    return `
-      <div class="node-label">视频</div>
-      <video class="media-preview video-file-preview" src="${media.url}" controls></video>
-      <h3>${safeTitle}</h3>
-      <p>${safeDesc}</p>
-    `;
-  }
-
-  if (kind === "video") {
-    return `
-      <div class="node-label">视频预览</div>
-      <div class="video-preview">
-        <span class="play">▶</span>
-        <i></i>
-      </div>
-      <p>${safeDesc}</p>
-    `;
-  }
-
-  return `
-    <div class="node-label">2D 页面</div>
-    <h3>${safeTitle}</h3>
-    <p>${safeDesc}</p>
-  `;
 }
 
 function clearSelection() {
@@ -2131,90 +1331,6 @@ function ensureImageToolbar(node) {
   node.appendChild(managedToolbar);
   return;
 
-  // TODO(architecture): Remove legacy inline toolbar creation when this
-  // compatibility layer is retired.
-  const toolbar = document.createElement("div");
-  toolbar.className = "image-node-toolbar";
-  toolbar.innerHTML = `
-    <button type="button" title="裁剪" aria-label="裁剪" data-toolbar-action="crop">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2v14a2 2 0 0 0 2 2h14" /><path d="M2 6h14a2 2 0 0 1 2 2v14" /></svg>
-    </button>
-    <button type="button" title="放大" aria-label="放大" data-toolbar-action="zoom">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5" /><path d="M15.5 15.5L21 21" /><path d="M10.5 7.5v6" /><path d="M7.5 10.5h6" /></svg>
-    </button>
-    <button type="button" title="移除背景" aria-label="移除背景" data-toolbar-action="remove-bg">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16" /><path d="M4 12h16" /><path d="M4 18h16" /><path d="M7 3l14 14" /><path d="M3 7l14 14" /></svg>
-    </button>
-    <button type="button" title="扩展" aria-label="扩展" data-toolbar-action="expand-image">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 3H3v5" /><path d="M16 3h5v5" /><path d="M21 16v5h-5" /><path d="M8 21H3v-5" /><path d="M3 3l6 6" /><path d="M21 3l-6 6" /><path d="M21 21l-6-6" /><path d="M3 21l6-6" /></svg>
-    </button>
-    <button type="button" title="编辑文字" aria-label="编辑文字" data-toolbar-action="edit-text">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5h14" /><path d="M12 5v14" /><path d="M8 19h8" /><path d="M4 9V5h16v4" /></svg>
-    </button>
-    <span class="toolbar-separator"></span>
-    <button type="button" title="加入资产" aria-label="加入资产">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h6l2 3h10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6z" /><path d="M16 13v5" /><path d="M13.5 15.5h5" /></svg>
-    </button>
-    <button type="button" class="toolbar-strong" title="下载" aria-label="下载" data-toolbar-action="download">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12" /><path d="M7 10l5 5 5-5" /><path d="M5 21h14" /></svg>
-    </button>
-    <div class="image-toolbar-menu" role="menu">
-      <button type="button" data-toolbar-action="expand-image"><span>▣</span>扩图</button>
-      <button type="button"><span>◇</span>擦除</button>
-      <button type="button"><span>⌁</span>标注</button>
-      <button type="button"><span>HD</span>增强</button>
-      <button type="button"><span>↔</span>调整像素</button>
-      <button type="button"><span>▧</span>抠图</button>
-      <button type="button"><span>▦</span>快速切分 <small>2×2　3×3　4×4</small></button>
-      <button type="button"><span>♢</span>Seedance 2.0 合规验证</button>
-    </div>
-  `;
-  toolbar.addEventListener("pointerdown", (event) => event.stopPropagation());
-  toolbar.addEventListener("dblclick", (event) => event.stopPropagation());
-  toolbar.addEventListener("click", (event) => {
-    const button = event.target.closest("[data-toolbar-action]");
-    if (!button) return;
-    event.preventDefault();
-    event.stopPropagation();
-    const img = node.querySelector(".image-frame img");
-    if (!img) return;
-    const action = button.dataset.toolbarAction;
-    if (action === "more") {
-      toolbar.classList.toggle("menu-open");
-      return;
-    }
-    toolbar.classList.remove("menu-open");
-    if (action === "crop") {
-      startImageCrop(node);
-      return;
-    }
-    if (action === "zoom") {
-      node.classList.toggle("node-zoomed");
-      if (editingImageNode === node && imageEditPopover.classList.contains("open")) positionImageEditPopover();
-      positionTextFormatToolbar();
-      return;
-    }
-    if (action === "remove-bg") {
-      runImageEditCommand(node, "移除图片背景，保留主体完整边缘和真实细节，输出透明或纯净浅色背景，主体不要变形。", "移除背景");
-      return;
-    }
-    if (action === "expand-image") {
-      runImageEditCommand(node, "在保持主体不变的前提下向四周自然扩展画面，补全合理背景和光影，保持原图风格一致。", "扩展画面");
-      return;
-    }
-    if (action === "edit-text") {
-      selectNode(node);
-      showImageTextEditor(node);
-      return;
-    }
-    if (action === "download") {
-      const link = document.createElement("a");
-      link.href = img.src;
-      link.download = getStackTitle(node).replace(/^▧\s*/, "") || "image.png";
-      link.click();
-    }
-  });
-  node.appendChild(toolbar);
 }
 
 function ensureImageLightbox() {
@@ -2327,11 +1443,11 @@ function addCanvasToolNode(tool, options = {}) {
     `;
   } else if (SHAPE_TEXT_TOOLS.has(tool)) {
     node.innerHTML = `
-      <div class="draw-shape" aria-hidden="true">${drawToolSvg(tool)}</div>
+      <div class="draw-shape" aria-hidden="true">${renderToolSvg(tool)}</div>
       <div class="canvas-text-editor shape-text-editor" contenteditable="false" spellcheck="false" data-placeholder="输入文字"></div>
     `;
   } else {
-    node.innerHTML = `<div class="draw-shape" aria-hidden="true">${options.svgMarkup || drawToolSvg(tool)}</div>`;
+    node.innerHTML = `<div class="draw-shape" aria-hidden="true">${options.svgMarkup || renderToolSvg(tool)}</div>`;
   }
   node.classList.toggle("node-text-tool", tool === "text");
   node.classList.toggle("node-shape-text", SHAPE_TEXT_TOOLS.has(tool));
@@ -2397,7 +1513,7 @@ function createDrawingPreview(startClientX, startClientY, tool) {
   const preview = createDrawingPreviewElement({
     viewportRect: rect,
     tool,
-    renderSvg: drawToolSvg,
+    renderSvg: renderToolSvg,
     buildPenSvg: (viewportRect) => `<svg viewBox="0 0 ${viewportRect.width} ${viewportRect.height}" preserveAspectRatio="none"><path /></svg>`
   });
   canvasViewport.appendChild(preview);
@@ -3026,21 +2142,16 @@ function makeDraggable(node) {
 }
 
 function addNode({ kind, title, desc, x, y, media }) {
-  emptyState.classList.add("hidden");
-
-  const node = createCanvasNodeElement({
-    kind,
-    title,
-    x,
-    y,
-    media,
-    html: nodeTemplate(kind, title, desc, media)
-  });
-  ensureNodeId(node);
-  makeDraggable(node);
-  if (kind === "image") {
-    const image = node.querySelector(".image-frame img");
-    image.addEventListener("load", () => {
+  return createWorkspaceNode({
+    config: { kind, title, desc, x, y, media },
+    renderTemplate: nodeTemplate,
+    emptyState,
+    canvasWorld,
+    ensureNodeId,
+    makeDraggable,
+    selectNode,
+    initModelViewer,
+    onImageLoaded: (node, image) => {
       const frame = node.querySelector(".image-frame");
       if (!node.dataset.manualSize) {
         frame.style.aspectRatio = `${image.naturalWidth} / ${image.naturalHeight}`;
@@ -3048,9 +2159,8 @@ function addNode({ kind, title, desc, x, y, media }) {
         node.style.width = `${Math.min(560, Math.max(260, 320 * ratio))}px`;
       }
       if (editingImageNode === node && imageEditPopover.classList.contains("open")) positionImageEditPopover();
-    }, { once: true });
-
-    node.addEventListener("dblclick", (event) => {
+    },
+    onImageDoubleClick: (event, node) => {
       if (event.button !== 0 || event.target.closest(".resize-handle")) return;
       event.preventDefault();
       event.stopPropagation();
@@ -3058,79 +2168,57 @@ function addNode({ kind, title, desc, x, y, media }) {
       hideAddNodeMenu();
       selectNode(node);
       showImageEditPopover(node);
-    });
-  }
-  canvasWorld.appendChild(node);
-  if (kind === "model" && media?.file) initModelViewer(node, media.file);
-  selectNode(node);
-  return node;
+    }
+  });
 }
 
 function addGenerationPreview({ title, desc, x, y, width, aspectRatio }) {
-  const node = addNode(buildGenerationPreviewConfig({ title, desc, x, y }));
-  applyNodePreviewSize(node, { width, aspectRatio });
-  if (!aspectRatio) node.dataset.manualSize = "true";
-  return node;
-}
-
-function replacePreviewWithImage(previewNode, { title, desc, url, width, aspectRatio, prompt = "", sourceNode = null, actionType = "", model = "" }) {
-  const x = parseFloat(previewNode.style.left || "0");
-  const y = parseFloat(previewNode.style.top || "0");
-  previewNode.remove();
-  const node = addNode({
-    kind: "image",
+  return createGenerationPreviewNode({
+    addNode,
     title,
     desc,
     x,
     y,
-    media: {
-      url,
-      name: title,
-      type: "image/png"
-    }
+    width,
+    aspectRatio
   });
-  applyNodePreviewSize(node, { width, aspectRatio });
-  markGeneratedNodeContext(node, { prompt, sourceNode, actionType, model });
-  recordCanvasEvent("generation_created", {
-    nodeId: node.dataset.nodeId,
-    sourceId: sourceNode?.dataset?.nodeId || "",
+}
+
+function replacePreviewWithImage(previewNode, { title, desc, url, width, aspectRatio, prompt = "", sourceNode = null, actionType = "", model = "" }) {
+  return replacePreviewNodeWithImage({
+    previewNode,
+    addNode,
+    applyGeneratedContext: markGeneratedNodeContext,
+    recordGenerationCreated: (node, eventData) => {
+      recordCanvasEvent("generation_created", {
+        nodeId: node.dataset.nodeId,
+        sourceId: eventData.sourceNode?.dataset?.nodeId || "",
+        actionType: eventData.actionType,
+        model: eventData.model
+      });
+    },
+    title,
+    desc,
+    url,
+    width,
+    aspectRatio,
+    prompt,
+    sourceNode,
     actionType,
     model
   });
-  return node;
 }
 
-function addSourceBadge(node, sourceNode, label = "来源：原图") {
-  if (!node || !sourceNode || node.querySelector(".source-badge")) return;
-  const badge = document.createElement("button");
-  badge.type = "button";
-  badge.className = "source-badge";
-  badge.textContent = label;
-  badge.addEventListener("pointerdown", (event) => event.stopPropagation());
-  badge.addEventListener("click", (event) => {
-    event.stopPropagation();
-    selectNode(sourceNode);
-    sourceNode.classList.add("source-pulse");
-    window.setTimeout(() => sourceNode.classList.remove("source-pulse"), 900);
+function addSourceBadge(node, sourceNode, label = "?????") {
+  addSourceBadgeElement(node, sourceNode, {
+    label,
+    onSelectSource: selectNode
   });
-  node.appendChild(badge);
 }
 
 function inferProductProfile(file) {
   return inferDirectorProductProfile(file);
 
-  // TODO(architecture): Remove legacy inline product profile inference after Director module validation.
-  const name = (file?.name || "").toLowerCase();
-  if (/bath|shower|toilet|handle|hinge|hardware|浴|卫浴|拉手|门|五金/.test(name)) {
-    return { type: "卫浴五金产品", name: file?.name?.replace(/\.[^.]+$/, "") || "卫浴五金产品" };
-  }
-  if (/appliance|kettle|heater|plug|socket|小家电|电器|插座/.test(name)) {
-    return { type: "小家电产品", name: file?.name?.replace(/\.[^.]+$/, "") || "小家电产品" };
-  }
-  if (/door|window|cabinet|门|窗|柜/.test(name)) {
-    return { type: "家居建材产品", name: file?.name?.replace(/\.[^.]+$/, "") || "家居建材产品" };
-  }
-  return { type: "工业产品", name: file?.name?.replace(/\.[^.]+$/, "") || "产品" };
 }
 
 function createDirectorCard(productNode, file, index = 0) {
@@ -3201,10 +2289,6 @@ function refreshDirectorOptions(directorNode) {
 function buildDirectorPrompt(productNode, action) {
   return buildDirectorPromptText({ productNode, action, getTitle: getStackTitle });
 
-  // TODO(architecture): Remove legacy inline director prompt after Director module validation.
-  const productType = productNode.dataset.productType || "产品";
-  const productName = productNode.dataset.productName || getStackTitle(productNode);
-  return `${action.prompt}\n产品类型：${productType}\n产品名称：${productName}\n请保持产品核心结构可信，输出适合商业展示的高质量结果。`;
 }
 
 function createTextAssetNode(productNode, action) {
@@ -3363,7 +2447,7 @@ function getQwenSizeForImage(img) {
 
 function generateFromPrompt(prompt, point) {
   generatedCount += 1;
-  const kind = detectKind(prompt);
+  const kind = detectGenerationKind(prompt);
   const titles = {
     "2d": "AI 画面方案",
     "3d": "AI 3D 资产",
@@ -3387,188 +2471,34 @@ function generateFromPrompt(prompt, point) {
 
 function getUploadKind(file) {
   return resolveUploadKind(file);
-  // TODO: remove legacy inline upload kind resolver after upload flow verification.
-  const name = file.name.toLowerCase();
-  if (file.type.startsWith("image/")) return "image";
-  if (file.type.startsWith("video/")) return "video";
-  if (modelExtensions.some((extension) => name.endsWith(extension))) return "model";
-  return null;
 }
 
 function cubeGeometry() {
   return createCubeGeometry();
-  // TODO: remove legacy inline cube geometry after model parser verification.
-  return {
-    vertices: [
-      [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1],
-      [-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]
-    ],
-    faces: [[0, 1, 2], [0, 2, 3], [4, 6, 5], [4, 7, 6], [0, 4, 5], [0, 5, 1], [3, 2, 6], [3, 6, 7], [1, 5, 6], [1, 6, 2], [0, 3, 7], [0, 7, 4]]
-  };
 }
 
 function normalizeGeometry(geometry) {
   return normalizeModelGeometry(geometry);
-  // TODO: remove legacy inline geometry normalization after model parser verification.
-  if (!geometry.vertices.length || !geometry.faces.length) return cubeGeometry();
-  const min = [Infinity, Infinity, Infinity];
-  const max = [-Infinity, -Infinity, -Infinity];
-  geometry.vertices.forEach((vertex) => {
-    for (let i = 0; i < 3; i += 1) {
-      min[i] = Math.min(min[i], vertex[i]);
-      max[i] = Math.max(max[i], vertex[i]);
-    }
-  });
-  const center = min.map((value, index) => (value + max[index]) / 2);
-  const span = Math.max(...max.map((value, index) => value - min[index])) || 1;
-  return {
-    vertices: geometry.vertices.map((vertex) => vertex.map((value, index) => (value - center[index]) / span * 2.8)),
-    faces: sampleFaces(geometry.faces, MAX_RENDER_FACES)
-  };
 }
 
 function sampleFaces(faces, limit) {
   return sampleModelFaces(faces, limit);
-  // TODO: remove legacy inline face sampler after model parser verification.
-  if (faces.length <= limit) return faces;
-  const step = faces.length / limit;
-  const sampled = [];
-  for (let i = 0; i < limit; i += 1) {
-    sampled.push(faces[Math.floor(i * step)]);
-  }
-  return sampled;
 }
 
 function parseObj(text) {
   return parseObjGeometry(text);
-  // TODO: remove legacy inline OBJ parser after model parser verification.
-  const vertices = [];
-  const faces = [];
-  text.split(/\r?\n/).forEach((line) => {
-    const parts = line.trim().split(/\s+/);
-    if (parts[0] === "v") {
-      if (vertices.length >= MAX_VERTEX_COUNT) return;
-      vertices.push(parts.slice(1, 4).map(Number));
-    }
-    if (parts[0] === "f") {
-      if (faces.length >= MAX_PARSE_FACES) return;
-      const indices = parts.slice(1).map((part) => {
-        const raw = Number(part.split("/")[0]);
-        return raw < 0 ? vertices.length + raw : raw - 1;
-      }).filter((index) => index >= 0 && index < vertices.length);
-      for (let i = 1; i < indices.length - 1; i += 1) {
-        if (faces.length >= MAX_PARSE_FACES) break;
-        faces.push([indices[0], indices[i], indices[i + 1]]);
-      }
-    }
-  });
-  return normalizeGeometry({ vertices, faces });
 }
 
 function parseStl(buffer) {
   return parseStlGeometry(buffer);
-  // TODO: remove legacy inline STL parser after model parser verification.
-  const text = new TextDecoder().decode(buffer.slice(0, Math.min(buffer.byteLength, 600)));
-  if (/solid[\s\S]*facet/i.test(text)) {
-    if (buffer.byteLength > MAX_ASCII_MODEL_BYTES) return cubeGeometry();
-    const fullText = new TextDecoder().decode(buffer);
-    const vertices = [];
-    const faces = [];
-    const matches = fullText.matchAll(/vertex\s+([-\d.e+]+)\s+([-\d.e+]+)\s+([-\d.e+]+)/gi);
-    for (const match of matches) {
-      if (vertices.length >= MAX_PARSE_FACES * 3) break;
-      vertices.push([Number(match[1]), Number(match[2]), Number(match[3])]);
-    }
-    for (let i = 0; i + 2 < vertices.length; i += 3) faces.push([i, i + 1, i + 2]);
-    return normalizeGeometry({ vertices, faces });
-  }
-
-  const view = new DataView(buffer);
-  const triangleCount = view.getUint32(80, true);
-  const vertices = [];
-  const faces = [];
-  const step = Math.max(1, Math.floor(triangleCount / MAX_PARSE_FACES));
-  for (let tri = 0; tri < triangleCount && faces.length < MAX_PARSE_FACES; tri += step) {
-    let offset = 84 + tri * 50;
-    if (offset + 50 > buffer.byteLength) break;
-    offset += 12;
-    const face = [];
-    for (let i = 0; i < 3; i += 1) {
-      vertices.push([view.getFloat32(offset, true), view.getFloat32(offset + 4, true), view.getFloat32(offset + 8, true)]);
-      face.push(vertices.length - 1);
-      offset += 12;
-    }
-    faces.push(face);
-  }
-  return normalizeGeometry({ vertices, faces });
 }
 
 function parseGlb(buffer) {
   return parseGlbGeometry(buffer);
-  // TODO: remove legacy inline GLB parser after model parser verification.
-  const view = new DataView(buffer);
-  if (view.getUint32(0, true) !== 0x46546c67) return cubeGeometry();
-  let offset = 12;
-  let json = null;
-  let bin = null;
-  while (offset + 8 <= buffer.byteLength) {
-    const length = view.getUint32(offset, true);
-    const type = view.getUint32(offset + 4, true);
-    offset += 8;
-    const chunk = buffer.slice(offset, offset + length);
-    if (type === 0x4e4f534a) json = JSON.parse(new TextDecoder().decode(chunk));
-    if (type === 0x004e4942) bin = chunk;
-    offset += length;
-  }
-  if (!json || !bin) return cubeGeometry();
-  const primitive = json.meshes?.[0]?.primitives?.[0];
-  const positionAccessor = json.accessors?.[primitive?.attributes?.POSITION];
-  const indexAccessor = json.accessors?.[primitive?.indices];
-  const readAccessor = (accessor) => {
-    const bufferView = json.bufferViews[accessor.bufferView];
-    const start = (bufferView.byteOffset || 0) + (accessor.byteOffset || 0);
-    return { accessor, bufferView, start };
-  };
-  if (!positionAccessor || positionAccessor.componentType !== 5126) return cubeGeometry();
-  const position = readAccessor(positionAccessor);
-  const vertices = [];
-  const vertexCount = Math.min(positionAccessor.count, MAX_VERTEX_COUNT);
-  const vertexStride = position.bufferView.byteStride || 12;
-  const posView = new DataView(bin);
-  for (let i = 0; i < vertexCount; i += 1) {
-    const offset = position.start + i * vertexStride;
-    if (offset + 12 > bin.byteLength) break;
-    vertices.push([posView.getFloat32(offset, true), posView.getFloat32(offset + 4, true), posView.getFloat32(offset + 8, true)]);
-  }
-  const faces = [];
-  if (indexAccessor) {
-    const index = readAccessor(indexAccessor);
-    const indexView = new DataView(bin, index.start);
-    const size = indexAccessor.componentType === 5125 ? 4 : indexAccessor.componentType === 5123 ? 2 : 1;
-    const readIndex = (i) => size === 4 ? indexView.getUint32(i * size, true) : size === 2 ? indexView.getUint16(i * size, true) : indexView.getUint8(i);
-    const triangleCount = Math.floor(indexAccessor.count / 3);
-    const step = Math.max(1, Math.floor(triangleCount / MAX_PARSE_FACES));
-    for (let triangle = 0; triangle < triangleCount && faces.length < MAX_PARSE_FACES; triangle += step) {
-      const i = triangle * 3;
-      const face = [readIndex(i), readIndex(i + 1), readIndex(i + 2)];
-      if (face.every((indexValue) => indexValue < vertices.length)) faces.push(face);
-    }
-  } else {
-    for (let i = 0; i + 2 < vertices.length && faces.length < MAX_PARSE_FACES; i += 3) faces.push([i, i + 1, i + 2]);
-  }
-  return normalizeGeometry({ vertices, faces });
 }
 
 function parseModelGeometry(file, buffer) {
   return parseModelGeometryFile(file, buffer);
-  // TODO: remove legacy inline model parser after model parser verification.
-  if (buffer.byteLength > MAX_PREVIEW_MODEL_BYTES) return cubeGeometry();
-  const name = file.name.toLowerCase();
-  if ((name.endsWith(".obj") || name.endsWith(".gltf")) && buffer.byteLength > MAX_ASCII_MODEL_BYTES) return cubeGeometry();
-  if (name.endsWith(".obj")) return parseObj(new TextDecoder().decode(buffer));
-  if (name.endsWith(".stl")) return parseStl(buffer);
-  if (name.endsWith(".glb")) return parseGlb(buffer);
-  return cubeGeometry();
 }
 
 function initModelViewer(node, file) {
@@ -3576,279 +2506,6 @@ function initModelViewer(node, file) {
     hideAddNodeMenu,
     selectNode
   });
-
-  // TODO(architecture): Remove legacy inline WebGL model viewer after module validation.
-  const canvas = node.querySelector("[data-model-viewer]");
-  const loading = node.querySelector(".model-loading");
-  if (!canvas || !file) return;
-
-  const gl = canvas.getContext("webgl", { alpha: true, antialias: true });
-  if (!gl) {
-    loading.textContent = "当前浏览器不支持 WebGL 预览";
-    return;
-  }
-
-  const state = { geometry: cubeGeometry(), rx: -0.45, ry: 0.75, zoom: 1, dragging: false, startX: 0, startY: 0 };
-  const vertexShaderSource = `
-    attribute vec3 aPosition;
-    attribute vec3 aNormal;
-    uniform float uRx;
-    uniform float uRy;
-    uniform float uZoom;
-    uniform float uAspect;
-    varying vec3 vNormal;
-    varying float vDepth;
-
-    vec3 rotatePoint(vec3 p) {
-      float cx = cos(uRx);
-      float sx = sin(uRx);
-      float cy = cos(uRy);
-      float sy = sin(uRy);
-      vec3 yRot = vec3(p.x * cy + p.z * sy, p.y, -p.x * sy + p.z * cy);
-      return vec3(yRot.x, yRot.y * cx - yRot.z * sx, yRot.y * sx + yRot.z * cx);
-    }
-
-    void main() {
-      vec3 rotated = rotatePoint(aPosition);
-      vec3 normal = normalize(rotatePoint(aNormal));
-      float z = rotated.z + 5.0;
-      vec2 projected = rotated.xy * 0.82 * uZoom / z;
-      gl_Position = vec4(projected.x / uAspect, projected.y, (z - 1.0) / 8.0, 1.0);
-      vNormal = normal;
-      vDepth = z;
-    }
-  `;
-  const fragmentShaderSource = `
-    precision mediump float;
-    varying vec3 vNormal;
-    varying float vDepth;
-
-    void main() {
-      vec3 normal = normalize(vNormal);
-      vec3 keyLight = normalize(vec3(-0.35, 0.62, 0.72));
-      vec3 fillLight = normalize(vec3(0.55, -0.25, 0.35));
-      float key = abs(dot(normal, keyLight));
-      float fill = abs(dot(normal, fillLight)) * 0.18;
-      float rim = pow(1.0 - abs(normal.z), 2.0) * 0.12;
-      float shade = 0.62 + key * 0.34 + fill + rim;
-      shade *= mix(0.82, 1.04, smoothstep(8.4, 2.1, vDepth));
-      vec3 clay = vec3(0.72, 0.72, 0.70) * shade;
-      gl_FragColor = vec4(clay, 1.0);
-    }
-  `;
-
-  const compileShader = (type, source) => {
-    const shader = gl.createShader(type);
-    gl.shaderSource(shader, source);
-    gl.compileShader(shader);
-    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-      throw new Error(gl.getShaderInfoLog(shader));
-    }
-    return shader;
-  };
-
-  const createProgram = () => {
-    const program = gl.createProgram();
-    gl.attachShader(program, compileShader(gl.VERTEX_SHADER, vertexShaderSource));
-    gl.attachShader(program, compileShader(gl.FRAGMENT_SHADER, fragmentShaderSource));
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-      throw new Error(gl.getProgramInfoLog(program));
-    }
-    return program;
-  };
-
-  let program;
-  try {
-    program = createProgram();
-  } catch {
-    loading.textContent = "WebGL 预览初始化失败";
-    return;
-  }
-
-  const positionBuffer = gl.createBuffer();
-  const normalBuffer = gl.createBuffer();
-  const locations = {
-    position: gl.getAttribLocation(program, "aPosition"),
-    normal: gl.getAttribLocation(program, "aNormal"),
-    rx: gl.getUniformLocation(program, "uRx"),
-    ry: gl.getUniformLocation(program, "uRy"),
-    zoom: gl.getUniformLocation(program, "uZoom"),
-    aspect: gl.getUniformLocation(program, "uAspect")
-  };
-  let vertexCount = 0;
-
-  const getNormal = (a, b, c) => {
-    const ux = b[0] - a[0];
-    const uy = b[1] - a[1];
-    const uz = b[2] - a[2];
-    const vx = c[0] - a[0];
-    const vy = c[1] - a[1];
-    const vz = c[2] - a[2];
-    const nx = uy * vz - uz * vy;
-    const ny = uz * vx - ux * vz;
-    const nz = ux * vy - uy * vx;
-    const length = Math.hypot(nx, ny, nz) || 1;
-    return [nx / length, ny / length, nz / length];
-  };
-
-  const uploadGeometry = () => {
-    const positions = [];
-    const normals = [];
-    const vertexNormals = state.geometry.vertices.map(() => [0, 0, 0]);
-
-    state.geometry.faces.forEach((face) => {
-      const a = state.geometry.vertices[face[0]];
-      const b = state.geometry.vertices[face[1]];
-      const c = state.geometry.vertices[face[2]];
-      if (!a || !b || !c) return;
-      const normal = getNormal(a, b, c);
-      face.forEach((vertexIndex) => {
-        const target = vertexNormals[vertexIndex];
-        if (!target) return;
-        target[0] += normal[0];
-        target[1] += normal[1];
-        target[2] += normal[2];
-      });
-    });
-
-    vertexNormals.forEach((normal, index) => {
-      const length = Math.hypot(normal[0], normal[1], normal[2]);
-      if (length > 0.0001) {
-        vertexNormals[index] = [normal[0] / length, normal[1] / length, normal[2] / length];
-      } else {
-        vertexNormals[index] = [0, 0, 1];
-      }
-    });
-
-    state.geometry.faces.forEach((face) => {
-      const a = state.geometry.vertices[face[0]];
-      const b = state.geometry.vertices[face[1]];
-      const c = state.geometry.vertices[face[2]];
-      if (!a || !b || !c) return;
-      [a, b, c].forEach((vertex) => {
-        positions.push(vertex[0], vertex[1], vertex[2]);
-      });
-      face.forEach((vertexIndex) => {
-        const vertex = state.geometry.vertices[vertexIndex] || [0, 0, 1];
-        const radialLength = Math.hypot(vertex[0], vertex[1], vertex[2]) || 1;
-        const radial = [vertex[0] / radialLength, vertex[1] / radialLength, vertex[2] / radialLength];
-        const normal = vertexNormals[vertexIndex] || radial;
-        const aligned = normal[0] * radial[0] + normal[1] * radial[1] + normal[2] * radial[2] < 0
-          ? [-normal[0], -normal[1], -normal[2]]
-          : normal;
-        normals.push(aligned[0], aligned[1], aligned[2]);
-      });
-    });
-
-    vertexCount = positions.length / 3;
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(normals), gl.STATIC_DRAW);
-  };
-
-  const resizeCanvas = () => {
-    const rect = canvas.getBoundingClientRect();
-    const width = Math.max(1, Math.round(rect.width * devicePixelRatio));
-    const height = Math.max(1, Math.round(rect.height * devicePixelRatio));
-    if (canvas.width !== width || canvas.height !== height) {
-      canvas.width = width;
-      canvas.height = height;
-    }
-    gl.viewport(0, 0, canvas.width, canvas.height);
-  };
-
-  const render = () => {
-    resizeCanvas();
-    gl.enable(gl.DEPTH_TEST);
-    gl.disable(gl.CULL_FACE);
-    gl.clearColor(0, 0, 0, 0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-    gl.useProgram(program);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-    gl.enableVertexAttribArray(locations.position);
-    gl.vertexAttribPointer(locations.position, 3, gl.FLOAT, false, 0, 0);
-
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-    gl.enableVertexAttribArray(locations.normal);
-    gl.vertexAttribPointer(locations.normal, 3, gl.FLOAT, false, 0, 0);
-
-    gl.uniform1f(locations.rx, state.rx);
-    gl.uniform1f(locations.ry, state.ry);
-    gl.uniform1f(locations.zoom, state.zoom);
-    gl.uniform1f(locations.aspect, canvas.width / canvas.height);
-    gl.drawArrays(gl.TRIANGLES, 0, vertexCount);
-  };
-
-  uploadGeometry();
-  render();
-
-  canvas.addEventListener("pointerdown", (event) => {
-    if (event.button !== 2) return;
-    event.preventDefault();
-    event.stopPropagation();
-    hideAddNodeMenu();
-    selectNode(node);
-    state.dragging = true;
-    state.startX = event.clientX;
-    state.startY = event.clientY;
-    canvas.setPointerCapture(event.pointerId);
-  });
-
-  canvas.addEventListener("pointermove", (event) => {
-    if (!state.dragging) return;
-    state.ry += (event.clientX - state.startX) * 0.012;
-    state.rx += (event.clientY - state.startY) * 0.012;
-    state.startX = event.clientX;
-    state.startY = event.clientY;
-    render();
-  });
-
-  canvas.addEventListener("pointerup", () => {
-    state.dragging = false;
-  });
-
-  canvas.addEventListener("contextmenu", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-  });
-
-  canvas.addEventListener("wheel", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const factor = event.deltaY > 0 ? 0.9 : 1.1;
-    state.zoom = Math.min(5, Math.max(0.35, state.zoom * factor));
-    render();
-  }, { passive: false });
-
-  canvas.addEventListener("dblclick", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    state.zoom = 1;
-    render();
-  });
-
-  file.arrayBuffer()
-    .then((buffer) => {
-      loading.textContent = buffer.byteLength > MAX_PREVIEW_MODEL_BYTES
-        ? "模型较大，显示轻量预览"
-        : "正在生成轻量预览";
-
-      setTimeout(() => {
-        state.geometry = parseModelGeometry(file, buffer);
-        uploadGeometry();
-        loading.textContent = buffer.byteLength > MAX_PREVIEW_MODEL_BYTES
-          ? "文件过大，显示轻量预览"
-          : "左键拖动 · 右键旋转 · 滚轮缩放";
-        render();
-      }, 0);
-    })
-    .catch(() => {
-      loading.textContent = "模型解析失败，显示占位预览";
-      render();
-    });
 }
 
 function addUploadedFile(file, index = 0, point) {
@@ -4117,165 +2774,20 @@ function setAICoreAgentState(state) {
 }
 
 function recordCanvasEvent(type, payload = {}) {
-  const canonicalType = getCanonicalCanvasEventType(type, payload);
+  const canonicalType = normalizeAgentEventType(type, payload, {
+    getNodeKind: (nodeId) => getNodeById(nodeId)?.dataset?.kind || ""
+  });
   recordCanvasEventToStore(canonicalType, payload, {
     originalType: type,
     maxEvents: 80
   });
 }
 
-function getCanonicalCanvasEventType(type, payload = {}) {
-  if (type === "upload") return payload.kind === "image" ? "image_uploaded" : "generation_created";
-  if (type === "select") {
-    const node = getNodeById(payload.nodeId);
-    return node?.dataset?.kind === "image" ? "image_selected" : "canvas_idle";
-  }
-  if (type === "delete" || type === "erase") return "image_deleted";
-  if (type === "mock_generate") return "generation_created";
-  if (type === "ai_suggestion") return "canvas_idle";
-  if (type === "undo" || type === "redo") return "canvas_idle";
-  return type;
-}
 
-function readNodeJson(node, key, fallback = null) {
-  return readAgentNodeJson(node, key, fallback);
 
-  // TODO(architecture): Remove legacy inline JSON reader after Agent state module validation.
-  if (!node?.dataset?.[key]) return fallback;
-  try {
-    return JSON.parse(node.dataset[key]);
-  } catch {
-    return fallback;
-  }
-}
 
-function compactText(value, max = 520) {
-  return compactInlineText(value, max);
-}
 
-function getIndustryActionPreset(analysis = {}) {
-  return getAgentIndustryActionPreset(analysis);
 
-  // TODO(architecture): Remove legacy inline recommendation rules after Agent module validation.
-  const haystack = [
-    analysis.productName,
-    analysis.category,
-    analysis.industry,
-    analysis.workflowIntent,
-    analysis.style,
-    ...(Array.isArray(analysis.sellingPoints) ? analysis.sellingPoints : [])
-  ].join(" ");
-
-  if (/服装|女装|男装|裙|连衣裙|衬衫|外套|鞋|包|配饰|穿搭|Lolita|洛丽塔|面料|蕾丝|棉麻|衣/i.test(haystack)) {
-    return [
-      { type: "productPhoto", title: "上身图", description: "生成模特穿着效果，判断版型气质" },
-      { type: "scene", title: "街拍图", description: "放入真实穿搭场景，增强种草感" },
-      { type: "closeup", title: "面料特写", description: "突出蕾丝、纹理和做工细节" },
-      { type: "poster", title: "Lookbook", description: "整理成系列穿搭视觉物料" },
-      { type: "detail", title: "详情页", description: "组织版型、面料和卖点模块" }
-    ];
-  }
-
-  if (/潮玩|公仔|手办|玩具|IP|角色|娃娃|盲盒|插画|卡通|毛绒|模型/i.test(haystack)) {
-    return [
-      { type: "render3d", title: "3D渲染", description: "转成立体产品表现，适合开发" },
-      { type: "productPhoto", title: "实拍图", description: "生成真实棚拍质感，便于展示" },
-      { type: "plush", title: "毛绒稿", description: "转成可量产毛绒玩具方向" },
-      { type: "model", title: "模型设定", description: "补齐三视图和结构参考" },
-      { type: "packaging", title: "盲盒包装", description: "生成适合潮玩售卖的包装" }
-    ];
-  }
-
-  if (/美妆|香水|护肤|口红|粉底|面霜|精华|个护/i.test(haystack)) {
-    return [
-      { type: "productPhoto", title: "产品摄影", description: "生成干净高级的商业主图" },
-      { type: "closeup", title: "质地特写", description: "展示膏体、液体或包装细节" },
-      { type: "detail", title: "功效图", description: "组织成分、功效和使用理由" },
-      { type: "packaging", title: "礼盒包装", description: "延展成节日礼盒视觉" },
-      { type: "poster", title: "社媒图", description: "生成适合投放的社媒主视觉" }
-    ];
-  }
-
-  if (/食品|饮料|餐|咖啡|茶|酒|甜品|零食|包装食品/i.test(haystack)) {
-    return [
-      { type: "productPhoto", title: "食欲图", description: "强化真实质感和食欲表现" },
-      { type: "packaging", title: "包装设计", description: "延展货架可识别包装方案" },
-      { type: "scene", title: "货架陈列", description: "放入售卖场景看陈列效果" },
-      { type: "poster", title: "菜单海报", description: "生成门店或外卖宣传视觉" },
-      { type: "script", title: "短视频", description: "拆成适合传播的镜头脚本" }
-    ];
-  }
-
-  if (/3C|电器|小家电|工具|插座|耳机|音箱|相机|手机|电脑|设备/i.test(haystack)) {
-    return [
-      { type: "detail", title: "功能拆解", description: "提炼结构和功能卖点" },
-      { type: "scene", title: "使用场景", description: "放入真实环境说明用途" },
-      { type: "closeup", title: "结构特写", description: "突出接口、按键和材质细节" },
-      { type: "poster", title: "参数图", description: "整理核心参数和购买理由" },
-      { type: "script", title: "演示分镜", description: "生成可拍摄的功能演示脚本" }
-    ];
-  }
-
-  return [
-    { type: "productPhoto", title: "实拍图", description: "生成真实产品展示图" },
-    { type: "scene", title: "场景图", description: "放入适合行业的使用环境" },
-    { type: "closeup", title: "细节图", description: "突出材质、结构和识别点" },
-    { type: "poster", title: "宣传图", description: "整理成适合投放的主视觉" },
-    { type: "detail", title: "详情页", description: "组织卖点和购买理由" }
-  ];
-}
-
-function isWeakAction(action = {}) {
-  return isWeakAgentAction(action);
-
-  // TODO(architecture): Remove legacy inline weak-action rule after Agent module validation.
-  const title = String(action.title || "");
-  const desc = String(action.description || "");
-  return !title
-    || title.length > 8
-    || /优化|提升|高级|创意|风格|美化|主图优化|电商转化/.test(title)
-    || /优化|高级|电商转化|不明确/.test(desc);
-}
-
-function improveRecommendedActions(analysis = {}) {
-  return improveAgentRecommendedActions(analysis);
-
-  // TODO(architecture): Remove legacy inline recommendation merger after Agent module validation.
-  const preset = getIndustryActionPreset(analysis);
-  const actions = Array.isArray(analysis.recommendedActions) ? analysis.recommendedActions : [];
-  const strong = actions
-    .filter((action) => action?.type && action?.title && !isWeakAction(action))
-    .map((action) => ({
-      type: action.type,
-      title: String(action.title).slice(0, 6),
-      description: action.description || preset.find((item) => item.type === action.type)?.description || "基于当前素材生成工作流物料"
-    }));
-
-  const merged = [...strong];
-  preset.forEach((action) => {
-    if (!merged.some((item) => item.type === action.type || item.title === action.title)) merged.push(action);
-  });
-  return merged.slice(0, 5);
-}
-
-function compactAnalysisForAgent(analysis) {
-  return compactAgentAnalysis(analysis);
-
-  // TODO(architecture): Remove legacy inline compact analysis after Agent module validation.
-  if (!analysis) return null;
-  return {
-    productName: analysis.productName || "",
-    category: analysis.category || "",
-    industry: analysis.industry || "",
-    workflowIntent: analysis.workflowIntent || "",
-    materials: Array.isArray(analysis.materials) ? analysis.materials.slice(0, 4) : [],
-    colors: Array.isArray(analysis.colors) ? analysis.colors.slice(0, 4) : [],
-    style: analysis.style || "",
-    sellingPoints: Array.isArray(analysis.sellingPoints) ? analysis.sellingPoints.slice(0, 4) : [],
-    targetAudience: analysis.targetAudience || "",
-    recommendedActions: improveRecommendedActions(analysis)
-  };
-}
 
 function getRecentSuggestionEvents(nodeId = "") {
   return getRecentAgentSuggestionEvents(canvasEvents, nodeId);
@@ -4295,41 +2807,12 @@ function normalizeAICoreAgentSuggestion(canvasState, suggestion = {}) {
     suggestion,
     pickCachedAction: pickCachedActionForSuggestion
   });
-
-  // TODO(architecture): Remove legacy inline suggestion normalization after Agent module validation.
-  const target = canvasState?.target || {};
-  if (target.analysisStatus === "loading") {
-    return {
-      text: "先等识别完成",
-      actionLabel: "稍等",
-      actionType: "explore",
-      mockResult: "图片识别完成后再推荐更准确的物料。"
-    };
-  }
-
-  const isUploadedLike = target.sourceMode === "uploaded" || (target.kind === "image" && !target.generationPrompt);
-  if (isUploadedLike && target.analysis?.recommendedActions?.length) {
-    const action = pickCachedActionForSuggestion(canvasState, suggestion);
-    return {
-      text: `${action.title}？`,
-      actionLabel: action.title,
-      actionType: action.type,
-      mockResult: action.description || `基于当前素材生成${action.title}。`
-    };
-  }
-
-  return {
-    text: String(suggestion.text || "试试下一步？").slice(0, 18),
-    actionLabel: String(suggestion.actionLabel || "生成").slice(0, 6),
-    actionType: suggestion.actionType || "explore",
-    mockResult: suggestion.mockResult || suggestion.text || "AI Core 已根据当前素材生成一个结果草稿。"
-  };
 }
 
 function writeAICoreAnalysisCache(node, analysis, source = "vision") {
   if (!node || !analysis) return;
   const data = normalizeAnalysis(analysis, inferProductProfile({ name: getStackTitle(node) }));
-  data.recommendedActions = improveRecommendedActions(data);
+  data.recommendedActions = improveAgentRecommendedActions(data);
   node.dataset.aiCoreAnalysis = JSON.stringify(data);
   node.dataset.aiCoreAnalysisStatus = "ready";
   node.dataset.aiCoreAnalysisSource = source;
@@ -4345,7 +2828,7 @@ function markGeneratedNodeContext(node, { prompt = "", sourceNode = null, action
     actionType,
     model,
     getSourceTitle: getStackTitle,
-    readSourceAnalysis: (target) => readNodeJson(target, "aiCoreAnalysis")
+    readSourceAnalysis: (target) => readAgentNodeJson(target, "aiCoreAnalysis")
   });
 }
 
@@ -4368,16 +2851,6 @@ function scheduleAICoreAgent(reason, targetNode, delay) {
   aiCoreAgentReason = scheduled.reason;
   aiCoreAgentTargetId = scheduled.targetId;
   return;
-
-  // TODO(architecture): Remove legacy inline Agent scheduler after module validation.
-  if (!aiCoreAgentEnabled) return;
-  aiCoreAgentReason = reason;
-  aiCoreAgentTargetId = targetNode?.dataset?.nodeId || selectedNode?.dataset?.nodeId || "";
-  setAICoreAgentState("sensing");
-  window.clearTimeout(aiCoreAgentTimer);
-  aiCoreAgentTimer = window.setTimeout(() => {
-    runAICoreAgent(reason, aiCoreAgentTargetId);
-  }, delay);
 }
 
 async function ensureAICoreNodeContext(node, reason) {
@@ -4385,7 +2858,7 @@ async function ensureAICoreNodeContext(node, reason) {
     node,
     reason,
     shouldUsePromptContext,
-    readAnalysis: (target) => readNodeJson(target, "aiCoreAnalysis"),
+    readAnalysis: (target) => readAgentNodeJson(target, "aiCoreAnalysis"),
     inferProfile: inferProductProfile,
     getTitle: getStackTitle,
     getImageData: getAICoreImageData,
@@ -4393,43 +2866,6 @@ async function ensureAICoreNodeContext(node, reason) {
     normalizeAnalysis,
     writeCache: writeAICoreAnalysisCache
   });
-
-  // TODO(architecture): Remove legacy inline image analysis context loader after module validation.
-  if (!node || node.dataset.kind !== "image") return;
-  if (reason === "suggestion_timeout") return;
-  if (shouldUsePromptContext(node)) return;
-  if (readNodeJson(node, "aiCoreAnalysis")) return;
-  if (node._aiCoreAnalysisPromise) return node._aiCoreAnalysisPromise;
-
-  node.dataset.aiCoreAnalysisStatus = "loading";
-  const profile = inferProductProfile(node._sourceFile || { name: getStackTitle(node) });
-  node._aiCoreAnalysisPromise = (async () => {
-    try {
-      const image = await getAICoreImageData(node, node._sourceFile);
-      if (!image) throw new Error("当前素材无法读取图片内容");
-      const result = await postJson("/api/analyze-image", {
-        image,
-        title: getStackTitle(node),
-        refreshCount: 0
-      });
-      writeAICoreAnalysisCache(node, normalizeAnalysis(result.analysis, profile), "vision");
-    } catch (error) {
-      const fallback = normalizeAnalysis({
-        ...profile,
-        productName: profile.name,
-        category: profile.type,
-        industry: profile.type,
-        workflowIntent: "基于文件信息推荐可用物料",
-        sellingPoints: ["视觉模型暂时不可用，先使用本地信息推断。"]
-      }, profile);
-      writeAICoreAnalysisCache(node, fallback, "fallback");
-      node.dataset.aiCoreAnalysisStatus = "fallback";
-      node.dataset.aiCoreAnalysisError = error.message || "识别失败";
-    } finally {
-      node._aiCoreAnalysisPromise = null;
-    }
-  })();
-  return node._aiCoreAnalysisPromise;
 }
 
 function getNodeSnapshot(node) {
@@ -4440,28 +2876,6 @@ function getNodeSnapshot(node) {
     compactText,
     isSelected: (item) => selectedNodes.has(item)
   });
-  // TODO: remove legacy inline node snapshot after Agent state verification.
-  if (!node) return null;
-  const analysis = compactAnalysisForAgent(readNodeJson(node, "aiCoreAnalysis"));
-  const sourceAnalysis = compactAnalysisForAgent(readNodeJson(node, "aiCoreSourceAnalysis"));
-  return {
-    id: node.dataset.nodeId,
-    kind: node.dataset.kind,
-    title: getStackTitle(node),
-    productName: node.dataset.productName || "",
-    productType: node.dataset.productType || "",
-    assetType: node.dataset.assetType || "",
-    sourceMode: node.dataset.sourceMode || (node.dataset.createdBy === "ai" ? "generated" : ""),
-    createdBy: node.dataset.createdBy || "",
-    generationPrompt: compactText(node.dataset.generationPrompt || node.dataset.editPrompt || "", 900),
-    generationModel: node.dataset.generationModel || node.dataset.editModel || "",
-    analysisStatus: node.dataset.aiCoreAnalysisStatus || "",
-    analysisSource: node.dataset.aiCoreAnalysisSource || "",
-    analysis,
-    sourceAnalysis,
-    selected: selectedNodes.has(node),
-    stackedChildren: node._stackChildren?.length || 0
-  };
 }
 
 function buildCanvasState(reason, targetId) {
@@ -4475,18 +2889,6 @@ function buildCanvasState(reason, targetId) {
     getNodeById,
     createNodeSnapshot: getNodeSnapshot
   });
-  // TODO: remove legacy inline canvas state after Agent state verification.
-  const nodes = Array.from(canvasWorld.querySelectorAll(".node-card"))
-    .filter((node) => !node.classList.contains("stack-member-hidden"))
-    .slice(-20);
-  const target = getNodeById(targetId) || selectedNode || nodes[nodes.length - 1] || null;
-  return {
-    reason,
-    target: getNodeSnapshot(target),
-    selected: Array.from(selectedNodes).map(getNodeSnapshot).filter(Boolean),
-    nodes: nodes.map(getNodeSnapshot).filter(Boolean),
-    recentEvents: canvasEvents.slice(-12)
-  };
 }
 
 async function runAICoreAgent(reason, targetId) {
@@ -4815,108 +3217,6 @@ function ensureAICoreWorkspace() {
   bindAICoreWorkspaceEvents(workspace);
   return workspace;
 
-  // TODO(architecture): Remove the legacy inline template below after the component path is verified in browser QA.
-  workspace = document.createElement("div");
-  workspace.className = "ai-core-workspace";
-  workspace.innerHTML = `
-    <button class="ai-core-workspace-close" type="button" title="关闭">×</button>
-    <section class="ai-suggestion-panel">
-      <div class="ai-panel-head">
-        <strong>✧ AI 智能建议</strong>
-        <span>基于商品识别</span>
-        <button type="button" class="ai-core-refresh" data-core-refresh title="换一组建议" aria-label="换一组建议">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7" /><path d="M21 3v6h-6" /></svg>
-        </button>
-      </div>
-      <div class="ai-panel-actions">
-        <button type="button" disabled>
-          <span>AI 思考中</span>
-          <small>正在理解图片类型，并推测最适合生成的素材。</small>
-        </button>
-      </div>
-      <div class="ai-analysis-summary" data-core-analysis>
-        <strong>AI 正在思考图片用途...</strong>
-      </div>
-    </section>
-    <section class="ai-core-stage">
-      <div class="ai-core-big">
-        <img alt="当前素材" />
-        <div class="ai-core-big-copy">
-          <strong>AI Core</strong>
-          <span>智能创作引擎已就绪</span>
-        </div>
-      </div>
-      <div class="ai-core-status">
-        <strong><span data-core-state-label>识别中</span>：<span data-core-product>产品</span></strong>
-        <small data-core-status-copy>AI 正在分析图片内容...</small>
-      </div>
-    </section>
-    <section class="ai-result-preview preview-scene">
-      <strong>场景图 · 生成中</strong>
-      <div></div>
-    </section>
-    <section class="ai-result-preview preview-poster">
-      <strong>宣传海报</strong>
-      <div></div>
-    </section>
-    <section class="ai-result-preview preview-detail">
-      <strong>产品详情页</strong>
-      <div></div>
-    </section>
-    <section class="ai-thinking-card">
-      <strong>AI 思考中</strong>
-      <span>● 识别商品属性</span>
-      <span>● 分析风格与卖点</span>
-      <span>○ 生成素材方案</span>
-      <span>○ 开始生成素材</span>
-    </section>
-    <section class="ai-decision-panel" hidden>
-      <strong data-decision-title>先确认一下方向</strong>
-      <p data-decision-question>你希望这次生成更偏向哪种感觉？</p>
-      <div class="ai-decision-options">
-        <button type="button" data-decision-style="高端极简、干净商业摄影、突出产品质感">高端极简</button>
-        <button type="button" data-decision-style="电商转化导向、卖点清晰、画面更有冲击力">电商转化</button>
-        <button type="button" data-decision-style="保留原产品结构与颜色，只优化场景和光影">尽量保真</button>
-      </div>
-      <button class="ai-generate-now" type="button">立即生成</button>
-    </section>
-  `;
-  appRoot.appendChild(workspace);
-  workspace.querySelector(".ai-core-workspace-close").addEventListener("click", hideAICoreWorkspace);
-  workspace.addEventListener("click", async (event) => {
-    const refresh = event.target.closest("[data-core-refresh]");
-    if (refresh) {
-      if (workspace.classList.contains("analyzing")) return;
-      workspace.dataset.refreshCount = String((Number(workspace.dataset.refreshCount || "0") || 0) + 1);
-      refreshAICoreSuggestions(workspace);
-      return;
-    }
-    const button = event.target.closest("[data-core-action]");
-    if (!button) return;
-    const productNode = getNodeById(workspace.dataset.productNodeId);
-    if (!productNode) return;
-    const actionType = button.dataset.coreAction;
-    button.classList.add("running");
-    button.disabled = true;
-    try {
-      await prepareCoreAction(workspace, actionType);
-    } finally {
-      button.classList.remove("running");
-      button.disabled = false;
-    }
-    showAIDecisionPanel(workspace, actionType);
-  });
-  workspace.querySelector(".ai-decision-options").addEventListener("click", (event) => {
-    const option = event.target.closest("[data-decision-style]");
-    if (!option) return;
-    workspace.querySelectorAll("[data-decision-style]").forEach((item) => item.classList.remove("selected"));
-    option.classList.add("selected");
-    workspace.dataset.decisionStyle = option.dataset.decisionStyle;
-  });
-  workspace.querySelector(".ai-generate-now").addEventListener("click", async () => {
-    await runWorkspaceDecision(workspace);
-  });
-  return workspace;
 }
 
 function showAIDecisionPanel(workspace, actionType) {
@@ -5218,72 +3518,6 @@ async function runImageEditCommand(sourceNode, prompt, label = "图片编辑") {
     addChatImage
   });
 
-  // TODO(architecture): Remove this legacy inline image-edit flow after the
-  // compatibility layer is fully retired.
-  if (!sourceNode || !prompt) return;
-  const fileName = sourceNode.querySelector(".image-file-name")?.textContent.trim() || "图片";
-  const img = sourceNode.querySelector(".image-frame img");
-  const sourceFrame = sourceNode.querySelector(".image-frame");
-  if (!img?.src) return;
-  const sourceX = parseFloat(sourceNode.style.left || "0");
-  const sourceY = parseFloat(sourceNode.style.top || "0");
-  const sourceWidth = sourceNode.offsetWidth;
-  const sourceAspect = sourceFrame?.style.aspectRatio || `${img.naturalWidth || 1} / ${img.naturalHeight || 1}`;
-  const previewNode = addGenerationPreview({
-    title: `${label}中.png`,
-    desc: "正在根据当前图片生成结果",
-    x: sourceX + sourceWidth + 28,
-    y: sourceY,
-    width: sourceWidth,
-    aspectRatio: sourceAspect
-  });
-  addChat("user", `${label} ${fileName}`);
-  const thinking = addThinking(label, [
-    "读取原图",
-    "整理编辑指令",
-    "调用图片编辑模型",
-    "将结果写入画布"
-  ]);
-  const progress = addChat("assistant", `正在执行${label}...`);
-  progress.classList.add("loading");
-  sourceNode.dataset.editPrompt = prompt;
-  sourceNode.dataset.editModel = imageEditModel.value;
-
-  try {
-    updateThinking(thinking, 1);
-    const image = await imageSourceToDataUrl(img.src);
-    updateThinking(thinking, 2);
-    const result = await postJson("/api/image-edit", {
-      prompt,
-      model: imageEditModel.value,
-      image,
-      size: getQwenSizeForImage(img)
-    });
-    const outputUrl = result.imageUrl || (result.imageBase64 ? `data:image/png;base64,${result.imageBase64}` : "");
-    updateThinking(thinking, 3);
-    if (outputUrl) {
-      const imageNode = replacePreviewWithImage(previewNode, {
-        title: `${label}结果.png`,
-        desc: "由图片编辑模型生成",
-        url: outputUrl,
-        width: sourceWidth,
-        aspectRatio: sourceAspect,
-        prompt,
-        sourceNode,
-        actionType: "image_edit",
-        model: imageEditModel.value
-      });
-      addSourceBadge(imageNode, sourceNode);
-      addChatImage("assistant", outputUrl, `${label}已完成，并放在原图右侧`);
-    }
-    updateThinking(thinking, 4, true);
-    updateChat(progress, result.message || `${label}已完成。`);
-  } catch (error) {
-    previewNode.classList.add("generation-failed");
-    previewNode.querySelector(".generation-frame span").textContent = "生成失败，请查看右侧错误信息";
-    updateThinking(thinking, 0, true);
-    updateChat(progress, `${label}失败：${error.message}`);
-  }
 }
 
 function setChatCollapsed(collapsed) {
@@ -5424,24 +3658,6 @@ projectTitle?.addEventListener("blur", () => {
   commitProjectTitleEdit();
 });
 
-function syncHomeModelPickerLegacy() {
-  if (!homeModelSelect || !homeModelButton || !homeModelMenu) return;
-  const selected = homeModelSelect.options[homeModelSelect.selectedIndex];
-  homeModelButton.querySelector("span").textContent = selected?.textContent || "智能模型";
-  homeModelMenu.querySelectorAll("[data-model-value]").forEach((button) => {
-    button.classList.toggle("active", button.dataset.modelValue === homeModelSelect.value);
-  });
-}
-
-function setHomeFilesLegacy(files) {
-  homeImageFiles = getImageFiles(files || []);
-  homePromptForm?.classList.toggle("has-files", homeImageFiles.length > 0);
-  if (homeUploadButton) {
-    homeUploadButton.title = homeImageFiles.length ? `已选择 ${homeImageFiles.length} 张参考图` : "上传文件";
-    homeUploadButton.setAttribute("aria-label", homeUploadButton.title);
-  }
-}
-
 function syncHomeModelPicker() {
   syncHomeModelPickerView({
     select: homeModelSelect,
@@ -5473,8 +3689,69 @@ function setHomeFiles(files) {
   renderHomeFilePreview();
 }
 
+function openHomeFilePicker() {
+  if (!homeFileInput) return;
+  if (typeof homeFileInput.showPicker === "function") {
+    try {
+      homeFileInput.showPicker();
+      return;
+    } catch {
+      // Fall through to click; some browsers restrict showPicker.
+    }
+  }
+  homeFileInput.click();
+}
+
+bindHomeLibraryInteractions({
+  documentRoot: document,
+  elements: {
+    homeUploadButton: null,
+    homeFileInput: null,
+    homePromptForm: null,
+    homePromptInput: null,
+    homeModelButton: null,
+    homeModelSelect: null,
+    homeModelMenu: null,
+    homeModelPicker: null,
+    projectGrid,
+    homeHistory,
+    uploadAsset,
+    assetUploadInput,
+    chatUploadImage,
+    chatImageInput,
+    promptForm
+  },
+  actions: {
+    setHomeFiles,
+    syncHomeModelPicker,
+    getHomeImageFiles: () => homeImageFiles,
+    getLibraryViewMode: () => libraryViewMode,
+    setLibraryViewModeInMemory: (mode) => { libraryViewMode = mode; },
+    renderProjectLibrary,
+    newBlankProject,
+    saveCurrentProject,
+    selectLibraryProject,
+    stepLibraryProject,
+    openProject,
+    setLibraryWheelLock: (value) => { libraryWheelLock = value; },
+    getLibraryWheelLock: () => libraryWheelLock,
+    showView,
+    uploadAsReference,
+    addChatImageFiles,
+    generateHomeProject,
+    recordCanvasEvent,
+    getChatDragDepth: () => chatDragDepth,
+    setChatDragDepth: (value) => { chatDragDepth = value; },
+    setLibraryViewModeStorage: setLibraryViewMode,
+    getPendingUploadPoint: () => pendingUploadPoint,
+    setPendingUploadPoint: (point) => { pendingUploadPoint = point; }
+  }
+});
+
+// Safety fallback while the legacy shell is being split: keep home controls
+// directly wired so a partial module migration cannot block the first screen.
 homeUploadButton?.addEventListener("click", () => {
-  homeFileInput?.click();
+  openHomeFilePicker();
 });
 
 homeFileInput?.addEventListener("change", () => {
@@ -5485,6 +3762,7 @@ homeFileInput?.addEventListener("change", () => {
 
 homeModelButton?.addEventListener("click", (event) => {
   event.preventDefault();
+  if (!homeModelPicker) return;
   const open = !homeModelPicker.classList.contains("open");
   homeModelPicker.classList.toggle("open", open);
   homeModelButton.setAttribute("aria-expanded", String(open));
@@ -5495,138 +3773,73 @@ homeModelMenu?.addEventListener("click", (event) => {
   if (!button || !homeModelSelect) return;
   homeModelSelect.value = button.dataset.modelValue;
   syncHomeModelPicker();
-  homeModelPicker.classList.remove("open");
+  homeModelPicker?.classList.remove("open");
   homeModelButton?.setAttribute("aria-expanded", "false");
   homePromptInput?.focus();
 });
 
-document.addEventListener("click", (event) => {
-  if (!homeModelPicker?.contains(event.target)) {
-    homeModelPicker?.classList.remove("open");
-    homeModelButton?.setAttribute("aria-expanded", "false");
-  }
-});
-
 homePromptForm?.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const prompt = homePromptInput.value.trim();
-  if (!prompt && !homeImageFiles.length) return;
-  const model = homeModelSelect?.value;
+  const prompt = homePromptInput?.value.trim() || "";
   const files = homeImageFiles.slice();
+  if (!prompt && !files.length) return;
+  const model = homeModelSelect?.value;
   recordCanvasEvent("prompt_submitted", {
     source: "home",
     hasPrompt: Boolean(prompt),
     imageCount: files.length,
     model
   });
-  homePromptInput.value = "";
+  if (homePromptInput) homePromptInput.value = "";
   setHomeFiles([]);
   await generateHomeProject(prompt, model, files);
 });
 
-projectGrid?.addEventListener("click", (event) => {
-  const newProject = event.target.closest("[data-new-project]");
-  if (newProject) {
-    newBlankProject();
+document.addEventListener("click", (event) => {
+  const uploadButton = event.target.closest("#homeUploadButton");
+  if (uploadButton) {
+    // Let the button's own click handler open the file picker. Stopping the
+    // capture phase here can interfere with the browser's file-input gesture.
     return;
   }
-  const saveProject = event.target.closest("[data-save-project]");
-  if (saveProject) {
-    saveCurrentProject();
+
+  const modelButton = event.target.closest("#homeModelButton");
+  if (modelButton) {
+    event.preventDefault();
+    event.stopPropagation();
+    if (!homeModelPicker) return;
+    const open = !homeModelPicker.classList.contains("open");
+    homeModelPicker.classList.toggle("open", open);
+    homeModelButton?.setAttribute("aria-expanded", String(open));
     return;
   }
-  const modeButton = event.target.closest("[data-library-mode]");
-  if (modeButton) {
-    libraryViewMode = modeButton.dataset.libraryMode;
-    setLibraryViewMode(libraryViewMode);
-    renderProjectLibrary();
+
+  const modelOption = event.target.closest("#homeModelMenu [data-model-value]");
+  if (modelOption && homeModelSelect) {
+    event.preventDefault();
+    event.stopPropagation();
+    homeModelSelect.value = modelOption.dataset.modelValue;
+    syncHomeModelPicker();
+    homeModelPicker?.classList.remove("open");
+    homeModelButton?.setAttribute("aria-expanded", "false");
+    homePromptInput?.focus();
     return;
   }
-  const timelineItem = event.target.closest("[data-library-index]");
-  if (timelineItem) {
-    selectLibraryProject(Number(timelineItem.dataset.libraryIndex));
+
+  const toolButton = event.target.closest(".rail-btn[data-tool]");
+  if (toolButton) {
+    setActiveRailPanelButton(toolButton);
+    runCanvasTool(toolButton.dataset.tool);
     return;
   }
-  const stepButton = event.target.closest("[data-library-step]");
-  if (stepButton) {
-    stepLibraryProject(Number(stepButton.dataset.libraryStep));
-    return;
+
+  const shapeButton = event.target.closest("[data-shape-tool]");
+  if (shapeButton) {
+    event.preventDefault();
+    event.stopPropagation();
+    setShapeTool(shapeButton.dataset.shapeTool);
   }
-  const open = event.target.closest("[data-open-project]");
-  if (open) openProject(open.dataset.openProject);
-});
-
-projectGrid?.addEventListener("wheel", (event) => {
-  if (
-    libraryViewMode !== "stack" ||
-    document.body.dataset.view !== "library" ||
-    !event.target.closest(".project-stack, .project-timeline")
-  ) return;
-  event.preventDefault();
-  if (libraryWheelLock) return;
-  libraryWheelLock = true;
-  stepLibraryProject(event.deltaY > 0 ? 1 : -1);
-  window.setTimeout(() => {
-    libraryWheelLock = false;
-  }, 900);
-}, { passive: false });
-
-homeHistory?.addEventListener("click", (event) => {
-  const nav = event.target.closest("[data-nav-view]");
-  if (nav) {
-    showView(nav.dataset.navView === "library" ? "library" : nav.dataset.navView);
-    return;
-  }
-  const card = event.target.closest("[data-open-project]");
-  if (card) openProject(card.dataset.openProject);
-});
-
-uploadAsset.addEventListener("click", () => {
-  pendingUploadPoint = null;
-  assetUploadInput.click();
-});
-
-assetUploadInput.addEventListener("change", () => {
-  const point = pendingUploadPoint;
-  uploadAsReference(assetUploadInput.files, point);
-  pendingUploadPoint = null;
-  assetUploadInput.value = "";
-});
-
-chatUploadImage.addEventListener("click", () => {
-  chatImageInput.click();
-});
-
-chatImageInput.addEventListener("change", () => {
-  addChatImageFiles(chatImageInput.files);
-  chatImageInput.value = "";
-});
-
-promptForm.addEventListener("dragenter", (event) => {
-  if (!Array.from(event.dataTransfer?.items || []).some((item) => item.kind === "file")) return;
-  event.preventDefault();
-  chatDragDepth += 1;
-  promptForm.classList.add("drag-over");
-});
-
-promptForm.addEventListener("dragover", (event) => {
-  if (!Array.from(event.dataTransfer?.items || []).some((item) => item.kind === "file")) return;
-  event.preventDefault();
-  event.dataTransfer.dropEffect = "copy";
-  promptForm.classList.add("drag-over");
-});
-
-promptForm.addEventListener("dragleave", () => {
-  chatDragDepth = Math.max(0, chatDragDepth - 1);
-  if (!chatDragDepth) promptForm.classList.remove("drag-over");
-});
-
-promptForm.addEventListener("drop", (event) => {
-  event.preventDefault();
-  addChatImageFiles(event.dataTransfer.files);
-  promptForm.classList.remove("drag-over");
-  chatDragDepth = 0;
-});
+}, true);
 
 aiCore.addEventListener("pointerdown", (event) => {
   if (event.button !== 0) return;
@@ -5892,73 +4105,6 @@ imageEditSubmit.addEventListener("click", async () => {
   });
   hideImageEditPopover();
   return;
-
-  // TODO(architecture): Remove this legacy inline submit flow after the
-  // compatibility layer is fully retired.
-  const sourceNode = editingImageNode;
-  const fileName = sourceNode.querySelector(".image-file-name")?.textContent.trim() || "图片";
-  const img = sourceNode.querySelector(".image-frame img");
-  const sourceFrame = sourceNode.querySelector(".image-frame");
-  const sourceX = parseFloat(sourceNode.style.left || "0");
-  const sourceY = parseFloat(sourceNode.style.top || "0");
-  const sourceWidth = sourceNode.offsetWidth;
-  const sourceAspect = sourceFrame?.style.aspectRatio || `${img?.naturalWidth || 1} / ${img?.naturalHeight || 1}`;
-  const previewNode = addGenerationPreview({
-    title: "Qwen 编辑中.png",
-    desc: "正在根据提示词修改原图",
-    x: sourceX + sourceWidth + 28,
-    y: sourceY,
-    width: sourceWidth,
-    aspectRatio: sourceAspect
-  });
-  addChat("user", `修改 ${fileName}：${prompt}`);
-  const thinking = addThinking("图片编辑流程", [
-    "读取原图和提示词",
-    "计算输出比例",
-    "调用 Qwen 图像编辑",
-    "将结果写入画布"
-  ]);
-  const progress = addChat("assistant", "正在调用 Qwen 图像编辑模型...");
-  progress.classList.add("loading");
-  sourceNode.dataset.editPrompt = prompt;
-  sourceNode.dataset.editModel = imageEditModel.value;
-
-  try {
-    updateThinking(thinking, 1);
-    const image = await imageSourceToDataUrl(img?.src);
-    updateThinking(thinking, 2);
-    const result = await postJson("/api/image-edit", {
-      prompt,
-      model: imageEditModel.value,
-      image,
-      size: getQwenSizeForImage(img)
-    });
-    const outputUrl = result.imageUrl || (result.imageBase64 ? `data:image/png;base64,${result.imageBase64}` : "");
-    updateThinking(thinking, 3);
-    if (outputUrl) {
-      const imageNode = replacePreviewWithImage(previewNode, {
-        title: "Qwen 编辑图片.png",
-        desc: "由千问图像模型编辑",
-        url: outputUrl,
-        width: sourceWidth,
-        aspectRatio: sourceAspect,
-        prompt,
-        sourceNode,
-        actionType: "image_edit",
-        model: imageEditModel.value
-      });
-      addSourceBadge(imageNode, sourceNode);
-      addChatImage("assistant", outputUrl, "图片已编辑，并放在原图右侧");
-    }
-    updateThinking(thinking, 4, true);
-    updateChat(progress, result.message || "图片已根据提示词更新。");
-  } catch (error) {
-    previewNode.classList.add("generation-failed");
-    previewNode.querySelector(".generation-frame span").textContent = "生成失败，请查看右侧错误信息";
-    updateThinking(thinking, 0, true);
-    updateChat(progress, `图片编辑失败：${error.message}`);
-  }
-  hideImageEditPopover();
 });
 
 document.querySelectorAll(".rail-btn[data-panel]").forEach((button) => {
@@ -6263,7 +4409,7 @@ promptForm.addEventListener("submit", async (event) => {
         width: previewNode.offsetWidth,
         aspectRatio: previewNode.querySelector(".image-frame")?.style.aspectRatio || "1 / 1",
         prompt,
-        actionType: detectKind(prompt),
+        actionType: detectGenerationKind(prompt),
         model
       });
       updateActiveProject({

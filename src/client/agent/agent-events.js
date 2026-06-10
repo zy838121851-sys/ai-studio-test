@@ -14,3 +14,15 @@ export const AGENT_EVENT_TYPES = Object.freeze({
 export function isAgentEventType(type) {
   return Object.values(AGENT_EVENT_TYPES).includes(type);
 }
+
+export function normalizeAgentEventType(type, payload = {}, { getNodeKind = () => "" } = {}) {
+  if (type === "upload") return payload.kind === "image" ? AGENT_EVENT_TYPES.IMAGE_UPLOADED : AGENT_EVENT_TYPES.GENERATION_CREATED;
+  if (type === "select") {
+    return getNodeKind(payload.nodeId) === "image" ? AGENT_EVENT_TYPES.IMAGE_SELECTED : AGENT_EVENT_TYPES.CANVAS_IDLE;
+  }
+  if (type === "delete" || type === "erase") return AGENT_EVENT_TYPES.IMAGE_DELETED;
+  if (type === "mock_generate") return AGENT_EVENT_TYPES.GENERATION_CREATED;
+  if (type === "ai_suggestion") return AGENT_EVENT_TYPES.CANVAS_IDLE;
+  if (type === "undo" || type === "redo") return AGENT_EVENT_TYPES.CANVAS_IDLE;
+  return type;
+}

@@ -26,7 +26,13 @@ export async function initApp() {
   const suggestionEngine = createSuggestionEngine({ canvasController, eventBus });
 
   initAssetPanel({ eventBus });
-  initAgentPanel({ eventBus });
+  initAgentPanel({
+    eventBus,
+    onAction: (suggestion) => executeAgentAction(suggestion, {
+      eventBus,
+      canvasRoot: document
+    })
+  });
   initCanvasToolbar({ eventBus });
   initTaskBar({ eventBus });
 
@@ -36,7 +42,10 @@ export async function initApp() {
     canvasController,
     agentEventSystem,
     suggestionEngine,
-    executeAgentAction: (suggestion) => executeAgentAction(suggestion, { eventBus })
+    executeAgentAction: (suggestion) => executeAgentAction(suggestion, {
+      eventBus,
+      canvasRoot: document
+    })
   };
 
   window.AIStudio = architecture;

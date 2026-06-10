@@ -36,33 +36,36 @@ export function makeDemoProjectThumb(title, index, escapeHtml = (value) => Strin
 
 export function buildDemoProjects({ projects = [], escapeHtml, hasSeeded, markSeeded }) {
   const titles = [
-    "潮玩公仔 3D 转化",
-    "蕾丝连衣裙主图",
-    "智能插座场景",
-    "香水海报视觉",
-    "咖啡杯产品页",
-    "运动鞋广告片",
-    "耳机光影海报",
-    "美妆套装详情",
-    "家具空间渲染",
-    "食品包装提案"
+    "Toy 3D Render",
+    "Fashion Lookbook",
+    "Smart Device Scene",
+    "Perfume Poster",
+    "Coffee Product Page",
+    "Sneaker Campaign",
+    "Headphone Lighting",
+    "Beauty Detail Page",
+    "Furniture Interior",
+    "Food Packaging"
   ];
   const existingDemoIds = new Set(projects.filter((project) => project.isDemo).map((project) => project.id));
   const missingTitles = titles
     .map((title, index) => ({ title, index }))
     .filter((item) => !existingDemoIds.has(`demo-project-${item.index + 1}`));
+
   if (!missingTitles.length && hasSeeded?.()) return projects;
+
   const now = Date.now();
   const demos = missingTitles.map(({ title, index }) => ({
     id: `demo-project-${index + 1}`,
     title,
-    prompt: `${title} 的历史画板`,
+    prompt: `${title} demo board`,
     thumbnail: makeDemoProjectThumb(title, index, escapeHtml),
     createdAt: now - (index + 1) * 86400000,
     updatedAt: now - index * 4860000,
     itemCount: 1,
     isDemo: true
   }));
+
   markSeeded?.();
   return [...demos, ...projects];
 }
