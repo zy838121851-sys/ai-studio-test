@@ -211,6 +211,10 @@ import {
   isWeakAction as isWeakAgentAction,
   normalizeAgentSuggestion
 } from "./agent/agent-recommendations.js";
+import {
+  ensureAgentNodeContext,
+  scheduleAgentRun
+} from "./agent/agent-scheduler.js";
 
 const assets = [
   { id: "landing", type: "2d", title: "AI 发布页", desc: "首屏、卖点、CTA" },
@@ -4316,6 +4320,22 @@ function shouldUsePromptContext(node) {
 }
 
 function scheduleAICoreAgent(reason, targetNode, delay) {
+  const scheduled = scheduleAgentRun({
+    enabled: aiCoreAgentEnabled,
+    reason,
+    targetNode,
+    selectedNode,
+    delay,
+    previousTimer: aiCoreAgentTimer,
+    setState: setAICoreAgentState,
+    run: runAICoreAgent
+  });
+  aiCoreAgentTimer = scheduled.timer;
+  aiCoreAgentReason = scheduled.reason;
+  aiCoreAgentTargetId = scheduled.targetId;
+  return;
+
+  // TODO(architecture): Remove legacy inline Agent scheduler after module validation.
   if (!aiCoreAgentEnabled) return;
   aiCoreAgentReason = reason;
   aiCoreAgentTargetId = targetNode?.dataset?.nodeId || selectedNode?.dataset?.nodeId || "";
@@ -4327,6 +4347,20 @@ function scheduleAICoreAgent(reason, targetNode, delay) {
 }
 
 async function ensureAICoreNodeContext(node, reason) {
+  return ensureAgentNodeContext({
+    node,
+    reason,
+    shouldUsePromptContext,
+    readAnalysis: (target) => readNodeJson(target, "aiCoreAnalysis"),
+    inferProfile: inferProductProfile,
+    getTitle: getStackTitle,
+    getImageData: getAICoreImageData,
+    analyzeImage: (payload) => postJson("/api/analyze-image", payload),
+    normalizeAnalysis,
+    writeCache: writeAICoreAnalysisCache
+  });
+
+  // TODO(architecture): Remove legacy inline image analysis context loader after module validation.
   if (!node || node.dataset.kind !== "image") return;
   if (reason === "suggestion_timeout") return;
   if (shouldUsePromptContext(node)) return;
