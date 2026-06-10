@@ -80,20 +80,6 @@ import {
   syncShapeSvgStyles,
   updateDrawingPreviewElement
 } from "./canvas/shape-tool.js";
-import {
-  MAX_ASCII_MODEL_BYTES as MODEL_MAX_ASCII_BYTES,
-  MAX_PARSE_FACES as MODEL_MAX_PARSE_FACES,
-  MAX_PREVIEW_MODEL_BYTES as MODEL_MAX_PREVIEW_BYTES,
-  MAX_RENDER_FACES as MODEL_MAX_RENDER_FACES,
-  MAX_VERTEX_COUNT as MODEL_MAX_VERTEX_COUNT,
-  createCubeGeometry,
-  normalizeModelGeometry,
-  parseGlbGeometry,
-  parseModelGeometryFile,
-  parseObjGeometry,
-  parseStlGeometry,
-  sampleModelFaces
-} from "./canvas/model-parser.js";
 import { initModelViewerPreview } from "./canvas/model-viewer.js";
 import {
   buildUploadedNodeConfig,
@@ -611,11 +597,6 @@ async function generateHomeProject(prompt, model, files = []) {
 }
 
 const modelExtensions = [".glb", ".gltf", ".obj", ".fbx", ".stl", ".usdz"];
-const MAX_RENDER_FACES = MODEL_MAX_RENDER_FACES;
-const MAX_PARSE_FACES = MODEL_MAX_PARSE_FACES;
-const MAX_VERTEX_COUNT = MODEL_MAX_VERTEX_COUNT;
-const MAX_ASCII_MODEL_BYTES = MODEL_MAX_ASCII_BYTES;
-const MAX_PREVIEW_MODEL_BYTES = MODEL_MAX_PREVIEW_BYTES;
 const IMAGE_EDIT_MIN_WIDTH = 420;
 const IMAGE_EDIT_MAX_WIDTH = 1680;
 const IMAGE_EDIT_MIN_HEIGHT = 210;
@@ -2435,38 +2416,6 @@ function generateFromPrompt(prompt, point) {
   addChat("assistant", `已在画布中生成 ${titles[kind]}。你可以继续描述风格、镜头或组件，我会扩展到同一块无限画布上。`);
 }
 
-function getUploadKind(file) {
-  return resolveUploadKind(file);
-}
-
-function cubeGeometry() {
-  return createCubeGeometry();
-}
-
-function normalizeGeometry(geometry) {
-  return normalizeModelGeometry(geometry);
-}
-
-function sampleFaces(faces, limit) {
-  return sampleModelFaces(faces, limit);
-}
-
-function parseObj(text) {
-  return parseObjGeometry(text);
-}
-
-function parseStl(buffer) {
-  return parseStlGeometry(buffer);
-}
-
-function parseGlb(buffer) {
-  return parseGlbGeometry(buffer);
-}
-
-function parseModelGeometry(file, buffer) {
-  return parseModelGeometryFile(file, buffer);
-}
-
 function initModelViewer(node, file) {
   return initModelViewerPreview(node, file, {
     hideAddNodeMenu,
@@ -2475,7 +2424,7 @@ function initModelViewer(node, file) {
 }
 
 function addUploadedFile(file, index = 0, point) {
-  const kind = getUploadKind(file);
+  const kind = resolveUploadKind(file);
   if (!kind) return false;
 
   const url = URL.createObjectURL(file);
@@ -2498,7 +2447,7 @@ function addUploadedFiles(files, point, options = {}) {
   if (accepted.length) {
     addChat("assistant", `已上传 ${accepted.length} 个素材到画布。选中模块后按 Delete 可以删除。`);
     accepted.forEach((item, index) => {
-      const kind = getUploadKind(item.file);
+      const kind = resolveUploadKind(item.file);
       if (createDirector && (kind === "image" || kind === "model")) createDirectorCard(item.node, item.file, index);
       recordCanvasEvent("upload", {
         nodeId: item.node.dataset.nodeId,
