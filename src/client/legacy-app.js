@@ -176,6 +176,7 @@ import {
   detectGenerationKind,
   getDefaultReferencePrompt
 } from "./ai/prompt-builder.js";
+import { getQwenImageSizeForElement } from "./ai/image-generator.js";
 import {
   applyProjectLibraryClasses,
   renderHomeHistoryContent,
@@ -212,12 +213,10 @@ import {
   positionFloatingMenu
 } from "./components/menu-position.js";
 import {
-  initCanvasToolbar,
   setActiveRailButton,
   setActiveRailPanelButton,
   toggleToolRailCollapsed
 } from "./components/canvas-toolbar.js";
-import { initTaskBar } from "./components/task-bar.js";
 import {
   createCanvasStateSnapshot,
   createNodeSnapshot
@@ -2421,28 +2420,8 @@ async function imageSourceToDataUrl(src) {
   return readImageSourceAsDataUrl(src);
 }
 
-function roundToMultiple(value, multiple = 16) {
-  return Math.round(value / multiple) * multiple;
-}
-
 function getQwenSizeForImage(img) {
-  const naturalWidth = img?.naturalWidth || 1024;
-  const naturalHeight = img?.naturalHeight || 1024;
-  const ratio = naturalWidth / Math.max(1, naturalHeight);
-  let width;
-  let height;
-
-  if (ratio >= 1) {
-    width = 2048;
-    height = width / ratio;
-  } else {
-    height = 2048;
-    width = height * ratio;
-  }
-
-  width = Math.max(512, Math.min(2048, roundToMultiple(width)));
-  height = Math.max(512, Math.min(2048, roundToMultiple(height)));
-  return `${width}*${height}`;
+  return getQwenImageSizeForElement(img);
 }
 
 function generateFromPrompt(prompt, point) {
