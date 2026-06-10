@@ -1,4 +1,6 @@
 import { postJson as postJsonRequest } from "./ai/api-client.js";
+// TODO(architecture): This file is the compatibility layer for existing UI behavior.
+// Move remaining feature logic into /canvas, /agent, /ai, /components, or /utils before adding new workflows.
 import {
   getElementWorldBounds,
   getNodeScreenRectFromWorld,
@@ -22,6 +24,27 @@ import {
   panForZoomAroundWorldPoint,
   syncZoomControls
 } from "./canvas/canvas-viewport.js";
+import {
+  buildLinearSvg,
+  buildPointsPath,
+  hslToHexColor,
+  isFixedStrokeToolName,
+  isLinearDrawToolName
+} from "./canvas/drawing-tools.js";
+import {
+  MAX_ASCII_MODEL_BYTES as MODEL_MAX_ASCII_BYTES,
+  MAX_PARSE_FACES as MODEL_MAX_PARSE_FACES,
+  MAX_PREVIEW_MODEL_BYTES as MODEL_MAX_PREVIEW_BYTES,
+  MAX_RENDER_FACES as MODEL_MAX_RENDER_FACES,
+  MAX_VERTEX_COUNT as MODEL_MAX_VERTEX_COUNT,
+  createCubeGeometry,
+  normalizeModelGeometry,
+  parseGlbGeometry,
+  parseModelGeometryFile,
+  parseObjGeometry,
+  parseStlGeometry,
+  sampleModelFaces
+} from "./canvas/model-parser.js";
 import { createCanvasNodeElement } from "./canvas/node-factory.js";
 import { renderToolSvg } from "./canvas/node-icons.js";
 import { renderNodeTemplate } from "./canvas/node-template.js";
@@ -41,8 +64,14 @@ import {
 } from "./core/project-store.js";
 import {
   fileToDataUrl as readFileAsDataUrl,
+  getImageFiles as getImageFilesFromList,
+  getUploadKind as resolveUploadKind,
   imageSourceToDataUrl as readImageSourceAsDataUrl
 } from "./utils/file.js";
+import {
+  isPromptBasedNode,
+  markGeneratedImageNode
+} from "./ai/generation-nodes.js";
 import {
   applyProjectLibraryClasses,
   renderHomeHistoryContent,
@@ -52,6 +81,14 @@ import {
   createCanvasStateSnapshot,
   createNodeSnapshot
 } from "./agent/canvas-state.js";
+import {
+  applyAgentEnabledState,
+  applyAgentState,
+  clearAgentBubbles,
+  positionBubbleAtAgent,
+  positionBubbleAtNode,
+  typeAgentText as runAgentTypewriter
+} from "./agent/agent-ui.js";
 
 const assets = [
   { id: "landing", type: "2d", title: "AI 发布页", desc: "首屏、卖点、CTA" },
@@ -920,7 +957,7 @@ async function generateHomeProject(prompt, model, files = []) {
   window.setTimeout(() => document.body.classList.remove("canvas-entering"), 620);
   setChatCollapsed(false);
   if (model && chatModelSelect) chatModelSelect.value = model;
-  chatImageFiles = Array.from(files).filter((file) => file.type.startsWith("image/"));
+  chatImageFiles = getImageFiles(files);
   renderChatImagePreview();
   promptInput.value = prompt || (chatImageFiles.length ? "参考上传图片生成一张高质量视觉方案" : "");
   promptForm.requestSubmit();
@@ -929,11 +966,11 @@ async function generateHomeProject(prompt, model, files = []) {
 }
 
 const modelExtensions = [".glb", ".gltf", ".obj", ".fbx", ".stl", ".usdz"];
-const MAX_RENDER_FACES = 60000;
-const MAX_PARSE_FACES = 60000;
-const MAX_VERTEX_COUNT = 120000;
-const MAX_ASCII_MODEL_BYTES = 8 * 1024 * 1024;
-const MAX_PREVIEW_MODEL_BYTES = 80 * 1024 * 1024;
+const MAX_RENDER_FACES = MODEL_MAX_RENDER_FACES;
+const MAX_PARSE_FACES = MODEL_MAX_PARSE_FACES;
+const MAX_VERTEX_COUNT = MODEL_MAX_VERTEX_COUNT;
+const MAX_ASCII_MODEL_BYTES = MODEL_MAX_ASCII_BYTES;
+const MAX_PREVIEW_MODEL_BYTES = MODEL_MAX_PREVIEW_BYTES;
 const IMAGE_EDIT_MIN_WIDTH = 420;
 const IMAGE_EDIT_MAX_WIDTH = 1680;
 const IMAGE_EDIT_MIN_HEIGHT = 210;
@@ -1322,6 +1359,8 @@ function positionShapeFormatToolbar() {
 }
 
 function hslToHex(h, s, l) {
+  return hslToHexColor(h, s, l);
+  // TODO: remove legacy inline color conversion after drawing-tool verification.
   const saturation = s / 100;
   const lightness = l / 100;
   const c = (1 - Math.abs(2 * lightness - 1)) * saturation;
@@ -1377,20 +1416,24 @@ function syncShapeNodeStyles(node) {
 }
 
 function isLinearDrawTool(tool) {
-  return tool === "line" || tool === "arrow";
+  return isLinearDrawToolName(tool);
 }
 
 function isFixedStrokeTool(tool) {
-  return tool === "pen";
+  return isFixedStrokeToolName(tool);
 }
 
 function pointsToPath(points, offsetX = 0, offsetY = 0) {
+  return buildPointsPath(points, offsetX, offsetY);
+  // TODO: remove legacy inline path builder after drawing-tool verification.
   if (!points.length) return "";
   if (points.length === 1) return `M${points[0].x - offsetX} ${points[0].y - offsetY}`;
   return points.map((point, index) => `${index ? "L" : "M"}${point.x - offsetX} ${point.y - offsetY}`).join(" ");
 }
 
 function linearSvg(tool, width, height, start, end) {
+  return buildLinearSvg(tool, width, height, start, end);
+  // TODO: remove legacy inline linear SVG builder after drawing-tool verification.
   const sx = start.x;
   const sy = start.y;
   const ex = end.x;
@@ -3445,6 +3488,8 @@ function generateFromPrompt(prompt, point) {
 }
 
 function getUploadKind(file) {
+  return resolveUploadKind(file);
+  // TODO: remove legacy inline upload kind resolver after upload flow verification.
   const name = file.name.toLowerCase();
   if (file.type.startsWith("image/")) return "image";
   if (file.type.startsWith("video/")) return "video";
@@ -3453,6 +3498,8 @@ function getUploadKind(file) {
 }
 
 function cubeGeometry() {
+  return createCubeGeometry();
+  // TODO: remove legacy inline cube geometry after model parser verification.
   return {
     vertices: [
       [-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1],
@@ -3463,6 +3510,8 @@ function cubeGeometry() {
 }
 
 function normalizeGeometry(geometry) {
+  return normalizeModelGeometry(geometry);
+  // TODO: remove legacy inline geometry normalization after model parser verification.
   if (!geometry.vertices.length || !geometry.faces.length) return cubeGeometry();
   const min = [Infinity, Infinity, Infinity];
   const max = [-Infinity, -Infinity, -Infinity];
@@ -3481,6 +3530,8 @@ function normalizeGeometry(geometry) {
 }
 
 function sampleFaces(faces, limit) {
+  return sampleModelFaces(faces, limit);
+  // TODO: remove legacy inline face sampler after model parser verification.
   if (faces.length <= limit) return faces;
   const step = faces.length / limit;
   const sampled = [];
@@ -3491,6 +3542,8 @@ function sampleFaces(faces, limit) {
 }
 
 function parseObj(text) {
+  return parseObjGeometry(text);
+  // TODO: remove legacy inline OBJ parser after model parser verification.
   const vertices = [];
   const faces = [];
   text.split(/\r?\n/).forEach((line) => {
@@ -3515,6 +3568,8 @@ function parseObj(text) {
 }
 
 function parseStl(buffer) {
+  return parseStlGeometry(buffer);
+  // TODO: remove legacy inline STL parser after model parser verification.
   const text = new TextDecoder().decode(buffer.slice(0, Math.min(buffer.byteLength, 600)));
   if (/solid[\s\S]*facet/i.test(text)) {
     if (buffer.byteLength > MAX_ASCII_MODEL_BYTES) return cubeGeometry();
@@ -3551,6 +3606,8 @@ function parseStl(buffer) {
 }
 
 function parseGlb(buffer) {
+  return parseGlbGeometry(buffer);
+  // TODO: remove legacy inline GLB parser after model parser verification.
   const view = new DataView(buffer);
   if (view.getUint32(0, true) !== 0x46546c67) return cubeGeometry();
   let offset = 12;
@@ -3605,6 +3662,8 @@ function parseGlb(buffer) {
 }
 
 function parseModelGeometry(file, buffer) {
+  return parseModelGeometryFile(file, buffer);
+  // TODO: remove legacy inline model parser after model parser verification.
   if (buffer.byteLength > MAX_PREVIEW_MODEL_BYTES) return cubeGeometry();
   const name = file.name.toLowerCase();
   if ((name.endsWith(".obj") || name.endsWith(".gltf")) && buffer.byteLength > MAX_ASCII_MODEL_BYTES) return cubeGeometry();
@@ -3958,7 +4017,7 @@ function renderChatImagePreview() {
 }
 
 function addChatImageFiles(files) {
-  const images = Array.from(files).filter((file) => file.type.startsWith("image/"));
+  const images = getImageFiles(files);
   if (!images.length) return false;
   chatImageFiles.push(...images);
   renderChatImagePreview();
@@ -3969,7 +4028,7 @@ function addChatImageFiles(files) {
 }
 
 function getImageFiles(files) {
-  return Array.from(files).filter((file) => file.type.startsWith("image/"));
+  return getImageFilesFromList(files);
 }
 
 function showUploadModeBubbles(files, point, clientX, clientY) {
@@ -4176,18 +4235,13 @@ function pulseAICoreOrb() {
 
 function setAICoreAgentEnabled(enabled) {
   aiCoreAgentEnabled = enabled;
-  aiCore.classList.toggle("agent-enabled", enabled);
-  aiCore.classList.toggle("agent-disabled", !enabled);
-  aiCore.classList.remove("agent-toggle-pop");
-  void aiCore.offsetWidth;
-  aiCore.classList.add("agent-toggle-pop");
-  aiCoreHint.textContent = enabled ? "AI Core 已开启" : "点击启用 AI Core";
+  applyAgentEnabledState(aiCore, aiCoreHint, enabled);
   if (!enabled) {
     window.clearTimeout(aiCoreAgentTimer);
     window.clearTimeout(aiCoreSuggestionTimer);
     aiCoreAgentTimer = null;
     aiCoreSuggestionTimer = null;
-    document.querySelectorAll(".canvas-ai-suggestions").forEach((item) => item.remove());
+    clearAgentBubbles();
     setAICoreState("idle");
   } else {
     setAICoreAgentState("idle");
@@ -4195,9 +4249,7 @@ function setAICoreAgentEnabled(enabled) {
 }
 
 function setAICoreAgentState(state) {
-  ["idle", "sensing", "thinking", "suggested", "generating", "completed"].forEach((name) => {
-    aiCore.classList.toggle(`agent-${name}`, state === name);
-  });
+  applyAgentState(aiCore, state);
 }
 
 function recordCanvasEvent(type, payload = {}) {
@@ -4411,28 +4463,18 @@ function writeAICoreAnalysisCache(node, analysis, source = "vision") {
 }
 
 function markGeneratedNodeContext(node, { prompt = "", sourceNode = null, actionType = "", model = "" } = {}) {
-  if (!node) return;
-  node.dataset.createdBy = "ai";
-  node.dataset.sourceMode = "generated";
-  if (prompt) node.dataset.generationPrompt = prompt;
-  if (actionType) node.dataset.assetType = actionType;
-  if (model) node.dataset.generationModel = model;
-  if (sourceNode) {
-    node.dataset.sourceId = sourceNode.dataset.nodeId || "";
-    node.dataset.parentId = sourceNode.dataset.nodeId || "";
-    node.dataset.productName = sourceNode.dataset.productName || getStackTitle(sourceNode);
-    node.dataset.productType = sourceNode.dataset.productType || "";
-    const sourceAnalysis = readNodeJson(sourceNode, "aiCoreAnalysis");
-    if (sourceAnalysis) node.dataset.aiCoreSourceAnalysis = JSON.stringify(sourceAnalysis);
-  }
+  markGeneratedImageNode(node, {
+    prompt,
+    sourceNode,
+    actionType,
+    model,
+    getSourceTitle: getStackTitle,
+    readSourceAnalysis: (target) => readNodeJson(target, "aiCoreAnalysis")
+  });
 }
 
 function shouldUsePromptContext(node) {
-  return Boolean(
-    node?.dataset?.sourceMode === "generated" ||
-    node?.dataset?.generationPrompt ||
-    node?.dataset?.editPrompt
-  );
+  return isPromptBasedNode(node);
 }
 
 function scheduleAICoreAgent(reason, targetNode, delay) {
@@ -4579,7 +4621,7 @@ async function runAICoreAgent(reason, targetId) {
 }
 
 function showAICoreAgentThinking(canvasState) {
-  document.querySelectorAll(".canvas-ai-suggestions").forEach((item) => item.remove());
+  clearAgentBubbles();
   const bubble = document.createElement("div");
   bubble.className = "canvas-ai-suggestions agent-thinking";
   bubble._canvasState = canvasState;
@@ -4599,7 +4641,7 @@ function showAICoreAgentThinking(canvasState) {
 
 function showAICoreAgentSuggestion(canvasState, suggestion) {
   window.clearTimeout(aiCoreSuggestionTimer);
-  document.querySelectorAll(".canvas-ai-suggestions").forEach((item) => item.remove());
+  clearAgentBubbles();
   const bubble = document.createElement("div");
   bubble.className = "canvas-ai-suggestions agent-suggestion";
   bubble._suggestion = suggestion;
@@ -4643,15 +4685,7 @@ function showAICoreAgentSuggestion(canvasState, suggestion) {
 function positionAgentBubble(bubble = window.currentAICoreBubble) {
   if (!bubble) return;
   const targetNode = getNodeById(bubble._targetId || bubble._canvasState?.target?.id) || selectedNode;
-  if (!targetNode) {
-    const rect = aiCore.getBoundingClientRect();
-    bubble.style.left = `${rect.left + rect.width / 2}px`;
-    bubble.style.top = `${rect.top - 18}px`;
-    return;
-  }
-  const rect = getNodeScreenRect(targetNode);
-  bubble.style.left = `${rect.left + rect.width / 2}px`;
-  bubble.style.top = `${rect.top - 14}px`;
+  positionBubbleAtNode(bubble, targetNode, getNodeScreenRect, aiCore);
 }
 
 function getNodeScreenRect(node) {
@@ -4659,19 +4693,7 @@ function getNodeScreenRect(node) {
 }
 
 function typeAgentText(target, text) {
-  if (!target) return;
-  target.textContent = "";
-  const chars = Array.from(text);
-  let index = 0;
-  window.clearInterval(target._typeTimer);
-  target._typeTimer = window.setInterval(() => {
-    target.textContent += chars[index] || "";
-    index += 1;
-    if (index >= chars.length) {
-      window.clearInterval(target._typeTimer);
-      target._typeTimer = null;
-    }
-  }, 42);
+  runAgentTypewriter(target, text);
 }
 
 function runAICoreMockAction(bubble) {
@@ -4707,7 +4729,7 @@ function ensureCanvasSuggestionBubble(node) {
     existing._sourceNode = node;
     return existing;
   }
-  document.querySelectorAll(".canvas-ai-suggestions").forEach((item) => item.remove());
+  clearAgentBubbles();
   const bubble = document.createElement("div");
   bubble.className = "canvas-ai-suggestions loading";
   bubble.dataset.nodeId = node.dataset.nodeId;
@@ -4744,9 +4766,7 @@ function ensureCanvasSuggestionBubble(node) {
 function positionCanvasSuggestionBubble(node, bubble = null) {
   const target = bubble || document.querySelector(`.canvas-ai-suggestions[data-node-id="${node.dataset.nodeId}"]`);
   if (!target) return;
-  const rect = aiCore.getBoundingClientRect();
-  target.style.left = `${rect.left + rect.width / 2}px`;
-  target.style.top = `${rect.top - 18}px`;
+  positionBubbleAtAgent(target, aiCore);
 }
 
 function renderCanvasSuggestionBubble(bubble, analysis, loading = false) {
@@ -5644,7 +5664,7 @@ function syncHomeModelPickerLegacy() {
 }
 
 function setHomeFilesLegacy(files) {
-  homeImageFiles = Array.from(files || []).filter((file) => file.type.startsWith("image/"));
+  homeImageFiles = getImageFiles(files || []);
   homePromptForm?.classList.toggle("has-files", homeImageFiles.length > 0);
   if (homeUploadButton) {
     homeUploadButton.title = homeImageFiles.length ? `已选择 ${homeImageFiles.length} 张参考图` : "上传文件";
@@ -5683,7 +5703,7 @@ function renderHomeFilePreview() {
 }
 
 function setHomeFiles(files) {
-  homeImageFiles = Array.from(files || []).filter((file) => file.type.startsWith("image/"));
+  homeImageFiles = getImageFiles(files || []);
   homePromptForm?.classList.toggle("has-files", homeImageFiles.length > 0);
   if (homeUploadButton) {
     homeUploadButton.title = homeImageFiles.length ? `已选择 ${homeImageFiles.length} 张参考图` : "上传文件";

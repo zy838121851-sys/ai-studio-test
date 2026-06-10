@@ -2,6 +2,28 @@ export function isImageFile(file) {
   return Boolean(file?.type?.startsWith("image/"));
 }
 
+export function isVideoFile(file) {
+  return Boolean(file?.type?.startsWith("video/"));
+}
+
+export const MODEL_FILE_EXTENSIONS = Object.freeze([".glb", ".gltf", ".obj", ".fbx", ".stl", ".usdz"]);
+
+export function isModelFile(file, extensions = MODEL_FILE_EXTENSIONS) {
+  const name = String(file?.name || "").toLowerCase();
+  return extensions.some((extension) => name.endsWith(extension));
+}
+
+export function getUploadKind(file) {
+  if (isImageFile(file)) return "image";
+  if (isVideoFile(file)) return "video";
+  if (isModelFile(file)) return "model";
+  return null;
+}
+
+export function getImageFiles(files) {
+  return Array.from(files || []).filter(isImageFile);
+}
+
 export function fileToDataUrl(file) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
