@@ -32,3 +32,29 @@ export function getQwenImageSizeForElement(img, {
   height = Math.max(minSize, Math.min(maxSize, roundToImageMultiple(height, multiple)));
   return `${width}*${height}`;
 }
+
+export function buildPromptGenerationNodeConfig({
+  prompt = "",
+  count = 1,
+  point,
+  detectKind
+} = {}) {
+  const kind = detectKind(prompt);
+  const titles = {
+    "2d": "AI 画面方案",
+    "3d": "AI 3D 资产",
+    video: "AI 视频镜头"
+  };
+  const target = point || {
+    x: -260 + (count % 3) * 310,
+    y: 40 + Math.floor(count / 3) * 220
+  };
+  return {
+    kind,
+    title: `${titles[kind]} ${count}`,
+    desc: prompt.length > 72 ? `${prompt.slice(0, 72)}...` : prompt,
+    x: target.x,
+    y: target.y,
+    label: titles[kind]
+  };
+}

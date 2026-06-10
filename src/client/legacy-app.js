@@ -164,7 +164,10 @@ import {
   detectGenerationKind,
   getDefaultReferencePrompt
 } from "./ai/prompt-builder.js";
-import { getQwenImageSizeForElement } from "./ai/image-generator.js";
+import {
+  buildPromptGenerationNodeConfig,
+  getQwenImageSizeForElement
+} from "./ai/image-generator.js";
 import {
   applyProjectLibraryClasses,
   renderHomeHistoryContent,
@@ -583,7 +586,7 @@ async function generateHomeProject(prompt, model, files = []) {
   window.setTimeout(() => document.body.classList.remove("canvas-entering"), 620);
   setChatCollapsed(false);
   if (model && chatModelSelect) chatModelSelect.value = model;
-  chatImageFiles = getImageFiles(files);
+  chatImageFiles = getImageFilesFromList(files);
   renderChatImagePreview();
   promptInput.value = prompt || (chatImageFiles.length ? "参考上传图片生成一张高质量视觉方案" : "");
   promptForm.requestSubmit();
@@ -2355,26 +2358,15 @@ function getQwenSizeForImage(img) {
 
 function generateFromPrompt(prompt, point) {
   generatedCount += 1;
-  const kind = detectGenerationKind(prompt);
-  const titles = {
-    "2d": "AI 画面方案",
-    "3d": "AI 3D 资产",
-    video: "AI 视频镜头"
-  };
-  const target = point || {
-    x: -260 + (generatedCount % 3) * 310,
-    y: 40 + Math.floor(generatedCount / 3) * 220
-  };
-
-  addNode({
-    kind,
-    title: `${titles[kind]} ${generatedCount}`,
-    desc: prompt.length > 72 ? `${prompt.slice(0, 72)}...` : prompt,
-    x: target.x,
-    y: target.y
+  const nodeConfig = buildPromptGenerationNodeConfig({
+    prompt,
+    point,
+    count: generatedCount,
+    detectKind: detectGenerationKind
   });
+  addNode(nodeConfig);
 
-  addChat("assistant", `已在画布中生成 ${titles[kind]}。你可以继续描述风格、镜头或组件，我会扩展到同一块无限画布上。`);
+  addChat("assistant", `已在画布中生成 ${nodeConfig.label}。你可以继续描述风格、镜头或组件，我会扩展到同一块无限画布上。`);
 }
 
 function initModelViewer(node, file) {
@@ -2437,7 +2429,7 @@ function addChatImageFiles(files) {
   return addImageFilesToPreview({
     incomingFiles: files,
     currentFiles: chatImageFiles,
-    getImageFiles,
+    getImageFiles: getImageFilesFromList,
     render: renderChatImagePreview,
     promptForm,
     promptInput,
@@ -2447,12 +2439,8 @@ function addChatImageFiles(files) {
   });
 }
 
-function getImageFiles(files) {
-  return getImageFilesFromList(files);
-}
-
 function showUploadModeBubbles(files, point, clientX, clientY) {
-  const images = getImageFiles(files);
+  const images = getImageFilesFromList(files);
   if (files.length && !images.length) {
     addUploadedFiles(files, point);
     return;
@@ -2532,7 +2520,7 @@ function ensureGenerationOverlay() {
 }
 
 function showGenerationOverlay(files, point) {
-  const [file] = getImageFiles(files);
+  const [file] = getImageFilesFromList(files);
   if (!file) return;
   const overlay = ensureGenerationOverlay();
   generationOverlayState = showGenerationChoiceOverlay({
@@ -3552,7 +3540,7 @@ function renderHomeFilePreview() {
 }
 
 function setHomeFiles(files) {
-  homeImageFiles = getImageFiles(files || []);
+  homeImageFiles = getImageFilesFromList(files || []);
   applyHomeFileState({
     form: homePromptForm,
     uploadButton: homeUploadButton,
