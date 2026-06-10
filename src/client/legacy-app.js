@@ -215,6 +215,12 @@ import {
   ensureAgentNodeContext,
   scheduleAgentRun
 } from "./agent/agent-scheduler.js";
+import {
+  buildDirectorPrompt as buildDirectorPromptText,
+  buildTextAssetDescription,
+  getDirectorActionWindow,
+  inferProductProfile as inferDirectorProductProfile
+} from "./agent/director-workflow.js";
 
 const assets = [
   { id: "landing", type: "2d", title: "AI 发布页", desc: "首屏、卖点、CTA" },
@@ -3077,6 +3083,9 @@ function addSourceBadge(node, sourceNode, label = "来源：原图") {
 }
 
 function inferProductProfile(file) {
+  return inferDirectorProductProfile(file);
+
+  // TODO(architecture): Remove legacy inline product profile inference after Director module validation.
   const name = (file?.name || "").toLowerCase();
   if (/bath|shower|toilet|handle|hinge|hardware|浴|卫浴|拉手|门|五金/.test(name)) {
     return { type: "卫浴五金产品", name: file?.name?.replace(/\.[^.]+$/, "") || "卫浴五金产品" };
@@ -3138,9 +3147,7 @@ function positionDirectorCard(productNode) {
 function refreshDirectorOptions(directorNode) {
   const start = (Number(directorNode.dataset.suggestionStart || 0) + directorViewCount) % directorActions.length;
   directorNode.dataset.suggestionStart = start;
-  const actions = Array.from({ length: directorViewCount }, (_, index) => {
-    return directorActions[(start + index) % directorActions.length];
-  });
+  const actions = getDirectorActionWindow({ actions: directorActions, start, count: directorViewCount });
   const actionsWrap = directorNode.querySelector(".director-actions");
   if (!actionsWrap) return;
   actionsWrap.innerHTML = `${actions.map((action, index) => `
@@ -3158,6 +3165,9 @@ function refreshDirectorOptions(directorNode) {
 }
 
 function buildDirectorPrompt(productNode, action) {
+  return buildDirectorPromptText({ productNode, action, getTitle: getStackTitle });
+
+  // TODO(architecture): Remove legacy inline director prompt after Director module validation.
   const productType = productNode.dataset.productType || "产品";
   const productName = productNode.dataset.productName || getStackTitle(productNode);
   return `${action.prompt}\n产品类型：${productType}\n产品名称：${productName}\n请保持产品核心结构可信，输出适合商业展示的高质量结果。`;
@@ -3165,11 +3175,7 @@ function buildDirectorPrompt(productNode, action) {
 
 function createTextAssetNode(productNode, action) {
   const bounds = getNodeBounds(productNode);
-  const productName = productNode.dataset.productName || getStackTitle(productNode);
-  const isScript = action.kind === "script";
-  const desc = isScript
-    ? `15秒视频脚本：1. 产品干净入场；2. 细节特写展示材质；3. 场景中安装使用；4. 字幕突出耐用、易安装、高级质感；5. 结尾出现产品名称与行动号召。`
-    : `核心卖点：高级质感、耐用结构、安装便捷、适配现代空间、适合电商主图和详情页延展。建议标题：${productName}，让空间细节更有品质。`;
+  const desc = buildTextAssetDescription({ productNode, action, getTitle: getStackTitle });
   const node = addNode({
     kind: "2d",
     title: action.title,
