@@ -138,6 +138,10 @@ import {
   setActiveProjectId,
   setLibraryViewMode
 } from "./core/project-store.js";
+import {
+  buildDemoProjects,
+  makeDemoProjectThumb as makeDemoThumb
+} from "./core/demo-projects.js";
 import { createProjectRuntime } from "./core/project-runtime.js";
 import { createProjectSavePatch } from "./core/project-snapshot.js";
 import { applyViewState } from "./core/view-router.js";
@@ -341,6 +345,10 @@ function saveProjects() {
 }
 
 function makeDemoProjectThumb(title, index) {
+  return makeDemoThumb(title, index, escapeHtml);
+
+  // TODO(architecture): Remove legacy inline demo thumbnail generator after
+  // project initialization fully lives in /core.
   const palettes = [
     ["#f8fbff", "#dde8ff", "#4d9cff"],
     ["#fff7ed", "#fed7aa", "#f97316"],
@@ -377,6 +385,18 @@ function makeDemoProjectThumb(title, index) {
 }
 
 function ensureDemoProjects() {
+  const nextProjects = buildDemoProjects({
+    projects,
+    escapeHtml,
+    hasSeeded: hasDemoProjectsSeeded,
+    markSeeded: markDemoProjectsSeeded
+  });
+  if (nextProjects === projects) return;
+  projects = nextProjects;
+  saveProjects();
+  return;
+
+  // TODO(architecture): Remove legacy inline demo seeding after validation.
   const titles = [
     "潮玩公仔 3D 转化",
     "蕾丝连衣裙主图",
