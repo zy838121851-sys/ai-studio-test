@@ -37,7 +37,7 @@ export function renderNodeTemplate({
 
   if (kind === "model") {
     return `
-      <div class="image-file-name model-file-name">◌ ${safeTitle}</div>
+      <div class="image-file-name model-file-name">◈ ${safeTitle}</div>
       <div class="model-viewer">
         <canvas data-model-viewer aria-label="${safeTitle} 3D 预览"></canvas>
         <div class="model-loading">左键拖动 · 右键旋转 · 滚轮缩放</div>
@@ -52,7 +52,7 @@ export function renderNodeTemplate({
     }).filter(Boolean);
     return `
       <div class="director-head">
-        <span>✦ AI 建议</span>
+        <span>✧ AI 建议</span>
         <button type="button" class="director-refresh" data-director-action="refresh" title="换一组">↻</button>
       </div>
       <div class="director-actions">
