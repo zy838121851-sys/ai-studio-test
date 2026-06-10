@@ -193,6 +193,10 @@ import {
   syncHomeModelPicker as syncHomeModelPickerView
 } from "./components/home-composer.js";
 import {
+  closeMenuWhenOutside,
+  positionFloatingMenu
+} from "./components/menu-position.js";
+import {
   setActiveRailButton,
   setActiveRailPanelButton,
   toggleToolRailCollapsed
@@ -5510,10 +5514,7 @@ toggleToolRail?.addEventListener("click", () => {
 });
 
 function positionBrandMenu(trigger) {
-  if (!brandMenu || !trigger) return;
-  const rect = trigger.getBoundingClientRect();
-  brandMenu.style.left = `${Math.max(12, rect.left)}px`;
-  brandMenu.style.top = `${rect.bottom + 10}px`;
+  positionFloatingMenu({ menu: brandMenu, trigger });
 }
 
 document.querySelectorAll("[data-brand-menu]").forEach((button) => {
@@ -5806,10 +5807,20 @@ aiCore.addEventListener("click", (event) => {
 
 appRoot.addEventListener("click", (event) => {
   if (!event.target.closest("#projectMenu") && !event.target.closest("#projectMenuTrigger")) {
-    projectMenu?.classList.remove("open");
+    closeMenuWhenOutside({
+      event,
+      menu: projectMenu,
+      menuSelector: "#projectMenu",
+      triggerSelector: "#projectMenuTrigger"
+    });
   }
   if (!event.target.closest("#brandMenu") && !event.target.closest("[data-brand-menu]")) {
-    brandMenu?.classList.remove("open");
+    closeMenuWhenOutside({
+      event,
+      menu: brandMenu,
+      menuSelector: "#brandMenu",
+      triggerSelector: "[data-brand-menu]"
+    });
   }
   if (!event.target.closest(".image-node-toolbar")) {
     closeOpenImageToolbarMenus(document);
