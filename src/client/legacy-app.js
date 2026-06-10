@@ -203,6 +203,7 @@ import {
   renderHomeFilePreview as renderHomeFilePreviewList,
   syncHomeModelPicker as syncHomeModelPickerView
 } from "./components/home-composer.js";
+import { renderAssetLibrary } from "./components/asset-panel.js";
 import { bindHomeLibraryInteractions } from "./components/home-library-interactions.js";
 import {
   bindAICoreWorkspaceElement,
@@ -708,21 +709,7 @@ function escapeHtml(value) {
 }
 
 function renderAssets() {
-  assetList.innerHTML = assets.map((asset) => `
-    <article class="asset-item" draggable="true" data-id="${asset.id}" data-type="${asset.type}">
-      <div class="asset-thumb">${asset.type.toUpperCase()}</div>
-      <div>
-        <strong>${asset.title}</strong>
-        <span>${asset.desc}</span>
-      </div>
-    </article>
-  `).join("");
-
-  document.querySelectorAll(".asset-item").forEach((item) => {
-    item.addEventListener("dragstart", (event) => {
-      event.dataTransfer.setData("text/plain", item.dataset.id);
-    });
-  });
+  renderAssetLibrary({ assetList, assets, escapeHtml });
 }
 
 function applyTransform() {
