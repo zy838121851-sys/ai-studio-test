@@ -178,6 +178,10 @@ import {
   updateThinkingMessage
 } from "./components/chat-log.js";
 import {
+  addImageFilesToPreview,
+  renderChatImagePreviewList
+} from "./components/chat-image-preview.js";
+import {
   setActiveRailButton,
   setActiveRailPanelButton,
   toggleToolRailCollapsed
@@ -3822,30 +3826,29 @@ function addUploadedFiles(files, point, options = {}) {
 }
 
 function renderChatImagePreview() {
-  chatImagePreview.innerHTML = "";
-  chatImagePreview.classList.toggle("open", chatImageFiles.length > 0);
-  chatImageFiles.forEach((file, index) => {
-    const item = document.createElement("button");
-    item.type = "button";
-    item.title = "移除图片";
-    item.innerHTML = `<img src="${URL.createObjectURL(file)}" alt="${escapeHtml(file.name)}" /><span>×</span>`;
-    item.addEventListener("click", () => {
+  renderChatImagePreviewList({
+    container: chatImagePreview,
+    files: chatImageFiles,
+    escapeHtml,
+    onRemove: (index) => {
       chatImageFiles.splice(index, 1);
       renderChatImagePreview();
-    });
-    chatImagePreview.appendChild(item);
+    }
   });
 }
 
 function addChatImageFiles(files) {
-  const images = getImageFiles(files);
-  if (!images.length) return false;
-  chatImageFiles.push(...images);
-  renderChatImagePreview();
-  promptForm.classList.remove("drag-over");
-  chatDragDepth = 0;
-  promptInput.focus();
-  return true;
+  return addImageFilesToPreview({
+    incomingFiles: files,
+    currentFiles: chatImageFiles,
+    getImageFiles,
+    render: renderChatImagePreview,
+    promptForm,
+    promptInput,
+    resetDragDepth: () => {
+      chatDragDepth = 0;
+    }
+  });
 }
 
 function getImageFiles(files) {
