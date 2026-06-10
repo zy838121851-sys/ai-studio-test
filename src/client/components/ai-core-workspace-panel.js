@@ -66,3 +66,30 @@ export function createAICoreWorkspaceElement() {
   `;
   return workspace;
 }
+
+export function bindAICoreWorkspaceElement(
+  workspace,
+  {
+    onClose,
+    onRefresh,
+    onAction,
+    onDecisionStyle,
+    onGenerate
+  } = {}
+) {
+  workspace.querySelector(".ai-core-workspace-close")?.addEventListener("click", () => onClose?.());
+  workspace.addEventListener("click", async (event) => {
+    const refresh = event.target.closest("[data-core-refresh]");
+    if (refresh) {
+      await onRefresh?.(refresh);
+      return;
+    }
+    const button = event.target.closest("[data-core-action]");
+    if (button) await onAction?.(button);
+  });
+  workspace.querySelector(".ai-decision-options")?.addEventListener("click", (event) => {
+    const option = event.target.closest("[data-decision-style]");
+    if (option) onDecisionStyle?.(option);
+  });
+  workspace.querySelector(".ai-generate-now")?.addEventListener("click", () => onGenerate?.());
+}
