@@ -94,6 +94,7 @@ import {
   parseStlGeometry,
   sampleModelFaces
 } from "./canvas/model-parser.js";
+import { initModelViewerPreview } from "./canvas/model-viewer.js";
 import {
   applyNodePreviewSize,
   buildGenerationPreviewConfig,
@@ -3520,6 +3521,12 @@ function parseModelGeometry(file, buffer) {
 }
 
 function initModelViewer(node, file) {
+  return initModelViewerPreview(node, file, {
+    hideAddNodeMenu,
+    selectNode
+  });
+
+  // TODO(architecture): Remove legacy inline WebGL model viewer after module validation.
   const canvas = node.querySelector("[data-model-viewer]");
   const loading = node.querySelector(".model-loading");
   if (!canvas || !file) return;
