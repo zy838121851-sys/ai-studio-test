@@ -7,6 +7,20 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+export function showProjectSaveStatus(element, {
+  text = "已保存到云端",
+  duration = 1600
+} = {}) {
+  if (!element) return;
+  element.textContent = text;
+  element.classList.add("show");
+  window.clearTimeout(element._saveTimer);
+  element._saveTimer = window.setTimeout(() => {
+    element.classList.remove("show");
+    element.textContent = "";
+  }, duration);
+}
+
 export function applyProjectLibraryClasses(element, { mode = "stack", transitionDirection = 0 } = {}) {
   if (!element) return;
   element.classList.toggle("mode-grid", mode === "grid");

@@ -166,7 +166,8 @@ import { getQwenImageSizeForElement } from "./ai/image-generator.js";
 import {
   applyProjectLibraryClasses,
   renderHomeHistoryContent,
-  renderProjectLibraryContent
+  renderProjectLibraryContent,
+  showProjectSaveStatus
 } from "./components/project-library.js";
 import {
   appendChatImage,
@@ -445,15 +446,7 @@ function saveCurrentProject() {
   }));
   projectMenu?.classList.remove("open");
   brandMenu?.classList.remove("open");
-  if (projectSaveStatus) {
-    projectSaveStatus.textContent = "已保存到云端";
-    projectSaveStatus.classList.add("show");
-    window.clearTimeout(projectSaveStatus._saveTimer);
-    projectSaveStatus._saveTimer = window.setTimeout(() => {
-      projectSaveStatus.classList.remove("show");
-      projectSaveStatus.textContent = "";
-    }, 1600);
-  }
+  showProjectSaveStatus(projectSaveStatus);
 }
 
 
