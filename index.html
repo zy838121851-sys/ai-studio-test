@@ -1,0 +1,345 @@
+﻿<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Cache-Control" content="no-store" />
+  <title>Fresh Ideas AI Canvas</title>
+  <link rel="stylesheet" href="./styles.css?v=20260609-canvas-cleanup" />
+</head>
+
+<body>
+  <main class="app">
+    <aside class="home-side-menu" aria-label="页面入口">
+      <button class="active" type="button" data-nav-view="home" aria-label="主页" title="主页">
+        <span>⌂</span>
+        <strong>主页</strong>
+      </button>
+      <button type="button" data-nav-view="library" aria-label="项目库" title="项目库">
+        <span>▤</span>
+        <strong>项目库</strong>
+      </button>
+      <button type="button" data-nav-view="space" aria-label="个人空间" title="个人空间">
+        <span>○</span>
+        <strong>个人空间</strong>
+      </button>
+      <button type="button" data-nav-view="assetsPage" aria-label="素材库" title="素材库">
+        <span>▦</span>
+        <strong>素材库</strong>
+      </button>
+    </aside>
+
+    <section class="home-view app-view active" id="homeView" aria-label="首页">
+      <nav class="home-nav">
+        <button class="brand-mark" type="button" data-brand-menu>D</button>
+      </nav>
+
+      <section class="home-stage">
+        <h1 class="home-title">今天做点什么？</h1>
+        <form class="home-prompt" id="homePromptForm">
+          <button class="home-plus" id="homeUploadButton" type="button" title="上传文件" aria-label="上传文件">+</button>
+          <input id="homeFileInput" class="visually-hidden" type="file" accept="image/*" multiple />
+          <div class="home-file-preview" id="homeFilePreview" aria-label="已上传文件"></div>
+          <textarea id="homePromptInput" rows="1" placeholder="有想法，尽管试"></textarea>
+          <div class="home-model-picker" id="homeModelPicker">
+            <select class="home-model native-model" id="homeModelSelect" aria-label="选择模型">
+              <option value="qwen-image-2.0-pro">智能模型</option>
+              <option value="qwen-image-2.0">Qwen Image</option>
+              <option value="qwen-image-max">Qwen Max</option>
+            </select>
+            <button class="home-model-button" id="homeModelButton" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <span>智能模型</span>
+              <i></i>
+            </button>
+            <div class="home-model-menu" id="homeModelMenu" role="listbox">
+              <button type="button" data-model-value="qwen-image-2.0-pro">智能模型</button>
+              <button type="button" data-model-value="qwen-image-2.0">Qwen Image</button>
+              <button type="button" data-model-value="qwen-image-max">Qwen Max</button>
+            </div>
+          </div>
+          <button class="home-send" type="submit" title="发送">↑</button>
+        </form>
+      </section>
+    </section>
+
+    <section class="project-library-view app-view" id="projectLibraryView" aria-label="项目库">
+      <nav class="home-nav library-nav">
+        <button class="brand-mark" type="button" data-brand-menu>D</button>
+        <button type="button" data-new-project>新建项目</button>
+      </nav>
+      <section class="library-shell">
+        <div class="project-grid" id="projectGrid"></div>
+      </section>
+    </section>
+
+    <section class="profile-view app-view simple-page-view" id="profileView" aria-label="个人空间">
+      <nav class="home-nav">
+        <button class="brand-mark" type="button" data-brand-menu>D</button>
+      </nav>
+      <section class="simple-page-shell">
+        <p>Personal Space</p>
+        <h1>个人空间</h1>
+        <div class="simple-card-grid">
+          <article><strong>最近创作</strong><span>同步你的画布、生成图和收藏。</span></article>
+          <article><strong>我的模型</strong><span>预留模型偏好、风格和常用工作流。</span></article>
+          <article><strong>账户资料</strong><span>管理头像、昵称和团队空间。</span></article>
+        </div>
+      </section>
+    </section>
+
+    <section class="assets-page-view app-view simple-page-view" id="assetsPageView" aria-label="素材库">
+      <nav class="home-nav">
+        <button class="brand-mark" type="button" data-brand-menu>D</button>
+      </nav>
+      <section class="simple-page-shell">
+        <p>Assets</p>
+        <h1>素材库</h1>
+        <div class="simple-card-grid">
+          <article><strong>上传素材</strong><span>图片、视频、3D 模型会在这里归档。</span></article>
+          <article><strong>智能分类</strong><span>按行业、物料类型和项目自动整理。</span></article>
+          <article><strong>引用记录</strong><span>查看素材被哪些画布和生成任务使用。</span></article>
+        </div>
+      </section>
+    </section>
+
+    <div class="brand-menu" id="brandMenu" aria-label="主菜单">
+      <button type="button" data-nav-view="home">主页</button>
+      <button type="button" data-nav-view="library">项目库</button>
+      <span></span>
+      <button type="button" data-new-project>新建项目</button>
+      <button type="button" data-save-project>保存项目</button>
+      <button type="button">删除当前项目</button>
+    </div>
+
+    <section class="canvas-area" id="canvasArea" aria-label="无限画布">
+      <header class="project-header">
+        <button class="project-menu-trigger brand-mark" id="projectMenuTrigger" type="button" aria-label="打开项目菜单" data-brand-menu>D</button>
+        <div>
+          <h1 id="projectTitle" contenteditable="true" spellcheck="false" title="点击修改项目名称">Fresh Ideas (0601)</h1>
+          <p id="projectSaveStatus" aria-live="polite"></p>
+        </div>
+      </header>
+
+      <div class="project-menu" id="projectMenu" aria-label="项目菜单">
+        <button type="button" data-nav-view="home">主页</button>
+        <button type="button" data-nav-view="library">项目库</button>
+        <span></span>
+        <button type="button" data-new-project>新建项目</button>
+        <button type="button" data-save-project>保存项目</button>
+        <button type="button">删除当前项目</button>
+        <span></span>
+        <button type="button">导入图片</button>
+        <span></span>
+        <button type="button" disabled><strong>撤销</strong><kbd>Ctrl + Z</kbd></button>
+        <button type="button" disabled><strong>重做</strong><kbd>Ctrl + Shift + Z</kbd></button>
+        <button type="button" disabled><strong>复制对象</strong><kbd>Ctrl + D</kbd></button>
+        <span></span>
+        <button type="button"><strong>显示画布所有图片</strong><kbd>Shift + 1</kbd></button>
+        <button type="button"><strong>放大</strong><kbd>Ctrl + +</kbd></button>
+        <button type="button"><strong>缩小</strong><kbd>Ctrl + -</kbd></button>
+      </div>
+
+      <aside class="tool-rail collapsed" id="toolRail" aria-label="工具栏">
+        <button id="toggleToolRail" class="rail-main" title="展开工具栏" aria-expanded="false">×</button>
+        <div class="rail-items">
+          <button class="rail-btn active" data-tool="select" title="选择">
+            <svg viewBox="0 0 24 24"><path d="M5 3l10 10-5 1.2L8.2 20 5 3z" /></svg>
+          </button>
+          <div class="shape-tool-group">
+            <button class="rail-btn" data-tool="shape" title="图形"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="7" height="7" rx="1.5" /><circle cx="17" cy="8" r="3.5" /><path d="M8 15l4 4 4-4-4-4-4 4z" /></svg></button>
+            <div class="shape-tool-menu" aria-label="选择图形">
+              <div class="shape-menu-section">
+                <span>形状</span>
+                <button type="button" data-shape-tool="rect" title="矩形"><svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2" /></svg></button>
+                <button type="button" data-shape-tool="circle" title="圆形"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5" /></svg></button>
+                <button type="button" data-shape-tool="diamond" title="菱形"><svg viewBox="0 0 24 24"><path d="M12 4l8 8-8 8-8-8 8-8z" /></svg></button>
+                <button type="button" data-shape-tool="triangle" title="三角形"><svg viewBox="0 0 24 24"><path d="M12 4l8 15H4l8-15z" /></svg></button>
+                <button type="button" data-shape-tool="star" title="星形"><svg viewBox="0 0 24 24"><path d="M12 3l2.6 5.4 6 .8-4.4 4.2 1.1 6-5.3-2.9-5.3 2.9 1.1-6-4.4-4.2 6-.8L12 3z" /></svg></button>
+              </div>
+            </div>
+          </div>
+          <button class="rail-btn" data-tool="text" title="文字"><span>A</span></button>
+          <button class="rail-btn" data-tool="pen" title="画笔">
+            <svg viewBox="0 0 24 24"><path d="M4 17c4-8 7 4 11-3 2-3 3-5 5-7" /><path d="M16 5l3 3" /></svg>
+          </button>
+          <button class="rail-btn" data-tool="eraser" title="橡皮擦">
+            <svg viewBox="0 0 24 24"><path d="M4 15l8-8 7 7-5 5H8l-4-4z" /><path d="M12 19h8" /></svg>
+          </button>
+          <button class="rail-btn" data-tool="line" title="线段">
+            <svg viewBox="0 0 24 24"><path d="M5 19L19 5" /></svg>
+          </button>
+          <button class="rail-btn" data-tool="arrow" title="箭头">
+            <svg viewBox="0 0 24 24"><path d="M5 19L19 5" /><path d="M12 5h7v7" /></svg>
+          </button>
+        </div>
+      </aside>
+
+      <div class="floating-library" id="floatingLibrary" aria-label="素材库">
+        <div class="library-head">
+          <strong>素材库</strong>
+          <button id="closeLibrary" title="关闭">×</button>
+        </div>
+        <button class="upload-asset" id="uploadAsset" type="button">
+          上传图片 / 3D模型 / 视频
+        </button>
+        <input id="assetUploadInput" class="visually-hidden" type="file"
+          accept="image/*,video/*,.glb,.gltf,.obj,.fbx,.stl,.usdz" multiple />
+        <div class="asset-list" id="assetList"></div>
+      </div>
+
+      <div class="add-node-menu" id="addNodeMenu" aria-label="添加节点">
+        <div class="add-menu-title">添加节点</div>
+        <button data-add-node="text" type="button"><span>☰</span><strong>文本</strong><small>脚本、广告词、品牌文案</small></button>
+        <button data-add-node="image" type="button"><span>▧</span><strong>图片</strong></button>
+        <button data-add-node="video" type="button"><span>▷</span><strong>视频</strong></button>
+        <button data-add-node="audio" type="button"><span>≋</span><strong>音频</strong></button>
+        <button data-add-node="model" type="button"><span>◌</span><strong>3D 世界</strong><em>Beta</em></button>
+        <div class="add-menu-title">辅助工具</div>
+        <button data-add-node="playlist" type="button"><span>▦</span><strong>播放列表</strong><em>Beta</em></button>
+        <div class="add-menu-title">添加资源</div>
+        <button data-add-node="upload" type="button"><span>↥</span><strong>上传</strong></button>
+      </div>
+
+      <div class="canvas-context-menu" id="canvasContextMenu" aria-label="画布菜单">
+        <button data-context-action="upload" type="button"><strong>上传</strong></button>
+        <button data-context-action="asset" type="button"><strong>添加资产</strong></button>
+        <span></span>
+        <button data-context-action="node" type="button"><strong>添加节点</strong></button>
+        <button data-context-action="tool" type="button"><strong>添加辅助工具</strong></button>
+        <span></span>
+        <button data-context-action="undo" type="button"><strong>撤销</strong><kbd>CtrlZ</kbd></button>
+        <button data-context-action="redo" type="button"><strong>重做</strong><kbd>ShiftCtrlZ</kbd></button>
+        <span></span>
+        <button data-context-action="paste" type="button"><strong>粘贴</strong><kbd>CtrlV</kbd></button>
+      </div>
+
+      <div class="image-edit-popover" id="imageEditPopover" aria-label="图片编辑">
+        <div class="edit-head">
+          <button class="spark-btn" type="button" title="AI 修改">✦</button>
+          <img id="editImageThumb" alt="当前图片" />
+          <button class="add-ref-btn" id="editAddRef" type="button" title="添加参考">+</button>
+          <button class="expand-edit" type="button" title="展开">↗</button>
+        </div>
+        <textarea id="imageEditPrompt" rows="3" placeholder="描述任何你想要生成的内容，按 @ 引用素材，/ 呼出指令"></textarea>
+        <div class="edit-actions">
+          <select id="imageEditModel" title="图片模型">
+            <option value="qwen-image-2.0-pro">Qwen Image 2.0 Pro</option>
+            <option value="qwen-image-2.0">Qwen Image 2.0</option>
+            <option value="qwen-image-edit-max">Qwen Image Edit Max</option>
+            <option value="qwen-image-edit-plus">Qwen Image Edit Plus</option>
+          </select>
+          <button id="imageAspect" type="button">16:9</button>
+          <button id="imageEditSettings" type="button">☷</button>
+          <span></span>
+          <button id="imageEditCancel" type="button">取消</button>
+          <button id="imageEditSubmit" class="send" type="button">↑</button>
+        </div>
+      </div>
+
+      <div class="text-format-toolbar" id="textFormatToolbar" aria-label="文字样式">
+        <label class="text-color-picker" title="字体颜色">
+          <input id="textColorInput" type="color" value="#0f172a" />
+          <span aria-hidden="true"></span>
+        </label>
+        <select id="textFontSize" title="字号">
+          <option value="32">32</option>
+          <option value="48">48</option>
+          <option value="64">64</option>
+          <option value="80" selected>80</option>
+          <option value="96">96</option>
+          <option value="120">120</option>
+        </select>
+      </div>
+
+      <div class="canvas-viewport" id="canvasViewport">
+        <div class="canvas-world" id="canvasWorld">
+          <div class="empty-state" id="emptyState">
+            <div class="hint-line">
+              <span>✦ 双击</span>
+              <strong>画布自由生成，或者查看模板</strong>
+            </div>
+            <div class="quick-actions">
+              <button data-prompt="文字生成视频：为一款AI耳机生成15秒发布视频">▣ 文字生视频</button>
+              <button data-prompt="图片换背景：生成一个高级科技产品展示场景">▧ 图片换背景</button>
+              <button data-prompt="首帧生成视频：创建产品从黑场亮相的镜头">✦ 首帧生成视频</button>
+              <button data-prompt="音频生视频：生成音乐可视化短片">♫ 音频生视频</button>
+              <button data-prompt="打开模板：生成AI产品发布页、3D展示和短视频预览">☷ 模板</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="bottom-controls" aria-label="画布控制">
+        <div class="zoom-stepper">
+          <button id="zoomOutButton" type="button" title="缩小">−</button>
+          <span id="zoomText">50%</span>
+          <button id="zoomInButton" type="button" title="放大">＋</button>
+          <input id="zoomRange" type="range" min="20" max="250" value="50" aria-label="缩放" />
+        </div>
+        <div class="history-controls">
+          <button id="undoButton" type="button" title="撤销">↶</button>
+          <button id="redoButton" type="button" title="重做" disabled>↷</button>
+        </div>
+      </div>
+      <button class="return-to-content" id="returnToContentButton" type="button">滚动回到内容</button>
+    </section>
+
+    <button class="chat-float collapsed" id="chatFloat" type="button" title="打开对话">✦</button>
+
+    <div class="ai-core" id="aiCore" aria-label="AI Core">
+      <div class="ai-core-orb">
+        <span>✦</span>
+        <strong>AI Core</strong>
+      </div>
+      <p id="aiCoreHint">拖入以启动 AI</p>
+    </div>
+
+    <aside class="chat-panel collapsed" id="chatPanel" aria-label="AI 对话生成">
+      <div class="window-actions">
+        <button title="新建">＋</button>
+        <button title="消息">□</button>
+        <button id="collapseChat" title="收起">×</button>
+      </div>
+
+      <section class="welcome">
+        <p class="hello">✦ Hi zy838121851!</p>
+        <h2>今天一起创作点什么？</h2>
+      </section>
+
+      <div class="suggestions">
+        <button data-prompt="先别急着写，帮我梳理一个 AI 设计平台的首页结构">✦ 先别急着写</button>
+        <button data-prompt="生成一个雨天气氛的产品视觉页面">☁ 雨天会怎样</button>
+        <button data-prompt="生成一张夜里发光的3D产品展示画布">☾ 看看夜里</button>
+      </div>
+
+      <div class="chat-log" id="chatLog" aria-live="polite"></div>
+
+      <form class="composer" id="promptForm">
+        <div class="chat-image-preview" id="chatImagePreview"></div>
+        <textarea id="promptInput" rows="4" placeholder="描述创意或需求，添加画布内容，按 @ 引用参考"></textarea>
+        <div class="composer-actions">
+          <div class="left-actions">
+            <button type="button" id="chatUploadImage" title="上传图片">▧</button>
+            <select id="chatModelSelect" title="选择模型">
+              <option value="qwen-image-2.0-pro">Qwen Image 2.0 Pro</option>
+              <option value="qwen-image-2.0">Qwen Image 2.0</option>
+              <option value="qwen-image-max">Qwen Image Max</option>
+              <option value="qwen-image-plus">Qwen Image Plus</option>
+            </select>
+            <button type="button" id="presetSkill" title="预设 Skill">✦ Skill</button>
+          </div>
+          <div class="right-actions">
+            <button type="submit" class="send" title="发送">↑</button>
+          </div>
+        </div>
+        <input id="chatImageInput" class="visually-hidden" type="file" accept="image/*" multiple />
+      </form>
+    </aside>
+  </main>
+
+  <script type="module" src="./app.js?v=20260610-architecture"></script>
+</body>
+
+</html>
