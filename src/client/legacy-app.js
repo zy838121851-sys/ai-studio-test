@@ -224,6 +224,7 @@ import {
   setActiveRailPanelButton,
   toggleToolRailCollapsed
 } from "./components/canvas-toolbar.js";
+import { initTaskBar as bindTaskBarInteractions } from "./components/task-bar.js";
 import {
   createCanvasStateSnapshot,
   createNodeSnapshot
@@ -383,7 +384,6 @@ let textEditingImageNode = null;
 let chatImageFiles = [];
 let homeImageFiles = [];
 let chatDragDepth = 0;
-let chatFloatDrag = null;
 let selectionDrag = null;
 let activeCanvasTool = "";
 let canvasDrawing = null;
@@ -2283,11 +2283,6 @@ function addChatImage(role, imageUrl, caption) {
   return appendChatImage({ chatLog, role, imageUrl, caption, escapeHtml: escapeHtmlText });
 }
 
-async function readImageSourceAsDataUrl(src) {
-  return readImageSourceAsDataUrl(src);
-}
-
-
 function generateFromPrompt(prompt, point) {
   generatedCount += 1;
   const nodeConfig = buildPromptGenerationNodeConfig({
@@ -3176,48 +3171,59 @@ function setChatCollapsed(collapsed) {
   chatFloat.classList.toggle("collapsed", collapsed);
 }
 
-function snapChatFloat() {
-  const rect = chatFloat.getBoundingClientRect();
-  const left = rect.left + rect.width / 2 < window.innerWidth / 2 ? 16 : window.innerWidth - rect.width - 16;
-  const top = Math.max(16, Math.min(window.innerHeight - rect.height - 16, rect.top));
-  chatFloat.style.left = `${left}px`;
-  chatFloat.style.top = `${top}px`;
-  chatFloat.style.right = "auto";
-  chatFloat.style.bottom = "auto";
-}
-
-chatFloat.addEventListener("pointerdown", (event) => {
-  chatFloatDrag = {
-    x: event.clientX,
-    y: event.clientY,
-    left: chatFloat.offsetLeft,
-    top: chatFloat.offsetTop,
-    moved: false
-  };
-  chatFloat.setPointerCapture(event.pointerId);
-});
-
-chatFloat.addEventListener("pointermove", (event) => {
-  if (!chatFloatDrag) return;
-  const dx = event.clientX - chatFloatDrag.x;
-  const dy = event.clientY - chatFloatDrag.y;
-  if (Math.hypot(dx, dy) > 4) chatFloatDrag.moved = true;
-  chatFloat.style.left = `${chatFloatDrag.left + dx}px`;
-  chatFloat.style.top = `${chatFloatDrag.top + dy}px`;
-  chatFloat.style.right = "auto";
-  chatFloat.style.bottom = "auto";
-});
-
-chatFloat.addEventListener("pointerup", () => {
-  if (!chatFloatDrag) return;
-  const moved = chatFloatDrag.moved;
-  chatFloatDrag = null;
-  snapChatFloat();
-  if (!moved) setChatCollapsed(false);
-});
-
-collapseChat.addEventListener("click", () => {
-  setChatCollapsed(true);
+bindTaskBarInteractions({
+  root: document,
+  handlers: {
+    applyTransform,
+    returnViewToContent,
+    setChatCollapsed,
+    newBlankProject,
+    saveCurrentProject,
+    showView,
+    commitProjectTitleEdit,
+    setActiveRailPanelButton,
+    jumpToCenter: () => {
+      zoom = 1;
+      pan = { ...DEFAULT_CANVAS_PAN };
+      applyTransform();
+    },
+    fitView: () => {
+      const nodes = getVisibleCanvasNodes(canvasWorld);
+      const nextView = fitWorldBoundsInViewport(nodes.map(getNodeBounds), canvasViewport.getBoundingClientRect(), { padding: 180 });
+      pan = nextView.pan;
+      zoom = nextView.zoom;
+      applyTransform();
+    },
+    zoomByStep: (value, absolute = false) => {
+      zoom = clampCanvasZoom(absolute ? Number(value) : zoom + Number(value));
+      applyTransform();
+    },
+    positionFloatingMenu
+  },
+  elements: {
+    chatFloat,
+    collapseChat,
+    brandMenu,
+    projectMenu,
+    projectTitle,
+    jumpToCenterButton: document.querySelector("#jumpToCenter"),
+    fitViewButton: document.querySelector("#fitView"),
+    zoomRange,
+    zoomOutButton,
+    zoomInButton,
+    returnToContentButton,
+    undoButton,
+    redoButton,
+    promptInput,
+    promptForm,
+    chatModelSelect,
+    floatingLibrary,
+    closeLibraryButton
+  },
+  state: {
+    bindPromptSubmit: false,
+    bindPromptPresets: false
+  }
 });
 
 document.querySelectorAll(".rail-btn[data-tool]").forEach((button) => {
@@ -3268,41 +3274,17 @@ toggleToolRail?.addEventListener("click", () => {
   toggleToolRailCollapsed(toolRail, toggleToolRail);
 });
 
-document.querySelectorAll("[data-brand-menu]").forEach((button) => {
-  button.addEventListener("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    positionFloatingMenu({ menu: brandMenu, trigger: button });
-    brandMenu?.classList.toggle("open");
-    projectMenu?.classList.remove("open");
-  });
-});
 
-document.querySelectorAll("[data-nav-view]").forEach((button) => {
-  button.addEventListener("click", () => {
-    const view = button.dataset.navView;
-    showView(view === "library" ? "library" : view);
-  });
-});
 
-document.querySelectorAll("[data-new-project]").forEach((button) => {
-  button.addEventListener("click", () => newBlankProject());
-});
 
-document.querySelectorAll("[data-save-project]").forEach((button) => {
-  button.addEventListener("click", () => saveCurrentProject());
-});
 
-projectTitle?.addEventListener("keydown", (event) => {
-  if (event.key === "Enter") {
-    event.preventDefault();
-    projectTitle.blur();
-  }
-});
 
-projectTitle?.addEventListener("blur", () => {
-  commitProjectTitleEdit();
-});
+
+
+
+
+
+
 
 function syncHomeModelPicker() {
   syncHomeModelPickerView({
@@ -3720,13 +3702,9 @@ canvasContextMenu.addEventListener("click", async (event) => {
   addChat("assistant", `${action === "undo" ? "撤销" : "重做"}功能已预留，下一步可以接入历史栈。`);
 });
 
-undoButton?.addEventListener("click", () => {
-  recordCanvasEvent("undo", { source: "bottom-control" });
-});
 
-redoButton?.addEventListener("click", () => {
-  recordCanvasEvent("redo", { source: "bottom-control" });
-});
+
+
 
 imageEditCancel.addEventListener("click", hideImageEditPopover);
 
@@ -3764,36 +3742,17 @@ document.querySelector("#closeLibrary").addEventListener("click", () => {
   floatingLibrary.classList.remove("open");
 });
 
-document.querySelector("#jumpToCenter")?.addEventListener("click", () => {
-  pan = { ...DEFAULT_CANVAS_PAN };
-  zoom = 1;
-  applyTransform();
-});
 
-document.querySelector("#fitView")?.addEventListener("click", () => {
-  pan = { ...DEFAULT_CANVAS_PAN };
-  zoom = 0.9;
-  applyTransform();
-});
 
-zoomRange.addEventListener("input", () => {
-  zoom = clampCanvasZoom(Number(zoomRange.value) / 100);
-  applyTransform();
-});
 
-zoomOutButton?.addEventListener("click", () => {
-  zoom = clampCanvasZoom(zoom - 0.1);
-  applyTransform();
-});
 
-zoomInButton?.addEventListener("click", () => {
-  zoom = clampCanvasZoom(zoom + 0.1);
-  applyTransform();
-});
 
-returnToContentButton?.addEventListener("click", () => {
-  returnViewToContent();
-});
+
+
+
+
+
+
 
 bindCanvasViewportEvents({
   canvasViewport,

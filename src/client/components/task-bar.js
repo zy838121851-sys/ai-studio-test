@@ -63,7 +63,9 @@
     getActiveProject = () => null,
     applyFileToDataUrl = async () => "",
     viewportPointToWorld = () => ({ x: 0, y: 0 }),
-    viewportRectToWorldCenter = () => ({ x: 0, y: 0 })
+    viewportRectToWorldCenter = () => ({ x: 0, y: 0 }),
+    bindPromptSubmit = true,
+    bindPromptPresets = true
   } = state;
 
   let chatFloatDrag = null;
@@ -200,7 +202,7 @@
     recordCanvasEvent("redo", { source: "bottom-control" });
   });
 
-  promptForm?.addEventListener("submit", async (event) => {
+  if (bindPromptSubmit) promptForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const prompt = promptInput.value.trim();
     const currentFiles = getChatImageFiles();
@@ -276,7 +278,7 @@
     }
   });
 
-  root.querySelectorAll("[data-prompt]").forEach((button) => {
+  if (bindPromptPresets) root.querySelectorAll("[data-prompt]").forEach((button) => {
     button.addEventListener("click", () => {
       if (!promptInput) return;
       promptInput.value = button.dataset.prompt;
