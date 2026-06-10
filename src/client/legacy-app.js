@@ -71,6 +71,7 @@ import {
 import {
   createDrawingPreviewElement,
   createDrawingState,
+  createShapeFormatToolbarElement,
   getActiveShapeNode as getActiveShapeNodeFromSelection,
   getShapeToolbarColorTarget,
   getShapeToolbarNode,
@@ -145,7 +146,7 @@ import { createProjectRuntime } from "./core/project-runtime.js";
 import { createProjectSavePatch } from "./core/project-snapshot.js";
 import { applyViewState } from "./core/view-router.js";
 import {
-  fileToDataUrl as readFileAsDataUrl,
+  readFileAsDataUrl as readFileAsDataUrl,
   getImageFiles as getImageFilesFromList,
   getUploadKind as resolveUploadKind,
   imageSourceToDataUrl as readImageSourceAsDataUrl
@@ -246,11 +247,11 @@ import {
   readNodeJson as readAgentNodeJson
 } from "./agent/agent-state-utils.js";
 import {
-  buildAlternativeCoreSuggestions as buildCoreAlternativeSuggestions,
-  getAllDecisionStyles as getCoreDecisionStyles,
-  getFallbackCoreActions as getCoreFallbackActions,
+  buildAlternativeCoreSuggestions,
+  getAllDecisionStyles,
+  getFallbackCoreActions,
   normalizeAnalysis as normalizeCoreAnalysis,
-  normalizeDecisionStyles as normalizeCoreDecisionStyles,
+  normalizeDecisionStyles,
   renderCoreActionButtons,
   updateCoreWorkspaceCards
 } from "./agent/ai-core-workspace.js";
@@ -408,7 +409,7 @@ aiCoreHint.textContent = "点击启用 AI Core";
 function ensureDemoProjects() {
   const nextProjects = buildDemoProjects({
     projects,
-    escapeHtml,
+    escapeHtml: escapeHtmlText,
     hasSeeded: hasDemoProjectsSeeded,
     markSeeded: markDemoProjectsSeeded
   });
@@ -483,7 +484,7 @@ function getProjectDisplayPrompt(project) {
 }
 
 function getProjectPreview(project, index = 0) {
-  if (project?.isDemo) return makeDemoThumb(getProjectDisplayTitle(project, index), index, escapeHtml);
+  if (project?.isDemo) return makeDemoThumb(getProjectDisplayTitle(project, index), index, escapeHtmlText);
   return getStoredProjectPreview(project, index);
 }
 
@@ -712,13 +713,7 @@ function getCanvasNodeScreenRect(node) {
   });
 }
 
-function getSelectedTextEditor() {
-  return getTextEditorFromNode(selectedNode);
-}
 
-function hideTextFormatToolbar() {
-  hideTextToolbar(textFormatToolbar);
-}
 
 function setTextNodeEditing(node, editing) {
   const editor = setTextNodeEditingState(node, editing);
@@ -735,58 +730,27 @@ function setTextNodeEditing(node, editing) {
 }
 
 function ensureShapeFormatToolbar() {
-  let toolbar = document.querySelector("#shapeFormatToolbar");
-  if (toolbar) return toolbar;
-  toolbar = document.createElement("div");
-  toolbar.id = "shapeFormatToolbar";
-  toolbar.className = "shape-format-toolbar";
-  toolbar.innerHTML = `
-    <button type="button" class="shape-color-trigger" data-color-target="fill" title="填充颜色">
-      <span class="shape-swatch fill-swatch"></span>
-    </button>
-    <button type="button" class="shape-color-trigger" data-color-target="stroke" title="描边颜色">
-      <span class="shape-swatch stroke-swatch"></span>
-    </button>
-    <label class="stroke-width-control" title="描边宽度">
-      <span>描边</span>
-      <input type="range" data-shape-style="strokeWidth" min="1" max="12" value="3" />
-    </label>
-    <div class="shape-color-popover">
-      <div class="shape-color-spectrum" data-shape-spectrum><i></i></div>
-      <button type="button" data-shape-color="transparent" class="color-none">无颜色</button>
-      <button type="button" data-shape-color="#ffffff" style="--color:#ffffff"></button>
-      <button type="button" data-shape-color="#1f2933" style="--color:#1f2933"></button>
-      <button type="button" data-shape-color="#b98f8f" style="--color:#b98f8f"></button>
-      <button type="button" data-shape-color="#4f6f9f" style="--color:#4f6f9f"></button>
-      <button type="button" data-shape-color="#4f7d5a" style="--color:#4f7d5a"></button>
-      <button type="button" data-shape-color="#d89a3d" style="--color:#d89a3d"></button>
-      <button type="button" data-shape-color="#8b5cf6" style="--color:#8b5cf6"></button>
-      <button type="button" data-shape-color="#ef4444" style="--color:#ef4444"></button>
-    </div>
-  `;
-  toolbar.dataset.colorTarget = "fill";
-  toolbar.addEventListener("pointerdown", (event) => {
-    event.stopPropagation();
-    if (event.target.closest("[data-shape-spectrum], [data-shape-color]")) {
-      applyShapeToolbarColor(event, toolbar);
-    }
+  return createShapeFormatToolbarElement({
+    onPointerDown: (event) => {
+      event.stopPropagation();
+      if (event.target.closest("[data-shape-spectrum], [data-shape-color]")) {
+        applyShapeToolbarColor(event, event.currentTarget);
+      }
+    },
+    onInput: (event) => {
+      const input = event.target.closest("[data-shape-style]");
+      const shapeNode = getActiveShapeNode();
+      if (!input || !shapeNode) return;
+      if (input.dataset.shapeStyle === "strokeWidth") {
+        shapeNode.style.setProperty("--shape-stroke-width", input.value);
+        syncShapeSvgStyles(shapeNode);
+      }
+    },
+    onClick: handleShapeToolbarClick,
+    onPointerMove: handleShapeColorDragMove,
+    onPointerUp: handleShapeColorDragEnd
   });
-  toolbar.addEventListener("input", (event) => {
-    const input = event.target.closest("[data-shape-style]");
-    const shapeNode = getActiveShapeNode();
-    if (!input || !shapeNode) return;
-    if (input.dataset.shapeStyle === "strokeWidth") {
-      shapeNode.style.setProperty("--shape-stroke-width", input.value);
-      syncShapeNodeStyles(shapeNode);
-    }
-  });
-  toolbar.addEventListener("click", handleShapeToolbarClick);
-  window.addEventListener("pointermove", handleShapeColorDragMove);
-  window.addEventListener("pointerup", handleShapeColorDragEnd);
-  document.body.appendChild(toolbar);
-  return toolbar;
 }
-
 function getActiveShapeNode() {
   return getActiveShapeNodeFromSelection(selectedNode);
 }
@@ -812,7 +776,7 @@ function setShapeColorFromSpectrum(event, toolbar, spectrum) {
     marker.style.left = `${x * 100}%`;
     marker.style.top = `${y * 100}%`;
   }
-  setShapeNodeColor(shapeNode, getShapeToolbarTarget(toolbar), hslToHex(x * 360, 82, 88 - y * 76));
+  setShapeNodeColor(shapeNode, getShapeToolbarTarget(toolbar), hslToHexColor(x * 360, 82, 88 - y * 76));
   return true;
 }
 
@@ -870,7 +834,7 @@ function handleShapeToolbarPointer(event) {
     const rect = spectrum.getBoundingClientRect();
     const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
     const y = Math.max(0, Math.min(1, (event.clientY - rect.top) / rect.height));
-    const color = hslToHex(x * 360, 82, 88 - y * 76);
+    const color = hslToHexColor(x * 360, 82, 88 - y * 76);
     setShapeNodeColor(shapeNode, toolbar.dataset.colorTarget === "stroke" ? "stroke" : "fill", color);
     toolbar.classList.remove("picker-open");
     positionShapeFormatToolbar();
@@ -924,7 +888,7 @@ function positionShapeFormatToolbar() {
     hideShapeFormatToolbar();
     return;
   }
-  if (isFixedStrokeTool(selectedNode.dataset.tool)) {
+  if (isFixedStrokeToolName(selectedNode.dataset.tool)) {
     hideShapeFormatToolbar();
     return;
   }
@@ -934,13 +898,10 @@ function positionShapeFormatToolbar() {
     toolbar,
     node: selectedNode,
     nodeRect: rect,
-    isLinear: isLinearDrawTool(selectedNode.dataset.tool)
+    isLinear: isLinearDrawToolName(selectedNode.dataset.tool)
   });
 }
 
-function hslToHex(h, s, l) {
-  return hslToHexColor(h, s, l);
-}
 
 function setSelectedShapeColor(target, color) {
   const shapeNode = getActiveShapeNode();
@@ -950,35 +911,20 @@ function setSelectedShapeColor(target, color) {
 
 function setShapeNodeColor(node, target, color) {
   node.style.setProperty(target === "stroke" ? "--shape-stroke" : "--shape-fill", color);
-  syncShapeNodeStyles(node);
+  syncShapeSvgStyles(node);
   positionShapeFormatToolbar();
 }
 
-function syncShapeNodeStyles(node) {
-  syncShapeSvgStyles(node);
-}
 
-function isLinearDrawTool(tool) {
-  return isLinearDrawToolName(tool);
-}
 
-function isFixedStrokeTool(tool) {
-  return isFixedStrokeToolName(tool);
-}
 
-function pointsToPath(points, offsetX = 0, offsetY = 0) {
-  return buildPointsPath(points, offsetX, offsetY);
-}
 
-function linearSvg(tool, width, height, start, end) {
-  return buildLinearSvg(tool, width, height, start, end);
-}
 
 function positionTextFormatToolbar() {
   if (!textFormatToolbar) return;
-  const editor = getSelectedTextEditor();
+  const editor = getTextEditorFromNode(selectedNode);
   if (!editor) {
-    hideTextFormatToolbar();
+    hideTextToolbar(textFormatToolbar);
     return;
   }
   const rect = getCanvasNodeScreenRect(selectedNode);
@@ -993,14 +939,11 @@ function positionTextFormatToolbar() {
 }
 
 function applyTextStyle(style) {
-  const editor = getSelectedTextEditor();
+  const editor = getTextEditorFromNode(selectedNode);
   if (!applyTextEditorStyle(editor, style)) return;
   positionTextFormatToolbar();
 }
 
-function rgbToHex(color) {
-  return rgbToHexColor(color);
-}
 
 function viewportPointToWorld(clientX, clientY) {
   return viewportPointToWorldPoint({
@@ -1034,7 +977,7 @@ function nodeTemplate(kind, title, desc, media = {}) {
 
 function clearSelection() {
   selectedNode = clearSelectedNodeElements(selectedNodes);
-  hideTextFormatToolbar();
+  hideTextToolbar(textFormatToolbar);
   hideShapeFormatToolbar();
 }
 
@@ -1133,7 +1076,7 @@ async function showImageTextEditor(node) {
   positionImageTextPanel();
   try {
     const image = await imageSourceToDataUrl(img.src);
-    const result = await postJson("/api/extract-image-text", { image });
+    const result = await postJsonRequest("/api/extract-image-text", { image });
     renderImageTextInputs(panel, result.texts || result.analysis?.texts || []);
   } catch (error) {
     panel.querySelector("[data-text-edit-status]").textContent = `识别失败：${error.message}。你可以手动填写要替换的文字。`;
@@ -1397,9 +1340,9 @@ function addCanvasToolNode(tool, options = {}) {
   node.style.top = `${options.y ?? (point.y - size.height / 2)}px`;
   node.style.width = `${size.width}px`;
   node.style.minHeight = `${size.height}px`;
-  node.style.setProperty("--shape-fill", isLinearDrawTool(tool) || isFixedStrokeTool(tool) ? "transparent" : "#ffffff");
-  node.style.setProperty("--shape-stroke", isFixedStrokeTool(tool) ? "#050505" : "#1f2933");
-  node.style.setProperty("--shape-stroke-width", isFixedStrokeTool(tool) ? "4" : "3");
+  node.style.setProperty("--shape-fill", isLinearDrawToolName(tool) || isFixedStrokeToolName(tool) ? "transparent" : "#ffffff");
+  node.style.setProperty("--shape-stroke", isFixedStrokeToolName(tool) ? "#050505" : "#1f2933");
+  node.style.setProperty("--shape-stroke-width", isFixedStrokeToolName(tool) ? "4" : "3");
   node.dataset.kind = "draw";
   node.dataset.tool = tool;
   ensureCanvasNodeId(node, { nextId: nextCanvasNodeId });
@@ -1422,7 +1365,7 @@ function addCanvasToolNode(tool, options = {}) {
   makeDraggable(node);
   node.querySelector(".node-expand")?.remove();
   canvasWorld.appendChild(node);
-  syncShapeNodeStyles(node);
+  syncShapeSvgStyles(node);
   selectNode(node);
   if (tool === "text" || SHAPE_TEXT_TOOLS.has(tool)) {
     const editable = node.querySelector(".canvas-text-editor");
@@ -1524,7 +1467,7 @@ function finishCanvasDrawing() {
     const pad = 10;
     const nodeWidth = Math.max(18, maxX - minX + pad * 2);
     const nodeHeight = Math.max(18, maxY - minY + pad * 2);
-    const path = pointsToPath(worldPoints, minX - pad, minY - pad);
+    const path = buildPointsPath(worldPoints, minX - pad, minY - pad);
     addCanvasToolNode("pen", {
       x: minX - pad,
       y: minY - pad,
@@ -1533,7 +1476,7 @@ function finishCanvasDrawing() {
     });
     return;
   }
-  if (isLinearDrawTool(tool)) {
+  if (isLinearDrawToolName(tool)) {
     const pad = 12;
     const nodeWidth = Math.max(18, width + pad * 2);
     const nodeHeight = Math.max(18, height + pad * 2);
@@ -1543,7 +1486,7 @@ function finishCanvasDrawing() {
       x: x - pad,
       y: y - pad,
       size: { width: nodeWidth, height: nodeHeight },
-      svgMarkup: linearSvg(tool, nodeWidth, nodeHeight, startRel, endRel)
+      svgMarkup: buildLinearSvg(tool, nodeWidth, nodeHeight, startRel, endRel)
     });
     return;
   }
@@ -1584,7 +1527,7 @@ function updateEraserDrag(event) {
   const point = { x: event.clientX - rect.left, y: event.clientY - rect.top };
   const last = eraserDrag.points[eraserDrag.points.length - 1];
   if (!last || Math.hypot(point.x - last.x, point.y - last.y) > 4) eraserDrag.points.push(point);
-  eraserDrag.stroke.querySelector("path")?.setAttribute("d", pointsToPath(eraserDrag.points));
+  eraserDrag.stroke.querySelector("path")?.setAttribute("d", buildPointsPath(eraserDrag.points));
   const brush = 18;
   canvasWorld.querySelectorAll(".node-card").forEach((node) => {
     if (eraserDrag.marked.has(node)) return;
@@ -1954,7 +1897,7 @@ function makeDraggable(node) {
       selectNode(node);
       resizing = true;
       if (node.classList.contains("canvas-shape")) hideShapeFormatToolbar();
-      if (node.classList.contains("canvas-text")) hideTextFormatToolbar();
+      if (node.classList.contains("canvas-text")) hideTextToolbar(textFormatToolbar);
       resizeCorner = resizeHandle.dataset.resize;
       node.setPointerCapture(event.pointerId);
       start = { x: event.clientX, y: event.clientY };
@@ -1975,7 +1918,7 @@ function makeDraggable(node) {
     if (!selectedNodes.has(node)) selectNode(node);
     dragging = true;
     if (hasMovingShape(node)) hideShapeFormatToolbar();
-    if (hasMovingText(node)) hideTextFormatToolbar();
+    if (hasMovingText(node)) hideTextToolbar(textFormatToolbar);
     node.setPointerCapture(event.pointerId);
     start = { x: event.clientX, y: event.clientY };
     original = {
@@ -2290,7 +2233,7 @@ async function runDirectorAction(directorNode, action, options = {}) {
     const productImage = productNode.querySelector(".image-frame img");
     const images = productImage ? [await imageSourceToDataUrl(productImage.src)] : [];
     const modelPrompt = buildDirectorPrompt(productNode, action);
-    const result = await postJson("/api/chat", buildChatImagePayload({
+    const result = await postJsonRequest("/api/chat", buildChatImagePayload({
       model: chatModelSelect.value,
       prompt: modelPrompt,
       images
@@ -2337,7 +2280,7 @@ function updateChat(message, text) {
 }
 
 function addThinking(title, steps = []) {
-  return appendThinkingMessage({ chatPanel, chatLog, title, steps, escapeHtml });
+  return appendThinkingMessage({ chatPanel, chatLog, title, steps, escapeHtml: escapeHtmlText });
 }
 
 function updateThinking(message, activeIndex, done = false) {
@@ -2345,16 +2288,13 @@ function updateThinking(message, activeIndex, done = false) {
 }
 
 function addChatImage(role, imageUrl, caption) {
-  return appendChatImage({ chatLog, role, imageUrl, caption, escapeHtml });
+  return appendChatImage({ chatLog, role, imageUrl, caption, escapeHtml: escapeHtmlText });
 }
 
 async function imageSourceToDataUrl(src) {
   return readImageSourceAsDataUrl(src);
 }
 
-function getQwenSizeForImage(img) {
-  return getQwenImageSizeForElement(img);
-}
 
 function generateFromPrompt(prompt, point) {
   generatedCount += 1;
@@ -2417,7 +2357,7 @@ function renderChatImagePreview() {
   renderChatImagePreviewList({
     container: chatImagePreview,
     files: chatImageFiles,
-    escapeHtml,
+    escapeHtml: escapeHtmlText,
     onRemove: (index) => {
       chatImageFiles.splice(index, 1);
       renderChatImagePreview();
@@ -2507,7 +2447,7 @@ function ensureGenerationOverlay() {
   if (overlay) return overlay;
   overlay = createGenerationChoiceOverlay({
     actions: directorActions,
-    escapeHtml,
+    escapeHtml: escapeHtmlText,
     onClose: hideGenerationOverlay,
     onChoose: async (type) => {
       if (!generationOverlayState) return;
@@ -2726,7 +2666,7 @@ async function ensureAICoreNodeContext(node, reason) {
     inferProfile: inferProductProfile,
     getTitle: getStackTitle,
     getImageData: getAICoreImageData,
-    analyzeImage: (payload) => postJson("/api/analyze-image", payload),
+    analyzeImage: (payload) => postJsonRequest("/api/analyze-image", payload),
     normalizeAnalysis,
     writeCache: writeAICoreAnalysisCache
   });
@@ -2774,7 +2714,7 @@ async function runAICoreAgent(reason, targetId) {
   try {
     await ensureAICoreNodeContext(targetNode, reason);
     const canvasState = buildCanvasState(reason, targetId);
-    const result = await postJson("/api/canvas-agent", { canvasState });
+    const result = await postJsonRequest("/api/canvas-agent", { canvasState });
     window.clearTimeout(fallbackTimer);
     const suggestion = normalizeAICoreAgentSuggestion(canvasState, result.suggestion || {
       text: "我暂时没想好，你可以直接告诉我想做什么。",
@@ -2997,7 +2937,7 @@ async function startCanvasAICoreInsight(node, file) {
       renderCanvasSuggestionBubble(bubble, fallback, false);
       return;
     }
-    const result = await postJson("/api/analyze-image", {
+    const result = await postJsonRequest("/api/analyze-image", {
       image,
       title: getNodeTitle(node)
     });
@@ -3018,7 +2958,7 @@ async function runCanvasInsightAction(productNode, bubble, action) {
   const analysis = bubble._analysis || normalizeAnalysis(null, inferProductProfile({ name: getNodeTitle(productNode) }));
   if (!action.prepared && !action.prompt) {
     try {
-      const result = await postJson("/api/prepare-action", {
+      const result = await postJsonRequest("/api/prepare-action", {
         analysis,
         action: {
           type: action.type,
@@ -3102,21 +3042,13 @@ function showAIDecisionPanel(workspace, actionType) {
   panel.classList.add("open");
 }
 
-function normalizeDecisionStyles(styles) {
-  return normalizeCoreDecisionStyles(styles);
-}
-
-function getAllDecisionStyles(workspace) {
-  return getCoreDecisionStyles(workspace);
-}
-
 async function prepareCoreAction(workspace, actionType) {
   if (actionType === "all") return null;
   const action = (workspace._coreActions || []).find((item) => item.type === actionType);
   if (!action || action.prepared || action.prompt) return action;
   if (!workspace._coreAnalysis) return action;
   try {
-    const result = await postJson("/api/prepare-action", {
+    const result = await postJsonRequest("/api/prepare-action", {
       analysis: workspace._coreAnalysis,
       action: {
         type: action.type,
@@ -3177,13 +3109,6 @@ function normalizeAnalysis(analysis, fallback = {}) {
   return normalizeCoreAnalysis(analysis, fallback, { directorActions });
 }
 
-function getFallbackCoreActions(data) {
-  return getCoreFallbackActions(data);
-}
-
-function renderAICoreActions(workspace, data, loading = false) {
-  renderCoreActionButtons({ workspace, data, loading, directorActions, escapeHtml });
-}
 
 async function refreshAICoreSuggestions(workspace) {
   const analysis = workspace._coreAnalysis;
@@ -3203,18 +3128,14 @@ async function refreshAICoreSuggestions(workspace) {
     });
     workspace._coreAnalysis = next;
     workspace._analysisPrompts = next.generationPrompts || {};
-    renderAICoreActions(workspace, next, false);
-    updateAICoreWorkspaceCards(workspace, next, false);
+    renderCoreActionButtons({ workspace, data: next, loading: false, directorActions, escapeHtml: escapeHtmlText });
+    updateCoreWorkspaceCards({ workspace, data: next, loading: false, escapeHtml: escapeHtmlText });
   } catch (error) {
     addChat("assistant", `换一组建议失败：${error.message}`);
   } finally {
     refreshButton?.classList.remove("running");
     refreshButton && (refreshButton.disabled = false);
   }
-}
-
-function buildAlternativeCoreSuggestions(analysis, refreshCount = 1) {
-  return buildCoreAlternativeSuggestions(analysis, refreshCount);
 }
 
 function refreshFloatingAICoreSuggestions() {
@@ -3242,20 +3163,17 @@ function renderAICoreAnalysis(workspace, analysis, loading = false) {
   status.textContent = loading ? "正在调用视觉模型 API..." : `${data.category} · ${data.style}`;
   workspace.classList.toggle("analyzing", loading);
   workspace.classList.toggle("analyzed", !loading);
-  renderAICoreActions(workspace, data, loading);
+  renderCoreActionButtons({ workspace, data: data, loading: loading, directorActions, escapeHtml: escapeHtmlText });
   summary.innerHTML = "";
 
-  updateAICoreWorkspaceCards(workspace, data, loading);
+  updateCoreWorkspaceCards({ workspace, data: data, loading: loading, escapeHtml: escapeHtmlText });
 }
 
-function updateAICoreWorkspaceCards(workspace, data, loading = false) {
-  updateCoreWorkspaceCards({ workspace, data, loading, escapeHtml });
-}
 
 async function getAICoreImageData(productNode, file) {
   const img = productNode.querySelector(".image-frame img");
   if (img?.src) return imageSourceToDataUrl(img.src);
-  if (file instanceof Blob && file.type?.startsWith("image/")) return fileToDataUrl(file);
+  if (file instanceof Blob && file.type?.startsWith("image/")) return readFileAsDataUrl(file);
   return null;
 }
 
@@ -3276,7 +3194,7 @@ async function analyzeImageForAICore(productNode, file, workspace) {
     }
 
     workspace.querySelector("[data-core-status-copy]").textContent = "正在调用视觉模型 API...";
-    const result = await postJson("/api/analyze-image", {
+    const result = await postJsonRequest("/api/analyze-image", {
       image,
       title: getNodeTitle(productNode),
       refreshCount: Number(workspace.dataset.refreshCount || "0") || 0
@@ -3356,13 +3274,7 @@ function arrangeAICoreGeneratedNodes(workspace) {
   workspace._generatedNodes = [];
 }
 
-function fileToDataUrl(file) {
-  return readFileAsDataUrl(file);
-}
 
-async function postJson(path, payload) {
-  return postJsonRequest(path, payload);
-}
 
 async function runImageEditCommand(sourceNode, prompt, label = "图片编辑") {
   return executeImageEditAction({
@@ -3371,7 +3283,7 @@ async function runImageEditCommand(sourceNode, prompt, label = "图片编辑") {
     label,
     model: imageEditModel.value,
     readImageSourceAsDataUrl: imageSourceToDataUrl,
-    getOutputSize: getQwenSizeForImage,
+    getOutputSize: getQwenImageSizeForElement,
     createPreview: addGenerationPreview,
     replacePreview: replacePreviewWithImage,
     addSourceBadge,
@@ -3530,7 +3442,7 @@ function renderHomeFilePreview() {
   renderHomeFilePreviewList({
     container: homeFilePreview,
     files: homeImageFiles,
-    escapeHtml,
+    escapeHtml: escapeHtmlText,
     onRemove: (index) => {
       homeImageFiles.splice(index, 1);
       setHomeFiles(homeImageFiles);
@@ -3953,7 +3865,7 @@ imageEditSubmit.addEventListener("click", async () => {
     label: "Qwen 图片编辑",
     model: imageEditModel.value,
     readImageSourceAsDataUrl: imageSourceToDataUrl,
-    getOutputSize: getQwenSizeForImage,
+    getOutputSize: getQwenImageSizeForElement,
     createPreview: addGenerationPreview,
     replacePreview: replacePreviewWithImage,
     addSourceBadge,
@@ -4257,9 +4169,9 @@ promptForm.addEventListener("submit", async (event) => {
   updateThinking(thinking, 2);
 
   try {
-    const images = await Promise.all(files.map(fileToDataUrl));
+    const images = await Promise.all(files.map(readFileAsDataUrl));
     updateThinking(thinking, 3);
-    const result = await postJson("/api/chat", buildChatImagePayload({ model, prompt, images }));
+    const result = await postJsonRequest("/api/chat", buildChatImagePayload({ model, prompt, images }));
     updateChat(progress, result.text || result.message || "已收到模型响应。");
     if (result.imageUrl) {
       replacePreviewWithImage(previewNode, {

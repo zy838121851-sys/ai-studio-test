@@ -106,6 +106,52 @@ export function getShapeToolbarColorTarget(toolbar) {
   return toolbar?.dataset.colorTarget === "stroke" ? "stroke" : "fill";
 }
 
+export function createShapeFormatToolbarElement({
+  onPointerDown,
+  onInput,
+  onClick,
+  onPointerMove,
+  onPointerUp
+} = {}) {
+  let toolbar = document.querySelector("#shapeFormatToolbar");
+  if (toolbar) return toolbar;
+  toolbar = document.createElement("div");
+  toolbar.id = "shapeFormatToolbar";
+  toolbar.className = "shape-format-toolbar";
+  toolbar.innerHTML = `
+    <button type="button" class="shape-color-trigger" data-color-target="fill" title="濉厖棰滆壊">
+      <span class="shape-swatch fill-swatch"></span>
+    </button>
+    <button type="button" class="shape-color-trigger" data-color-target="stroke" title="鎻忚竟棰滆壊">
+      <span class="shape-swatch stroke-swatch"></span>
+    </button>
+    <label class="stroke-width-control" title="鎻忚竟瀹藉害">
+      <span>鎻忚竟</span>
+      <input type="range" data-shape-style="strokeWidth" min="1" max="12" value="3" />
+    </label>
+    <div class="shape-color-popover">
+      <div class="shape-color-spectrum" data-shape-spectrum><i></i></div>
+      <button type="button" data-shape-color="transparent" class="color-none">鏃犻鑹?/button>
+      <button type="button" data-shape-color="#ffffff" style="--color:#ffffff"></button>
+      <button type="button" data-shape-color="#1f2933" style="--color:#1f2933"></button>
+      <button type="button" data-shape-color="#b98f8f" style="--color:#b98f8f"></button>
+      <button type="button" data-shape-color="#4f6f9f" style="--color:#4f6f9f"></button>
+      <button type="button" data-shape-color="#4f7d5a" style="--color:#4f7d5a"></button>
+      <button type="button" data-shape-color="#d89a3d" style="--color:#d89a3d"></button>
+      <button type="button" data-shape-color="#8b5cf6" style="--color:#8b5cf6"></button>
+      <button type="button" data-shape-color="#ef4444" style="--color:#ef4444"></button>
+    </div>
+  `;
+  toolbar.dataset.colorTarget = "fill";
+  if (onPointerDown) toolbar.addEventListener("pointerdown", onPointerDown);
+  if (onInput) toolbar.addEventListener("input", onInput);
+  if (onClick) toolbar.addEventListener("click", onClick);
+  if (onPointerMove) window.addEventListener("pointermove", onPointerMove);
+  if (onPointerUp) window.addEventListener("pointerup", onPointerUp);
+  document.body.appendChild(toolbar);
+  return toolbar;
+}
+
 export function hasShapeNodeInSet(node, selectedNodes) {
   return node?.classList.contains("canvas-shape")
     || Array.from(selectedNodes || []).some((item) => item.classList.contains("canvas-shape"));
