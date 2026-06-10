@@ -140,6 +140,13 @@ import {
   setLibraryViewMode
 } from "./core/project-store.js";
 import {
+  getLibraryTransitionDirection,
+  getProjectDisplayPrompt as getStoredProjectDisplayPrompt,
+  getProjectDisplayTitle as getStoredProjectDisplayTitle,
+  getProjectPreview as getStoredProjectPreview,
+  wrapProjectIndex
+} from "./core/project-library-state.js";
+import {
   buildDemoProjects,
   makeDemoProjectThumb as makeDemoThumb
 } from "./core/demo-projects.js";
@@ -709,17 +716,17 @@ function getProjectDisplayTitle(project, index = 0) {
     const idIndex = Number(String(project.id || "").match(/(\d+)$/)?.[1] || 0) - 1;
     return demoProjectTitles[idIndex >= 0 ? idIndex : index] || project.title || "Fresh Ideas";
   }
-  return project?.title || "Fresh Ideas";
+  return getStoredProjectDisplayTitle(project, index);
 }
 
 function getProjectDisplayPrompt(project) {
   if (project?.isDemo) return "示例画板项目";
-  return project?.prompt || "空白画布项目";
+  return getStoredProjectDisplayPrompt(project);
 }
 
 function getProjectPreview(project, index = 0) {
   if (project?.isDemo) return makeDemoProjectThumb(getProjectDisplayTitle(project, index), index);
-  return project?.thumbnail || "";
+  return getStoredProjectPreview(project, index);
 }
 
 function renderProjectLibraryBroken() {
@@ -1042,9 +1049,9 @@ function renderHomeHistory() {
 
 function selectLibraryProject(index) {
   if (!projects.length) return;
-  const nextIndex = (index + projects.length) % projects.length;
+  const nextIndex = wrapProjectIndex(index, projects.length);
   const currentIndex = Math.max(0, projects.findIndex((project) => project.id === activeProjectId));
-  libraryTransitionDirection = nextIndex === currentIndex ? 0 : (nextIndex > currentIndex ? 1 : -1);
+  libraryTransitionDirection = getLibraryTransitionDirection({ currentIndex, nextIndex });
   activeProjectId = projects[nextIndex].id;
   setActiveProjectId(activeProjectId);
   renderProjectLibrary();
