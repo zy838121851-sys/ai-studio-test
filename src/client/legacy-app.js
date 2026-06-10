@@ -678,12 +678,13 @@ const directorActions = [
 ];
 const directorViewCount = 3;
 
-function escapeHtml(value) {
-  return escapeHtmlText(value);
+function nextCanvasNodeId() {
+  nodeIdSeed += 1;
+  return `node-${nodeIdSeed}`;
 }
 
 function renderAssets() {
-  renderAssetLibrary({ assetList, assets, escapeHtml });
+  renderAssetLibrary({ assetList, assets, escapeHtml: escapeHtmlText });
 }
 
 function applyTransform() {
@@ -1242,7 +1243,7 @@ function ensureNodeControls(node) {
     event.stopPropagation();
     const img = node.querySelector(".image-frame img");
     if (img) {
-      showImageLightbox(img.src, getStackTitle(node));
+      showImageLightbox(img.src, getNodeTitle(node));
       return;
     }
     node.classList.toggle("node-zoomed");
@@ -1284,7 +1285,7 @@ function ensureImageToolbar(node) {
     if (action === "download") {
       const link = document.createElement("a");
       link.href = img.src;
-      link.download = getStackTitle(node).replace(/^▧\s*/, "") || "image.png";
+      link.download = getNodeTitle(node).replace(/^▧\s*/, "") || "image.png";
       link.click();
     }
   });
@@ -1396,7 +1397,7 @@ function addCanvasToolNode(tool, options = {}) {
   node.style.setProperty("--shape-stroke-width", isFixedStrokeTool(tool) ? "4" : "3");
   node.dataset.kind = "draw";
   node.dataset.tool = tool;
-  ensureNodeId(node);
+  ensureCanvasNodeId(node, { nextId: nextCanvasNodeId });
   if (tool === "text") {
     node.innerHTML = `
       <div class="canvas-text-editor" contenteditable="false" spellcheck="false" data-placeholder="输入文字"></div>
@@ -1773,25 +1774,8 @@ function hideImageCropOverlay() {
   croppingImageNode = null;
 }
 
-function ensureNodeId(node) {
-  return ensureCanvasNodeId(node, {
-    nextId: () => {
-      nodeIdSeed += 1;
-      return `node-${nodeIdSeed}`;
-    }
-  });
-}
-
 function getNodeBounds(node) {
   return getElementWorldBounds(node);
-}
-
-function getVisibleNodes() {
-  return getVisibleCanvasNodes(canvasWorld);
-}
-
-function intersects(a, b) {
-  return rectsIntersect(a, b);
 }
 
 function createSelectionBox() {
@@ -1818,19 +1802,11 @@ function finishSelectionBox() {
   };
   const selected = area.width < 4 && area.height < 4
     ? []
-    : getVisibleNodes().filter((node) => intersects(getNodeBounds(node), area));
+    : getVisibleCanvasNodes(canvasWorld).filter((node) => rectsIntersect(getNodeBounds(node), area));
   selectNodes(selected);
   selectionDrag.box.remove();
   selectionDrag = null;
   canvasViewport.classList.remove("selecting");
-}
-
-function getStackTitle(node) {
-  return getNodeTitle(node);
-}
-
-function getStackThumb(node) {
-  return getNodeThumbnail(node);
 }
 
 function ensureStackControls(node) {
@@ -1870,10 +1846,10 @@ function renderStackTray(node) {
   const { button, tray } = ensureStackControls(node);
   button.textContent = `+${children.length}`;
   tray.innerHTML = children.map((child) => {
-    ensureNodeId(child);
-    const thumb = getStackThumb(child);
-    const title = escapeHtml(getStackTitle(child));
-    const tag = escapeHtml(child.querySelector(".node-label")?.textContent.trim() || child.dataset.kind || "模块");
+    ensureCanvasNodeId(child, { nextId: nextCanvasNodeId });
+    const thumb = getNodeThumbnail(child);
+    const title = escapeHtmlText(getNodeTitle(child));
+    const tag = escapeHtmlText(child.querySelector(".node-label")?.textContent.trim() || child.dataset.kind || "模块");
     return `
       <button class="stack-row" type="button" data-child-id="${child.dataset.nodeId}" title="展开到画布">
         <span class="stack-thumb">${thumb ? `<img src="${thumb}" alt="${title}" />` : ""}</span>
@@ -1889,7 +1865,7 @@ function findStackTarget(dragged) {
   const draggedCenterX = draggedBounds.x + draggedBounds.width / 2;
   let best = null;
   let bestScore = Infinity;
-  getVisibleNodes().forEach((node) => {
+  getVisibleCanvasNodes(canvasWorld).forEach((node) => {
     if (node === dragged || selectedNodes.has(node)) return false;
     const bounds = getNodeBounds(node);
     const inX = draggedCenterX >= bounds.x - 90 && draggedCenterX <= bounds.x + bounds.width + 90;
@@ -1936,8 +1912,8 @@ function releaseStackChild(parent, child) {
 
 function stackNode(target, child) {
   if (!target || !child || target === child) return false;
-  ensureNodeId(target);
-  ensureNodeId(child);
+  ensureCanvasNodeId(target, { nextId: nextCanvasNodeId });
+  ensureCanvasNodeId(child, { nextId: nextCanvasNodeId });
   if (!target._stackChildren) target._stackChildren = [];
   if (target._stackChildren.includes(child)) return false;
   target._stackChildren.push(child);
@@ -2235,7 +2211,7 @@ function refreshDirectorOptions(directorNode) {
   actionsWrap.innerHTML = `${actions.map((action, index) => `
     <button type="button" class="director-tile" data-director-action="${action.type}">
       <small>${String(index + 1).padStart(2, "0")}</small>
-      <span>${escapeHtml(action.title)}</span>
+      <span>${escapeHtmlText(action.title)}</span>
     </button>
   `).join("")}
     <button class="director-tile director-generate-all" type="button" data-director-action="all">
@@ -2280,10 +2256,10 @@ function updateCorePreviewCard(workspace, index, action, state, url = "") {
   card.querySelector("strong").textContent = state === "done" ? action.title : `${action.title} · 生成中`;
   const body = card.querySelector("div");
   if (state === "done" && url) {
-    body.innerHTML = `<img src="${url}" alt="${escapeHtml(action.title)}" /><span>${escapeHtml(action.title)}</span>`;
+    body.innerHTML = `<img src="${url}" alt="${escapeHtmlText(action.title)}" /><span>${escapeHtmlText(action.title)}</span>`;
     return;
   }
-  body.innerHTML = `<span>${escapeHtml(action.title)}</span><p>AI 正在生成结果...</p>`;
+  body.innerHTML = `<span>${escapeHtmlText(action.title)}</span><p>AI 正在生成结果...</p>`;
 }
 
 function rememberCoreGeneratedNode(workspace, node) {
@@ -2647,7 +2623,7 @@ function uploadIntoAICore(files, point) {
 function sendExistingNodeToAICore(node) {
   if (!node || node.classList.contains("node-director")) return false;
   if (!node.classList.contains("node-image") && !node.classList.contains("node-model")) return false;
-  const fileName = getStackTitle(node);
+  const fileName = getNodeTitle(node);
   const pseudoFile = { name: fileName, type: node.classList.contains("node-image") ? "image/png" : "model/3d" };
   const profile = inferProductProfile(pseudoFile);
   node.dataset.productType = profile.type;
@@ -2719,7 +2695,7 @@ function normalizeAICoreAgentSuggestion(canvasState, suggestion = {}) {
 
 function writeAICoreAnalysisCache(node, analysis, source = "vision") {
   if (!node || !analysis) return;
-  const data = normalizeAnalysis(analysis, inferProductProfile({ name: getStackTitle(node) }));
+  const data = normalizeAnalysis(analysis, inferProductProfile({ name: getNodeTitle(node) }));
   data.recommendedActions = improveAgentRecommendedActions(data);
   node.dataset.aiCoreAnalysis = JSON.stringify(data);
   node.dataset.aiCoreAnalysisStatus = "ready";
@@ -2867,7 +2843,7 @@ function showAICoreAgentSuggestion(canvasState, suggestion) {
     <div class="canvas-ai-window-title" data-typewriter></div>
     <div class="canvas-ai-actions">
       <button type="button" data-agent-suggestion-action>
-        <span>${escapeHtml(String(suggestion.actionLabel || "生成").slice(0, 6))}</span>
+        <span>${escapeHtmlText(String(suggestion.actionLabel || "生成").slice(0, 6))}</span>
       </button>
     </div>
   `;
@@ -2939,7 +2915,7 @@ function runAICoreMockAction(bubble) {
 }
 
 function ensureCanvasSuggestionBubble(node) {
-  ensureNodeId(node);
+  ensureCanvasNodeId(node, { nextId: nextCanvasNodeId });
   const existing = document.querySelector(`.canvas-ai-suggestions[data-node-id="${node.dataset.nodeId}"]`);
   if (existing) {
     existing._sourceNode = node;
@@ -3006,7 +2982,7 @@ function renderCanvasSuggestionBubble(bubble, analysis, loading = false) {
   bubble.classList.toggle("loading", loading);
   bubble.querySelector(".canvas-ai-actions").innerHTML = bubble._actions.map((action, index) => `
     <button type="button" data-canvas-ai-action="${index}">
-      <span>${escapeHtml(String(action.title || "生成").slice(0, 4))}</span>
+      <span>${escapeHtmlText(String(action.title || "生成").slice(0, 4))}</span>
     </button>
   `).join("");
 }
@@ -3043,7 +3019,7 @@ async function startCanvasAICoreInsight(node, file) {
     }
     const result = await postJson("/api/analyze-image", {
       image,
-      title: getStackTitle(node)
+      title: getNodeTitle(node)
     });
     const analysis = normalizeAnalysis(result.analysis, fallback);
     node.dataset.productName = analysis.productName;
@@ -3059,7 +3035,7 @@ async function startCanvasAICoreInsight(node, file) {
 }
 
 async function runCanvasInsightAction(productNode, bubble, action) {
-  const analysis = bubble._analysis || normalizeAnalysis(null, inferProductProfile({ name: getStackTitle(productNode) }));
+  const analysis = bubble._analysis || normalizeAnalysis(null, inferProductProfile({ name: getNodeTitle(productNode) }));
   if (!action.prepared && !action.prompt) {
     try {
       const result = await postJson("/api/prepare-action", {
@@ -3138,7 +3114,7 @@ function showAIDecisionPanel(workspace, actionType) {
   const options = panel.querySelector(".ai-decision-options");
   const decisionStyles = normalizeDecisionStyles(action.decisionStyles);
   options.innerHTML = decisionStyles.map((item) => `
-    <button type="button" data-decision-style="${escapeHtml(item.prompt)}">${escapeHtml(item.label)}</button>
+    <button type="button" data-decision-style="${escapeHtmlText(item.prompt)}">${escapeHtmlText(item.label)}</button>
   `).join("");
   panel.querySelector("[data-decision-title]").textContent = `生成「${action.title}」前，我想确认一下`;
   panel.querySelector("[data-decision-question]").textContent = "你希望这次更偏向哪种方向？也可以直接生成。";
@@ -3322,7 +3298,7 @@ async function analyzeImageForAICore(productNode, file, workspace) {
     workspace.querySelector("[data-core-status-copy]").textContent = "正在调用视觉模型 API...";
     const result = await postJson("/api/analyze-image", {
       image,
-      title: getStackTitle(productNode),
+      title: getNodeTitle(productNode),
       refreshCount: Number(workspace.dataset.refreshCount || "0") || 0
     });
     const analysis = normalizeAnalysis(result.analysis, profile);
