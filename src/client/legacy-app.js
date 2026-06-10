@@ -204,6 +204,13 @@ import {
   positionBubbleAtNode,
   typeAgentText as runAgentTypewriter
 } from "./agent/agent-ui.js";
+import {
+  compactAnalysisForAgent as compactAgentAnalysis,
+  getIndustryActionPreset as getAgentIndustryActionPreset,
+  improveRecommendedActions as improveAgentRecommendedActions,
+  isWeakAction as isWeakAgentAction,
+  normalizeAgentSuggestion
+} from "./agent/agent-recommendations.js";
 
 const assets = [
   { id: "landing", type: "2d", title: "AI 发布页", desc: "首屏、卖点、CTA" },
@@ -4100,6 +4107,9 @@ function compactText(value, max = 520) {
 }
 
 function getIndustryActionPreset(analysis = {}) {
+  return getAgentIndustryActionPreset(analysis);
+
+  // TODO(architecture): Remove legacy inline recommendation rules after Agent module validation.
   const haystack = [
     analysis.productName,
     analysis.category,
@@ -4169,6 +4179,9 @@ function getIndustryActionPreset(analysis = {}) {
 }
 
 function isWeakAction(action = {}) {
+  return isWeakAgentAction(action);
+
+  // TODO(architecture): Remove legacy inline weak-action rule after Agent module validation.
   const title = String(action.title || "");
   const desc = String(action.description || "");
   return !title
@@ -4178,6 +4191,9 @@ function isWeakAction(action = {}) {
 }
 
 function improveRecommendedActions(analysis = {}) {
+  return improveAgentRecommendedActions(analysis);
+
+  // TODO(architecture): Remove legacy inline recommendation merger after Agent module validation.
   const preset = getIndustryActionPreset(analysis);
   const actions = Array.isArray(analysis.recommendedActions) ? analysis.recommendedActions : [];
   const strong = actions
@@ -4196,6 +4212,9 @@ function improveRecommendedActions(analysis = {}) {
 }
 
 function compactAnalysisForAgent(analysis) {
+  return compactAgentAnalysis(analysis);
+
+  // TODO(architecture): Remove legacy inline compact analysis after Agent module validation.
   if (!analysis) return null;
   return {
     productName: analysis.productName || "",
@@ -4233,6 +4252,13 @@ function pickCachedActionForSuggestion(canvasState, suggestion = {}) {
 }
 
 function normalizeAICoreAgentSuggestion(canvasState, suggestion = {}) {
+  return normalizeAgentSuggestion({
+    canvasState,
+    suggestion,
+    pickCachedAction: pickCachedActionForSuggestion
+  });
+
+  // TODO(architecture): Remove legacy inline suggestion normalization after Agent module validation.
   const target = canvasState?.target || {};
   if (target.analysisStatus === "loading") {
     return {
