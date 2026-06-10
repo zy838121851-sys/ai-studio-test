@@ -192,6 +192,7 @@ import {
   renderHomeFilePreview as renderHomeFilePreviewList,
   syncHomeModelPicker as syncHomeModelPickerView
 } from "./components/home-composer.js";
+import { createAICoreWorkspaceElement } from "./components/ai-core-workspace-panel.js";
 import {
   closeMenuWhenOutside,
   positionFloatingMenu
@@ -4765,9 +4766,50 @@ async function runCanvasInsightAction(productNode, bubble, action) {
   bubble.classList.add("has-generated");
 }
 
+function bindAICoreWorkspaceEvents(workspace) {
+  workspace.querySelector(".ai-core-workspace-close").addEventListener("click", hideAICoreWorkspace);
+  workspace.addEventListener("click", async (event) => {
+    const refresh = event.target.closest("[data-core-refresh]");
+    if (refresh) {
+      if (workspace.classList.contains("analyzing")) return;
+      workspace.dataset.refreshCount = String((Number(workspace.dataset.refreshCount || "0") || 0) + 1);
+      refreshAICoreSuggestions(workspace);
+      return;
+    }
+    const button = event.target.closest("[data-core-action]");
+    if (!button) return;
+    const productNode = getNodeById(workspace.dataset.productNodeId);
+    if (!productNode) return;
+    const actionType = button.dataset.coreAction;
+    button.classList.add("running");
+    button.disabled = true;
+    try {
+      await prepareCoreAction(workspace, actionType);
+    } finally {
+      button.classList.remove("running");
+      button.disabled = false;
+    }
+    showAIDecisionPanel(workspace, actionType);
+  });
+  workspace.querySelector(".ai-decision-options").addEventListener("click", (event) => {
+    const option = event.target.closest("[data-decision-style]");
+    if (!option) return;
+    workspace.querySelectorAll("[data-decision-style]").forEach((item) => item.classList.remove("selected"));
+    option.classList.add("selected");
+    workspace.dataset.decisionStyle = option.dataset.decisionStyle;
+  });
+  workspace.querySelector(".ai-generate-now").addEventListener("click", () => runWorkspaceDecision(workspace));
+}
+
 function ensureAICoreWorkspace() {
   let workspace = document.querySelector(".ai-core-workspace");
   if (workspace) return workspace;
+  workspace = createAICoreWorkspaceElement();
+  appRoot.appendChild(workspace);
+  bindAICoreWorkspaceEvents(workspace);
+  return workspace;
+
+  // TODO(architecture): Remove the legacy inline template below after the component path is verified in browser QA.
   workspace = document.createElement("div");
   workspace.className = "ai-core-workspace";
   workspace.innerHTML = `
