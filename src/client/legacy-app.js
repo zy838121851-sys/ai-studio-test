@@ -45,6 +45,19 @@ import {
   parseStlGeometry,
   sampleModelFaces
 } from "./canvas/model-parser.js";
+import {
+  applyNodePreviewSize,
+  buildGenerationPreviewConfig,
+  buildUploadedNodeConfig,
+  markUploadedNode
+} from "./canvas/upload-nodes.js";
+import {
+  findCanvasNodeById,
+  getNodeThumbnail,
+  getNodeTitle,
+  getVisibleCanvasNodes
+} from "./canvas/node-query.js";
+import { ensureCanvasNodeId } from "./canvas/node-identity.js";
 import { createCanvasNodeElement } from "./canvas/node-factory.js";
 import { renderToolSvg } from "./canvas/node-icons.js";
 import { renderNodeTemplate } from "./canvas/node-template.js";
@@ -56,22 +69,36 @@ import {
   markDemoProjectsSeeded,
   createProjectRecord,
   formatProjectDate as formatStoredProjectDate,
+  makeProjectTitle as createProjectTitleFromPrompt,
   loadProjectsFromStorage,
   patchProjectRecord,
   saveProjectsToStorage,
   setActiveProjectId,
   setLibraryViewMode
 } from "./core/project-store.js";
+import { createProjectRuntime } from "./core/project-runtime.js";
+import { createProjectSavePatch } from "./core/project-snapshot.js";
+import { applyViewState } from "./core/view-router.js";
 import {
   fileToDataUrl as readFileAsDataUrl,
   getImageFiles as getImageFilesFromList,
   getUploadKind as resolveUploadKind,
   imageSourceToDataUrl as readImageSourceAsDataUrl
 } from "./utils/file.js";
+import { wait as waitFor } from "./utils/async.js";
+import {
+  compactText as compactInlineText,
+  escapeHtml as escapeHtmlText
+} from "./utils/text.js";
 import {
   isPromptBasedNode,
   markGeneratedImageNode
 } from "./ai/generation-nodes.js";
+import {
+  buildChatImagePayload,
+  detectGenerationKind,
+  getDefaultReferencePrompt
+} from "./ai/prompt-builder.js";
 import {
   applyProjectLibraryClasses,
   renderHomeHistoryContent,
@@ -215,11 +242,23 @@ const SHAPE_TEXT_TOOLS = new Set(["text-rect", "text-circle", "speech", "left-ar
 let projects = loadProjects();
 let activeProjectId = getActiveProjectId();
 let libraryViewMode = getLibraryViewMode();
+let projectRuntime = null;
 ensureDemoProjects();
 if (!activeProjectId && projects[0]) {
   activeProjectId = projects[0].id;
   setActiveProjectId(activeProjectId);
 }
+projectRuntime = createProjectRuntime({
+  projects,
+  activeProjectId,
+  onChange({ projects: nextProjects, activeProjectId: nextActiveProjectId, activeProject }) {
+    projects = nextProjects;
+    activeProjectId = nextActiveProjectId;
+    updateProjectTitle(activeProject);
+    renderProjectLibrary();
+    renderHomeHistory();
+  }
+});
 
 document.body.dataset.theme = "light";
 localStorage.removeItem("design-ai-theme");
@@ -305,32 +344,15 @@ function ensureDemoProjects() {
 }
 
 function createProject({ title = "Untitled Project", prompt = "", thumbnail = "" } = {}) {
-  const project = createProjectRecord({ title, prompt, thumbnail });
-  projects.unshift(project);
-  activeProjectId = project.id;
-  setActiveProjectId(activeProjectId);
-  saveProjects();
-  updateProjectTitle(project);
-  renderProjectLibrary();
-  renderHomeHistory();
-  return project;
+  return projectRuntime.create({ title, prompt, thumbnail });
 }
 
 function getActiveProject() {
-  return getActiveProjectRecord(projects, activeProjectId);
+  return projectRuntime.getActive();
 }
 
 function updateActiveProject(patch = {}) {
-  let project = getActiveProject();
-  if (!project) project = createProject({ title: "Fresh Ideas" });
-  patchProjectRecord(project, patch);
-  activeProjectId = project.id;
-  setActiveProjectId(activeProjectId);
-  saveProjects();
-  updateProjectTitle(project);
-  renderProjectLibrary();
-  renderHomeHistory();
-  return project;
+  return projectRuntime.updateActive(patch, { title: "Fresh Ideas" });
 }
 
 function updateProjectTitle(project = getActiveProject()) {
@@ -347,16 +369,12 @@ function commitProjectTitleEdit() {
 
 function saveCurrentProject() {
   const project = getActiveProject() || createProject({ title: "Fresh Ideas" });
-  const nodes = Array.from(canvasWorld.querySelectorAll(".node-card"));
-  const selectedImage = selectedNode?.querySelector?.(".image-frame img")?.src || "";
-  const firstImage = canvasWorld.querySelector(".node-image .image-frame img")?.src || "";
-  const thumbnail = selectedImage || firstImage || project.thumbnail || "";
-  const title = projectTitle?.textContent?.trim() || project.title || "Fresh Ideas";
-  updateActiveProject({
-    title,
-    thumbnail,
-    itemCount: nodes.length
-  });
+  updateActiveProject(createProjectSavePatch({
+    project,
+    canvasWorld,
+    selectedNode,
+    projectTitleElement: projectTitle
+  }));
   projectMenu?.classList.remove("open");
   brandMenu?.classList.remove("open");
   if (projectSaveStatus) {
@@ -378,29 +396,24 @@ function formatProjectDate(time) {
 }
 
 function showView(view) {
-  document.body.dataset.view = view;
-  homeView?.classList.toggle("active", view === "home");
-  projectLibraryView?.classList.toggle("active", view === "library");
-  profileView?.classList.toggle("active", view === "space");
-  assetsPageView?.classList.toggle("active", view === "assetsPage");
-  appRoot?.classList.toggle("view-canvas", view === "canvas");
-  appRoot?.classList.toggle("view-home", view === "home");
-  appRoot?.classList.toggle("view-library", view === "library");
-  appRoot?.classList.toggle("view-space", view === "space");
-  appRoot?.classList.toggle("view-assets-page", view === "assetsPage");
+  applyViewState({
+    view,
+    appRoot,
+    homeView,
+    projectLibraryView,
+    profileView,
+    assetsPageView
+  });
   if (view !== "canvas") {
     setChatCollapsed(true);
     projectMenu?.classList.remove("open");
   }
   brandMenu?.classList.remove("open");
-  document.querySelectorAll(".home-side-menu [data-nav-view]").forEach((button) => {
-    button.classList.toggle("active", button.dataset.navView === view);
-  });
   if (view === "library") renderProjectLibrary();
 }
 
 function wait(ms) {
-  return new Promise((resolve) => window.setTimeout(resolve, ms));
+  return waitFor(ms);
 }
 
 function renderProjectLibraryLegacy() {
@@ -909,9 +922,7 @@ function resetCanvasForProject() {
 function openProject(projectId) {
   const project = projects.find((item) => item.id === projectId);
   if (!project) return;
-  activeProjectId = project.id;
-  setActiveProjectId(activeProjectId);
-  updateProjectTitle(project);
+  projectRuntime.setActive(project.id);
   resetCanvasForProject();
   showView("canvas");
   if (project.thumbnail) {
@@ -941,9 +952,7 @@ function newBlankProject() {
 }
 
 function makeProjectTitle(prompt) {
-  const clean = String(prompt || "").replace(/\s+/g, " ").trim();
-  if (!clean) return "Fresh Ideas";
-  return clean.length > 18 ? `${clean.slice(0, 18)}...` : clean;
+  return createProjectTitleFromPrompt(prompt);
 }
 
 async function generateHomeProject(prompt, model, files = []) {
@@ -1060,12 +1069,7 @@ const directorActions = [
 const directorViewCount = 3;
 
 function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+  return escapeHtmlText(value);
 }
 
 function renderAssets() {
@@ -1503,9 +1507,7 @@ function viewportCenterPoint() {
 }
 
 function detectKind(prompt) {
-  if (/3d|三维|模型|立体|空间|展台/i.test(prompt)) return "3d";
-  if (/视频|分镜|镜头|动效|动画|首帧|音频/i.test(prompt)) return "video";
-  return "2d";
+  return detectGenerationKind(prompt);
 }
 
 function drawToolSvg(tool) {
@@ -2737,11 +2739,12 @@ function hideImageCropOverlay() {
 }
 
 function ensureNodeId(node) {
-  if (!node.dataset.nodeId) {
-    nodeIdSeed += 1;
-    node.dataset.nodeId = `node-${nodeIdSeed}`;
-  }
-  return node.dataset.nodeId;
+  return ensureCanvasNodeId(node, {
+    nextId: () => {
+      nodeIdSeed += 1;
+      return `node-${nodeIdSeed}`;
+    }
+  });
 }
 
 function getNodeBounds(node) {
@@ -2749,9 +2752,7 @@ function getNodeBounds(node) {
 }
 
 function getVisibleNodes() {
-  return Array.from(canvasWorld.querySelectorAll(".node-card")).filter((node) => {
-    return !node.classList.contains("stack-member-hidden") && !node.classList.contains("hidden");
-  });
+  return getVisibleCanvasNodes(canvasWorld);
 }
 
 function intersects(a, b) {
@@ -2799,17 +2800,11 @@ function finishSelectionBox() {
 }
 
 function getStackTitle(node) {
-  return node.dataset.title
-    || node.querySelector(".image-file-name")?.textContent.trim()
-    || node.querySelector("h3")?.textContent.trim()
-    || node.querySelector(".node-label")?.textContent.trim()
-    || "模块";
+  return getNodeTitle(node);
 }
 
 function getStackThumb(node) {
-  return node.querySelector(".image-frame img")?.src
-    || node.querySelector("video")?.poster
-    || "";
+  return getNodeThumbnail(node);
 }
 
 function ensureStackControls(node) {
@@ -3122,19 +3117,9 @@ function addNode({ kind, title, desc, x, y, media }) {
 }
 
 function addGenerationPreview({ title, desc, x, y, width, aspectRatio }) {
-  const node = addNode({
-    kind: "loading-image",
-    title,
-    desc,
-    x,
-    y
-  });
-  if (width) node.style.width = `${width}px`;
-  if (aspectRatio) {
-    const frame = node.querySelector(".image-frame");
-    if (frame) frame.style.aspectRatio = aspectRatio;
-  }
-  node.dataset.manualSize = "true";
+  const node = addNode(buildGenerationPreviewConfig({ title, desc, x, y }));
+  applyNodePreviewSize(node, { width, aspectRatio });
+  if (!aspectRatio) node.dataset.manualSize = "true";
   return node;
 }
 
@@ -3154,12 +3139,7 @@ function replacePreviewWithImage(previewNode, { title, desc, url, width, aspectR
       type: "image/png"
     }
   });
-  if (width) node.style.width = `${width}px`;
-  if (aspectRatio) {
-    const frame = node.querySelector(".image-frame");
-    if (frame) frame.style.aspectRatio = aspectRatio;
-    node.dataset.manualSize = "true";
-  }
+  applyNodePreviewSize(node, { width, aspectRatio });
   markGeneratedNodeContext(node, { prompt, sourceNode, actionType, model });
   recordCanvasEvent("generation_created", {
     nodeId: node.dataset.nodeId,
@@ -3226,7 +3206,7 @@ function createDirectorCard(productNode, file, index = 0) {
 }
 
 function getNodeById(id) {
-  return Array.from(canvasWorld.querySelectorAll(".node-card")).find((node) => node.dataset.nodeId === id);
+  return findCanvasNodeById(canvasWorld, id);
 }
 
 function getDirectorNodeForProduct(productNode) {
@@ -3345,11 +3325,11 @@ async function runDirectorAction(directorNode, action, options = {}) {
     const productImage = productNode.querySelector(".image-frame img");
     const images = productImage ? [await imageSourceToDataUrl(productImage.src)] : [];
     const modelPrompt = buildDirectorPrompt(productNode, action);
-    const result = await postJson("/api/chat", {
+    const result = await postJson("/api/chat", buildChatImagePayload({
       model: chatModelSelect.value,
       prompt: modelPrompt,
       images
-    });
+    }));
     if (result.imageUrl) {
       const imageNode = replacePreviewWithImage(previewNode, {
         title: `${action.title}.png`,
@@ -3957,24 +3937,8 @@ function addUploadedFile(file, index = 0, point) {
     canvasViewport.getBoundingClientRect().top + canvasViewport.clientHeight / 2
   );
 
-  const labels = {
-    image: "上传图片",
-    video: "上传视频",
-    model: "上传3D模型"
-  };
-
-  const node = addNode({
-    kind,
-    title: file.name,
-    desc: `${labels[kind]} · ${Math.max(1, Math.round(file.size / 1024))} KB`,
-    x: basePoint.x + index * 34,
-    y: basePoint.y + index * 34,
-    media: { url, name: file.name, type: file.type, file }
-  });
-  if (kind === "image") {
-    node.dataset.sourceMode = "uploaded";
-    node.dataset.aiCoreAnalysisStatus = "idle";
-  }
+  const node = addNode(buildUploadedNodeConfig(file, { kind, index, basePoint, url }));
+  markUploadedNode(node, kind);
 
   return node;
 }
@@ -4283,8 +4247,7 @@ function readNodeJson(node, key, fallback = null) {
 }
 
 function compactText(value, max = 520) {
-  const text = String(value || "").trim();
-  return text.length > max ? `${text.slice(0, max)}...` : text;
+  return compactInlineText(value, max);
 }
 
 function getIndustryActionPreset(analysis = {}) {
@@ -6462,7 +6425,7 @@ promptForm.addEventListener("submit", async (event) => {
   try {
     const images = await Promise.all(files.map(fileToDataUrl));
     updateThinking(thinking, 3);
-    const result = await postJson("/api/chat", { model, prompt, images });
+    const result = await postJson("/api/chat", buildChatImagePayload({ model, prompt, images }));
     updateChat(progress, result.text || result.message || "已收到模型响应。");
     if (result.imageUrl) {
       replacePreviewWithImage(previewNode, {

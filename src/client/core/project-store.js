@@ -60,6 +60,12 @@ export function patchProjectRecord(project, patch = {}) {
   return project;
 }
 
+export function makeProjectTitle(prompt) {
+  const clean = String(prompt || "").replace(/\s+/g, " ").trim();
+  if (!clean) return "Fresh Ideas";
+  return clean.length > 18 ? `${clean.slice(0, 18)}...` : clean;
+}
+
 export function hasDemoProjectsSeeded() {
   return Boolean(getStorage().getItem(PROJECTS_DEMO_KEY));
 }
