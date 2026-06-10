@@ -188,6 +188,11 @@ import {
   showGenerationChoiceOverlay
 } from "./components/generation-choice-overlay.js";
 import {
+  applyHomeFileState,
+  renderHomeFilePreview as renderHomeFilePreviewList,
+  syncHomeModelPicker as syncHomeModelPickerView
+} from "./components/home-composer.js";
+import {
   setActiveRailButton,
   setActiveRailPanelButton,
   toggleToolRailCollapsed
@@ -5566,42 +5571,33 @@ function setHomeFilesLegacy(files) {
 }
 
 function syncHomeModelPicker() {
-  if (!homeModelSelect || !homeModelButton || !homeModelMenu) return;
-  const selected = homeModelSelect.options[homeModelSelect.selectedIndex];
-  homeModelButton.querySelector("span").textContent = selected?.textContent || "智能模型";
-  homeModelMenu.querySelectorAll("[data-model-value]").forEach((button) => {
-    button.classList.toggle("active", button.dataset.modelValue === homeModelSelect.value);
+  syncHomeModelPickerView({
+    select: homeModelSelect,
+    button: homeModelButton,
+    menu: homeModelMenu
   });
 }
 
 function renderHomeFilePreview() {
-  if (!homeFilePreview) return;
-  homeFilePreview.innerHTML = "";
-  homeImageFiles.forEach((file, index) => {
-    const item = document.createElement("div");
-    item.className = "home-file-thumb";
-    const url = URL.createObjectURL(file);
-    item.innerHTML = `
-      <img src="${url}" alt="${escapeHtml(file.name)}" />
-      <button type="button" aria-label="移除文件">×</button>
-    `;
-    item.querySelector("img")?.addEventListener("load", () => URL.revokeObjectURL(url), { once: true });
-    item.querySelector("button")?.addEventListener("click", () => {
+  renderHomeFilePreviewList({
+    container: homeFilePreview,
+    files: homeImageFiles,
+    escapeHtml,
+    onRemove: (index) => {
       homeImageFiles.splice(index, 1);
       setHomeFiles(homeImageFiles);
       homePromptInput?.focus();
-    });
-    homeFilePreview.appendChild(item);
+    }
   });
 }
 
 function setHomeFiles(files) {
   homeImageFiles = getImageFiles(files || []);
-  homePromptForm?.classList.toggle("has-files", homeImageFiles.length > 0);
-  if (homeUploadButton) {
-    homeUploadButton.title = homeImageFiles.length ? `已选择 ${homeImageFiles.length} 张参考图` : "上传文件";
-    homeUploadButton.setAttribute("aria-label", homeUploadButton.title);
-  }
+  applyHomeFileState({
+    form: homePromptForm,
+    uploadButton: homeUploadButton,
+    count: homeImageFiles.length
+  });
   renderHomeFilePreview();
 }
 
