@@ -104,6 +104,94 @@ export function buildCoreActions(data, directorActions = []) {
   });
 }
 
+export function renderCoreActionButtons({ workspace, data, loading = false, directorActions = [], escapeHtml }) {
+  const wrap = workspace?.querySelector(".ai-panel-actions");
+  if (!wrap) return;
+  if (loading) {
+    wrap.innerHTML = `
+      <button type="button" disabled>
+        <span>AI 思考中</span>
+        <small>正在理解图片类型，并推测最适合生成的素材。</small>
+      </button>
+    `;
+    return;
+  }
+
+  const actions = data.recommendedActions.length ? data.recommendedActions : getFallbackCoreActions(data);
+  workspace._coreActions = buildCoreActions(data, directorActions);
+  wrap.innerHTML = `
+    ${actions.map((action) => `
+      <button type="button" data-core-action="${action.type}">
+        <span>${escapeHtml(action.title)}</span>
+        <small>${escapeHtml(action.description || "基于识别结果生成")}</small>
+      </button>
+    `).join("")}
+    <button type="button" data-core-action="all">
+      <span>一键生成全部</span>
+      <small>按 AI 推理出的方向生成完整素材包</small>
+    </button>
+  `;
+}
+
+export function updateCoreWorkspaceCards({ workspace, data, loading = false, escapeHtml }) {
+  const progress = workspace?.querySelector(".ai-progress");
+  if (progress) {
+    progress.querySelector("span").textContent = loading ? "视觉模型正在识别商品..." : "图片识别完成";
+    progress.querySelector("strong").textContent = loading ? "分析中" : "100%";
+    progress.querySelector("i").style.setProperty("--ai-progress", loading ? "62%" : "100%");
+  }
+
+  const actionCopy = {
+    scene: data.sceneIdeas[0] || "基于商品生成真实使用场景",
+    poster: data.posterIdeas[0] || "提炼卖点生成宣传海报",
+    detail: data.detailPageIdeas[0] || "组织详情页模块与卖点",
+    all: "按识别结果一次生成完整素材包"
+  };
+  Object.entries(actionCopy).forEach(([type, copy]) => {
+    const button = workspace?.querySelector(`[data-core-action="${type}"] small`);
+    if (button) button.textContent = copy;
+  });
+
+  const previewData = [
+    {
+      selector: ".preview-scene",
+      title: loading ? "场景图 · 待生成" : "场景图 · 推荐方向",
+      value: data.sceneIdeas[0] || "识别完成后生成适配商品的场景图。"
+    },
+    {
+      selector: ".preview-poster",
+      title: "宣传海报",
+      value: data.posterIdeas[0] || "提取商品卖点，生成适合投放的营销海报。"
+    },
+    {
+      selector: ".preview-detail",
+      title: "产品详情页",
+      value: data.detailPageIdeas[0] || "生成产品主视觉、材质说明、细节展示和购买理由。"
+    }
+  ];
+
+  previewData.forEach((item) => {
+    const card = workspace?.querySelector(item.selector);
+    if (!card) return;
+    card.querySelector("strong").textContent = item.title;
+    card.querySelector("div").innerHTML = `
+      <span>${escapeHtml(data.category || "商品")}</span>
+      <p>${escapeHtml(item.value)}</p>
+    `;
+  });
+
+  const thinking = workspace?.querySelector(".ai-thinking-card");
+  if (thinking) {
+    thinking.innerHTML = `
+      <strong>${loading ? "AI 思考中" : "AI 已完成分析"}</strong>
+      <span class="${loading ? "active" : "done"}">● 识别商品属性</span>
+      <span class="${loading ? "active" : "done"}">● 分析风格与卖点</span>
+      <span class="${loading ? "" : "done"}">● 生成素材方案</span>
+      <span>${loading ? "○ 等待用户选择生成方向" : "○ 等待你选择生成方向"}</span>
+    `;
+  }
+}
+
 export function buildAlternativeCoreSuggestions(analysis, refreshCount = 1) {
   const product = analysis.productName || "当前产品";
   const category = analysis.category || "商品";
