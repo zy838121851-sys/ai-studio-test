@@ -221,6 +221,11 @@ import {
   getDirectorActionWindow,
   inferProductProfile as inferDirectorProductProfile
 } from "./agent/director-workflow.js";
+import {
+  getRecentSuggestionEvents as getRecentAgentSuggestionEvents,
+  pickCachedActionForSuggestion as pickAgentCachedActionForSuggestion,
+  readNodeJson as readAgentNodeJson
+} from "./agent/agent-state-utils.js";
 
 const assets = [
   { id: "landing", type: "2d", title: "AI 发布页", desc: "首屏、卖点、CTA" },
@@ -4104,6 +4109,9 @@ function getCanonicalCanvasEventType(type, payload = {}) {
 }
 
 function readNodeJson(node, key, fallback = null) {
+  return readAgentNodeJson(node, key, fallback);
+
+  // TODO(architecture): Remove legacy inline JSON reader after Agent state module validation.
   if (!node?.dataset?.[key]) return fallback;
   try {
     return JSON.parse(node.dataset[key]);
@@ -4241,24 +4249,15 @@ function compactAnalysisForAgent(analysis) {
 }
 
 function getRecentSuggestionEvents(nodeId = "") {
-  return canvasEvents
-    .filter((event) => (event.originalType || event.type) === "ai_suggestion" && (!nodeId || event.payload?.nodeId === nodeId))
-    .slice(-6)
-    .map((event) => event.payload || {});
+  return getRecentAgentSuggestionEvents(canvasEvents, nodeId);
 }
 
 function pickCachedActionForSuggestion(canvasState, suggestion = {}) {
-  const actions = canvasState?.target?.analysis?.recommendedActions || [];
-  if (!actions.length) return null;
-  const recent = getRecentSuggestionEvents(canvasState?.target?.id || "");
-  const matched = actions.find((action) => {
-    return action.type === suggestion.actionType || action.title === suggestion.actionLabel;
+  return pickAgentCachedActionForSuggestion({
+    canvasState,
+    suggestion,
+    recentEvents: getRecentSuggestionEvents(canvasState?.target?.id || "")
   });
-  if (matched && !recent.some((event) => event.actionType === matched.type || event.actionLabel === matched.title)) return matched;
-  const unused = actions.find((action) => {
-    return !recent.some((event) => event.actionType === action.type || event.actionLabel === action.title);
-  });
-  return unused || actions[0];
 }
 
 function normalizeAICoreAgentSuggestion(canvasState, suggestion = {}) {
