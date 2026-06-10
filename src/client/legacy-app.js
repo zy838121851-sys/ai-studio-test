@@ -1,4 +1,15 @@
 import { postJson as postJsonRequest } from "./ai/api-client.js";
+import {
+  executeImageEditAction,
+  positionImageEditPopover as positionImageEditPopoverElement
+} from "./ai/image-edit-actions.js";
+import {
+  buildImageTextEditPrompt,
+  createImageTextPanel,
+  getImageTextEdits,
+  positionImageTextPanel as positionImageTextPanelElement,
+  renderImageTextInputs as renderImageTextInputList
+} from "./canvas/image-text-panel.js";
 // TODO(architecture): This file is the compatibility layer for existing UI behavior.
 // Move remaining feature logic into /canvas, /agent, /ai, /components, or /utils before adding new workflows.
 import {
@@ -1807,34 +1818,15 @@ function hideImageEditPopover() {
 function ensureImageTextPanel() {
   let panel = document.querySelector("#imageTextPanel");
   if (panel) return panel;
-  panel = document.createElement("aside");
-  panel.id = "imageTextPanel";
-  panel.className = "image-text-panel";
-  panel.innerHTML = `
-    <header>
-      <strong>编辑文字</strong>
-      <button type="button" data-text-edit-refresh aria-label="重新识别">↻</button>
-      <button type="button" data-text-edit-close aria-label="关闭">×</button>
-    </header>
-    <div class="image-text-status" data-text-edit-status>正在识别图片文字...</div>
-    <div class="image-text-list" data-text-edit-list></div>
-    <footer>
-      <button type="button" data-text-edit-cancel>取消</button>
-      <button type="button" data-text-edit-apply>应用修改</button>
-    </footer>
-  `;
-  panel.addEventListener("pointerdown", (event) => event.stopPropagation());
-  panel.addEventListener("click", async (event) => {
-    if (event.target.closest("[data-text-edit-refresh]")) {
+  panel = createImageTextPanel({
+    onRefresh: async () => {
       const node = textEditingImageNode;
       if (node) await showImageTextEditor(node);
-      return;
-    }
-    if (event.target.closest("[data-text-edit-close], [data-text-edit-cancel]")) {
+    },
+    onClose: () => {
       hideImageTextPanel();
-      return;
-    }
-    if (event.target.closest("[data-text-edit-apply]")) {
+    },
+    onApply: async () => {
       await applyImageTextEdits();
     }
   });
@@ -1849,36 +1841,11 @@ function hideImageTextPanel() {
 
 function positionImageTextPanel() {
   const panel = document.querySelector("#imageTextPanel");
-  const node = textEditingImageNode;
-  if (!panel || !node) return;
-  const nodeX = parseFloat(node.style.left || "0");
-  const nodeY = parseFloat(node.style.top || "0");
-  const panelWidth = 330;
-  panel.style.width = `${panelWidth}px`;
-  panel.style.left = `${nodeX + node.offsetWidth + 22}px`;
-  panel.style.top = `${nodeY}px`;
+  positionImageTextPanelElement({ panel, node: textEditingImageNode });
 }
 
 function renderImageTextInputs(panel, texts = []) {
-  const list = panel.querySelector("[data-text-edit-list]");
-  const status = panel.querySelector("[data-text-edit-status]");
-  list.innerHTML = "";
-  const normalized = texts
-    .map((item) => typeof item === "string" ? { text: item } : item)
-    .filter((item) => item?.text?.trim());
-  panel._texts = normalized;
-  status.textContent = normalized.length
-    ? `识别到 ${normalized.length} 处文字，可直接修改后应用。`
-    : "未识别到明确文字，你也可以手动添加需要替换的文字。";
-  const rows = normalized.length ? normalized : [{ text: "" }];
-  rows.forEach((item, index) => {
-    const input = document.createElement("input");
-    input.type = "text";
-    input.value = item.text || "";
-    input.dataset.originalText = item.text || "";
-    input.placeholder = `文字 ${index + 1}`;
-    list.appendChild(input);
-  });
+  renderImageTextInputList(panel, texts);
 }
 
 async function showImageTextEditor(node) {
@@ -1910,22 +1877,12 @@ async function applyImageTextEdits() {
   const panel = document.querySelector("#imageTextPanel");
   const sourceNode = textEditingImageNode;
   if (!panel || !sourceNode) return;
-  const edits = Array.from(panel.querySelectorAll("[data-text-edit-list] input"))
-    .map((input) => ({
-      from: input.dataset.originalText || "",
-      to: input.value.trim()
-    }))
-    .filter((item) => item.to && item.to !== item.from);
+  const edits = getImageTextEdits(panel);
   if (!edits.length) {
     panel.querySelector("[data-text-edit-status]").textContent = "请先修改至少一处文字。";
     return;
   }
-  const prompt = [
-    "请只修改图片中的文字内容，并保持原图构图、产品、背景、图标、排版层级、字体风格、颜色和光影尽量不变。",
-    "把以下文字替换为新的文字：",
-    ...edits.map((item, index) => `${index + 1}. ${item.from || "对应位置文字"} -> ${item.to}`),
-    "修复被替换区域的底图，文字要自然贴合原海报，不要新增无关元素，不要改变产品主体。"
-  ].join("\n");
+  const prompt = buildImageTextEditPrompt(edits);
   panel.classList.add("loading");
   panel.querySelector("[data-text-edit-status]").textContent = "正在调用图片编辑模型应用文字修改...";
   await runImageEditCommand(sourceNode, prompt, "AI文字编辑");
@@ -1974,21 +1931,15 @@ function showImageEditPopover(node, presetPrompt = "") {
 }
 
 function positionImageEditPopover() {
-  const node = editingImageNode;
-  if (!node) return;
-  const nodeX = parseFloat(node.style.left || "0");
-  const nodeY = parseFloat(node.style.top || "0");
-  const nodeWidth = node.offsetWidth;
-  const nodeHeight = node.offsetHeight;
-  const zoomFactor = Math.max(0.7, Math.min(3.6, 1 / zoom));
-  const popoverWidth = Math.min(IMAGE_EDIT_MAX_WIDTH, Math.max(IMAGE_EDIT_MIN_WIDTH, nodeWidth * 1.45 * zoomFactor));
-  const popoverHeight = Math.min(IMAGE_EDIT_MAX_HEIGHT, Math.max(IMAGE_EDIT_MIN_HEIGHT, popoverWidth * 0.42));
-  const editScale = Math.max(0.86, Math.min(1.55, popoverWidth / 640));
-  imageEditPopover.style.width = `${popoverWidth}px`;
-  imageEditPopover.style.minHeight = `${popoverHeight}px`;
-  imageEditPopover.style.setProperty("--edit-scale", editScale.toFixed(3));
-  imageEditPopover.style.left = `${nodeX + nodeWidth / 2 - popoverWidth / 2}px`;
-  imageEditPopover.style.top = `${nodeY + nodeHeight + 22}px`;
+  positionImageEditPopoverElement({
+    node: editingImageNode,
+    popover: imageEditPopover,
+    zoom,
+    minWidth: IMAGE_EDIT_MIN_WIDTH,
+    maxWidth: IMAGE_EDIT_MAX_WIDTH,
+    minHeight: IMAGE_EDIT_MIN_HEIGHT,
+    maxHeight: IMAGE_EDIT_MAX_HEIGHT
+  });
 }
 
 function stopNativeDrag(node) {
@@ -5341,6 +5292,25 @@ async function postJson(path, payload) {
 }
 
 async function runImageEditCommand(sourceNode, prompt, label = "图片编辑") {
+  return executeImageEditAction({
+    sourceNode,
+    prompt,
+    label,
+    model: imageEditModel.value,
+    readImageSourceAsDataUrl: imageSourceToDataUrl,
+    getOutputSize: getQwenSizeForImage,
+    createPreview: addGenerationPreview,
+    replacePreview: replacePreviewWithImage,
+    addSourceBadge,
+    addChat,
+    addThinking,
+    updateThinking,
+    updateChat,
+    addChatImage
+  });
+
+  // TODO(architecture): Remove this legacy inline image-edit flow after the
+  // compatibility layer is fully retired.
   if (!sourceNode || !prompt) return;
   const fileName = sourceNode.querySelector(".image-file-name")?.textContent.trim() || "图片";
   const img = sourceNode.querySelector(".image-frame img");
@@ -5997,6 +5967,27 @@ imageEditCancel.addEventListener("click", hideImageEditPopover);
 imageEditSubmit.addEventListener("click", async () => {
   const prompt = imageEditPrompt.value.trim();
   if (!prompt || !editingImageNode) return;
+  await executeImageEditAction({
+    sourceNode: editingImageNode,
+    prompt,
+    label: "Qwen 图片编辑",
+    model: imageEditModel.value,
+    readImageSourceAsDataUrl: imageSourceToDataUrl,
+    getOutputSize: getQwenSizeForImage,
+    createPreview: addGenerationPreview,
+    replacePreview: replacePreviewWithImage,
+    addSourceBadge,
+    addChat,
+    addThinking,
+    updateThinking,
+    updateChat,
+    addChatImage
+  });
+  hideImageEditPopover();
+  return;
+
+  // TODO(architecture): Remove this legacy inline submit flow after the
+  // compatibility layer is fully retired.
   const sourceNode = editingImageNode;
   const fileName = sourceNode.querySelector(".image-file-name")?.textContent.trim() || "图片";
   const img = sourceNode.querySelector(".image-frame img");
