@@ -51,6 +51,7 @@ import {
   panForZoomAroundWorldPoint,
   syncZoomControls
 } from "./canvas/canvas-viewport.js";
+import { bindCanvasViewportEvents } from "./canvas/canvas-viewport-events.js";
 import {
   buildLinearSvg,
   buildPointsPath,
@@ -142,11 +143,17 @@ import {
   buildDemoProjects,
   makeDemoProjectThumb as makeDemoThumb
 } from "./core/demo-projects.js";
+import {
+  getProjectDisplayPrompt as getCoreProjectDisplayPrompt,
+  getProjectDisplayTitle as getCoreProjectDisplayTitle,
+  getProjectPreview as getCoreProjectPreview
+} from "./core/project-display.js";
 import { createProjectRuntime } from "./core/project-runtime.js";
 import { createProjectSavePatch } from "./core/project-snapshot.js";
 import { applyViewState } from "./core/view-router.js";
+import { bindCanvasKeyboardShortcuts } from "./core/keyboard-shortcuts.js";
 import {
-  readFileAsDataUrl as readFileAsDataUrl,
+  fileToDataUrl as readFileAsDataUrl,
   getImageFiles as getImageFilesFromList,
   getUploadKind as resolveUploadKind,
   imageSourceToDataUrl as readImageSourceAsDataUrl
@@ -209,7 +216,8 @@ import {
 } from "./components/ai-core-workspace-panel.js";
 import {
   closeMenuWhenOutside,
-  positionFloatingMenu
+  positionFloatingMenu,
+  showViewportMenu
 } from "./components/menu-position.js";
 import {
   setActiveRailButton,
@@ -230,6 +238,16 @@ import {
   typeAgentText as runAgentTypewriter
 } from "./agent/agent-ui.js";
 import {
+  isPointInsideAICoreOrb,
+  isPointNearAICoreOrb,
+  setAICoreOrbState
+} from "./agent/ai-core-orb.js";
+import {
+  ensureCanvasSuggestionBubble as ensureCanvasSuggestionBubbleElement,
+  positionCanvasSuggestionBubble as positionCanvasSuggestionBubbleElement,
+  renderCanvasSuggestionBubble as renderCanvasSuggestionBubbleElement
+} from "./agent/canvas-suggestion-bubble.js";
+import {
   compactAnalysisForAgent as compactAgentAnalysis,
   getIndustryActionPreset as getAgentIndustryActionPreset,
   improveRecommendedActions as improveAgentRecommendedActions,
@@ -241,15 +259,19 @@ import {
   scheduleAgentRun
 } from "./agent/agent-scheduler.js";
 import {
+  shouldUsePromptContext as shouldUseAgentPromptContext,
+  writeAICoreAnalysisCache as writeAgentAICoreAnalysisCache
+} from "./agent/agent-node-context.js";
+import {
   buildDirectorPrompt as buildDirectorPromptText,
   buildTextAssetDescription,
   getDirectorActionWindow,
-  inferProductProfile as inferDirectorProductProfile
+  inferDirectorProductProfile as inferDirectorProductProfile
 } from "./agent/director-workflow.js";
 import {
   getRecentSuggestionEvents as getRecentAgentSuggestionEvents,
   pickCachedActionForSuggestion as pickAgentCachedActionForSuggestion,
-  readNodeJson as readAgentNodeJson
+  readAgentNodeJson as readAgentNodeJson
 } from "./agent/agent-state-utils.js";
 import {
   buildAlternativeCoreSuggestions,
@@ -480,19 +502,19 @@ function showView(view) {
 
 
 function getProjectDisplayTitle(project, index = 0) {
-  return getStoredProjectDisplayTitle(project, index);
+  return getCoreProjectDisplayTitle(project, index, getStoredProjectDisplayTitle);
 }
-
 function getProjectDisplayPrompt(project) {
-  if (project?.isDemo) return "示例画板项目";
-  return getStoredProjectDisplayPrompt(project);
+  return getCoreProjectDisplayPrompt(project, getStoredProjectDisplayPrompt);
 }
-
 function getProjectPreview(project, index = 0) {
-  if (project?.isDemo) return makeDemoThumb(getProjectDisplayTitle(project, index), index, escapeHtmlText);
-  return getStoredProjectPreview(project, index);
+  return getCoreProjectPreview(project, index, {
+    getTitle: getProjectDisplayTitle,
+    makeDemoThumb,
+    escapeHtml: escapeHtmlText,
+    getStoredPreview: getStoredProjectPreview
+  });
 }
-
 function renderProjectLibrary() {
   if (!projectGrid) return;
   applyProjectLibraryClasses(projectGrid, {
@@ -744,7 +766,7 @@ function ensureShapeFormatToolbar() {
     },
     onInput: (event) => {
       const input = event.target.closest("[data-shape-style]");
-      const shapeNode = getActiveShapeNode();
+      const shapeNode = getActiveShapeNodeFromSelection(selectedNode);
       if (!input || !shapeNode) return;
       if (input.dataset.shapeStyle === "strokeWidth") {
         shapeNode.style.setProperty("--shape-stroke-width", input.value);
@@ -756,22 +778,8 @@ function ensureShapeFormatToolbar() {
     onPointerUp: handleShapeColorDragEnd
   });
 }
-function getActiveShapeNode() {
-  return getActiveShapeNodeFromSelection(selectedNode);
-}
-
-function getShapeNodeForToolbar(toolbar) {
-  return getShapeToolbarNode(toolbar, getActiveShapeNode());
-}
-
-function getShapeToolbarTarget(toolbar) {
-  return getShapeToolbarColorTarget(toolbar);
-}
-
-let shapeColorDrag = null;
-
 function setShapeColorFromSpectrum(event, toolbar, spectrum) {
-  const shapeNode = getShapeNodeForToolbar(toolbar);
+  const shapeNode = getShapeToolbarNode(toolbar, getActiveShapeNodeFromSelection(selectedNode));
   if (!shapeNode) return false;
   const rect = spectrum.getBoundingClientRect();
   const x = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
@@ -781,12 +789,12 @@ function setShapeColorFromSpectrum(event, toolbar, spectrum) {
     marker.style.left = `${x * 100}%`;
     marker.style.top = `${y * 100}%`;
   }
-  setShapeNodeColor(shapeNode, getShapeToolbarTarget(toolbar), hslToHexColor(x * 360, 82, 88 - y * 76));
+  setShapeNodeColor(shapeNode, getShapeToolbarColorTarget(toolbar), hslToHexColor(x * 360, 82, 88 - y * 76));
   return true;
 }
 
 function applyShapeToolbarColor(event, toolbar) {
-  const shapeNode = getShapeNodeForToolbar(toolbar);
+  const shapeNode = getShapeToolbarNode(toolbar, getActiveShapeNodeFromSelection(selectedNode));
   if (!shapeNode) return false;
   const spectrum = event.target.closest("[data-shape-spectrum]");
   if (spectrum) {
@@ -801,7 +809,7 @@ function applyShapeToolbarColor(event, toolbar) {
   if (colorButton) {
     event.preventDefault();
     event.stopPropagation();
-    setShapeNodeColor(shapeNode, getShapeToolbarTarget(toolbar), colorButton.dataset.shapeColor);
+    setShapeNodeColor(shapeNode, getShapeToolbarColorTarget(toolbar), colorButton.dataset.shapeColor);
     toolbar.classList.remove("picker-open");
     return true;
   }
@@ -823,7 +831,7 @@ function handleShapeColorDragEnd(event) {
 function handleShapeToolbarPointer(event) {
   if (event.target.closest('[data-shape-style="strokeWidth"]')) return;
   const toolbar = event.currentTarget;
-  const shapeNode = getShapeNodeForToolbar(toolbar);
+  const shapeNode = getShapeToolbarNode(toolbar, getActiveShapeNodeFromSelection(selectedNode));
   const trigger = event.target.closest("[data-color-target]");
   if (trigger) {
     event.preventDefault();
@@ -875,26 +883,14 @@ function handleShapeToolbarClick(event) {
     applyShapeToolbarColor(event, event.currentTarget);
 }
 
-function hideShapeFormatToolbar() {
-  hideShapeToolbar();
-}
-
-function hasMovingShape(node) {
-  return hasShapeNodeInSet(node, selectedNodes);
-}
-
-function hasMovingText(node) {
-  return hasTextNodeInSet(node, selectedNodes);
-}
-
 function positionShapeFormatToolbar() {
   const toolbar = ensureShapeFormatToolbar();
   if (!selectedNode?.classList.contains("canvas-shape")) {
-    hideShapeFormatToolbar();
+    hideShapeToolbar();
     return;
   }
   if (isFixedStrokeToolName(selectedNode.dataset.tool)) {
-    hideShapeFormatToolbar();
+    hideShapeToolbar();
     return;
   }
   const rect = getCanvasNodeScreenRect(selectedNode);
@@ -909,7 +905,7 @@ function positionShapeFormatToolbar() {
 
 
 function setSelectedShapeColor(target, color) {
-  const shapeNode = getActiveShapeNode();
+  const shapeNode = getActiveShapeNodeFromSelection(selectedNode);
   if (!shapeNode) return;
   setShapeNodeColor(shapeNode, target, color);
 }
@@ -983,7 +979,7 @@ function nodeTemplate(kind, title, desc, media = {}) {
 function clearSelection() {
   selectedNode = clearSelectedNodeElements(selectedNodes);
   hideTextToolbar(textFormatToolbar);
-  hideShapeFormatToolbar();
+  hideShapeToolbar();
 }
 
 function selectNode(node, additive = false) {
@@ -1080,7 +1076,7 @@ async function showImageTextEditor(node) {
   panel.querySelector("[data-text-edit-list]").innerHTML = "";
   positionImageTextPanel();
   try {
-    const image = await imageSourceToDataUrl(img.src);
+    const image = await readImageSourceAsDataUrl(img.src);
     const result = await postJsonRequest("/api/extract-image-text", { image });
     renderImageTextInputs(panel, result.texts || result.analysis?.texts || []);
   } catch (error) {
@@ -1109,28 +1105,28 @@ async function applyImageTextEdits() {
 
 function showAddNodeMenu(clientX, clientY) {
   addMenuPoint = viewportPointToWorld(clientX, clientY);
-  const viewportRect = canvasViewport.getBoundingClientRect();
-  const menuWidth = 360;
-  const menuHeight = 520;
-  const left = Math.min(clientX - viewportRect.left, viewportRect.width - menuWidth - 18);
-  const top = Math.min(clientY - viewportRect.top, viewportRect.height - menuHeight - 18);
-  addNodeMenu.style.left = `${Math.max(18, left)}px`;
-  addNodeMenu.style.top = `${Math.max(18, top)}px`;
-  addNodeMenu.classList.add("open");
+  showViewportMenu({
+    menu: addNodeMenu,
+    clientX,
+    clientY,
+    viewport: canvasViewport,
+    width: 360,
+    height: 520
+  });
 }
 
 function showCanvasContextMenu(clientX, clientY) {
   contextMenuPoint = viewportPointToWorld(clientX, clientY);
   hideAddNodeMenu();
   hideImageEditPopover();
-  const viewportRect = canvasViewport.getBoundingClientRect();
-  const menuWidth = 300;
-  const menuHeight = 445;
-  const left = Math.min(clientX - viewportRect.left, viewportRect.width - menuWidth - 18);
-  const top = Math.min(clientY - viewportRect.top, viewportRect.height - menuHeight - 18);
-  canvasContextMenu.style.left = `${Math.max(18, left)}px`;
-  canvasContextMenu.style.top = `${Math.max(18, top)}px`;
-  canvasContextMenu.classList.add("open");
+  showViewportMenu({
+    menu: canvasContextMenu,
+    clientX,
+    clientY,
+    viewport: canvasViewport,
+    width: 300,
+    height: 445
+  });
 }
 
 function showImageEditPopover(node, presetPrompt = "") {
@@ -1901,7 +1897,7 @@ function makeDraggable(node) {
       hideAddNodeMenu();
       selectNode(node);
       resizing = true;
-      if (node.classList.contains("canvas-shape")) hideShapeFormatToolbar();
+      if (node.classList.contains("canvas-shape")) hideShapeToolbar();
       if (node.classList.contains("canvas-text")) hideTextToolbar(textFormatToolbar);
       resizeCorner = resizeHandle.dataset.resize;
       node.setPointerCapture(event.pointerId);
@@ -1922,8 +1918,8 @@ function makeDraggable(node) {
     hideAddNodeMenu();
     if (!selectedNodes.has(node)) selectNode(node);
     dragging = true;
-    if (hasMovingShape(node)) hideShapeFormatToolbar();
-    if (hasMovingText(node)) hideTextToolbar(textFormatToolbar);
+    if (hasShapeNodeInSet(node, selectedNodes)) hideShapeToolbar();
+    if (hasTextNodeInSet(node, selectedNodes)) hideTextToolbar(textFormatToolbar);
     node.setPointerCapture(event.pointerId);
     start = { x: event.clientX, y: event.clientY };
     original = {
@@ -1970,7 +1966,7 @@ function makeDraggable(node) {
       if (window.currentAICoreBubble?.classList.contains("agent-suggestion")) positionAgentBubble();
     });
     if (node.classList.contains("node-director")) {
-      const productNode = getNodeById(node.dataset.productNodeId);
+      const productNode = findCanvasNodeById(canvasWorld, node.dataset.productNodeId);
       if (productNode) {
         const productBounds = getNodeBounds(productNode);
         node.dataset.offsetX = parseFloat(node.style.left || "0") - productBounds.x - productBounds.width;
@@ -2095,13 +2091,8 @@ function addSourceBadge(node, sourceNode, label = "?????") {
   });
 }
 
-function inferProductProfile(file) {
-  return inferDirectorProductProfile(file);
-
-}
-
 function createDirectorCard(productNode, file, index = 0) {
-  const profile = inferProductProfile(file);
+  const profile = inferDirectorProductProfile(file);
   const bounds = getNodeBounds(productNode);
   const director = addNode({
     kind: "director",
@@ -2123,10 +2114,6 @@ function createDirectorCard(productNode, file, index = 0) {
   productNode.dataset.productType = profile.type;
   productNode.dataset.productName = profile.name;
   return director;
-}
-
-function getNodeById(id) {
-  return findCanvasNodeById(canvasWorld, id);
 }
 
 function getDirectorNodeForProduct(productNode) {
@@ -2166,13 +2153,13 @@ function refreshDirectorOptions(directorNode) {
 }
 
 function buildDirectorPrompt(productNode, action) {
-  return buildDirectorPromptText({ productNode, action, getTitle: getStackTitle });
+  return buildDirectorPromptText({ productNode, action, getTitle: getNodeTitle });
 
 }
 
 function createTextAssetNode(productNode, action) {
   const bounds = getNodeBounds(productNode);
-  const desc = buildTextAssetDescription({ productNode, action, getTitle: getStackTitle });
+  const desc = buildTextAssetDescription({ productNode, action, getTitle: getNodeTitle });
   const node = addNode({
     kind: "2d",
     title: action.title,
@@ -2212,7 +2199,7 @@ function rememberCoreGeneratedNode(workspace, node) {
 }
 
 async function runDirectorAction(directorNode, action, options = {}) {
-  const productNode = getNodeById(directorNode.dataset.productNodeId);
+  const productNode = findCanvasNodeById(canvasWorld, directorNode.dataset.productNodeId);
   if (!productNode) return;
   if (action.kind !== "image") {
     const node = createTextAssetNode(productNode, action);
@@ -2236,7 +2223,7 @@ async function runDirectorAction(directorNode, action, options = {}) {
 
   try {
     const productImage = productNode.querySelector(".image-frame img");
-    const images = productImage ? [await imageSourceToDataUrl(productImage.src)] : [];
+    const images = productImage ? [await readImageSourceAsDataUrl(productImage.src)] : [];
     const modelPrompt = buildDirectorPrompt(productNode, action);
     const result = await postJsonRequest("/api/chat", buildChatImagePayload({
       model: chatModelSelect.value,
@@ -2296,7 +2283,7 @@ function addChatImage(role, imageUrl, caption) {
   return appendChatImage({ chatLog, role, imageUrl, caption, escapeHtml: escapeHtmlText });
 }
 
-async function imageSourceToDataUrl(src) {
+async function readImageSourceAsDataUrl(src) {
   return readImageSourceAsDataUrl(src);
 }
 
@@ -2451,7 +2438,7 @@ async function uploadAndGenerateFromOverlay(action) {
   if (!state) return;
   const [accepted] = addUploadedFiles([state.file], state.point, { createDirector: false });
   if (!accepted?.node) return;
-  const profile = inferProductProfile(state.file);
+  const profile = inferDirectorProductProfile(state.file);
   accepted.node.dataset.productType = profile.type;
   accepted.node.dataset.productName = profile.name;
   hideGenerationOverlay();
@@ -2459,40 +2446,14 @@ async function uploadAndGenerateFromOverlay(action) {
 }
 
 function setAICoreState(state = "idle") {
-  aiCore.classList.toggle("active", false);
-  aiCore.classList.toggle("over", false);
-  aiCore.classList.toggle("processing", false);
-  const copy = {
-    idle: "AI Core 在画布中感知",
-    active: "AI Core 在画布中感知",
-    over: "AI Core 在画布中感知",
-    processing: "AI Core 在画布中感知"
-  };
-  aiCoreHint.textContent = copy[state] || copy.idle;
+  setAICoreOrbState({ aiCore, aiCoreHint, state });
 }
-
 function isPointInAICore(clientX, clientY) {
-  const { rect, distance } = getAICoreDistance(clientX, clientY);
-  const radius = Math.max(rect.width, rect.height) * (aiCore.classList.contains("active") ? 0.72 : 0.56);
-  return distance <= radius;
+  return isPointInsideAICoreOrb({ aiCore, clientX, clientY });
 }
-
-function getAICoreDistance(clientX, clientY) {
-  const rect = aiCore.getBoundingClientRect();
-  const centerX = rect.left + rect.width / 2;
-  const centerY = rect.top + rect.height / 2;
-  return {
-    rect,
-    distance: Math.hypot(clientX - centerX, clientY - centerY),
-  };
-}
-
 function isPointNearAICore(clientX, clientY) {
-  const { rect, distance } = getAICoreDistance(clientX, clientY);
-  const radius = Math.max(rect.width, rect.height) * 2.35;
-  return distance <= radius;
+  return isPointNearAICoreOrb({ aiCore, clientX, clientY });
 }
-
 function updateAICoreDragState(clientX, clientY) {
   setAICoreState("idle");
 }
@@ -2515,7 +2476,7 @@ function sendExistingNodeToAICore(node) {
   if (!node.classList.contains("node-image") && !node.classList.contains("node-model")) return false;
   const fileName = getNodeTitle(node);
   const pseudoFile = { name: fileName, type: node.classList.contains("node-image") ? "image/png" : "model/3d" };
-  const profile = inferProductProfile(pseudoFile);
+  const profile = inferDirectorProductProfile(pseudoFile);
   node.dataset.productType = profile.type;
   node.dataset.productName = profile.name;
   setAICoreState("processing");
@@ -2549,7 +2510,7 @@ function setAICoreAgentState(state) {
 
 function recordCanvasEvent(type, payload = {}) {
   const canonicalType = normalizeAgentEventType(type, payload, {
-    getNodeKind: (nodeId) => getNodeById(nodeId)?.dataset?.kind || ""
+    getNodeKind: (nodeId) => findCanvasNodeById(canvasWorld, nodeId)?.dataset?.kind || ""
   });
   recordCanvasEventToStore(canonicalType, payload, {
     originalType: type,
@@ -2584,15 +2545,16 @@ function normalizeAICoreAgentSuggestion(canvasState, suggestion = {}) {
 }
 
 function writeAICoreAnalysisCache(node, analysis, source = "vision") {
-  if (!node || !analysis) return;
-  const data = normalizeAnalysis(analysis, inferProductProfile({ name: getNodeTitle(node) }));
-  data.recommendedActions = improveAgentRecommendedActions(data);
-  node.dataset.aiCoreAnalysis = JSON.stringify(data);
-  node.dataset.aiCoreAnalysisStatus = "ready";
-  node.dataset.aiCoreAnalysisSource = source;
-  if (!shouldUsePromptContext(node)) node.dataset.sourceMode = "uploaded";
-  node.dataset.productName = data.productName;
-  node.dataset.productType = data.category;
+  writeAgentAICoreAnalysisCache({
+    node,
+    analysis,
+    source,
+    normalizeAnalysis,
+    inferProfile: inferDirectorProductProfile,
+    getTitle: getNodeTitle,
+    improveActions: improveAgentRecommendedActions,
+    shouldUsePromptContext
+  });
 }
 
 function markGeneratedNodeContext(node, { prompt = "", sourceNode = null, actionType = "", model = "" } = {}) {
@@ -2601,13 +2563,13 @@ function markGeneratedNodeContext(node, { prompt = "", sourceNode = null, action
     sourceNode,
     actionType,
     model,
-    getSourceTitle: getStackTitle,
+    getSourceTitle: getNodeTitle,
     readSourceAnalysis: (target) => readAgentNodeJson(target, "aiCoreAnalysis")
   });
 }
 
 function shouldUsePromptContext(node) {
-  return isPromptBasedNode(node);
+  return shouldUseAgentPromptContext(node, isPromptBasedNode);
 }
 
 function scheduleAICoreAgent(reason, targetNode, delay) {
@@ -2633,8 +2595,8 @@ async function ensureAICoreNodeContext(node, reason) {
     reason,
     shouldUsePromptContext,
     readAnalysis: (target) => readAgentNodeJson(target, "aiCoreAnalysis"),
-    inferProfile: inferProductProfile,
-    getTitle: getStackTitle,
+    inferProfile: inferDirectorProductProfile,
+    getTitle: getNodeTitle,
     getImageData: getAICoreImageData,
     analyzeImage: (payload) => postJsonRequest("/api/analyze-image", payload),
     normalizeAnalysis,
@@ -2644,10 +2606,10 @@ async function ensureAICoreNodeContext(node, reason) {
 
 function getNodeSnapshot(node) {
   return createNodeSnapshot(node, {
-    getTitle: getStackTitle,
-    readJson: readNodeJson,
-    compactAnalysis: compactAnalysisForAgent,
-    compactText,
+    getTitle: getNodeTitle,
+    readJson: readAgentNodeJson,
+    compactAnalysis: compactAgentAnalysis,
+    compactInlineText,
     isSelected: (item) => selectedNodes.has(item)
   });
 }
@@ -2660,14 +2622,14 @@ function buildCanvasState(reason, targetId) {
     selectedNode,
     selectedNodes,
     canvasEvents,
-    getNodeById,
+    getNodeById: (id) => findCanvasNodeById(canvasWorld, id),
     createNodeSnapshot: getNodeSnapshot
   });
 }
 
 async function runAICoreAgent(reason, targetId) {
   if (!aiCoreAgentEnabled) return;
-  const targetNode = getNodeById(targetId) || selectedNode;
+  const targetNode = findCanvasNodeById(canvasWorld, targetId) || selectedNode;
   const initialState = buildCanvasState(reason, targetId);
   setAICoreAgentState("thinking");
   if (reason !== "suggestion_timeout") showAICoreAgentThinking(initialState);
@@ -2718,7 +2680,7 @@ function showAICoreAgentThinking(canvasState) {
   appRoot.appendChild(bubble);
   window.currentAICoreBubble = bubble;
   positionAgentBubble(bubble);
-  typeAgentText(bubble.querySelector("[data-typewriter]"), "我在看这个素材...");
+  runAgentTypewriter(bubble.querySelector("[data-typewriter]"), "我在看这个素材...");
 }
 
 function showAICoreAgentSuggestion(canvasState, suggestion) {
@@ -2757,7 +2719,7 @@ function showAICoreAgentSuggestion(canvasState, suggestion) {
     actionLabel: suggestion.actionLabel || "",
     actionType: suggestion.actionType || ""
   });
-  typeAgentText(bubble.querySelector("[data-typewriter]"), suggestion.text || "要不要试试下一步？");
+  runAgentTypewriter(bubble.querySelector("[data-typewriter]"), suggestion.text || "要不要试试下一步？");
   aiCoreSuggestionTimer = window.setTimeout(() => {
     if (!aiCoreAgentEnabled || !document.body.contains(bubble)) return;
     runAICoreAgent("suggestion_timeout", bubble._targetId || aiCoreAgentTargetId);
@@ -2766,16 +2728,8 @@ function showAICoreAgentSuggestion(canvasState, suggestion) {
 
 function positionAgentBubble(bubble = window.currentAICoreBubble) {
   if (!bubble) return;
-  const targetNode = getNodeById(bubble._targetId || bubble._canvasState?.target?.id) || selectedNode;
+  const targetNode = findCanvasNodeById(canvasWorld, bubble._targetId || bubble._canvasState?.target?.id) || selectedNode;
   positionBubbleAtNode(bubble, targetNode, getNodeScreenRect, aiCore);
-}
-
-function getNodeScreenRect(node) {
-  return node.getBoundingClientRect();
-}
-
-function typeAgentText(target, text) {
-  runAgentTypewriter(target, text);
 }
 
 function runAICoreMockAction(bubble) {
@@ -2783,7 +2737,7 @@ function runAICoreMockAction(bubble) {
   aiCoreSuggestionTimer = null;
   const suggestion = bubble._suggestion || {};
   const state = bubble._canvasState || buildCanvasState("manual", aiCoreAgentTargetId);
-  const targetNode = getNodeById(state.target?.id) || selectedNode;
+  const targetNode = findCanvasNodeById(canvasWorld, state.target?.id) || selectedNode;
   const bounds = targetNode ? getNodeBounds(targetNode) : viewportPointToWorld(window.innerWidth / 2, window.innerHeight / 2);
   setAICoreAgentState("generating");
   const result = addNode({
@@ -2805,80 +2759,30 @@ function runAICoreMockAction(bubble) {
 }
 
 function ensureCanvasSuggestionBubble(node) {
-  ensureCanvasNodeId(node, { nextId: nextCanvasNodeId });
-  const existing = document.querySelector(`.canvas-ai-suggestions[data-node-id="${node.dataset.nodeId}"]`);
-  if (existing) {
-    existing._sourceNode = node;
-    return existing;
-  }
-  clearAgentBubbles();
-  const bubble = document.createElement("div");
-  bubble.className = "canvas-ai-suggestions loading";
-  bubble.dataset.nodeId = node.dataset.nodeId;
-  bubble._sourceNode = node;
-  bubble.innerHTML = `
-    <div class="canvas-ai-window-title">接下来想做什么？</div>
-    <div class="canvas-ai-actions">
-      <button type="button" disabled><span>识别中</span></button>
-    </div>
-  `;
-  bubble.addEventListener("pointerdown", (event) => event.stopPropagation());
-  bubble.addEventListener("dblclick", (event) => event.stopPropagation());
-  bubble.addEventListener("click", async (event) => {
-    const button = event.target.closest("[data-canvas-ai-action]");
-    if (!button) return;
-    event.preventDefault();
-    event.stopPropagation();
-    const action = bubble._actions?.[Number(button.dataset.canvasAiAction)];
-    if (!action) return;
-    button.classList.add("running");
-    button.disabled = true;
-    try {
-      await runCanvasInsightAction(node, bubble, action);
-    } finally {
-      button.classList.remove("running");
-      button.disabled = false;
-    }
+  return ensureCanvasSuggestionBubbleElement({
+    node,
+    appRoot,
+    ensureNodeId: (target) => ensureCanvasNodeId(target, { nextId: nextCanvasNodeId }),
+    clearBubbles: clearAgentBubbles,
+    positionBubble: positionCanvasSuggestionBubble,
+    onAction: runCanvasInsightAction
   });
-  appRoot.appendChild(bubble);
-  positionCanvasSuggestionBubble(node, bubble);
-  return bubble;
 }
-
 function positionCanvasSuggestionBubble(node, bubble = null) {
-  const target = bubble || document.querySelector(`.canvas-ai-suggestions[data-node-id="${node.dataset.nodeId}"]`);
-  if (!target) return;
-  positionBubbleAtAgent(target, aiCore);
+  positionCanvasSuggestionBubbleElement({ node, bubble, positionBubbleAtAgent, aiCore });
 }
-
 function renderCanvasSuggestionBubble(bubble, analysis, loading = false) {
-  const data = normalizeAnalysis(analysis);
-  const actions = data.recommendedActions.length ? data.recommendedActions.slice(0, 4) : getFallbackCoreActions(data).slice(0, 4);
-  bubble._analysis = data;
-  bubble._actions = actions.map((action) => {
-    const base = directorActions.find((item) => item.type === action.type) || directorActions.find((item) => item.type === "poster");
-    return {
-      ...base,
-      type: action.type,
-      title: action.title,
-      description: action.description,
-      prompt: action.prompt || "",
-      decisionStyles: action.decisionStyles,
-      prepared: Boolean(action.prompt),
-      kind: base.kind
-    };
+  renderCanvasSuggestionBubbleElement({
+    bubble,
+    analysis,
+    loading,
+    normalizeAnalysis,
+    directorActions,
+    escapeHtml: escapeHtmlText
   });
-  window.currentAICoreBubble = bubble;
-  bubble.classList.toggle("loading", loading);
-  bubble.querySelector(".canvas-ai-actions").innerHTML = bubble._actions.map((action, index) => `
-    <button type="button" data-canvas-ai-action="${index}">
-      <span>${escapeHtmlText(String(action.title || "生成").slice(0, 4))}</span>
-    </button>
-  `).join("");
 }
-
 function getQuickCanvasSuggestions(file) {
-  const profile = inferProductProfile(file);
+  const profile = inferDirectorProductProfile(file);
   return normalizeAnalysis({
     productName: profile.name,
     category: profile.type,
@@ -2925,7 +2829,7 @@ async function startCanvasAICoreInsight(node, file) {
 }
 
 async function runCanvasInsightAction(productNode, bubble, action) {
-  const analysis = bubble._analysis || normalizeAnalysis(null, inferProductProfile({ name: getNodeTitle(productNode) }));
+  const analysis = bubble._analysis || normalizeAnalysis(null, inferDirectorProductProfile({ name: getNodeTitle(productNode) }));
   if (!action.prepared && !action.prompt) {
     try {
       const result = await postJsonRequest("/api/prepare-action", {
@@ -2961,7 +2865,7 @@ function bindAICoreWorkspaceEvents(workspace) {
       refreshAICoreSuggestions(workspace);
     },
     onAction: async (button) => {
-      const productNode = getNodeById(workspace.dataset.productNodeId);
+      const productNode = findCanvasNodeById(canvasWorld, workspace.dataset.productNodeId);
       if (!productNode) return;
       const actionType = button.dataset.coreAction;
       button.classList.add("running");
@@ -3040,7 +2944,7 @@ async function prepareCoreAction(workspace, actionType) {
 }
 
 async function runWorkspaceDecision(workspace) {
-  const productNode = getNodeById(workspace.dataset.productNodeId);
+  const productNode = findCanvasNodeById(canvasWorld, workspace.dataset.productNodeId);
   if (!productNode) return;
   const actionType = workspace.dataset.pendingAction;
   const style = workspace.dataset.decisionStyle;
@@ -3142,13 +3046,13 @@ function renderAICoreAnalysis(workspace, analysis, loading = false) {
 
 async function getAICoreImageData(productNode, file) {
   const img = productNode.querySelector(".image-frame img");
-  if (img?.src) return imageSourceToDataUrl(img.src);
+  if (img?.src) return readImageSourceAsDataUrl(img.src);
   if (file instanceof Blob && file.type?.startsWith("image/")) return readFileAsDataUrl(file);
   return null;
 }
 
 async function analyzeImageForAICore(productNode, file, workspace) {
-  const profile = inferProductProfile(file);
+  const profile = inferDirectorProductProfile(file);
   const fallback = normalizeAnalysis(null, profile);
   renderAICoreAnalysis(workspace, fallback, true);
   setAICoreState("processing");
@@ -3190,7 +3094,7 @@ function showAICoreWorkspace(productNode, file) {
   const workspace = ensureAICoreWorkspace();
   const img = productNode.querySelector(".image-frame img");
   const coreImg = workspace.querySelector(".ai-core-big img");
-  const profile = inferProductProfile(file);
+  const profile = inferDirectorProductProfile(file);
   workspace.dataset.productNodeId = productNode.dataset.nodeId;
   workspace.querySelector("[data-core-product]").textContent = profile.name || "产品";
   workspace._analysisPrompts = {};
@@ -3221,7 +3125,7 @@ function hideAICoreWorkspace() {
 
 function arrangeAICoreGeneratedNodes(workspace) {
   if (!workspace?._generatedNodes?.length) return;
-  const productNode = getNodeById(workspace.dataset.productNodeId);
+  const productNode = findCanvasNodeById(canvasWorld, workspace.dataset.productNodeId);
   if (!productNode) return;
   const bounds = getNodeBounds(productNode);
   const nodes = workspace._generatedNodes.filter((node) => node?.isConnected);
@@ -3891,212 +3795,71 @@ returnToContentButton?.addEventListener("click", () => {
   returnViewToContent();
 });
 
-canvasViewport.addEventListener("wheel", (event) => {
-  if (event.target.closest(".model-viewer")) return;
-  event.preventDefault();
-  const before = viewportPointToWorld(event.clientX, event.clientY);
-  zoom = clampCanvasZoom(zoom * (event.deltaY > 0 ? 0.92 : 1.08));
-  const rect = canvasViewport.getBoundingClientRect();
-  pan = panForZoomAroundWorldPoint({
-    clientX: event.clientX,
-    clientY: event.clientY,
-    viewportRect: rect,
-    worldPoint: before,
-    zoom
-  });
-  applyTransform();
-}, { passive: false });
-
-canvasViewport.addEventListener("pointerdown", (event) => {
-  if (event.button !== 0 && event.button !== 1) return;
-  if (event.button === 0 && activeCanvasTool === "eraser") {
-    event.preventDefault();
-    event.stopPropagation();
-    hideAddNodeMenu();
-    hideCanvasContextMenu();
-    hideImageEditPopover();
-    startEraserDrag(event);
-    canvasViewport.setPointerCapture(event.pointerId);
-    return;
-  }
-  if (event.button === 0 && activeCanvasTool && !event.target.closest(".node-card")) {
-    event.preventDefault();
-    event.stopPropagation();
-    hideAddNodeMenu();
-    hideCanvasContextMenu();
-    hideImageEditPopover();
-    selectNode(null);
-    if (activeCanvasTool === "text") {
-      const point = viewportPointToWorld(event.clientX, event.clientY);
-      addCanvasToolNode("text", { x: point.x, y: point.y, size: { width: 240, height: 86 } });
-      return;
-    }
-    createDrawingPreview(event.clientX, event.clientY, activeCanvasTool);
-    canvasViewport.setPointerCapture(event.pointerId);
-    return;
-  }
-  if (event.button === 1) event.preventDefault();
-  hideAddNodeMenu();
-  hideCanvasContextMenu();
-  hideImageEditPopover();
-  selectNode(null);
-  if (event.button === 0) {
-    const rect = canvasViewport.getBoundingClientRect();
-    selectionDrag = {
-      box: createSelectionBox(),
-      startX: event.clientX - rect.left,
-      startY: event.clientY - rect.top,
-      currentX: event.clientX - rect.left,
-      currentY: event.clientY - rect.top,
-      startClientX: event.clientX,
-      startClientY: event.clientY,
-      currentClientX: event.clientX,
-      currentClientY: event.clientY
-    };
-    canvasViewport.classList.add("selecting");
-    updateSelectionBox();
-    canvasViewport.setPointerCapture(event.pointerId);
-    return;
-  }
-  isPanning = true;
-  canvasViewport.classList.add("dragging");
-  panStart = { x: event.clientX - pan.x, y: event.clientY - pan.y };
-  canvasViewport.setPointerCapture(event.pointerId);
-});
-
-canvasViewport.addEventListener("pointermove", (event) => {
-  if (canvasDrawing) {
-    const rect = canvasViewport.getBoundingClientRect();
-    canvasDrawing.currentX = event.clientX - rect.left;
-    canvasDrawing.currentY = event.clientY - rect.top;
-    canvasDrawing.currentClientX = event.clientX;
-    canvasDrawing.currentClientY = event.clientY;
-    updateDrawingPreview();
-    return;
-  }
-  if (eraserDrag) {
-    updateEraserDrag(event);
-    return;
-  }
-  if (selectionDrag) {
-    const rect = canvasViewport.getBoundingClientRect();
-    selectionDrag.currentX = event.clientX - rect.left;
-    selectionDrag.currentY = event.clientY - rect.top;
-    selectionDrag.currentClientX = event.clientX;
-    selectionDrag.currentClientY = event.clientY;
-    updateSelectionBox();
-    return;
-  }
-  if (!isPanning) return;
-  pan = { x: event.clientX - panStart.x, y: event.clientY - panStart.y };
-  applyTransform();
-});
-
-canvasViewport.addEventListener("pointerup", () => {
-  if (canvasDrawing) finishCanvasDrawing();
-  if (eraserDrag) finishEraserDrag();
-  if (selectionDrag) finishSelectionBox();
-  isPanning = false;
-  canvasViewport.classList.remove("dragging");
-});
-
-canvasViewport.addEventListener("dblclick", (event) => {
-  if (activeCanvasTool) return;
-  if (event.target.closest(".node-card") || event.target.closest(".add-node-menu") || event.target.closest(".canvas-context-menu")) return;
-  event.preventDefault();
-  showAddNodeMenu(event.clientX, event.clientY);
-});
-
-canvasViewport.addEventListener("contextmenu", (event) => {
-  if (event.target.closest(".node-card") || event.target.closest(".add-node-menu") || event.target.closest(".image-edit-popover")) return;
-  event.preventDefault();
-  showCanvasContextMenu(event.clientX, event.clientY);
-});
-
-canvasViewport.addEventListener("auxclick", (event) => {
-  if (event.button === 1) event.preventDefault();
-});
-
-canvasViewport.addEventListener("dragover", (event) => {
-  event.preventDefault();
-  if (!event.dataTransfer?.types?.includes("Files")) return;
-  event.dataTransfer.dropEffect = "copy";
-  updateAICoreDragState(event.clientX, event.clientY);
-});
-
-canvasViewport.addEventListener("dragenter", (event) => {
-  if (!event.dataTransfer?.types?.includes("Files")) return;
-  event.preventDefault();
-  uploadDragDepth += 1;
-  updateAICoreDragState(event.clientX, event.clientY);
-});
-
-canvasViewport.addEventListener("dragleave", (event) => {
-  if (!event.dataTransfer?.types?.includes("Files")) return;
-  uploadDragDepth = Math.max(0, uploadDragDepth - 1);
-  const outsideWindow = event.clientX <= 0
-    || event.clientY <= 0
-    || event.clientX >= window.innerWidth
-    || event.clientY >= window.innerHeight;
-  if (!uploadDragDepth && outsideWindow) {
-    appRoot.classList.remove("ai-core-awake");
-    setAICoreState("idle");
+bindCanvasViewportEvents({
+  canvasViewport,
+  appRoot,
+  state: {
+    getPan: () => pan,
+    getZoom: () => zoom,
+    setZoom: (value) => { zoom = value; },
+    setPan: (value) => { pan = value; },
+    getPanStart: () => panStart,
+    setPanStart: (value) => { panStart = value; },
+    getIsPanning: () => isPanning,
+    setIsPanning: (value) => { isPanning = value; },
+    getSelectionDrag: () => selectionDrag,
+    setSelectionDrag: (value) => { selectionDrag = value; },
+    getCanvasDrawing: () => canvasDrawing,
+    getEraserDrag: () => eraserDrag,
+    getUploadDragDepth: () => uploadDragDepth,
+    setUploadDragDepth: (value) => { uploadDragDepth = value; }
+  },
+  actions: {
+    clampCanvasZoom,
+    panForZoomAroundWorldPoint,
+    viewportPointToWorld,
+    applyTransform,
+    showAddNodeMenu,
+    showCanvasContextMenu,
+    isPointInAICore,
+    setAICoreState,
+    updateAICoreDragState,
+    uploadIntoAICore,
+    uploadAsReference,
+    hideAddNodeMenu,
+    hideCanvasContextMenu,
+    hideImageEditPopover,
+    selectNode,
+    addCanvasToolNode,
+    createDrawingPreview,
+    updateDrawingPreview,
+    finishCanvasDrawing,
+    startEraserDrag,
+    updateEraserDrag,
+    finishEraserDrag,
+    createSelectionBox,
+    updateSelectionBox,
+    finishSelectionBox,
+    addNode,
+    getActiveCanvasTool: () => activeCanvasTool,
+    getLibraryAssets: () => assets
   }
 });
-
-canvasViewport.addEventListener("drop", (event) => {
-  event.preventDefault();
-  if (event.target.closest(".node-card")) return;
-  if (event.dataTransfer.files.length) {
-    event.stopPropagation();
-    const point = viewportPointToWorld(event.clientX, event.clientY);
-    if (isPointInAICore(event.clientX, event.clientY)) {
-      uploadIntoAICore(event.dataTransfer.files, point);
-    } else {
-      uploadAsReference(event.dataTransfer.files, point);
-      setAICoreState("idle");
-    }
-    appRoot.classList.remove("ai-core-awake");
-    uploadDragDepth = 0;
-    return;
-  }
-
-  const asset = assets.find((item) => item.id === event.dataTransfer.getData("text/plain"));
-  if (!asset) return;
-  const point = viewportPointToWorld(event.clientX, event.clientY);
-  addNode({
-    kind: asset.type,
-    title: asset.title,
-    desc: asset.desc,
-    x: point.x,
-    y: point.y
-  });
-});
-
-document.addEventListener("keydown", (event) => {
-  const target = event.target;
-  const isTyping = target.matches("input, textarea") || target.isContentEditable;
-  if (isTyping) return;
-
-  if (event.key === "Escape") {
-    hideImageLightbox();
-    hideImageCropOverlay();
-    hideUploadModeBubbles();
-    hideGenerationOverlay();
-    hideAICoreWorkspace();
-    pendingUploadChoice = null;
-    setUploadModeHover(null);
-    appRoot.classList.remove("ai-core-awake");
-    setAICoreState("idle");
-    return;
-  }
-
-  if (event.key === "Delete" || event.key === "Backspace") {
-    event.preventDefault();
-    deleteSelectedNode();
+bindCanvasKeyboardShortcuts({
+  root: document,
+  stateHost: appRoot,
+  actions: {
+    hideImageLightbox,
+    hideImageCropOverlay,
+    hideUploadModeBubbles,
+    hideGenerationOverlay,
+    hideAICoreWorkspace,
+    setUploadModeHover,
+    setAICoreState,
+    clearPendingUploadChoice: () => { pendingUploadChoice = null; },
+    deleteSelectedNode
   }
 });
-
 promptForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const prompt = promptInput.value.trim();

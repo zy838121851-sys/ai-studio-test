@@ -13,13 +13,13 @@ import { initCanvasToolbar } from "../components/canvas-toolbar.js";
 import { initTaskBar } from "../components/task-bar.js";
 
 export async function initApp() {
+  registerAIProvider("mock", mockProvider);
+  registerAIProvider("server", serverAPIProvider);
+  setActiveAIProvider("server");
+
   // Load the compatibility layer first so existing UI interactions keep working
   // while the new architecture is migrated module by module.
   await import("../legacy-app.js");
-
-  registerAIProvider("mock", mockProvider);
-  registerAIProvider("server", serverAPIProvider);
-  setActiveAIProvider("mock");
 
   const canvasController = initCanvasController({ eventBus, root: document });
   const agentEventSystem = createAgentEventSystem({ eventBus, canvasController });
