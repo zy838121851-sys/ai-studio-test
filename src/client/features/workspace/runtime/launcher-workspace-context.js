@@ -1,0 +1,61 @@
+export function createWorkspaceLauncherWorkspaceContext({
+  actions = {},
+  workflows = {},
+  bindings = {},
+  safeBindings = {}
+} = {}) {
+  const {
+    safeSetHomeFiles,
+    safeRenderProjectLibrary,
+    safeSelectLibraryProject,
+    safeStepLibraryProject,
+    safeOpenProject,
+    safeDeleteProject,
+    safeNewBlankProject,
+    safeSaveCurrentProject,
+    safeGenerateHomeProject
+  } = safeBindings;
+
+  return {
+    addChat: actions.addChat,
+    openAssetLibraryPanel: actions.openAssetLibraryPanel,
+    syncHomeModelPicker: workflows.homeWorkflow?.syncHomeModelPicker,
+    renderHomeHistory: actions.renderHomeHistory,
+    renderAssets: actions.renderAssets,
+    getActiveProject: actions.getActiveProject,
+    updateProjectTitle: actions.updateProjectTitle,
+    renderHomeFilePreview: actions.renderHomeFilePreview,
+    setHomeFiles: safeSetHomeFiles,
+    openHomeFilePicker: actions.openHomeFilePicker,
+    setLibraryViewModeStorage: actions.setLibraryViewModeStorage,
+    renderProjectLibrary: safeRenderProjectLibrary,
+    selectLibraryProject: safeSelectLibraryProject,
+    stepLibraryProject: safeStepLibraryProject,
+    openProject: safeOpenProject,
+    deleteProject: safeDeleteProject,
+    newBlankProject: safeNewBlankProject,
+    saveCurrentProject: safeSaveCurrentProject,
+    generateHomeProject: safeGenerateHomeProject,
+    addChatImageFiles: actions.addChatImageFiles,
+    bindTaskBarInteractions: bindings.bindTaskBarInteractions,
+    bindHomeLibraryInteractions: bindings.bindHomeLibraryInteractions,
+    bindCanvasMenuActions: bindings.bindCanvasMenuActions,
+    bindFooterEvents: bindings.bindFooterEvents,
+    bindCanvasRuntimeInfrastructure: bindings.bindCanvasRuntimeInfrastructure,
+    bindPromptSubmit: bindings.bindPromptSubmit,
+    bindPromptShortcuts: bindings.bindPromptShortcuts,
+    commitProjectTitleEdit: actions.commitProjectTitleEdit,
+    homeWorkflow: workflows.homeWorkflow,
+    addThinking: actions.addThinking,
+    updateThinking: actions.updateThinking,
+    updateChat: actions.updateChat,
+    addChatImage: actions.addChatImage,
+    renderChatImagePreview: actions.renderChatImagePreview,
+    updateActiveProject: actions.updateActiveProject,
+    makeProjectTitle: actions.makeProjectTitle,
+    postJsonRequest: actions.postJsonRequest,
+    buildChatImagePayload: actions.buildChatImagePayload,
+    readFileAsDataUrl: actions.readFileAsDataUrl,
+    detectGenerationKind: actions.detectGenerationKind
+  };
+}

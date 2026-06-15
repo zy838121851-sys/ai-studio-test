@@ -1,4 +1,4 @@
-﻿import { getAIProvider } from "./providers/index.js";
+import { getAIProvider } from "./providers/index.js";
 import {
   buildAnalyzeImagePrompt,
   buildCanvasAgentPrompt,

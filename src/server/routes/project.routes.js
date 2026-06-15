@@ -1,8 +1,10 @@
 import { Router } from "express";
+import { requireAuth } from "../middleware/auth.middleware.js";
 import { getProject, listProjects, saveProject } from "../services/project.service.js";
 
 export function createProjectRouter() {
   const router = Router();
+  router.use(requireAuth);
 
   router.get("/projects", (req, res) => {
     res.json({ projects: listProjects() });

@@ -1,0 +1,276 @@
+export function buildRuntimeCoreSections(deps = {}) {
+  return {
+    coreBase: {
+      setChatCollapsed: deps.setChatCollapsed,
+      applyTransform: deps.applyTransform,
+      returnViewToContent: deps.returnViewToContent,
+      positionFloatingMenu: deps.positionFloatingMenu,
+      setActiveRailPanelButton: deps.setActiveRailPanelButton
+    }
+  };
+}
+
+export function buildRuntimeCoreStateSections(deps = {}) {
+  return {
+    coreState: {
+      getPan: deps.getPan,
+      setPan: deps.setPan,
+      getZoom: deps.getZoom,
+      setZoom: deps.setZoom,
+      getPanStart: deps.getPanStart,
+      setPanStart: deps.setPanStart,
+      getIsPanning: deps.getIsPanning,
+      setIsPanning: deps.setIsPanning,
+      getSelectionDrag: deps.getSelectionDrag,
+      setSelectionDrag: deps.setSelectionDrag,
+      getCanvasDrawing: deps.getCanvasDrawing,
+      getEraserDrag: deps.getEraserDrag,
+      getUploadDragDepth: deps.getUploadDragDepth,
+      setUploadDragDepth: deps.setUploadDragDepth,
+      hideImageLightbox: deps.hideImageLightbox,
+      hideImageCropOverlay: deps.hideImageCropOverlay,
+      hideUploadModeBubbles: deps.hideUploadModeBubbles,
+      hideGenerationOverlay: deps.hideGenerationOverlay,
+      setUploadModeHover: deps.setUploadModeHover,
+      setAICoreState: deps.setAICoreState,
+      deleteSelectedNode: deps.deleteSelectedNode,
+      undoLastCanvasAction: deps.undoLastCanvasAction,
+      showView: deps.showView,
+      fitWorldBoundsInViewport: deps.fitWorldBoundsInViewport,
+      clampCanvasZoom: deps.clampCanvasZoom,
+      getVisibleCanvasNodes: deps.getVisibleCanvasNodes,
+      getNodeBounds: deps.getNodeBounds
+    }
+  };
+}
+
+export function buildRuntimeStateAccessorSections(deps = {}) {
+  return {
+    stateAccessors: {
+      getHomeImageFiles: deps.getHomeImageFiles,
+      getLibraryTransitionDirection: deps.getLibraryTransitionDirection,
+      getLibraryViewMode: deps.getLibraryViewMode,
+      getActiveProjectId: deps.getActiveProjectId,
+      getProjects: deps.getProjects,
+      getChatImageFiles: deps.getChatImageFiles,
+      setChatImageFiles: deps.setChatImageFiles,
+      getChatDragDepth: deps.getChatDragDepth,
+      setChatDragDepth: deps.setChatDragDepth
+    }
+  };
+}
+
+export function buildRuntimeBindingSections(deps = {}) {
+  return {
+    bindings: {
+      syncHomeModelPicker: deps.syncHomeModelPicker,
+      renderHomeFilePreview: deps.renderHomeFilePreview,
+      setHomeFiles: deps.setHomeFiles,
+      openHomeFilePicker: deps.openHomeFilePicker,
+      getHomeImageFiles: deps.getHomeImageFiles,
+      getLibraryViewMode: deps.getLibraryViewMode,
+      setLibraryViewModeInMemory: deps.setLibraryViewModeInMemory,
+      renderProjectLibrary: deps.renderProjectLibrary,
+      selectLibraryProject: deps.selectLibraryProject,
+      stepLibraryProject: deps.stepLibraryProject,
+      openProject: deps.openProject,
+      deleteProject: deps.deleteProject,
+      setLibraryWheelLock: deps.setLibraryWheelLock,
+      getLibraryWheelLock: deps.getLibraryWheelLock,
+      setLibraryViewModeStorage: deps.setLibraryViewModeStorage,
+      setPendingUploadPoint: deps.setPendingUploadPoint,
+      getPendingUploadPoint: deps.getPendingUploadPoint,
+      newBlankProject: deps.newBlankProject,
+      saveCurrentProject: deps.saveCurrentProject,
+      generateHomeProject: deps.generateHomeProject,
+      uploadAsReference: deps.uploadAsReference,
+      addChatImageFiles: deps.addChatImageFiles,
+      recordCanvasEvent: deps.recordCanvasEvent
+    }
+  };
+}
+
+export function buildRuntimeUISections(deps = {}) {
+  return {
+    ui: {
+      directorActions: deps.directorActions,
+      refreshDirectorOptions: deps.refreshDirectorOptions,
+      runDirectorAction: deps.runDirectorAction,
+      imageEditPopover: deps.imageEditPopover,
+      addNodeMenu: deps.addNodeMenu,
+      canvasContextMenu: deps.canvasContextMenu,
+      assetUploadInput: deps.assetUploadInput,
+      promptInput: deps.promptInput,
+      getAddMenuPoint: deps.getAddMenuPoint,
+      setAddMenuPoint: deps.setAddMenuPoint,
+      getContextMenuPoint: deps.getContextMenuPoint,
+      setContextMenuPoint: deps.setContextMenuPoint,
+      setPendingUploadPoint: deps.setPendingUploadPoint,
+      viewportPointToWorld: deps.viewportPointToWorld,
+      hideAddNodeMenu: deps.hideAddNodeMenu,
+      hideCanvasContextMenu: deps.hideCanvasContextMenu,
+      showAddNodeMenu: deps.showAddNodeMenu,
+      addNode: deps.addNode,
+      addChat: deps.addChat,
+      openAssetLibrary: deps.openAssetLibraryPanel,
+      aiCore: deps.aiCore,
+      aiCoreHint: deps.aiCoreHint,
+      appRoot: deps.appRoot,
+      canvasWorld: deps.canvasWorld,
+      presetSkill: deps.presetSkill,
+      imageEditSubmit: deps.imageEditSubmit,
+      imageEditCancel: deps.imageEditCancel,
+      closeMenuWhenOutside: deps.closeMenuWhenOutside,
+      closeOpenImageToolbarMenus: deps.closeOpenImageToolbarMenus,
+      chooseUploadMode: deps.chooseUploadMode,
+      getPendingUploadChoice: deps.getPendingUploadChoice,
+      setPendingUploadChoice: deps.setPendingUploadChoice,
+      setUploadDragDepth: deps.setUploadDragDepthForUi,
+      updateAICoreDragState: deps.updateAICoreDragState,
+      getAiCoreDragState: deps.getAiCoreDragState,
+      setAiCoreDragState: deps.setAiCoreDragState,
+      getAiCoreSuppressClick: deps.getAiCoreSuppressClick,
+      setAiCoreSuppressClick: deps.setAiCoreSuppressClick,
+      getAiCoreAgentEnabled: deps.getAiCoreAgentEnabled,
+      setAiCoreAgentEnabled: deps.setAiCoreAgentEnabled,
+      positionCanvasSuggestionBubble: deps.positionCanvasSuggestionBubble,
+      positionAgentBubble: deps.positionAgentBubble,
+      runImageEditCommand: deps.runImageEditCommand,
+      handleImageEditSubmit: deps.handleImageEditSubmit,
+      handleImageEditCancel: deps.handleImageEditCancel,
+      chatPanel: deps.chatPanel,
+      homePromptForm: deps.homePromptForm,
+      homePromptInput: deps.homePromptInput,
+      homeFileInput: deps.homeFileInput,
+      homeUploadButton: deps.homeUploadButton,
+      homeFilePreview: deps.homeFilePreview,
+      homeModelSelect: deps.homeModelSelect,
+      homeModelButton: deps.homeModelButton,
+      homeModelMenu: deps.homeModelMenu,
+      homeModelPicker: deps.homeModelPicker,
+      projectGrid: deps.projectGrid,
+      homeHistory: deps.homeHistory,
+      syncHomeModelPicker: deps.syncHomeModelPicker,
+      renderHomeHistory: deps.renderHomeHistory,
+      renderAssets: deps.renderAssets,
+      getActiveProject: deps.getActiveProject,
+      updateProjectTitle: deps.updateProjectTitle,
+      applyTransform: deps.applyTransform,
+      runCanvasTool: deps.runCanvasTool,
+      setShapeTool: deps.setShapeTool,
+      applyTextStyle: deps.applyTextStyle,
+      toggleToolRailCollapsed: deps.toggleToolRailCollapsed,
+      toolRail: deps.toolRail,
+      toggleToolRail: deps.toggleToolRail,
+      textFormatToolbar: deps.textFormatToolbar,
+      textFontFamily: deps.textFontFamily,
+      textFontWeight: deps.textFontWeight,
+      textFontSize: deps.textFontSize,
+      textColorInput: deps.textColorInput,
+      projectSaveStatus: deps.projectSaveStatus,
+      uploadAsset: deps.uploadAsset,
+      chatUploadImage: deps.chatUploadImage,
+      chatImageInput: deps.chatImageInput,
+      zoomText: deps.zoomText,
+      zoomRange: deps.zoomRange
+    }
+  };
+}
+
+export function buildRuntimeActionsSections(deps = {}) {
+  return {
+    actions: {
+      chatContext: {
+        recordCanvasEvent: deps.recordCanvasEvent,
+        addThinking: deps.addThinking,
+        updateThinking: deps.updateThinking,
+        renderChatImagePreview: deps.renderChatImagePreview,
+        addChat: deps.addChat,
+        updateChat: deps.updateChat,
+        addChatImage: deps.addChatImage,
+        addGenerationPreview: deps.addGenerationPreview,
+        replacePreviewWithImage: deps.replacePreviewWithImage,
+        updateActiveProject: deps.updateActiveProject,
+        getActiveProject: deps.getActiveProject,
+        makeProjectTitle: deps.makeProjectTitle,
+        postJsonRequest: deps.postJsonRequest,
+        buildChatImagePayload: deps.buildChatImagePayload,
+        readFileAsDataUrl: deps.readFileAsDataUrl,
+        detectGenerationKind: deps.detectGenerationKind
+      },
+      bindTaskBarInteractions: deps.bindTaskBarInteractions,
+      bindHomeLibraryInteractions: deps.bindHomeLibraryInteractions,
+      bindCanvasMenuActions: deps.bindCanvasMenuActions,
+      bindFooterEvents: deps.bindFooterEvents,
+      bindCanvasRuntimeInfrastructure: deps.bindCanvasRuntimeInfrastructure,
+      bindPromptSubmit: deps.bindPromptSubmit,
+      bindPromptShortcuts: deps.bindPromptShortcuts,
+      chatFloat: deps.chatFloat,
+      collapseChat: deps.collapseChat,
+      brandMenu: deps.brandMenu,
+      projectMenu: deps.projectMenu,
+      projectTitle: deps.projectTitle,
+      jumpToCenterButton: deps.jumpToCenterButton,
+      fitViewButton: deps.fitViewButton,
+      commitProjectTitleEdit: deps.commitProjectTitleEdit,
+      zoomRange: deps.zoomRange,
+      zoomOutButton: deps.zoomOutButton,
+      zoomInButton: deps.zoomInButton,
+      returnToContentButton: deps.returnToContentButton,
+      undoButton: deps.undoButton,
+      redoButton: deps.redoButton,
+      promptForm: deps.promptForm,
+      chatModelSelect: deps.chatModelSelect,
+      floatingLibrary: deps.floatingLibrary,
+      closeLibraryButton: deps.closeLibraryButton,
+      canvasViewport: deps.canvasViewport,
+      canvasWorld: deps.canvasWorld,
+      homeWorkflow: deps.homeWorkflow,
+      clampCanvasZoom: deps.clampCanvasZoom,
+      panForZoomAroundWorldPoint: deps.panForZoomAroundWorldPoint,
+      undoLastCanvasAction: deps.undoLastCanvasAction,
+      viewportPointToWorld: deps.viewportPointToWorld,
+      applyTransform: deps.applyTransform,
+      showAddNodeMenu: deps.showAddNodeMenu,
+      showCanvasContextMenu: deps.showCanvasContextMenu,
+      isPointInAICore: deps.isPointInAICore,
+      updateAICoreDragState: deps.updateAICoreDragState,
+      uploadIntoAICore: deps.uploadIntoAICore,
+      uploadAsReference: deps.uploadAsReference,
+      hideAddNodeMenu: deps.hideAddNodeMenu,
+      hideCanvasContextMenu: deps.hideCanvasContextMenu,
+      hideImageEditPopover: deps.hideImageEditPopover,
+      runImageEditCommand: deps.runImageEditCommand,
+      selectNode: deps.selectNode,
+      addCanvasToolNode: deps.addCanvasToolNode,
+      createDrawingPreview: deps.createDrawingPreview,
+      updateDrawingPreview: deps.updateDrawingPreview,
+      finishCanvasDrawing: deps.finishCanvasDrawing,
+      startEraserDrag: deps.startEraserDrag,
+      updateEraserDrag: deps.updateEraserDrag,
+      finishEraserDrag: deps.finishEraserDrag,
+      createSelectionBox: deps.createSelectionBox,
+      updateSelectionBox: deps.updateSelectionBox,
+      finishSelectionBox: deps.finishSelectionBox,
+      addNode: deps.addNode,
+      getActiveCanvasTool: deps.getActiveCanvasTool,
+      getLibraryAssets: deps.getLibraryAssets,
+      hideAICoreWorkspace: deps.hideAICoreWorkspace,
+      setUploadModeHover: deps.setUploadModeHover,
+      setAICoreState: deps.setAICoreState,
+      setPendingUploadChoice: deps.setPendingUploadChoice,
+      deleteSelectedNode: deps.deleteSelectedNode
+    }
+  };
+}
+
+export function buildRuntimeContextSections(deps = {}) {
+  return {
+    ...buildRuntimeCoreSections(deps),
+    ...buildRuntimeCoreStateSections(deps),
+    ...buildRuntimeStateAccessorSections(deps),
+    ...buildRuntimeUISections(deps),
+    ...buildRuntimeBindingSections(deps),
+    ...buildRuntimeActionsSections(deps)
+  };
+}

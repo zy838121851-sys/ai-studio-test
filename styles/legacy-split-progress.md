@@ -1,0 +1,116 @@
+﻿# Legacy ��ʽ��ֽ���
+
+## ����״̬
+- `styles.css` ���տڵ���`workspace.css` + `components.css` + `legacy-split.css`
+- `styles/legacy-split.css` �������ۺ�ȫ�� `styles/legacy-*.css` ģ�飬`legacy.css` ��������� shim��
+- `styles/legacy.css` �Ѹ�Ϊ���� shim����������ڵ��루`globals.css` + `legacy-split.css`����`styles.css` ���Ƴ�ֱ�� legacy.css ˫��ڡ�
+- `styles/workspace.css` ��ϸ��Ϊֻ���ز��֣�
+  - `workspace-layout.css`�����㲼�֡���ҳ����Ŀ�⣩
+  - `legacy-base.css` ������·Ǩ�Ƶ� `legacy-split.css` �ۺϣ������� `workspace.css` ��ֱ������
+- `styles/legacy-base.css` ��ϸ��Ϊ��
+  - `legacy-canvas.css`��������������״̬�������ɲ㣩
+  - `legacy-node.css`���ڵ㿨Ƭ���ڵ㽻����
+  - `legacy-chat.css`�������������Ϣ���룩
+- `styles/components.css` �������Ϊ��
+  - `components-theme.css`�������뽻����ۣ�
+  - `components-overrides.css`������������AI���ĸ��ǣ�
+- `styles/legacy-overrides.css` ��������Ϊ������ڣ��ۺ�Ϊ������������ڣ�
+- `styles/legacy.css` �Ѹ�Ϊ���� shim��`globals.css` + `legacy-split.css`��
+
+## �����ģ��
+- `src/client/agent/legacy-ai-core-state.js`
+- `src/client/agent/legacy-ai-core-input.js`
+- `src/client/agent/legacy-ai-core-workspace.js`
+- `src/client/agent/legacy-image-edit.js`
+- `src/client/components/image-edit-workflow.js`
+- `src/client/components/generation-upload-workflow.js`
+- `src/client/components/canvas-tool-workflow.js`
+- `src/client/components/text-edit-workflow.js`
+- `src/client/components/director-action-workflow.js`
+- `src/client/components/director-card-workflow.js`
+- `src/client/components/generation-node-workflow.js`
+- `src/client/components/chat-workflow.js`
+- `src/client/components/model-viewer-workflow.js`
+- `src/client/components/asset-library-runtime.js`
+- `src/client/components/canvas-menu-workflow.js`
+- `src/client/components/node-drag-workflow.js`
+- `src/client/components/eraser-workflow.js`
+- `src/client/components/prompt-generation-workflow.js`
+- `src/client/components/canvas-coordinate-workflow.js`
+- `src/client/components/selection-workflow.js`
+- `src/client/components/canvas-lightbox-workflow.js`
+- `src/client/components/viewport-workflow.js`
+- `src/client/components/canvas-menu-state-workflow.js`
+- `styles/legacy-ai-core.css`
+- `styles/components.css`
+- `styles/components-theme.css`
+- `styles/components-overrides.css`
+- `styles/globals.css`
+- `styles/workspace-layout.css`
+- `styles/legacy-canvas.css`
+- `styles/legacy-node.css`
+- `styles/legacy-chat.css`
+- `src/client/canvas/legacy-director-defaults.js`
+- `src/client/canvas/legacy-assets.js`
+- `src/client/core/legacy-visual-bootstrap.js`
+- `src/client/core/legacy-app-runtime.js`���Ѽ�������Ӿ�̬���룩
+- `src/client/core/legacy-ui-elements.js`
+- `src/client/core/legacy-runtime-binding-factories.js`
+- `src/client/core/legacy-bridge.js`
+- `src/client/core/legacy-runtime-shared-state.js`
+- `src/client/core/legacy-runtime-context-core.js`
+- `src/client/core/legacy-runtime-context-ui.js`
+- `src/client/core/legacy-runtime-actions-context.js`
+- `src/client/core/legacy-runtime-core-state-context.js`
+- `src/client/core/legacy-runtime-bindings-context.js`
+- `src/client/core/legacy-runtime-chat-context.js`
+- `src/client/core/legacy-runtime-context-builder.js`
+- `src/client/core/legacy-app-runtime-host.js`
+- `src/client/core/legacy-runtime-taskbar-workflow.js`
+- `src/client/core/legacy-runtime-home-library-workflow.js`
+- `src/client/core/legacy-runtime-canvas-menu-workflow.js`
+- `src/client/core/legacy-runtime-footer-workflow.js`
+- `src/client/core/legacy-runtime-infra-workflow.js`
+- `src/client/core/legacy-runtime-prompt-workflow.js`
+- `src/client/core/legacy-runtime-bootstrap-workflow.js`
+- `src/client/core/legacy-runtime-bridge-workflow.js`
+- `src/client/core/legacy-runtime-core-dependencies.js`
+- `src/client/core/legacy-runtime-action-dependencies.js`
+- `src/client/core/legacy-runtime-core-state-dependencies.js`
+- `src/client/core/legacy-runtime-state-accessor-dependencies.js`
+- `src/client/core/legacy-runtime-binding-dependencies.js`
+- `src/client/core/legacy-runtime-ui-dependencies.js`
+- `src/client/core/legacy-runtime-dependencies.js`
+- `src/client/core/legacy-app-runtime-viewport-inputs.js`
+- `src/client/core/legacy-app-runtime-action-inputs.js`
+- `src/client/core/legacy-app-runtime-home-inputs.js`
+- `src/client/core/legacy-app-runtime-workflow-inputs.js`
+- `src/client/core/legacy-app-runtime-inputs.js`
+- `src/client/core/legacy-app-runtime-bootstrap.js`
+- `src/client/core/legacy-app-runtime-chat-inputs.js`
+- `src/client/core/legacy-app-runtime-aicore-inputs.js`
+- `src/client/core/legacy-app-runtime-state-inputs.js`
+- `src/client/core/legacy-app-runtime-input-sources.js`��������������Դ����ۺ�����
+- `src/client/core/legacy-app-runtime-input-sources-builder.js`��������������ʱ������ӳ��Ϊ 5 �������룩
+
+
+- `src/client/core/legacy-app-runtime-state-sources.js`
+- `src/client/core/legacy-app-runtime-action-sources.js`
+- `src/client/core/legacy-app-runtime-home-sources.js`
+- `src/client/core/legacy-app-runtime-workflow-sources.js`
+- `src/client/core/legacy-app-runtime-chat-sources.js`
+- `src/client/core/legacy-app-runtime-aicore-sources.js`
+- `src/client/legacy-app.js`������ʱ����ͨ�� `buildLegacyAppRuntimeInputsFromSources` �� `buildLegacyAppRuntimeInputSources` ͳһע�룩
+- `src/client/core/legacy-app-runtime-bootstrap-entry.js`��������������Դ������ʱע������������ڣ�
+- `src/client/legacy-app.js`���ײ�������е� `bootstrapLegacyAppRuntimeFromInputSources`��
+
+## δ���ģ�飨���ȼ��ߣ�
+- `src/client/legacy-app.js` ����ճ�ϲ㡣�ɼ������ʣ������ʱ��Ϊ��װΪ��С������ģ�飨���ύ�������ģ��״̬ͬ���Σ���������ҳ���ʼ�����ʼ�������á���ϸ�֡�
+
+- src/client/core/legacy-app-runtime-orchestrator.js���������������� -> ������Դ -> bootstrap��
+- src/client/core/legacy-app-runtime-launcher.js��������Ӧ�������ڷ�װ��
+- src/client/legacy-app.js���ײ�����Ѹ�Ϊ launchLegacyAppRuntime��
+- `src/client/legacy-app.js`：下一步已开始按“运行时依赖组装”继续从顶层粘合层拆分。
+- src/client/legacy-app.js: 下步：继续拆分依赖组装为更小上下文模块。
+- Added module: src/client/core/legacy-app-runtime-bootstrap-from-groups.js -> legacy-app.js now starts runtime via bootstrapLegacyAppRuntimeFromDependencyGroups.
+

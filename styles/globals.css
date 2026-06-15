@@ -1,1 +1,58 @@
-/* TODO: migrate global tokens and reset rules from styles.css. */
+:root {
+  --black: #020304;
+  --panel: #181818;
+  --panel-soft: #202020;
+  --line: #2c2c2c;
+  --line-soft: rgba(255, 255, 255, 0.08);
+  --text: #f3f5f7;
+  --muted: #8f949b;
+  --soft: #c9ced6;
+  --accent: #7fc8ff;
+  --green: #86f0c0;
+  --yellow: #ffe46a;
+  --pink: #ff8ad8;
+  --radius: 8px;
+  font-family: Inter, "Segoe UI", "Microsoft YaHei", system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  color: var(--text);
+  background: var(--black);
+  overflow: hidden;
+}
+
+button,
+textarea,
+input {
+  font: inherit;
+}
+
+button {
+  border: 0;
+  color: inherit;
+  background: none;
+  cursor: pointer;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

@@ -1,1 +1,1 @@
-import "./src/client/main.js?v=20260610-architecture-refactor";
+import "./src/main.js?v=20260613-canvas-fix-6";

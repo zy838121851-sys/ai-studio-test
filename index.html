@@ -30,6 +30,41 @@
       </button>
     </aside>
 
+    <div class="auth-entry" id="authEntry" aria-live="polite">
+      <button class="auth-entry-button" id="authEntryButton" type="button">登录 / 注册</button>
+      <div class="auth-account-popover hidden" id="authAccountPopover" role="menu" aria-hidden="true">
+        <section class="auth-account-card">
+          <div class="auth-account-avatar" id="authAccountAvatar" aria-hidden="true">D</div>
+          <div class="auth-account-name" id="authAccountName"></div>
+          <div class="auth-account-email" id="authAccountEmail"></div>
+          <button class="auth-upgrade-button" type="button">升级</button>
+          <div class="auth-points-row">
+            <span>积分</span>
+            <strong>30</strong>
+            <span class="auth-points-arrow" aria-hidden="true">›</span>
+          </div>
+        </section>
+        <div class="auth-menu-list">
+          <button type="button" role="menuitem" data-auth-menu-action="account">
+            <span class="auth-menu-icon" aria-hidden="true">◎</span>
+            <span>账户管理</span>
+          </button>
+          <button type="button" role="menuitem" data-auth-menu-action="help">
+            <span class="auth-menu-icon" aria-hidden="true">?</span>
+            <span>使用教程</span>
+          </button>
+          <button type="button" role="menuitem" data-auth-menu-action="contact">
+            <span class="auth-menu-icon" aria-hidden="true">□</span>
+            <span>联系我们</span>
+          </button>
+          <button type="button" role="menuitem" data-auth-logout>
+            <span class="auth-menu-icon" aria-hidden="true">↳</span>
+            <span>退出登录</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <section class="home-view app-view active" id="homeView" aria-label="首页">
       <nav class="home-nav">
         <button class="brand-mark" type="button" data-brand-menu>D</button>
@@ -60,8 +95,70 @@
           </div>
           <button class="home-send" type="submit" title="发送">↑</button>
         </form>
+        <section class="home-history" id="homeHistory" aria-label="最近项目"></section>
       </section>
+      <section class="home-community-section home-community-channels" aria-label="创作频道">
+        <header class="home-section-head">
+          <div>
+            <span>Community channels</span>
+            <strong>灵感频道</strong>
+          </div>
+        </header>
+        <div class="home-channel-shell">
+          <button class="home-channel-all active" type="button" data-channel="all"><span aria-hidden="true"></span>所有频道</button>
+          <button class="home-channel-scroll prev" type="button" aria-label="向左移动频道"><span aria-hidden="true"></span></button>
+          <div class="home-channel-strip" aria-label="频道列表">
+            <button type="button" data-channel="xr"><i style="--tone:#8b5cf6"></i>虚拟现实和增强现实</button>
+            <button type="button" data-channel="reality-scan"><i style="--tone:#0ea5e9"></i>RealityScan</button>
+            <button type="button" data-channel="game-art"><i style="--tone:#22c55e"></i>游戏美术</button>
+            <button type="button" data-channel="archviz"><i style="--tone:#f97316"></i>建筑可视化</button>
+            <button type="button" data-channel="pixel-voxel"><i style="--tone:#06b6d4"></i>像素与体素</button>
+            <button type="button" data-channel="character-animation"><i style="--tone:#f59e0b"></i>角色动画</button>
+            <button type="button" data-channel="matte-painting"><i style="--tone:#a855f7"></i>哑光绘画</button>
+            <button type="button" data-channel="fantasy"><i style="--tone:#2563eb"></i>幻想</button>
+            <button type="button" data-channel="kids-art"><i style="--tone:#ec4899"></i>儿童艺术</button>
+            <button type="button" data-channel="twinmotion"><i style="--tone:#14b8a6"></i>双子运动</button>
+            <button type="button" data-channel="abstract"><i style="--tone:#ef4444"></i>抽象的</button>
+          </div>
+          <button class="home-channel-scroll next" type="button" aria-label="向右移动频道"><span aria-hidden="true"></span></button>
+        </div>
+        <div class="home-masonry-feed" id="homeInspirationFeed" aria-label="灵感作品流"></div>
+        <div class="home-masonry-loading" id="homeInspirationLoading" aria-live="polite">加载更多</div>
+      </section>
+      <button class="home-back-top" id="homeBackTop" type="button" aria-label="回到顶部" title="回到顶部"><span aria-hidden="true"></span></button>
     </section>
+
+    <div class="auth-dialog hidden" id="authDialog" aria-hidden="true">
+      <div class="auth-dialog-backdrop" data-auth-close></div>
+      <section class="auth-dialog-panel" role="dialog" aria-modal="true" aria-labelledby="authDialogTitle">
+        <button class="auth-dialog-close" type="button" data-auth-close aria-label="关闭">×</button>
+        <header>
+          <p>Account</p>
+          <h2 id="authDialogTitle">登录到 AI Studio</h2>
+        </header>
+        <div class="auth-tabs" role="tablist">
+          <button class="active" type="button" data-auth-mode="login">登录</button>
+          <button type="button" data-auth-mode="register">注册</button>
+        </div>
+        <form class="auth-form" id="authForm">
+          <label class="auth-name-field hidden">
+            <span>昵称</span>
+            <input id="authName" type="text" autocomplete="name" placeholder="你的昵称" />
+          </label>
+          <label>
+            <span>邮箱</span>
+            <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
+          </label>
+          <label>
+            <span>密码</span>
+            <input id="authPassword" type="password" autocomplete="current-password" placeholder="至少 8 位" required />
+          </label>
+          <p class="auth-message" id="authMessage" role="status"></p>
+          <button class="auth-submit" id="authSubmit" type="submit">登录</button>
+        </form>
+      </section>
+    </div>
+
 
     <section class="project-library-view app-view" id="projectLibraryView" aria-label="项目库">
       <nav class="home-nav library-nav">
@@ -141,7 +238,7 @@
       </div>
 
       <aside class="tool-rail collapsed" id="toolRail" aria-label="工具栏">
-        <button id="toggleToolRail" class="rail-main" title="展开工具栏" aria-expanded="false">×</button>
+        <button id="toggleToolRail" class="rail-main" title="展开工具栏" aria-expanded="false">+</button>
         <div class="rail-items">
           <button class="rail-btn active" data-tool="select" title="选择">
             <svg viewBox="0 0 24 24"><path d="M5 3l10 10-5 1.2L8.2 20 5 3z" /></svg>
@@ -161,7 +258,7 @@
           </div>
           <button class="rail-btn" data-tool="text" title="文字"><span>A</span></button>
           <button class="rail-btn" data-tool="pen" title="画笔">
-            <svg viewBox="0 0 24 24"><path d="M4 17c4-8 7 4 11-3 2-3 3-5 5-7" /><path d="M16 5l3 3" /></svg>
+            <svg viewBox="0 0 24 24"><path d="M4 20c1.7-.2 3.2-.7 4.4-1.8" /><path d="M7.5 17.5l9.9-9.9 3 3-9.9 9.9c-.6.6-1.6.6-2.2 0l-.8-.8c-.6-.6-.6-1.6 0-2.2z" /><path d="M15.8 5.2l1.5-1.5c.7-.7 1.8-.7 2.5 0l.5.5c.7.7.7 1.8 0 2.5l-1.5 1.5" /></svg>
           </button>
           <button class="rail-btn" data-tool="eraser" title="橡皮擦">
             <svg viewBox="0 0 24 24"><path d="M4 15l8-8 7 7-5 5H8l-4-4z" /><path d="M12 19h8" /></svg>
@@ -216,7 +313,6 @@
 
       <div class="image-edit-popover" id="imageEditPopover" aria-label="图片编辑">
         <div class="edit-head">
-          <button class="spark-btn" type="button" title="AI 修改">✦</button>
           <img id="editImageThumb" alt="当前图片" />
           <button class="add-ref-btn" id="editAddRef" type="button" title="添加参考">+</button>
           <button class="expand-edit" type="button" title="展开">↗</button>
@@ -229,8 +325,20 @@
             <option value="qwen-image-edit-max">Qwen Image Edit Max</option>
             <option value="qwen-image-edit-plus">Qwen Image Edit Plus</option>
           </select>
-          <button id="imageAspect" type="button">16:9</button>
-          <button id="imageEditSettings" type="button">☷</button>
+          <select id="imageEditSize" title="生成尺寸">
+            <option value="auto">原图比例</option>
+            <option value="1:1">1:1</option>
+            <option value="16:9" selected>16:9</option>
+            <option value="9:16">9:16</option>
+            <option value="4:3">4:3</option>
+            <option value="3:4">3:4</option>
+          </select>
+          <select id="imageEditCount" title="生成张数">
+            <option value="1" selected>1 张</option>
+            <option value="2">2 张</option>
+            <option value="3">3 张</option>
+            <option value="4">4 张</option>
+          </select>
           <span></span>
           <button id="imageEditCancel" type="button">取消</button>
           <button id="imageEditSubmit" class="send" type="button">↑</button>
@@ -242,6 +350,18 @@
           <input id="textColorInput" type="color" value="#0f172a" />
           <span aria-hidden="true"></span>
         </label>
+        <select id="textFontFamily" title="字体">
+          <option value="Inter, system-ui, sans-serif">Inter</option>
+          <option value="Arial, sans-serif">Arial</option>
+          <option value="Georgia, serif">Georgia</option>
+          <option value="'Times New Roman', serif">Times</option>
+          <option value="'Courier New', monospace">Mono</option>
+        </select>
+        <select id="textFontWeight" title="字重">
+          <option value="400">Regular</option>
+          <option value="600" selected>Semibold</option>
+          <option value="700">Bold</option>
+        </select>
         <select id="textFontSize" title="字号">
           <option value="32">32</option>
           <option value="48">48</option>
@@ -339,7 +459,7 @@
     </aside>
   </main>
 
-  <script type="module" src="./app.js?v=20260610-architecture-refactor"></script>
+  <script type="module" src="./app.js?v=20260613-canvas-fix-6"></script>
 </body>
 
 </html>

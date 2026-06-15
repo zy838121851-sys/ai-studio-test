@@ -1,76 +1,52 @@
 export function buildAnalyzeImagePrompt({ title = "当前素材", refreshCount = 0 } = {}) {
   return `
-你是 AI 创作画布里的行业工作流识别 Skill。
-你的任务是识别图片主体、所属行业、最可能的用户工作流，并推荐最可能被点击的下一步物料。
-
-原则：
-- 不要给泛泛的“图片优化 / 高级海报 / 电商转化”。
-- 建议必须像真实设计工作流里的下一步产物。
-- 如果 refreshCount 大于 0，只换一组建议，不要重新改变主体判断。
-- 只返回严格 JSON，不要 Markdown。
-
-行业到物料参考：
-- 潮玩 / IP / 公仔 / 手办 / 角色插画：3D渲染、实拍质感、毛绒设计、模型设定、盲盒包装、角色设定、周边样机。
-- 服装 / 鞋包 / 配饰：模特上身、街拍图、Lookbook、面料特写、色款变体、详情页、穿搭分镜。
-- 美妆 / 香水 / 个护：产品摄影、质地特写、成分功效图、礼盒包装、社媒主图、柜台陈列。
-- 食品 / 饮料 / 餐饮：食欲实拍、包装设计、货架陈列、礼盒组合、菜单海报、短视频分镜。
-- 家具 / 家居 / 灯具：空间搭配、材质细节、风格变体、场景渲染、尺寸说明、安装示意。
-- 3C / 小家电 / 工具：功能拆解、使用场景、结构爆点、参数图、卖点长图、演示分镜。
-- 五金 / 建材 / 机械：安装场景、结构拆解、工艺特写、工程说明、工业渲染、对比图。
-
-返回格式：
+你是图片理解模型，需要返回 JSON，不要输出 Markdown。
+输入是画布中的素材：${title}，最近是第 ${Number(refreshCount) || 0} 次刷新。
+请快速给出素材属性，并返回以下字段：
 {
-  "productName": "主体名称",
-  "category": "主体类别",
-  "industry": "行业",
-  "workflowIntent": "最可能工作流",
-  "materials": ["1-3个材质或质感"],
-  "colors": ["1-3个主色"],
-  "style": "视觉风格",
-  "sellingPoints": ["1-3个识别点"],
-  "targetAudience": "目标用户",
-  "recommendedActions": [
-    {
-      "type": "render3d | productPhoto | plush | model | packaging | characterSheet | scene | poster | detail | closeup | copy | script | mockup",
-      "title": "不超过8个中文字符",
-      "description": "12-24字，说明为什么适合"
-    }
-  ]
+  "category": "素材类型，如图标/角色/产品/场景/服装/包装/其他",
+  "industry": "可能行业，如潮玩/电商/设计/游戏/广告等",
+  "style": "视觉风格（现代/写实/卡通/低多边形/像素等）",
+  "emotion": "表达情绪（可选）",
+  "materials": ["后续建议物料，如 2D渲染, 3D素材, 实拍照, 毛绒贴图 等"],
+  "nextActions": [
+    { "type": "render3d", "label": "3D 渲染", "description": "生成 3D 视角" },
+    { "type": "productPhoto", "label": "拍摄风格图", "description": "生成产品摄影风格素材" },
+    { "type": "editText", "label": "文案扩写", "description": "生成同主题文案/标题" }
+  ],
+  "targetAudience": "可能目标用户"
 }
-
-素材标题：${title}
-刷新次数：${Number(refreshCount) || 0}
 `;
 }
 
 export function buildExtractImageTextPrompt() {
   return `
-你是图片 OCR 与版面分析助手。识别图片中所有清晰可见、适合被用户编辑替换的文字。
-只返回严格 JSON：
+你是 OCR 解析模型。
+请从图片提取可读文字，按 JSON 返回：
 {
   "texts": [
-    { "text": "原文", "role": "标题/副标题/卖点/按钮/其他", "x": 0, "y": 0, "width": 0, "height": 0 }
+    { "text": "识别出的文字", "role": "标题/按钮/标签/说明/其他", "x": 0, "y": 0, "width": 0, "height": 0 }
   ]
 }
-`;
+若无明显文字，返回空数组。不要输出 Markdown。`;
 }
 
 export function buildPrepareActionPrompt({ analysis, action } = {}) {
   return `
-你是 AI 设计平台里的单个物料生成指令补全 Skill。
-请基于识别信息和用户选择的建议，补全一个可直接用于图像生成的中文 prompt，以及 3 个偏好选项。
+你是动作策略模型。根据当前素材分析和用户目标，返回一段可执行提示词 JSON。
+分析:
+${JSON.stringify(analysis || {}, null, 2)}
 
-识别信息：
-${JSON.stringify(analysis, null, 2)}
+动作:
+${JSON.stringify(action || {}, null, 2)}
 
-当前建议：
-${JSON.stringify(action, null, 2)}
-
-只返回严格 JSON：
+请返回:
 {
-  "prompt": "完整中文生成提示词",
+  "prompt": "用于下一步生成/编辑的提示词",
   "decisionStyles": [
-    { "label": "2-5个中文字符", "prompt": "追加到提示词里的具体偏好" }
+    { "label": "默认", "prompt": "更稳健的实现方式" },
+    { "label": "探索", "prompt": "更有创意的实现方式" },
+    { "label": "高还原", "prompt": "更接近原图风格的实现方式" }
   ]
 }
 `;
@@ -78,21 +54,19 @@ ${JSON.stringify(action, null, 2)}
 
 export function buildCanvasAgentPrompt({ canvasState } = {}) {
   return `
-你是隐藏在无限画布背后的 AI Core Agent。
-只围绕当前选中对象，返回 1 条低打扰、可执行建议。
-不要 Markdown，只返回 JSON：
-{
-  "text": "一句低打扰建议",
-  "actionLabel": "按钮文字",
-  "actionType": "generate_variant | explore | render3d | productPhoto | poster | detail | script",
-  "mockResult": "点击后生成到画布上的结果卡片文案"
-}
-
-Canvas State:
+你是隐藏式 AI 助理，不要聊天，仅返回下一条可执行建议。
+输入：画布状态如下
 ${JSON.stringify(canvasState || {}, null, 2)}
+
+仅返回 JSON，不要 Markdown：
+{
+  "text": "建议文案（4-8个字）",
+  "actionType": "generate_variant | explore | render3d | productPhoto | packaging | poster | detail | script | closeup",
+  "mockResult": "若用户触发按钮后可直接生成的模拟结果说明"
+}
 `;
 }
 
 export function buildExtractPromptPrompt(input = {}) {
-  return `请从以下信息中提取可复用图像生成 prompt，只返回 JSON：{"prompt": "..."}\n${JSON.stringify(input, null, 2)}`;
+  return `基于下列信息抽取适合该图像生成的 prompt（只返回 JSON）：\n${JSON.stringify(input, null, 2)}`;
 }

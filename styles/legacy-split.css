@@ -1,0 +1,16 @@
+@import url("./legacy-base.css");
+@import url("./legacy-assets.css");
+@import url("./legacy-canvas.css");
+@import url("./legacy-canvas-visual.css");
+@import url("./legacy-chat.css");
+@import url("./legacy-node.css");
+@import url("./legacy-overrides.css");
+@import url("./legacy-compact-controls.css");
+@import url("./legacy-rail-polish.css");
+@import url("./legacy-light-refinements.css");
+@import url("./legacy-theme-ios.css");
+@import url("./legacy-theme-sync.css");
+@import url("./legacy-ai-core.css");
+@import url("./legacy-ai-core-analysis.css");
+@import url("./legacy-ai-core-workspace.css");
+@import url("./legacy-ai-core-ambient.css");

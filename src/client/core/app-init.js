@@ -1,31 +1,30 @@
 import { eventBus } from "./event-bus.js";
 import { appState, patchState } from "./state.js";
-import { initCanvasController } from "../canvas/canvas-controller.js";
-import { createAgentEventSystem } from "../agent/agent-event-system.js";
-import { createSuggestionEngine } from "../agent/agent-suggestions.js";
-import { executeAgentAction } from "../agent/agent-actions.js";
-import { registerAIProvider, setActiveAIProvider } from "../ai/ai-client.js";
-import { mockProvider } from "../ai/providers/mock-provider.js";
-import { serverAPIProvider } from "../ai/providers/server-api-provider.js";
-import { initAssetPanel } from "../components/asset-panel.js";
-import { initAgentPanel } from "../components/agent-panel.js";
-import { initCanvasToolbar } from "../components/canvas-toolbar.js";
-import { initTaskBar } from "../components/task-bar.js";
+import { initCanvasController } from "../features/canvas/canvas-controller.js";
+import { createAgentEventSystem } from "../features/agent/agent-event-system.js";
+import { createSuggestionEngine } from "../features/agent/agent-suggestions.js";
+import { executeAgentAction } from "../features/agent/agent-actions.js";
+import { registerAIProvider, setActiveAIProvider } from "../features/ai/ai-client.js";
+import { mockProvider } from "../features/ai/providers/mock-provider.js";
+import { serverAPIProvider } from "../features/ai/providers/server-api-provider.js";
+import { initAuthEntry } from "../features/auth/auth-entry.js";
+import { initAssetPanel } from "../features/workspace/asset-library/asset-panel.js";
+import { initAgentPanel } from "../features/agent/agent-panel.js";
+import { mountWorkspaceApp } from "../features/workspace/runtime/index.js";
 
 export async function initApp() {
   registerAIProvider("mock", mockProvider);
   registerAIProvider("server", serverAPIProvider);
   setActiveAIProvider("server");
 
-  // Load the compatibility layer first so existing UI interactions keep working
-  // while the new architecture is migrated module by module.
-  await import("../legacy-app.js");
-
+  const workspaceMount = mountWorkspaceApp(document);
+  const authEntry = initAuthEntry(document);
+  const workspaceRuntime = workspaceMount.runtime;
   const canvasController = initCanvasController({ eventBus, root: document });
   const agentEventSystem = createAgentEventSystem({ eventBus, canvasController });
   const suggestionEngine = createSuggestionEngine({ canvasController, eventBus });
 
-  initAssetPanel({ eventBus });
+  const assetPanel = initAssetPanel({ eventBus });
   initAgentPanel({
     eventBus,
     onAction: (suggestion) => executeAgentAction(suggestion, {
@@ -33,15 +32,16 @@ export async function initApp() {
       canvasRoot: document
     })
   });
-  initCanvasToolbar({ eventBus });
-  initTaskBar({ eventBus });
-
   const architecture = {
     eventBus,
     state: appState,
     canvasController,
     agentEventSystem,
     suggestionEngine,
+    assetPanel,
+    authEntry,
+    workspaceMount,
+    workspaceRuntime,
     executeAgentAction: (suggestion) => executeAgentAction(suggestion, {
       eventBus,
       canvasRoot: document

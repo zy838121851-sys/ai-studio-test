@@ -1,0 +1,61 @@
+﻿
+/* Light-only refinements: remove default blue menu selections */
+body[data-theme="light"] .add-node-menu,
+body[data-theme="light"] .canvas-context-menu {
+  color: #182230 !important;
+  background: rgba(255, 255, 255, 0.78) !important;
+  border: 1px solid rgba(255, 255, 255, 0.86) !important;
+  box-shadow: 0 24px 74px rgba(31, 46, 72, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(28px) saturate(1.45);
+  -webkit-backdrop-filter: blur(28px) saturate(1.45);
+}
+
+body[data-theme="light"] .add-node-menu button,
+body[data-theme="light"] .add-node-menu button:first-of-type,
+body[data-theme="light"] .canvas-context-menu button,
+body[data-theme="light"] .canvas-context-menu button:first-child {
+  color: #182230 !important;
+  border: 1px solid rgba(255, 255, 255, 0.62) !important;
+  background: rgba(247, 250, 255, 0.58) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.74) !important;
+}
+
+body[data-theme="light"] .add-node-menu button:hover,
+body[data-theme="light"] .add-node-menu button:first-of-type:hover,
+body[data-theme="light"] .canvas-context-menu button:hover,
+body[data-theme="light"] .canvas-context-menu button:first-child:hover {
+  color: #111827 !important;
+  border-color: rgba(255, 255, 255, 0.92) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  box-shadow: 0 16px 34px rgba(31, 46, 72, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
+}
+
+body[data-theme="light"] .add-node-menu span {
+  color: #ffffff !important;
+  background: #20242a !important;
+}
+
+body[data-theme="light"] .add-node-menu strong,
+body[data-theme="light"] .canvas-context-menu strong {
+  color: #182230 !important;
+}
+
+body[data-theme="light"] .add-node-menu small,
+body[data-theme="light"] .add-node-menu em,
+body[data-theme="light"] .canvas-context-menu kbd {
+  color: #8a94a3 !important;
+}
+
+body[data-theme="light"] .canvas-context-menu span {
+  background: rgba(24, 34, 48, 0.08) !important;
+}
+
+/* Compact chrome: collapsible rail, D project menu, simplified zoom bar */
+.top-actions {
+  display: none !important;
+}
+
+.project-header {
+  top: 18px !important;
+  left: 22px !important;
+  min-height: 72px;
