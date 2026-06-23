@@ -5,11 +5,12 @@ import { join } from "node:path";
 const tempRoot = mkdtempSync(join(tmpdir(), "ai-studio-smoke-"));
 process.env.NODE_ENV = "test";
 process.env.DASHSCOPE_API_KEY = "";
-process.env.SQLITE_DB_PATH = join(tempRoot, "smoke.sqlite");
+process.env.DB_PATH = join(tempRoot, "smoke.sqlite");
 process.env.UPLOAD_DIR = join(tempRoot, "uploads");
 process.env.PORT = "0";
 
 const { createServer } = await import("../src/server/index.js");
+const { closeDatabase } = await import("../src/server/db/sqlite.js");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -176,5 +177,6 @@ try {
   console.log("Smoke test passed.");
 } finally {
   await new Promise((resolve) => server?.close(resolve) || resolve());
+  closeDatabase();
   rmSync(tempRoot, { recursive: true, force: true });
 }

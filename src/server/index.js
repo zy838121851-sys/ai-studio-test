@@ -39,6 +39,7 @@ export function createServer() {
     next();
   };
 
+  app.use("/", noStoreApi, createHealthRouter());
   app.use("/api", noStoreApi, createHealthRouter());
   app.use("/api", noStoreApi, createAuthRouter());
   app.use("/api", noStoreApi, createAIRouter());
@@ -91,10 +92,11 @@ function isAppNavigationPath(pathname = "") {
   return !lastSegment.includes(".") && !extname(lastSegment);
 }
 
-export function startServer(port = env.port) {
+export function startServer(port = env.port, host = process.env.HOST || "0.0.0.0") {
   const app = createServer();
-  const server = app.listen(port, () => {
-    logInfo(`AI Canvas running at http://localhost:${port}`, {
+  const server = app.listen(port, host, () => {
+    logInfo(`AI Canvas running at http://${host}:${port}`, {
+      host,
       nodeEnv: env.nodeEnv
     });
   });

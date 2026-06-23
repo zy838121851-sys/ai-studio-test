@@ -1,52 +1,38 @@
+import Database from "better-sqlite3";
 import { existsSync, mkdirSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { spawnSync } from "node:child_process";
 
 const DEFAULT_DB_PATH = join(process.cwd(), "data", "ai-studio.sqlite");
 
 export const databasePath = process.env.DATABASE_URL?.startsWith("sqlite:")
   ? process.env.DATABASE_URL.slice("sqlite:".length)
-  : (process.env.SQLITE_DB_PATH || DEFAULT_DB_PATH);
+  : (process.env.DB_PATH || process.env.SQLITE_DB_PATH || DEFAULT_DB_PATH);
+
+let connection = null;
 
 function ensureDatabaseDirectory() {
   const dir = dirname(databasePath);
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true });
 }
 
-function runSqliteScript(script) {
+function getConnection() {
   ensureDatabaseDirectory();
-  const result = spawnSync("sqlite3", ["-batch", databasePath], {
-    input: script,
-    encoding: "utf8"
-  });
-  if (result.error) throw result.error;
-  if (result.status !== 0) {
-    throw new Error((result.stderr || "sqlite3 command failed").trim());
+  if (!connection) {
+    connection = new Database(databasePath);
+    connection.pragma("foreign_keys = ON");
   }
-  return result.stdout || "";
-}
-
-function runReadOnlySqliteScript(script) {
-  const result = spawnSync("sqlite3", ["-readonly", "-batch", databasePath], {
-    input: script,
-    encoding: "utf8"
-  });
-  if (result.error) throw result.error;
-  if (result.status !== 0) {
-    throw new Error((result.stderr || "sqlite3 read-only command failed").trim());
-  }
-  return result.stdout || "";
+  return connection;
 }
 
 export function assertSqliteAvailable() {
-  const result = spawnSync("sqlite3", ["-version"], { encoding: "utf8" });
-  if (result.error) {
-    throw new Error("sqlite3 command is required but was not found in PATH");
-  }
-  if (result.status !== 0) {
-    throw new Error((result.stderr || "sqlite3 command is not usable").trim());
-  }
-  return (result.stdout || "").trim();
+  getConnection();
+  return "better-sqlite3";
+}
+
+export function closeDatabase() {
+  if (!connection) return;
+  connection.close();
+  connection = null;
 }
 
 export function sqlValue(value) {
@@ -60,13 +46,11 @@ export function sqlValue(value) {
 }
 
 export function execute(sql) {
-  runSqliteScript(`${sql.trim()}\n`);
+  getConnection().exec(sql.trim());
 }
 
 export function query(sql) {
-  const output = runSqliteScript(`.mode json\n${sql.trim()}\n`);
-  const clean = output.trim();
-  return clean ? JSON.parse(clean) : [];
+  return getConnection().prepare(sql.trim()).all();
 }
 
 export function queryOne(sql) {
@@ -74,14 +58,12 @@ export function queryOne(sql) {
 }
 
 export function queryReadOnly(sql) {
-  const output = runReadOnlySqliteScript(`.mode json\n${sql.trim()}\n`);
-  const clean = output.trim();
-  return clean ? JSON.parse(clean) : [];
+  return query(sql);
 }
 
 export function getDatabaseHealth() {
   assertSqliteAvailable();
-  const integrity = runReadOnlySqliteScript("PRAGMA integrity_check;\n").trim();
+  const integrity = queryReadOnly("PRAGMA integrity_check;")[0]?.integrity_check || "unknown";
   const foreignKeyRows = queryReadOnly("PRAGMA foreign_key_check;");
   const counts = queryReadOnly(`
     SELECT 'users' AS name, count(*) AS count FROM users

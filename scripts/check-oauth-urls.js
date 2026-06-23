@@ -4,7 +4,7 @@ import { join } from "node:path";
 
 const tempRoot = mkdtempSync(join(tmpdir(), "ai-studio-oauth-"));
 process.env.NODE_ENV = "test";
-process.env.SQLITE_DB_PATH = join(tempRoot, "oauth.sqlite");
+process.env.DB_PATH = join(tempRoot, "oauth.sqlite");
 process.env.UPLOAD_DIR = join(tempRoot, "uploads");
 process.env.PORT = "0";
 process.env.APP_BASE_URL = "https://beta.example.test";
@@ -17,7 +17,7 @@ const { createServer } = await import("../src/server/index.js");
 const { createUserWithIdentity } = await import("../src/server/auth/identity.service.js");
 const { cleanupOAuthStates } = await import("../src/server/auth/oauth.service.js");
 const { cleanupVerificationCodes } = await import("../src/server/auth/verification.service.js");
-const { execute, queryOne, sqlValue } = await import("../src/server/db/sqlite.js");
+const { closeDatabase, execute, queryOne, sqlValue } = await import("../src/server/db/sqlite.js");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -149,5 +149,6 @@ try {
   console.log("OAuth URL check passed.");
 } finally {
   await new Promise((resolve) => server?.close(resolve) || resolve());
+  closeDatabase();
   rmSync(tempRoot, { recursive: true, force: true });
 }
