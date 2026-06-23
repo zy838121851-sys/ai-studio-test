@@ -15,7 +15,9 @@ process.env.QQ_OAUTH_CLIENT_SECRET = "qq-secret";
 
 const { createServer } = await import("../src/server/index.js");
 const { createUserWithIdentity } = await import("../src/server/auth/identity.service.js");
-const { execute, sqlValue } = await import("../src/server/db/sqlite.js");
+const { cleanupOAuthStates } = await import("../src/server/auth/oauth.service.js");
+const { cleanupVerificationCodes } = await import("../src/server/auth/verification.service.js");
+const { execute, queryOne, sqlValue } = await import("../src/server/db/sqlite.js");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -97,9 +99,52 @@ try {
   assert(authenticatedPayload.status === "authenticated", "wechat QR status should become authenticated");
   assert(authenticated.setCookie.includes("ai_studio_session="), "wechat QR status should set a session cookie");
 
+  const authenticatedAgain = await request(baseUrl, `/api/auth/oauth/wechat/status/${qrPayload.state}`);
+  assert(authenticatedAgain.status === 200, `wechat second authenticated status expected 200, got ${authenticatedAgain.status}`);
+  assert(!authenticatedAgain.setCookie.includes("ai_studio_session="), "wechat QR status should not issue duplicate sessions");
+
   const cookie = authenticated.setCookie.split(";")[0];
   const me = await request(baseUrl, "/api/auth/me", { cookie });
   assert(JSON.parse(me.text).user?.id === user.id, "wechat QR session cookie should authenticate current browser");
+
+  const old = now - 48 * 60 * 60 * 1000;
+  execute(`
+    INSERT INTO oauth_states (state, provider, redirect_to, expires_at, user_id, completed_at, consumed_at, created_at)
+    VALUES ('expired-oauth-state', 'wechat', '/', ${old}, NULL, NULL, NULL, ${old});
+  `);
+  cleanupOAuthStates(now);
+  assert(!queryOne("SELECT state FROM oauth_states WHERE state = 'expired-oauth-state';"), "expired OAuth states should be cleaned");
+
+  execute(`
+    INSERT INTO verification_codes (
+      id,
+      channel,
+      target,
+      purpose,
+      code_hash,
+      salt,
+      expires_at,
+      consumed_at,
+      attempt_count,
+      created_at,
+      last_sent_at
+    )
+    VALUES (
+      'expired-verification-code',
+      'email',
+      'expired@example.test',
+      'login',
+      'hash',
+      'salt',
+      ${old},
+      NULL,
+      0,
+      ${old},
+      ${old}
+    );
+  `);
+  cleanupVerificationCodes(now);
+  assert(!queryOne("SELECT id FROM verification_codes WHERE id = 'expired-verification-code';"), "expired verification codes should be cleaned");
 
   console.log("OAuth URL check passed.");
 } finally {

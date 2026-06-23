@@ -2,7 +2,7 @@ import { Router } from "express";
 import QRCode from "qrcode";
 import { createSession, clearSessionCookie, destroySession, getSessionToken, setSessionCookie } from "../auth/session.js";
 import { authenticateUser, createUser } from "../auth/user.service.js";
-import { createOAuthStart, getOAuthStateStatus, handleOAuthCallback } from "../auth/oauth.service.js";
+import { createOAuthStart, getOAuthStateStatus, handleOAuthCallback, markOAuthStateSessionIssued } from "../auth/oauth.service.js";
 import { getAuthProviderStatus } from "../auth/provider-status.service.js";
 import { sendVerificationCode, verifyCodeAndGetUser } from "../auth/verification.service.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
@@ -143,9 +143,10 @@ export function createAuthRouter() {
   router.get("/auth/oauth/:provider/status/:state", oauthPollLimiter, (req, res) => {
     try {
       const result = getOAuthStateStatus(req.params.provider, req.params.state);
-      if (result.status === "authenticated" && result.user?.id) {
+      if (result.status === "authenticated" && result.user?.id && !result.sessionIssued) {
         const token = createSession(result.user.id);
         setSessionCookie(res, token);
+        markOAuthStateSessionIssued(req.params.provider, req.params.state);
       }
       res.json(result);
     } catch (error) {

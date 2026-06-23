@@ -6,6 +6,7 @@ import { deliverVerificationCode } from "./code-provider.service.js";
 const CODE_TTL_MS = 5 * 60 * 1000;
 const RESEND_WINDOW_MS = 60 * 1000;
 const MAX_ATTEMPTS = 5;
+const VERIFICATION_CODE_RETENTION_MS = 24 * 60 * 60 * 1000;
 
 function normalizeChannel(channel) {
   const clean = String(channel || "").trim().toLowerCase();
@@ -25,6 +26,20 @@ function makeCode() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
+export function cleanupVerificationCodes(now = Date.now()) {
+  execute(`
+    DELETE FROM verification_codes
+    WHERE (
+        consumed_at IS NULL
+        AND expires_at <= ${now}
+      )
+      OR (
+        consumed_at IS NOT NULL
+        AND consumed_at <= ${now - VERIFICATION_CODE_RETENTION_MS}
+      );
+  `);
+}
+
 export async function sendVerificationCode({ channel, target, purpose = "login" } = {}) {
   const cleanChannel = normalizeChannel(channel);
   const cleanTarget = normalizeTarget(cleanChannel, target);
@@ -35,6 +50,7 @@ export async function sendVerificationCode({ channel, target, purpose = "login" 
   }
 
   const now = Date.now();
+  cleanupVerificationCodes(now);
   const existing = queryOne(`
     SELECT id, last_sent_at
     FROM verification_codes

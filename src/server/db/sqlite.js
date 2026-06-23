@@ -174,6 +174,7 @@ export function initializeDatabase() {
       expires_at INTEGER NOT NULL,
       user_id TEXT,
       completed_at INTEGER,
+      session_issued_at INTEGER,
       consumed_at INTEGER,
       created_at INTEGER NOT NULL
     );
@@ -260,6 +261,9 @@ export function initializeDatabase() {
   }
   if (!tableHasColumn("oauth_states", "completed_at")) {
     execute("ALTER TABLE oauth_states ADD COLUMN completed_at INTEGER;");
+  }
+  if (!tableHasColumn("oauth_states", "session_issued_at")) {
+    execute("ALTER TABLE oauth_states ADD COLUMN session_issued_at INTEGER;");
   }
   execute("CREATE INDEX IF NOT EXISTS idx_assets_user_collection_id ON assets(user_id, collection_id, deleted_at);");
 

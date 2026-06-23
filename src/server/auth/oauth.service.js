@@ -4,6 +4,7 @@ import { execute, queryOne, sqlValue } from "../db/sqlite.js";
 import { findOrCreateIdentityUser, publicUser } from "./identity.service.js";
 
 const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
+const OAUTH_STATE_RETENTION_MS = 24 * 60 * 60 * 1000;
 
 const PROVIDERS = {
   wechat: {
@@ -49,6 +50,7 @@ export function createOAuthStart(provider, { redirectTo = "/" } = {}) {
   const { provider: cleanProvider, config } = providerConfig(provider);
   const state = randomUUID();
   const now = Date.now();
+  cleanupOAuthStates(now);
   execute(`
     INSERT INTO oauth_states (state, provider, redirect_to, expires_at, consumed_at, created_at)
     VALUES (
@@ -75,6 +77,20 @@ export function createOAuthStart(provider, { redirectTo = "/" } = {}) {
     expiresInSeconds: Math.floor(OAUTH_STATE_TTL_MS / 1000),
     authorizationUrl: `${config.authUrl}?${params.toString()}${config.authHash || ""}`
   };
+}
+
+export function cleanupOAuthStates(now = Date.now()) {
+  execute(`
+    DELETE FROM oauth_states
+    WHERE (
+        consumed_at IS NULL
+        AND expires_at <= ${now}
+      )
+      OR (
+        consumed_at IS NOT NULL
+        AND consumed_at <= ${now - OAUTH_STATE_RETENTION_MS}
+      );
+  `);
 }
 
 function getPendingOAuthState(provider, state) {
@@ -209,6 +225,7 @@ export function getOAuthStateStatus(provider, state) {
       oauth_states.provider,
       oauth_states.expires_at,
       oauth_states.completed_at,
+      oauth_states.session_issued_at,
       oauth_states.consumed_at,
       users.id,
       users.email,
@@ -226,7 +243,8 @@ export function getOAuthStateStatus(provider, state) {
   if (row.id) {
     return {
       status: "authenticated",
-      user: publicUser(row)
+      user: publicUser(row),
+      sessionIssued: Boolean(row.session_issued_at)
     };
   }
   if (row.consumed_at) return { status: "failed" };
@@ -234,4 +252,17 @@ export function getOAuthStateStatus(provider, state) {
     status: "pending",
     expiresInSeconds: Math.max(0, Math.floor((Number(row.expires_at || 0) - now) / 1000))
   };
+}
+
+export function markOAuthStateSessionIssued(provider, state) {
+  const cleanProvider = String(provider || "").trim().toLowerCase();
+  const cleanState = String(state || "").trim();
+  if (!PROVIDERS[cleanProvider] || !cleanState) return;
+  execute(`
+    UPDATE oauth_states
+    SET session_issued_at = ${Date.now()}
+    WHERE provider = ${sqlValue(cleanProvider)}
+      AND state = ${sqlValue(cleanState)}
+      AND session_issued_at IS NULL;
+  `);
 }

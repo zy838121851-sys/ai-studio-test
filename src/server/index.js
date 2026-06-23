@@ -2,6 +2,7 @@ import express from "express";
 import { extname, join } from "node:path";
 import { env } from "./config/env.js";
 import { validateRuntimeEnvironment } from "./config/runtime.js";
+import { cleanupAuthArtifacts } from "./auth/cleanup.service.js";
 import { initializeDatabase } from "./db/sqlite.js";
 import { logError, logInfo } from "./lib/logger.js";
 import { attachAuth } from "./middleware/auth.middleware.js";
@@ -18,6 +19,7 @@ import { createUploadRouter } from "./routes/upload.routes.js";
 export function createServer() {
   validateRuntimeEnvironment();
   initializeDatabase();
+  cleanupAuthArtifacts();
 
   const app = express();
   const rootDir = process.cwd();
