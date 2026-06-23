@@ -17,5 +17,22 @@ export const env = {
     "https://dashscope.aliyuncs.com/api/v1/tasks",
   maxUploadBytes: Number(process.env.MAX_UPLOAD_BYTES || 25 * 1024 * 1024),
   maxProxyImageBytes: Number(process.env.MAX_PROXY_IMAGE_BYTES || 10 * 1024 * 1024),
-  uploadDir: process.env.UPLOAD_DIR || join(process.cwd(), "uploads")
+  uploadDir: process.env.UPLOAD_DIR || join(process.cwd(), "uploads"),
+  appBaseUrl: process.env.APP_BASE_URL || `http://localhost:${process.env.PORT || 3000}`,
+  authCodeProvider: process.env.AUTH_CODE_PROVIDER || "aliyun",
+  aliyunAccessKeyId: process.env.ALIYUN_ACCESS_KEY_ID || "",
+  aliyunAccessKeySecret: process.env.ALIYUN_ACCESS_KEY_SECRET || "",
+  aliyunSmsEndpoint: process.env.ALIYUN_SMS_ENDPOINT || "dysmsapi.aliyuncs.com",
+  aliyunSmsSignName: process.env.ALIYUN_SMS_SIGN_NAME || "",
+  aliyunSmsTemplateCode: process.env.ALIYUN_SMS_TEMPLATE_CODE || "",
+  aliyunDmEndpoint: process.env.ALIYUN_DM_ENDPOINT || "dm.aliyuncs.com",
+  aliyunDmAccountName: process.env.ALIYUN_DM_ACCOUNT_NAME || "",
+  aliyunDmFromAlias: process.env.ALIYUN_DM_FROM_ALIAS || "AI Studio",
+  aliyunDmReplyToAddress: process.env.ALIYUN_DM_REPLY_TO_ADDRESS || "false",
+  wechatOAuthClientId: process.env.WECHAT_OAUTH_CLIENT_ID || "",
+  wechatOAuthClientSecret: process.env.WECHAT_OAUTH_CLIENT_SECRET || "",
+  wechatOAuthRedirectUri: process.env.WECHAT_OAUTH_REDIRECT_URI || "",
+  qqOAuthClientId: process.env.QQ_OAUTH_CLIENT_ID || "",
+  qqOAuthClientSecret: process.env.QQ_OAUTH_CLIENT_SECRET || "",
+  qqOAuthRedirectUri: process.env.QQ_OAUTH_REDIRECT_URI || ""
 };

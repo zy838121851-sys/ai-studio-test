@@ -140,18 +140,36 @@
           <button class="active" type="button" data-auth-mode="login">登录</button>
           <button type="button" data-auth-mode="register">注册</button>
         </div>
+        <div class="auth-methods" role="tablist" aria-label="登录方式">
+          <button class="active" type="button" data-auth-method="email-code">邮箱验证码</button>
+          <button type="button" data-auth-method="phone-code">手机号</button>
+          <button type="button" data-auth-method="password">邮箱密码</button>
+        </div>
+        <div class="auth-oauth-row">
+          <button type="button" data-auth-oauth="wechat">微信扫码登录</button>
+          <button type="button" data-auth-oauth="qq">QQ 登录</button>
+        </div>
         <form class="auth-form" id="authForm">
           <label class="auth-name-field hidden">
             <span>昵称</span>
             <input id="authName" type="text" autocomplete="name" placeholder="你的昵称" />
           </label>
-          <label>
+          <label class="auth-email-field">
             <span>邮箱</span>
-            <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" required />
+            <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" />
           </label>
-          <label>
+          <label class="auth-phone-field hidden">
+            <span>手机号</span>
+            <input id="authPhone" type="tel" autocomplete="tel" placeholder="+8613800000000" />
+          </label>
+          <label class="auth-code-field">
+            <span>验证码</span>
+            <input id="authCode" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="6 位验证码" />
+          </label>
+          <button class="auth-code-button" id="authSendCode" type="button">发送验证码</button>
+          <label class="auth-password-field hidden">
             <span>密码</span>
-            <input id="authPassword" type="password" autocomplete="current-password" placeholder="至少 8 位" required />
+            <input id="authPassword" type="password" autocomplete="current-password" placeholder="至少 8 位" />
           </label>
           <p class="auth-message" id="authMessage" role="status"></p>
           <button class="auth-submit" id="authSubmit" type="submit">登录</button>

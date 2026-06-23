@@ -81,6 +81,56 @@ try {
   });
   assert(duplicate.status === 409, `duplicate register expected 409, got ${duplicate.status}`);
 
+  const emailCode = await request(baseUrl, "/api/auth/code/send", {
+    method: "POST",
+    body: {
+      channel: "email",
+      target: `code-${Date.now()}@example.test`,
+      purpose: "register"
+    }
+  });
+  assert(emailCode.status === 200, `send email code expected 200, got ${emailCode.status}`);
+  assert(emailCode.data.code, "mock email code was not returned in test mode");
+
+  const emailCodeLogin = await request(baseUrl, "/api/auth/code/verify", {
+    method: "POST",
+    body: {
+      channel: "email",
+      target: emailCode.data.target,
+      code: emailCode.data.code,
+      purpose: "register",
+      name: "Email Code Smoke"
+    }
+  });
+  assert(emailCodeLogin.status === 200, `email code verify expected 200, got ${emailCodeLogin.status}`);
+  assert(emailCodeLogin.headers.get("set-cookie")?.includes("ai_studio_session="), "email code verify did not set cookie");
+
+  const phoneCode = await request(baseUrl, "/api/auth/code/send", {
+    method: "POST",
+    body: {
+      channel: "sms",
+      target: "+8613800000000",
+      purpose: "register"
+    }
+  });
+  assert(phoneCode.status === 200, `send phone code expected 200, got ${phoneCode.status}`);
+  assert(phoneCode.data.code, "mock phone code was not returned in test mode");
+
+  const phoneCodeLogin = await request(baseUrl, "/api/auth/code/verify", {
+    method: "POST",
+    body: {
+      channel: "sms",
+      target: phoneCode.data.target,
+      code: phoneCode.data.code,
+      purpose: "register",
+      name: "Phone Code Smoke"
+    }
+  });
+  assert(phoneCodeLogin.status === 200, `phone code verify expected 200, got ${phoneCodeLogin.status}`);
+
+  const wechatStart = await request(baseUrl, "/api/auth/oauth/wechat/start?format=json");
+  assert(wechatStart.status === 503, `unconfigured wechat start expected 503, got ${wechatStart.status}`);
+
   const project = await request(baseUrl, "/api/projects", {
     method: "POST",
     cookie,

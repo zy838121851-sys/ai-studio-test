@@ -422,6 +422,35 @@ body:not([data-view="canvas"]) .app {
   box-shadow: 0 8px 20px rgba(31, 46, 72, 0.08);
 }
 
+.auth-methods,
+.auth-oauth-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.auth-oauth-row {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.auth-methods button,
+.auth-oauth-row button,
+.auth-code-button {
+  min-height: 36px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.86);
+  color: #17202c;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.auth-methods button.active {
+  background: rgba(23, 32, 44, 0.92);
+  color: #fff;
+}
+
 .auth-form {
   display: grid;
   gap: 12px;
@@ -435,7 +464,8 @@ body:not([data-view="canvas"]) .app {
   font-weight: 750;
 }
 
-.auth-form label.hidden {
+.auth-form label.hidden,
+.auth-code-button.hidden {
   display: none;
 }
 

@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { spawnSync } from "node:child_process";
 import { existsSync } from "node:fs";
-import { databasePath } from "../src/server/db/sqlite.js";
+import { databasePath, initializeDatabase } from "../src/server/db/sqlite.js";
 
 function runSql(sql) {
   const result = spawnSync("sqlite3", ["-readonly", "-batch", databasePath], {
@@ -17,12 +17,17 @@ if (!existsSync(databasePath)) {
   throw new Error(`SQLite database does not exist: ${databasePath}`);
 }
 
+initializeDatabase();
+
 const integrity = runSql("PRAGMA integrity_check;\n");
 const foreignKeys = runSql(".mode json\nPRAGMA foreign_key_check;\n");
 const counts = runSql(`
 .headers off
 SELECT 'users=' || count(*) FROM users;
 SELECT 'sessions=' || count(*) FROM sessions;
+SELECT 'user_identities=' || count(*) FROM user_identities;
+SELECT 'verification_codes=' || count(*) FROM verification_codes;
+SELECT 'oauth_states=' || count(*) FROM oauth_states;
 SELECT 'projects=' || count(*) FROM projects;
 SELECT 'asset_collections=' || count(*) FROM asset_collections;
 SELECT 'assets=' || count(*) FROM assets;

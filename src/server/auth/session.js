@@ -1,5 +1,6 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { execute, queryOne, sqlValue } from "../db/sqlite.js";
+import { publicEmail } from "./identity.service.js";
 
 export const SESSION_COOKIE_NAME = "ai_studio_session";
 export const SESSION_MAX_AGE_MS = 7 * 24 * 60 * 60 * 1000;
@@ -96,7 +97,7 @@ export function findSessionUser(token) {
     sessionId: row.session_id,
     user: {
       id: row.id,
-      email: row.email,
+      email: publicEmail(row.email),
       name: row.name,
       createdAt: row.created_at
     }

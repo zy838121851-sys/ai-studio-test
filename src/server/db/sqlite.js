@@ -86,6 +86,9 @@ export function getDatabaseHealth() {
   const counts = queryReadOnly(`
     SELECT 'users' AS name, count(*) AS count FROM users
     UNION ALL SELECT 'sessions', count(*) FROM sessions
+    UNION ALL SELECT 'user_identities', count(*) FROM user_identities
+    UNION ALL SELECT 'verification_codes', count(*) FROM verification_codes
+    UNION ALL SELECT 'oauth_states', count(*) FROM oauth_states
     UNION ALL SELECT 'projects', count(*) FROM projects
     UNION ALL SELECT 'asset_collections', count(*) FROM asset_collections
     UNION ALL SELECT 'assets', count(*) FROM assets;
@@ -129,6 +132,52 @@ export function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_sessions_token_hash ON sessions(token_hash);
     CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id);
     CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at);
+
+    CREATE TABLE IF NOT EXISTS user_identities (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      provider TEXT NOT NULL,
+      identifier TEXT NOT NULL,
+      display_name TEXT NOT NULL DEFAULT '',
+      avatar_url TEXT NOT NULL DEFAULT '',
+      verified_at INTEGER,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      UNIQUE(provider, identifier),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_user_identities_user_id
+      ON user_identities(user_id);
+
+    CREATE TABLE IF NOT EXISTS verification_codes (
+      id TEXT PRIMARY KEY,
+      channel TEXT NOT NULL,
+      target TEXT NOT NULL,
+      purpose TEXT NOT NULL,
+      code_hash TEXT NOT NULL,
+      salt TEXT NOT NULL,
+      expires_at INTEGER NOT NULL,
+      consumed_at INTEGER,
+      attempt_count INTEGER NOT NULL DEFAULT 0,
+      created_at INTEGER NOT NULL,
+      last_sent_at INTEGER NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_verification_codes_target
+      ON verification_codes(channel, target, purpose, consumed_at, expires_at);
+
+    CREATE TABLE IF NOT EXISTS oauth_states (
+      state TEXT PRIMARY KEY,
+      provider TEXT NOT NULL,
+      redirect_to TEXT NOT NULL DEFAULT '/',
+      expires_at INTEGER NOT NULL,
+      consumed_at INTEGER,
+      created_at INTEGER NOT NULL
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_oauth_states_provider
+      ON oauth_states(provider, expires_at);
 
     CREATE TABLE IF NOT EXISTS projects (
       id TEXT PRIMARY KEY,
@@ -201,7 +250,37 @@ export function initializeDatabase() {
   if (!tableHasColumn("assets", "collection_id")) {
     execute("ALTER TABLE assets ADD COLUMN collection_id TEXT;");
   }
+  if (!tableHasColumn("users", "phone")) {
+    execute("ALTER TABLE users ADD COLUMN phone TEXT;");
+  }
   execute("CREATE INDEX IF NOT EXISTS idx_assets_user_collection_id ON assets(user_id, collection_id, deleted_at);");
+
+  execute(`
+    INSERT OR IGNORE INTO user_identities (
+      id,
+      user_id,
+      provider,
+      identifier,
+      display_name,
+      avatar_url,
+      verified_at,
+      created_at,
+      updated_at
+    )
+    SELECT
+      'email-password-' || id,
+      id,
+      'email',
+      lower(email),
+      name,
+      '',
+      created_at,
+      created_at,
+      updated_at
+    FROM users
+    WHERE email IS NOT NULL
+      AND email != '';
+  `);
 }
 
 export function cleanupExpiredOrphanSessions(now = Date.now()) {

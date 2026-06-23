@@ -53,6 +53,24 @@ export function register({ email, password, name }) {
   });
 }
 
+export function sendAuthCode({ channel, target, purpose = "login" }) {
+  return requestJson("/api/auth/code/send", {
+    method: "POST",
+    body: JSON.stringify({ channel, target, purpose })
+  });
+}
+
+export function verifyAuthCode({ channel, target, code, name, purpose = "login" }) {
+  return requestJson("/api/auth/code/verify", {
+    method: "POST",
+    body: JSON.stringify({ channel, target, code, name, purpose })
+  });
+}
+
+export function startOAuth(provider) {
+  window.location.href = `/api/auth/oauth/${provider}/start`;
+}
+
 export function logout() {
   return requestJson("/api/auth/logout", { method: "POST" });
 }

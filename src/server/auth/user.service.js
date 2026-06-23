@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { execute, queryOne, sqlValue } from "../db/sqlite.js";
+import { publicEmail } from "./identity.service.js";
 import { hashPassword, verifyPassword } from "./password.js";
 
 function normalizeEmail(email) {
@@ -10,7 +11,8 @@ function publicUser(row) {
   if (!row) return null;
   return {
     id: row.id,
-    email: row.email,
+    email: publicEmail(row.email),
+    phone: row.phone || "",
     name: row.name || "",
     createdAt: row.created_at
   };

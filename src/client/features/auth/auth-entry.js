@@ -1,4 +1,12 @@
-import { getCurrentUser, login, logout, register } from "./auth-client.js";
+import {
+  getCurrentUser,
+  login,
+  logout,
+  register,
+  sendAuthCode,
+  startOAuth,
+  verifyAuthCode
+} from "./auth-client.js";
 
 export function initAuthEntry(root = document) {
   const entry = root.querySelector("#authEntry");
@@ -11,15 +19,25 @@ export function initAuthEntry(root = document) {
   const form = root.querySelector("#authForm");
   const title = root.querySelector("#authDialogTitle");
   const emailInput = root.querySelector("#authEmail");
+  const phoneInput = root.querySelector("#authPhone");
+  const codeInput = root.querySelector("#authCode");
   const passwordInput = root.querySelector("#authPassword");
   const nameInput = root.querySelector("#authName");
   const nameField = root.querySelector(".auth-name-field");
+  const emailField = root.querySelector(".auth-email-field");
+  const phoneField = root.querySelector(".auth-phone-field");
+  const codeField = root.querySelector(".auth-code-field");
+  const passwordField = root.querySelector(".auth-password-field");
   const message = root.querySelector("#authMessage");
   const submit = root.querySelector("#authSubmit");
+  const codeButton = root.querySelector("#authSendCode");
   const tabs = Array.from(root.querySelectorAll("[data-auth-mode]"));
+  const methodButtons = Array.from(root.querySelectorAll("[data-auth-method]"));
+  const oauthButtons = Array.from(root.querySelectorAll("[data-auth-oauth]"));
   if (!entry || !entryButton || !dialog || !form) return { refresh() {} };
 
   let mode = "login";
+  let method = "email-code";
   let user = null;
   let closeMenuTimer = 0;
 
@@ -37,7 +55,7 @@ export function initAuthEntry(root = document) {
   };
 
   const renderEntry = () => {
-    const displayName = user ? user.name || user.email?.split("@")[0] || "User" : "";
+    const displayName = user ? user.name || user.email?.split("@")[0] || user.phone || "User" : "";
     const initial = displayName.trim().charAt(0).toUpperCase() || "D";
     entry.classList.toggle("is-authenticated", Boolean(user));
     entryButton.textContent = user ? initial : "登录 / 注册";
@@ -49,7 +67,7 @@ export function initAuthEntry(root = document) {
     );
     if (accountAvatar) accountAvatar.textContent = initial;
     if (accountName) accountName.textContent = displayName;
-    if (accountEmail) accountEmail.textContent = user?.email || "";
+    if (accountEmail) accountEmail.textContent = user?.email || user?.phone || "";
     if (!user) closeAccountMenu();
   };
 
@@ -72,13 +90,31 @@ export function initAuthEntry(root = document) {
     closeMenuTimer = window.setTimeout(closeAccountMenu, 160);
   };
 
+  const applyMethod = () => {
+    const usesEmail = method === "email-code" || method === "password";
+    const usesPhone = method === "phone-code";
+    const usesCode = method === "email-code" || method === "phone-code";
+    const usesPassword = method === "password";
+    emailField?.classList.toggle("hidden", !usesEmail);
+    phoneField?.classList.toggle("hidden", !usesPhone);
+    codeField?.classList.toggle("hidden", !usesCode);
+    passwordField?.classList.toggle("hidden", !usesPassword);
+    codeButton?.classList.toggle("hidden", !usesCode);
+    if (emailInput) emailInput.required = usesEmail;
+    if (phoneInput) phoneInput.required = usesPhone;
+    if (codeInput) codeInput.required = usesCode;
+    if (passwordInput) passwordInput.required = usesPassword;
+    methodButtons.forEach((button) => button.classList.toggle("active", button.dataset.authMethod === method));
+    submit.textContent = usesPassword ? (mode === "register" ? "注册" : "登录") : "验证码登录";
+  };
+
   const setMode = (nextMode) => {
     mode = nextMode === "register" ? "register" : "login";
     tabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.authMode === mode));
     title.textContent = mode === "register" ? "创建账户" : "登录到 AI Studio";
-    submit.textContent = mode === "register" ? "注册" : "登录";
     nameField?.classList.toggle("hidden", mode !== "register");
     passwordInput?.setAttribute("autocomplete", mode === "register" ? "new-password" : "current-password");
+    applyMethod();
     setMessage();
   };
 
@@ -86,7 +122,7 @@ export function initAuthEntry(root = document) {
     setMode(mode);
     dialog.classList.remove("hidden");
     dialog.setAttribute("aria-hidden", "false");
-    window.setTimeout(() => emailInput?.focus(), 30);
+    window.setTimeout(() => (method === "phone-code" ? phoneInput : emailInput)?.focus(), 30);
   };
 
   const closeDialog = () => {
@@ -108,11 +144,8 @@ export function initAuthEntry(root = document) {
 
   entryButton.addEventListener("click", () => {
     if (user) {
-      if (accountPopover?.classList.contains("hidden")) {
-        openAccountMenu();
-      } else {
-        closeAccountMenu();
-      }
+      if (accountPopover?.classList.contains("hidden")) openAccountMenu();
+      else closeAccountMenu();
       return;
     }
     openDialog();
@@ -152,17 +185,56 @@ export function initAuthEntry(root = document) {
     tab.addEventListener("click", () => setMode(tab.dataset.authMode));
   });
 
+  methodButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      method = button.dataset.authMethod || "email-code";
+      applyMethod();
+      setMessage();
+    });
+  });
+
+  oauthButtons.forEach((button) => {
+    button.addEventListener("click", () => startOAuth(button.dataset.authOauth));
+  });
+
+  codeButton?.addEventListener("click", async () => {
+    codeButton.disabled = true;
+    setMessage("正在发送验证码...");
+    try {
+      const channel = method === "phone-code" ? "sms" : "email";
+      const target = channel === "sms" ? phoneInput.value : emailInput.value;
+      const result = await sendAuthCode({ channel, target, purpose: mode });
+      setMessage(result.code ? `验证码已发送：${result.code}` : "验证码已发送");
+    } catch (error) {
+      setMessage(error.message || "验证码发送失败", "error");
+    } finally {
+      codeButton.disabled = false;
+    }
+  });
+
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     submit.disabled = true;
     setMessage(mode === "register" ? "正在注册..." : "正在登录...");
     try {
-      const payload = {
-        email: emailInput.value,
-        password: passwordInput.value,
-        name: nameInput?.value || ""
-      };
-      const result = mode === "register" ? await register(payload) : await login(payload);
+      let result;
+      if (method === "password") {
+        const payload = {
+          email: emailInput.value,
+          password: passwordInput.value,
+          name: nameInput?.value || ""
+        };
+        result = mode === "register" ? await register(payload) : await login(payload);
+      } else {
+        const channel = method === "phone-code" ? "sms" : "email";
+        result = await verifyAuthCode({
+          channel,
+          target: channel === "sms" ? phoneInput.value : emailInput.value,
+          code: codeInput.value,
+          name: nameInput?.value || "",
+          purpose: mode
+        });
+      }
       user = result.user || null;
       renderEntry();
       emitAuthChanged();
