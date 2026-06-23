@@ -172,6 +172,8 @@ export function initializeDatabase() {
       provider TEXT NOT NULL,
       redirect_to TEXT NOT NULL DEFAULT '/',
       expires_at INTEGER NOT NULL,
+      user_id TEXT,
+      completed_at INTEGER,
       consumed_at INTEGER,
       created_at INTEGER NOT NULL
     );
@@ -252,6 +254,12 @@ export function initializeDatabase() {
   }
   if (!tableHasColumn("users", "phone")) {
     execute("ALTER TABLE users ADD COLUMN phone TEXT;");
+  }
+  if (!tableHasColumn("oauth_states", "user_id")) {
+    execute("ALTER TABLE oauth_states ADD COLUMN user_id TEXT;");
+  }
+  if (!tableHasColumn("oauth_states", "completed_at")) {
+    execute("ALTER TABLE oauth_states ADD COLUMN completed_at INTEGER;");
   }
   execute("CREATE INDEX IF NOT EXISTS idx_assets_user_collection_id ON assets(user_id, collection_id, deleted_at);");
 

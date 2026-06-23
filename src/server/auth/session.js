@@ -79,6 +79,7 @@ export function findSessionUser(token) {
       sessions.expires_at AS expires_at,
       users.id AS id,
       users.email AS email,
+      users.phone AS phone,
       users.name AS name,
       users.created_at AS created_at
     FROM sessions
@@ -98,6 +99,7 @@ export function findSessionUser(token) {
     user: {
       id: row.id,
       email: publicEmail(row.email),
+      phone: row.phone || "",
       name: row.name,
       createdAt: row.created_at
     }

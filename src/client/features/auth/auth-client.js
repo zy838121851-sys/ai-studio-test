@@ -71,6 +71,14 @@ export function verifyAuthCode({ channel, target, code, name, purpose = "login" 
   });
 }
 
+export function createOAuthQr(provider) {
+  return requestJson(`/api/auth/oauth/${provider}/qr`);
+}
+
+export function getOAuthStatus(provider, state) {
+  return requestJson(`/api/auth/oauth/${provider}/status/${encodeURIComponent(state)}`);
+}
+
 export function startOAuth(provider) {
   window.location.href = `/api/auth/oauth/${provider}/start`;
 }

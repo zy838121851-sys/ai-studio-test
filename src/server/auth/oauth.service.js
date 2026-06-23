@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { env } from "../config/env.js";
 import { execute, queryOne, sqlValue } from "../db/sqlite.js";
-import { findOrCreateIdentityUser } from "./identity.service.js";
+import { findOrCreateIdentityUser, publicUser } from "./identity.service.js";
 
 const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
 
@@ -72,14 +72,15 @@ export function createOAuthStart(provider, { redirectTo = "/" } = {}) {
   return {
     provider: cleanProvider,
     state,
+    expiresInSeconds: Math.floor(OAUTH_STATE_TTL_MS / 1000),
     authorizationUrl: `${config.authUrl}?${params.toString()}${config.authHash || ""}`
   };
 }
 
-function consumeOAuthState(provider, state) {
+function getPendingOAuthState(provider, state) {
   const now = Date.now();
   const row = queryOne(`
-    SELECT state, redirect_to, expires_at
+    SELECT state, redirect_to, expires_at, user_id
     FROM oauth_states
     WHERE state = ${sqlValue(state)}
       AND provider = ${sqlValue(provider)}
@@ -91,12 +92,20 @@ function consumeOAuthState(provider, state) {
     error.status = 400;
     throw error;
   }
+  return row;
+}
+
+function completeOAuthState(provider, state, userId) {
+  const now = Date.now();
   execute(`
     UPDATE oauth_states
-    SET consumed_at = ${now}
-    WHERE state = ${sqlValue(state)};
+    SET
+      user_id = ${sqlValue(userId)},
+      completed_at = ${now},
+      consumed_at = ${now}
+    WHERE state = ${sqlValue(state)}
+      AND provider = ${sqlValue(provider)};
   `);
-  return row.redirect_to || "/";
 }
 
 function parseQQCallback(text = "") {
@@ -122,7 +131,9 @@ export async function handleOAuthCallback(provider, { code, state } = {}) {
     error.status = 400;
     throw error;
   }
-  const redirectTo = consumeOAuthState(cleanProvider, state);
+  const oauthState = getPendingOAuthState(cleanProvider, state);
+  const redirectTo = oauthState.redirect_to || "/";
+  let user;
 
   if (cleanProvider === "wechat") {
     const tokenParams = new URLSearchParams({
@@ -140,13 +151,14 @@ export async function handleOAuthCallback(provider, { code, state } = {}) {
     });
     const profile = await fetchJson(`${config.userUrl}?${userParams.toString()}`);
     const identifier = profile.unionid || profile.openid || token.unionid || token.openid;
-    const user = findOrCreateIdentityUser({
+    user = findOrCreateIdentityUser({
       provider: "wechat",
       identifier,
       name: profile.nickname || "WeChat user",
       displayName: profile.nickname || "",
       avatarUrl: profile.headimgurl || ""
     });
+    completeOAuthState(cleanProvider, state, user.id);
     return { user, redirectTo };
   }
 
@@ -170,12 +182,56 @@ export async function handleOAuthCallback(provider, { code, state } = {}) {
     fmt: "json"
   });
   const profile = await fetchJson(`${config.userUrl}?${userParams.toString()}`);
-  const user = findOrCreateIdentityUser({
+  user = findOrCreateIdentityUser({
     provider: "qq",
     identifier: openId.openid,
     name: profile.nickname || "QQ user",
     displayName: profile.nickname || "",
     avatarUrl: profile.figureurl_qq_2 || profile.figureurl_qq_1 || ""
   });
+  completeOAuthState(cleanProvider, state, user.id);
   return { user, redirectTo };
+}
+
+export function getOAuthStateStatus(provider, state) {
+  const cleanProvider = String(provider || "").trim().toLowerCase();
+  const cleanState = String(state || "").trim();
+  if (!PROVIDERS[cleanProvider] || !cleanState) {
+    const error = new Error("OAuth state is invalid");
+    error.status = 400;
+    throw error;
+  }
+
+  const now = Date.now();
+  const row = queryOne(`
+    SELECT
+      oauth_states.state,
+      oauth_states.provider,
+      oauth_states.expires_at,
+      oauth_states.completed_at,
+      oauth_states.consumed_at,
+      users.id,
+      users.email,
+      users.phone,
+      users.name,
+      users.created_at
+    FROM oauth_states
+    LEFT JOIN users ON users.id = oauth_states.user_id
+    WHERE oauth_states.state = ${sqlValue(cleanState)}
+      AND oauth_states.provider = ${sqlValue(cleanProvider)}
+    LIMIT 1;
+  `);
+  if (!row) return { status: "expired" };
+  if (Number(row.expires_at || 0) <= now) return { status: "expired" };
+  if (row.id) {
+    return {
+      status: "authenticated",
+      user: publicUser(row)
+    };
+  }
+  if (row.consumed_at) return { status: "failed" };
+  return {
+    status: "pending",
+    expiresInSeconds: Math.max(0, Math.floor((Number(row.expires_at || 0) - now) / 1000))
+  };
 }

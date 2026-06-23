@@ -1,6 +1,8 @@
 import {
+  createOAuthQr,
   getAuthProviders,
   getCurrentUser,
+  getOAuthStatus,
   logout,
   sendAuthCode,
   startOAuth,
@@ -36,6 +38,9 @@ export function initAuthEntry(root = document) {
   let user = null;
   let providerStatus = null;
   let closeMenuTimer = 0;
+  let oauthPollTimer = 0;
+  let oauthState = "";
+  let oauthQrRequestId = 0;
 
   const setMessage = (text = "", kind = "") => {
     if (!message) return;
@@ -101,15 +106,64 @@ export function initAuthEntry(root = document) {
     return "微信扫码登录";
   };
 
-  const refreshWechatQr = () => {
-    if (!wechatQr) return;
+  const stopOAuthPolling = () => {
+    window.clearInterval(oauthPollTimer);
+    oauthPollTimer = 0;
+    oauthState = "";
+  };
+
+  const completeOAuthLogin = (nextUser) => {
+    user = nextUser || null;
+    renderEntry();
+    emitAuthChanged();
+    closeDialog();
+  };
+
+  const pollOAuthStatus = async () => {
+    if (!oauthState) return;
+    try {
+      const result = await getOAuthStatus("wechat", oauthState);
+      if (result.status === "authenticated") {
+        completeOAuthLogin(result.user);
+        return;
+      }
+      if (result.status === "expired" || result.status === "failed") {
+        stopOAuthPolling();
+        setMessage("二维码已失效，请重新打开登录窗口", "error");
+      }
+    } catch (error) {
+      stopOAuthPolling();
+      setMessage(error.message || "扫码登录状态获取失败", "error");
+    }
+  };
+
+  const startOAuthPolling = () => {
+    window.clearInterval(oauthPollTimer);
+    oauthPollTimer = window.setInterval(pollOAuthStatus, 2500);
+  };
+
+  const loadWechatQr = async () => {
+    if (!wechatQr || method !== "wechat" || dialog.classList.contains("hidden")) return;
     if (!isOAuthAvailable("wechat")) {
+      stopOAuthPolling();
       wechatQr.removeAttribute("src");
+      setMessage("微信扫码登录未配置", "error");
       return;
     }
-    const current = wechatQr.getAttribute("src") || "";
-    if (!current) {
-      wechatQr.src = `/api/auth/oauth/wechat/qr.svg?t=${Date.now()}`;
+    const requestId = ++oauthQrRequestId;
+    stopOAuthPolling();
+    wechatQr.removeAttribute("src");
+    setMessage("正在生成微信登录二维码...");
+    try {
+      const result = await createOAuthQr("wechat");
+      if (requestId !== oauthQrRequestId || method !== "wechat") return;
+      oauthState = result.state || "";
+      wechatQr.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(result.qrSvg || "")}`;
+      setMessage();
+      startOAuthPolling();
+    } catch (error) {
+      if (requestId !== oauthQrRequestId) return;
+      setMessage(error.message || "微信登录二维码生成失败", "error");
     }
   };
 
@@ -126,7 +180,6 @@ export function initAuthEntry(root = document) {
       button.disabled = !available;
       button.title = available ? button.getAttribute("aria-label") || "" : `${providerLabel(provider)}未配置`;
     });
-    refreshWechatQr();
   };
 
   const applyMethod = () => {
@@ -157,6 +210,7 @@ export function initAuthEntry(root = document) {
     method = nextMethod;
     setMessage();
     applyMethod();
+    if (method !== "wechat") stopOAuthPolling();
     window.setTimeout(() => (method === "phone-code" ? phoneInput : emailInput)?.focus(), 30);
   };
 
@@ -165,10 +219,11 @@ export function initAuthEntry(root = document) {
     applyMethod();
     dialog.classList.remove("hidden");
     dialog.setAttribute("aria-hidden", "false");
-    refreshWechatQr();
+    loadWechatQr();
   };
 
   const closeDialog = () => {
+    stopOAuthPolling();
     dialog.classList.add("hidden");
     dialog.setAttribute("aria-hidden", "true");
     setMessage();
@@ -192,6 +247,7 @@ export function initAuthEntry(root = document) {
       providerStatus = null;
     }
     applyMethod();
+    if (method === "wechat" && !dialog.classList.contains("hidden")) loadWechatQr();
   };
 
   entryButton.addEventListener("click", () => {
@@ -242,6 +298,10 @@ export function initAuthEntry(root = document) {
       const provider = button.dataset.authOauth;
       if (!isOAuthAvailable(provider)) {
         setMessage(`${providerLabel(provider)}未配置`, "error");
+        return;
+      }
+      if (provider === "wechat" && method === "wechat") {
+        loadWechatQr();
         return;
       }
       startOAuth(provider);

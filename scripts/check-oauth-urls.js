@@ -14,6 +14,8 @@ process.env.QQ_OAUTH_CLIENT_ID = "qq-appid";
 process.env.QQ_OAUTH_CLIENT_SECRET = "qq-secret";
 
 const { createServer } = await import("../src/server/index.js");
+const { createUserWithIdentity } = await import("../src/server/auth/identity.service.js");
+const { execute, sqlValue } = await import("../src/server/db/sqlite.js");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -26,11 +28,14 @@ function start(app) {
   });
 }
 
-async function request(baseUrl, path) {
-  const response = await fetch(`${baseUrl}${path}`);
+async function request(baseUrl, path, { cookie = "" } = {}) {
+  const response = await fetch(`${baseUrl}${path}`, {
+    headers: cookie ? { Cookie: cookie } : {}
+  });
   return {
     status: response.status,
     contentType: response.headers.get("content-type") || "",
+    setCookie: response.headers.get("set-cookie") || "",
     text: await response.text()
   };
 }
@@ -60,6 +65,41 @@ try {
   assert(wechatQr.status === 200, `wechat QR expected 200, got ${wechatQr.status}`);
   assert(wechatQr.contentType.includes("image/svg+xml"), "wechat QR should return SVG");
   assert(wechatQr.text.includes("<svg"), "wechat QR response should contain svg markup");
+
+  const wechatQrJson = await request(baseUrl, "/api/auth/oauth/wechat/qr");
+  assert(wechatQrJson.status === 200, `wechat QR JSON expected 200, got ${wechatQrJson.status}`);
+  const qrPayload = JSON.parse(wechatQrJson.text);
+  assert(qrPayload.state, "wechat QR JSON should include state");
+  assert(qrPayload.qrSvg?.includes("<svg"), "wechat QR JSON should include svg markup");
+
+  const pending = await request(baseUrl, `/api/auth/oauth/wechat/status/${qrPayload.state}`);
+  assert(pending.status === 200, `wechat pending status expected 200, got ${pending.status}`);
+  assert(JSON.parse(pending.text).status === "pending", "wechat QR status should start pending");
+
+  const user = createUserWithIdentity({
+    provider: "wechat",
+    identifier: "wechat-poll-openid",
+    name: "WeChat Poll User"
+  });
+  const now = Date.now();
+  execute(`
+    UPDATE oauth_states
+    SET
+      user_id = ${sqlValue(user.id)},
+      completed_at = ${now},
+      consumed_at = ${now}
+    WHERE state = ${sqlValue(qrPayload.state)};
+  `);
+
+  const authenticated = await request(baseUrl, `/api/auth/oauth/wechat/status/${qrPayload.state}`);
+  const authenticatedPayload = JSON.parse(authenticated.text);
+  assert(authenticated.status === 200, `wechat authenticated status expected 200, got ${authenticated.status}`);
+  assert(authenticatedPayload.status === "authenticated", "wechat QR status should become authenticated");
+  assert(authenticated.setCookie.includes("ai_studio_session="), "wechat QR status should set a session cookie");
+
+  const cookie = authenticated.setCookie.split(";")[0];
+  const me = await request(baseUrl, "/api/auth/me", { cookie });
+  assert(JSON.parse(me.text).user?.id === user.id, "wechat QR session cookie should authenticate current browser");
 
   console.log("OAuth URL check passed.");
 } finally {

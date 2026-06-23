@@ -2,7 +2,7 @@ import { Router } from "express";
 import QRCode from "qrcode";
 import { createSession, clearSessionCookie, destroySession, getSessionToken, setSessionCookie } from "../auth/session.js";
 import { authenticateUser, createUser } from "../auth/user.service.js";
-import { createOAuthStart, handleOAuthCallback } from "../auth/oauth.service.js";
+import { createOAuthStart, getOAuthStateStatus, handleOAuthCallback } from "../auth/oauth.service.js";
 import { getAuthProviderStatus } from "../auth/provider-status.service.js";
 import { sendVerificationCode, verifyCodeAndGetUser } from "../auth/verification.service.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
@@ -12,6 +12,13 @@ const authLimiter = createRateLimiter({
   windowMs: 15 * 60 * 1000,
   max: 30,
   message: "Too many authentication attempts"
+});
+
+const oauthPollLimiter = createRateLimiter({
+  namespace: "oauth-poll",
+  windowMs: 5 * 60 * 1000,
+  max: 180,
+  message: "Too many OAuth status checks"
 });
 
 function handleAuthError(res, error) {
@@ -103,6 +110,44 @@ export function createAuthRouter() {
         }
       });
       res.type("image/svg+xml").send(svg);
+    } catch (error) {
+      handleAuthError(res, error);
+    }
+  });
+
+  router.get("/auth/oauth/:provider/qr", authLimiter, async (req, res) => {
+    try {
+      const result = createOAuthStart(req.params.provider, {
+        redirectTo: req.query.redirectTo
+      });
+      const qrSvg = await QRCode.toString(result.authorizationUrl, {
+        type: "svg",
+        width: 280,
+        margin: 1,
+        color: {
+          dark: "#111111",
+          light: "#ffffff"
+        }
+      });
+      res.json({
+        provider: result.provider,
+        state: result.state,
+        expiresInSeconds: result.expiresInSeconds,
+        qrSvg
+      });
+    } catch (error) {
+      handleAuthError(res, error);
+    }
+  });
+
+  router.get("/auth/oauth/:provider/status/:state", oauthPollLimiter, (req, res) => {
+    try {
+      const result = getOAuthStateStatus(req.params.provider, req.params.state);
+      if (result.status === "authenticated" && result.user?.id) {
+        const token = createSession(result.user.id);
+        setSessionCookie(res, token);
+      }
+      res.json(result);
     } catch (error) {
       handleAuthError(res, error);
     }
