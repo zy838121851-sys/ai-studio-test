@@ -165,8 +165,16 @@
             <span class="visually-hidden">邮箱密码</span>
           </button>
         </div>
+        <div class="auth-mode-switch hidden" data-auth-mode-switch role="tablist" aria-label="账号操作">
+          <button type="button" data-auth-mode="login" class="active">登录</button>
+          <button type="button" data-auth-mode="register">注册</button>
+        </div>
         <p class="auth-message" id="authMessage" role="status"></p>
         <form class="auth-form hidden" id="authForm">
+          <label class="auth-name-field hidden">
+            <span>昵称</span>
+            <input id="authName" type="text" autocomplete="name" placeholder="你的昵称" />
+          </label>
           <label class="auth-email-field">
             <span>邮箱</span>
             <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" />

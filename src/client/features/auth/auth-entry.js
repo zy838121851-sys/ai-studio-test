@@ -5,6 +5,7 @@ import {
   getOAuthStatus,
   login,
   logout,
+  register,
   sendAuthCode,
   startOAuth,
   verifyAuthCode
@@ -22,10 +23,12 @@ export function initAuthEntry(root = document) {
   const title = root.querySelector("#authDialogTitle");
   const wechatPanel = root.querySelector("[data-auth-wechat-panel]");
   const wechatQr = root.querySelector("#authWechatQr");
+  const nameInput = root.querySelector("#authName");
   const emailInput = root.querySelector("#authEmail");
   const phoneInput = root.querySelector("#authPhone");
   const codeInput = root.querySelector("#authCode");
   const passwordInput = root.querySelector("#authPassword");
+  const nameField = root.querySelector(".auth-name-field");
   const emailField = root.querySelector(".auth-email-field");
   const phoneField = root.querySelector(".auth-phone-field");
   const codeField = root.querySelector(".auth-code-field");
@@ -33,11 +36,14 @@ export function initAuthEntry(root = document) {
   const message = root.querySelector("#authMessage");
   const submit = root.querySelector("#authSubmit");
   const codeButton = root.querySelector("#authSendCode");
+  const modeSwitch = root.querySelector("[data-auth-mode-switch]");
+  const modeButtons = Array.from(root.querySelectorAll("[data-auth-mode]"));
   const methodButtons = Array.from(root.querySelectorAll("[data-auth-method]"));
   const oauthButtons = Array.from(root.querySelectorAll("[data-auth-oauth]"));
   if (!entry || !entryButton || !dialog || !form) return { refresh() {} };
 
   let method = "wechat";
+  let authMode = "login";
   let user = null;
   let providerStatus = null;
   let closeMenuTimer = 0;
@@ -188,24 +194,30 @@ export function initAuthEntry(root = document) {
   };
 
   const applyMethod = () => {
+    const isRegister = authMode === "register";
     const usesEmail = method === "email-code";
     const usesPassword = method === "password";
     const usesPhone = method === "phone-code";
     const usesCode = method === "email-code" || method === "phone-code";
     wechatPanel?.classList.toggle("hidden", method !== "wechat");
     form.classList.toggle("hidden", !(usesCode || usesPassword));
+    modeSwitch?.classList.toggle("hidden", method !== "password");
+    nameField?.classList.toggle("hidden", !isRegister);
     emailField?.classList.toggle("hidden", !(usesEmail || usesPassword));
     phoneField?.classList.toggle("hidden", !usesPhone);
     codeField?.classList.toggle("hidden", !usesCode);
     passwordField?.classList.toggle("hidden", !usesPassword);
     codeButton?.classList.toggle("hidden", !usesCode);
+    if (nameInput) nameInput.required = isRegister;
     if (emailInput) emailInput.required = usesEmail || usesPassword;
     if (phoneInput) phoneInput.required = usesPhone;
     if (codeInput) codeInput.required = usesCode;
     if (passwordInput) passwordInput.required = usesPassword;
+    if (passwordInput) passwordInput.autocomplete = isRegister ? "new-password" : "current-password";
     methodButtons.forEach((button) => button.classList.toggle("active", button.dataset.authMethod === method));
-    if (title) title.textContent = method === "wechat" ? "微信一键登录" : `${providerLabel(method)}登录`;
-    if (submit) submit.textContent = "登录";
+    modeButtons.forEach((button) => button.classList.toggle("active", button.dataset.authMode === authMode));
+    if (title) title.textContent = isRegister ? "创建账号" : method === "wechat" ? "微信一键登录" : `${providerLabel(method)}登录`;
+    if (submit) submit.textContent = isRegister ? "注册并登录" : "登录";
     applyProviderStatus();
     if (codeButton) codeButton.disabled = usesCode && !isMethodAvailable(method);
   };
@@ -216,6 +228,7 @@ export function initAuthEntry(root = document) {
       return;
     }
     method = nextMethod;
+    if (method !== "password") authMode = "login";
     setMessage();
     applyMethod();
     if (method !== "wechat") stopOAuthPolling();
@@ -224,6 +237,7 @@ export function initAuthEntry(root = document) {
 
   const openDialog = () => {
     method = "wechat";
+    authMode = "login";
     applyMethod();
     dialog.classList.remove("hidden");
     dialog.setAttribute("aria-hidden", "false");
@@ -301,6 +315,17 @@ export function initAuthEntry(root = document) {
     button.addEventListener("click", () => setMethod(button.dataset.authMethod || "email-code"));
   });
 
+  modeButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      authMode = button.dataset.authMode === "register" ? "register" : "login";
+      method = "password";
+      setMessage();
+      applyMethod();
+      stopOAuthPolling();
+      window.setTimeout(() => (authMode === "register" ? nameInput : emailInput)?.focus(), 30);
+    });
+  });
+
   oauthButtons.forEach((button) => {
     button.addEventListener("click", () => {
       const provider = button.dataset.authOauth;
@@ -342,9 +367,15 @@ export function initAuthEntry(root = document) {
       return;
     }
     submit.disabled = true;
-    setMessage("正在登录...");
+    setMessage(authMode === "register" ? "正在注册..." : "正在登录...");
     try {
-      const result = method === "password"
+      const result = authMode === "register"
+        ? await register({
+          name: nameInput.value,
+          email: emailInput.value,
+          password: passwordInput.value
+        })
+        : method === "password"
         ? await login({
           email: emailInput.value,
           password: passwordInput.value
