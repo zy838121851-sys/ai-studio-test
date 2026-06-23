@@ -1,5 +1,9 @@
 export function isImageFile(file) {
-  return Boolean(file?.type?.startsWith("image/"));
+  const name = String(file?.name || "").toLowerCase();
+  return Boolean(
+    file?.type?.startsWith("image/") ||
+      /\.(?:png|jpe?g|webp|gif|bmp|heic|heif|avif)$/i.test(name)
+  );
 }
 
 export function isVideoFile(file) {

@@ -17,6 +17,7 @@ export function createPromptSubmitRuntimePayload(runtime = {}) {
     addGenerationPreview: runtime.addGenerationPreview,
     replacePreviewWithImage: runtime.replacePreviewWithImage,
     updateActiveProject: runtime.updateActiveProject,
+    saveCurrentProject: runtime.saveCurrentProject,
     getActiveProject: runtime.getActiveProject,
     makeProjectTitle: runtime.makeProjectTitle,
     postJsonRequest: runtime.postJsonRequest,
@@ -25,7 +26,10 @@ export function createPromptSubmitRuntimePayload(runtime = {}) {
     recordCanvasEvent: runtime.recordCanvasEvent,
     chatModelSelect: runtime.chatModelSelect,
     setChatCollapsed: runtime.setChatCollapsed,
-    detectGenerationKind: runtime.detectGenerationKind
+    detectGenerationKind: runtime.detectGenerationKind,
+    getPendingHomeGenerationFocus: runtime.getPendingHomeGenerationFocus,
+    setPendingHomeGenerationFocus: runtime.setPendingHomeGenerationFocus,
+    centerViewOnNode: runtime.centerViewOnNode
   };
 }
 

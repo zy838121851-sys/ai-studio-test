@@ -4,15 +4,15 @@ export function createImageTextPanel({ onRefresh, onClose, onApply }) {
   panel.className = "image-text-panel";
   panel.innerHTML = `
     <header>
-      <strong>编辑文字</strong>
-      <button type="button" data-text-edit-refresh aria-label="重新识别">↻</button>
-      <button type="button" data-text-edit-close aria-label="关闭">×</button>
+      <strong>&#32534;&#36753;&#25991;&#23383;</strong>
+      <button type="button" data-text-edit-refresh aria-label="&#37325;&#26032;&#35782;&#21035;">&#8635;</button>
+      <button type="button" data-text-edit-close aria-label="&#20851;&#38381;">&times;</button>
     </header>
-    <div class="image-text-status" data-text-edit-status>正在识别图片文字...</div>
+    <div class="image-text-status" data-text-edit-status>&#27491;&#22312;&#35782;&#21035;&#22270;&#29255;&#25991;&#23383;...</div>
     <div class="image-text-list" data-text-edit-list></div>
     <footer>
-      <button type="button" data-text-edit-cancel>取消</button>
-      <button type="button" data-text-edit-apply>应用修改</button>
+      <button type="button" data-text-edit-cancel>&#21462;&#28040;</button>
+      <button type="button" data-text-edit-apply>&#24212;&#29992;&#20462;&#25913;</button>
     </footer>
   `;
   panel.addEventListener("pointerdown", (event) => event.stopPropagation());
@@ -43,15 +43,15 @@ export function renderImageTextInputs(panel, texts = []) {
     .filter((item) => item?.text?.trim());
   panel._texts = normalized;
   status.textContent = normalized.length
-    ? `识别到 ${normalized.length} 处文字，可直接修改后应用。`
-    : "未识别到明确文字，你也可以手动添加需要替换的文字。";
+    ? `\u8bc6\u522b\u5230 ${normalized.length} \u5904\u6587\u5b57\uff0c\u53ef\u76f4\u63a5\u4fee\u6539\u540e\u5e94\u7528\u3002`
+    : "\u672a\u8bc6\u522b\u5230\u660e\u786e\u6587\u5b57\uff0c\u4e5f\u53ef\u4ee5\u624b\u52a8\u8f93\u5165\u9700\u8981\u66ff\u6362\u6216\u65b0\u589e\u7684\u6587\u5b57\u3002";
   const rows = normalized.length ? normalized : [{ text: "" }];
   rows.forEach((item, index) => {
     const input = document.createElement("input");
     input.type = "text";
     input.value = item.text || "";
     input.dataset.originalText = item.text || "";
-    input.placeholder = `文字 ${index + 1}`;
+    input.placeholder = `\u6587\u5b57 ${index + 1}`;
     list.appendChild(input);
   });
 }
@@ -67,9 +67,11 @@ export function getImageTextEdits(panel) {
 
 export function buildImageTextEditPrompt(edits) {
   return [
-    "请只修改图片中的文字内容，并保持原图构图、产品、背景、图标、排版层级、字体风格、颜色和光影尽量不变。",
-    "把以下文字替换为新的文字：",
-    ...edits.map((item, index) => `${index + 1}. ${item.from || "对应位置文字"} -> ${item.to}`),
-    "修复被替换区域的底图，文字要自然贴合原海报，不要新增无关元素，不要改变产品主体。"
+    "Only edit the text content inside the image.",
+    "Keep the original image composition, product/character, background, icon shapes, layout hierarchy, font style, color, lighting, and perspective as unchanged as possible.",
+    "Replace the following text items with the new text:",
+    ...edits.map((item, index) => `${index + 1}. ${item.from || "the visible text at the matching location"} -> ${item.to}`),
+    "Repair the underlying image area naturally after replacement.",
+    "Do not add unrelated elements, do not change the main subject, and do not translate or rewrite text that is not listed above."
   ].join("\n");
 }

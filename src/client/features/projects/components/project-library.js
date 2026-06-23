@@ -9,14 +9,19 @@ function escapeHtml(value) {
 
 export function showProjectSaveStatus(element, {
   text = "Saved to cloud",
-  duration = 1600
+  duration = 1600,
+  tone = "success"
 } = {}) {
   if (!element) return;
+  element.classList.remove("is-success", "is-error", "is-pending");
   element.textContent = text;
   element.classList.add("show");
+  element.classList.add(`is-${tone}`);
   window.clearTimeout(element._saveTimer);
+  if (!duration) return;
   element._saveTimer = window.setTimeout(() => {
     element.classList.remove("show");
+    element.classList.remove("is-success", "is-error", "is-pending");
     element.textContent = "";
   }, duration);
 }

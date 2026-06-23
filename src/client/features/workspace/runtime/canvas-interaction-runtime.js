@@ -12,6 +12,7 @@ export function createWorkspaceCanvasInteractionAppRuntime({
       canvasWorld: elements.canvasWorld,
       imageEditPopover: elements.imageEditPopover,
       editImageThumb: elements.editImageThumb,
+      editAddRef: elements.editAddRef,
       imageEditPrompt: elements.imageEditPrompt,
       addNodeMenu: elements.addNodeMenu,
       canvasContextMenu: elements.canvasContextMenu,
@@ -24,6 +25,7 @@ export function createWorkspaceCanvasInteractionAppRuntime({
     state: {
       getPan: state.getPan,
       getZoom: state.getZoom,
+      getSelectedNodes: state.getSelectedNodes,
       getNextCanvasNodeId: state.getNextCanvasNodeId,
       getSelectedNode: state.getSelectedNode
     },

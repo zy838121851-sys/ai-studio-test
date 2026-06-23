@@ -9,13 +9,11 @@ export function roundToImageMultiple(value, multiple = 16) {
   return Math.round(value / multiple) * multiple;
 }
 
-export function getQwenImageSizeForElement(img, {
+export function getQwenImageSizeForDimensions(naturalWidth = 1024, naturalHeight = 1024, {
   maxSize = 2048,
   minSize = 512,
   multiple = 16
 } = {}) {
-  const naturalWidth = img?.naturalWidth || 1024;
-  const naturalHeight = img?.naturalHeight || 1024;
   const ratio = naturalWidth / Math.max(1, naturalHeight);
   let width;
   let height;
@@ -31,6 +29,14 @@ export function getQwenImageSizeForElement(img, {
   width = Math.max(minSize, Math.min(maxSize, roundToImageMultiple(width, multiple)));
   height = Math.max(minSize, Math.min(maxSize, roundToImageMultiple(height, multiple)));
   return `${width}*${height}`;
+}
+
+export function getQwenImageSizeForElement(img, options = {}) {
+  return getQwenImageSizeForDimensions(
+    img?.naturalWidth || 1024,
+    img?.naturalHeight || 1024,
+    options
+  );
 }
 
 export function buildPromptGenerationNodeConfig({

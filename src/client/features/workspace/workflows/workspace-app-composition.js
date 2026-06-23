@@ -70,6 +70,50 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
   let makeDraggable = () => {};
   let renderStackTray = () => {};
   let stackNode = () => false;
+  let assetRuntime;
+  let chatRuntime;
+  const insertAssetToCanvas = (asset, point = null) => {
+    if (!asset?.url && !asset?.thumbnailUrl) return null;
+    const rect = workspaceElements.canvasViewport?.getBoundingClientRect?.();
+    const target = point || (
+      rect && canvasInteractionRuntime?.viewportPointToWorld
+        ? canvasInteractionRuntime.viewportPointToWorld(
+          rect.left + rect.width / 2,
+          rect.top + rect.height / 2
+        )
+        : { x: 0, y: 0 }
+    );
+    const kind = asset.type === "model3d" ? "model" : (asset.type === "image" ? "image" : asset.type || "image");
+    return addNode({
+      kind,
+      title: asset.title || "Asset",
+      desc: asset.prompt || asset.collection || asset.source || "Asset library item",
+      x: target.x - 160,
+      y: target.y - 120,
+      media: {
+        url: asset.url || asset.thumbnailUrl,
+        name: asset.title || "Asset",
+        type: asset.mimeType || (kind === "image" ? "image/png" : "")
+      }
+    });
+  };
+  const resolveAssetUrl = ({ title = "", url = "" } = {}) => {
+    if (url && !String(url).startsWith("blob:")) return url;
+    const normalizedTitle = normalizeAssetLookupTitle(title);
+    if (!normalizedTitle) return "";
+    const assets = Array.isArray(appState.assets) ? appState.assets : [];
+    const match = assets.find((asset) => {
+      const assetTitle = normalizeAssetLookupTitle(asset.title || asset.name || "");
+      const assetUrl = asset.url || asset.thumbnailUrl || asset.thumbnail || "";
+      return assetTitle === normalizedTitle && assetUrl && !String(assetUrl).startsWith("blob:");
+    });
+    return match?.url || match?.thumbnailUrl || match?.thumbnail || "";
+  };
+  const ensureAssetsReady = () => {
+    if (assetRuntime?.syncAllRemoteAssets) return assetRuntime.syncAllRemoteAssets();
+    if (assetRuntime?.syncRemoteAssets) return assetRuntime.syncRemoteAssets();
+    return Promise.resolve(false);
+  };
   const {
     setAICoreAgentEnabled,
     positionAgentBubble,
@@ -110,9 +154,13 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
       setSelectedNode: (value) => {
         appState.selectedNode = value;
       },
+      getAssets: () => appState.assets,
       getHomeImageFiles: () => appState.homeImageFiles,
       setHomeImageFiles: (files) => {
         appState.homeImageFiles = files;
+      },
+      setPendingHomeGenerationFocus: (value) => {
+        appState.pendingHomeGenerationFocus = value;
       },
       setChatImageFiles: (files) => {
         appState.chatImageFiles = files;
@@ -129,6 +177,8 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
       applyViewState: projectDeps.applyViewState,
       markGeneratedNodeContext,
       escapeHtml: libDeps.escapeHtmlText,
+      resolveAssetUrl,
+      ensureAssetsReady,
       waitFor: projectDeps.waitFor
     },
     actions: {
@@ -143,19 +193,28 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
     imageEditBuildOutput
   } = createWorkspaceCompositionDefaults();
 
-  const {
+  ({
     assetRuntime,
     chatRuntime
   } = createWorkspaceChatAssetsCompositionRuntime({
     eventBus,
     elements: workspaceElements,
     state: {
-      assets: appState.assets
+      assets: appState.assets,
+      getAssets: () => appState.assets,
+      setAssets: (value) => {
+        appState.assets = value;
+      },
+      getActiveProjectId: () => appState.activeProjectId,
+      getProjects: () => appState.projects
     },
     services: {
-      escapeHtml: libDeps.escapeHtmlText
+      escapeHtml: libDeps.escapeHtmlText,
+      insertAssetToCanvas,
+      openProject: (...args) => projectHomeRuntime.openProject?.(...args),
+      saveCurrentProject: (...args) => projectHomeRuntime.saveCurrentProject?.(...args)
     }
-  });
+  }));
 
   const { runDirectorAction } = createWorkspaceDirectorActionCompositionRuntime({
     elements: workspaceElements,
@@ -273,7 +332,17 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
       getShapeTextTools: () => canvasDeps.SHAPE_TEXT_TOOLS,
       markGeneratedNodeContext,
       escapeHtml: libDeps.escapeHtmlText,
-      addChat: (...args) => chatRuntime.addChat(...args)
+      addChat: (...args) => chatRuntime.addChat(...args),
+      registerUploadedAsset: (...args) => assetRuntime.uploadAssetFile?.(...args),
+      registerGeneratedAsset: (...args) => assetRuntime.registerGeneratedAsset?.(...args),
+      registerImageAsset: (payload = {}) => assetRuntime.registerGeneratedAsset?.({
+        ...payload,
+        source: payload.source || "favorite",
+        type: payload.type || "image"
+      }),
+      removeImageAsset: (assetId) => assetRuntime.removeAsset?.(assetId),
+      getAssetCollections: () => assetRuntime.getCollections?.() || [],
+      createAssetCollection: (name) => assetRuntime.createCollection?.(name)
     },
     actions: {
       recordCanvasEvent,
@@ -374,6 +443,11 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
       buildChatImagePayload: aiDeps.buildChatImagePayload,
       readFileAsDataUrl: aiDeps.readFileAsDataUrl,
       detectGenerationKind: aiDeps.detectGenerationKind,
+      getPendingHomeGenerationFocus: () => appState.pendingHomeGenerationFocus,
+      setPendingHomeGenerationFocus: (value) => {
+        appState.pendingHomeGenerationFocus = value;
+      },
+      centerViewOnNode: (...args) => centerViewOnNode(...args),
       closeOpenImageToolbarMenus: canvasDeps.closeOpenImageToolbarMenus
     },
     bindings: {
@@ -386,5 +460,13 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
       bindPromptShortcuts: uiDeps.bindPromptShortcuts
     }
   });
+}
+
+function normalizeAssetLookupTitle(value = "") {
+  return String(value || "")
+    .replace(/^[^\w\u4e00-\u9fff]+/u, "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
 }
 

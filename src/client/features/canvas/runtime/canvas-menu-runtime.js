@@ -14,6 +14,7 @@ export function createCanvasMenuRuntimePayload(runtime = {}) {
       getAddMenuPoint: () => runtime.getAddMenuPoint(),
       setAddMenuPoint: (point) => runtime.setAddMenuPoint(point),
       getContextMenuPoint: () => runtime.getContextMenuPoint(),
+      getContextMenuTargetNode: () => runtime.getContextMenuTargetNode?.() || null,
       setPendingUploadPoint: (point) => runtime.setPendingUploadPoint(point)
     },
     actions: {
@@ -23,8 +24,11 @@ export function createCanvasMenuRuntimePayload(runtime = {}) {
       showAddNodeMenu: runtime.showAddNodeMenu,
       addNode: runtime.addNode,
       addChat: runtime.addChat,
+      selectNode: runtime.selectNode,
+      deleteSelectedNode: runtime.deleteSelectedNode,
+      saveCurrentProject: runtime.saveCurrentProject,
       recordCanvasEvent: runtime.recordCanvasEvent,
-      openAssetLibrary: runtime.openAssetLibrary
+      openAssetLibrary: runtime.openAssetPickerPanel || runtime.openAssetLibrary
     }
   };
 }

@@ -61,6 +61,7 @@ export function createHomeLibraryRuntimePayload(runtime = {}) {
       addChatImageFiles: runtime.addChatImageFiles,
       generateHomeProject: runtime.generateHomeProject,
       recordCanvasEvent: runtime.recordCanvasEvent,
+      renderHomeHistory: runtime.renderHomeHistory,
       getChatDragDepth: () => runtime.getChatDragDepth(),
       setChatDragDepth: (value) => runtime.setChatDragDepth(value),
       setLibraryViewModeStorage,

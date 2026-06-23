@@ -62,6 +62,10 @@ export async function generateImage({ model = "qwen-image-2.0-pro", prompt, imag
   return getAIProvider().generateImage({ model, prompt, images, size });
 }
 
+export async function expandImage({ image, prompt, expand } = {}) {
+  return getAIProvider().expandImage({ image, prompt, expand });
+}
+
 export async function analyzeImage({ image, title = "Current asset", refreshCount = 0 } = {}) {
   if (!image) throw new Error("Missing image");
   {

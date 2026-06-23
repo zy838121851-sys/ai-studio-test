@@ -47,7 +47,8 @@ export function createWorkspaceProjectHomeCompositionBundle({
       getSelectedNode: state.getSelectedNode,
       setSelectedNode: state.setSelectedNode,
       getHomeImageFiles: state.getHomeImageFiles,
-      setHomeImageFiles: state.setHomeImageFiles
+      setHomeImageFiles: state.setHomeImageFiles,
+      setPendingHomeGenerationFocus: state.setPendingHomeGenerationFocus
     },
     elements,
     ui: {
@@ -56,7 +57,8 @@ export function createWorkspaceProjectHomeCompositionBundle({
       markGeneratedNodeContext: services.markGeneratedNodeContext,
       removeNodeDeep: (...args) => canvas.canvasSelectionRuntime.removeNodeDeep(...args),
       applyTransform: (...args) => canvas.canvasSurfaceRuntime.syncCanvasTransform(...args),
-      setChatCollapsed: actions.setChatCollapsed
+      setChatCollapsed: actions.setChatCollapsed,
+      setPendingHomeGenerationFocus: state.setPendingHomeGenerationFocus
     },
     chat: {
       setChatImageFiles: state.setChatImageFiles,
@@ -65,6 +67,8 @@ export function createWorkspaceProjectHomeCompositionBundle({
     },
     services: {
       escapeHtml: services.escapeHtml,
+      resolveAssetUrl: services.resolveAssetUrl,
+      ensureAssetsReady: services.ensureAssetsReady,
       waitFor: services.waitFor
     },
     actions: {

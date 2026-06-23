@@ -54,7 +54,6 @@ export function createGenerationPreviewNode({
 }) {
   const node = addNode(buildGenerationPreviewConfig({ title, desc, x, y }));
   applyNodePreviewSize(node, { width, aspectRatio });
-  if (!aspectRatio) node.dataset.manualSize = "true";
   return node;
 }
 
@@ -71,7 +70,8 @@ export function replacePreviewNodeWithImage({
   prompt = "",
   sourceNode = null,
   actionType = "",
-  model = ""
+  model = "",
+  registerGeneratedAsset = null
 }) {
   const x = parseFloat(previewNode.style.left || "0");
   const y = parseFloat(previewNode.style.top || "0");
@@ -93,5 +93,136 @@ export function replacePreviewNodeWithImage({
   applyNodePreviewSize(node, { width, aspectRatio });
   applyGeneratedContext(node, { prompt, sourceNode, actionType, model });
   recordGenerationCreated(node, { sourceNode, actionType, model });
+  const localizationPromise = localizeGeneratedImageSource(node, url);
+  node._generatedImageLocalizationPromise = localizationPromise;
+  const persistencePromise = persistGeneratedImageAsset({
+    node,
+    sourceUrl: url,
+    title,
+    prompt,
+    model,
+    registerGeneratedAsset,
+    localizationPromise
+  });
+  if (persistencePromise) node._generatedAssetPersistencePromise = persistencePromise;
   return node;
+}
+
+function localizeGeneratedImageSource(node, sourceUrl = "") {
+  const image = node?.querySelector?.(".image-frame img");
+  if (!image || !sourceUrl) return Promise.resolve("");
+  if (String(sourceUrl).startsWith("data:")) {
+    image.dataset.localSourceReady = "true";
+    return Promise.resolve(sourceUrl);
+  }
+  if (!isFetchableImageUrl(sourceUrl)) return Promise.resolve(sourceUrl);
+  image.dataset.remoteSource = sourceUrl;
+  return imageSourceToDataUrl(sourceUrl)
+    .then((dataUrl) => {
+      if (!dataUrl || !image.isConnected || image.dataset.remoteSource !== sourceUrl) return "";
+      image.src = dataUrl;
+      image.dataset.localSourceReady = "true";
+      return dataUrl;
+    })
+    .catch((error) => {
+      console.warn("[canvas] Failed to localize generated image", error);
+      return "";
+    });
+}
+
+async function persistGeneratedImageAsset({
+  node,
+  sourceUrl = "",
+  title = "Generated image.png",
+  prompt = "",
+  model = "",
+  registerGeneratedAsset,
+  localizationPromise
+} = {}) {
+  if (typeof registerGeneratedAsset !== "function") return null;
+  if (!shouldPersistGeneratedSource(sourceUrl)) return null;
+  try {
+    const image = node?.querySelector?.(".image-frame img");
+    const localizedSource = await localizationPromise;
+    const dataUrl = String(localizedSource || image?.src || "").startsWith("data:")
+      ? String(localizedSource || image?.src || "")
+      : "";
+    if (!dataUrl) return null;
+    const result = await registerGeneratedAsset({
+      title,
+      url: dataUrl,
+      dataUrl,
+      thumbnailUrl: "",
+      type: "image",
+      source: "generated",
+      prompt,
+      modelName: model
+    });
+    const asset = result?.asset || result;
+    applyPersistentGeneratedAsset(node, asset);
+    return asset || null;
+  } catch (error) {
+    console.warn("[canvas] Failed to persist generated image asset", error);
+    return null;
+  }
+}
+
+function applyPersistentGeneratedAsset(node, asset = {}) {
+  const url = asset?.url || asset?.thumbnailUrl || "";
+  if (!url) return;
+  const image = node?.querySelector?.(".image-frame img");
+  if (image) {
+    image.src = url;
+    image.removeAttribute?.("srcset");
+    delete image.dataset.remoteSource;
+    image.dataset.localSourceReady = "true";
+  }
+  if (asset.id) node.dataset.assetId = asset.id;
+  node.dataset.objectUrl = url;
+  node.dataset.uploadPersisted = "true";
+}
+
+async function imageSourceToDataUrl(src) {
+  let response;
+  try {
+    response = await fetch(src, { credentials: "include" });
+  } catch (error) {
+    response = await fetchProxiedImage(src, error);
+  }
+  if (!response?.ok && isHttpUrl(src)) {
+    response = await fetchProxiedImage(src);
+  }
+  if (!response?.ok) throw new Error("Unable to read generated image");
+  return blobToDataUrl(await response.blob());
+}
+
+async function fetchProxiedImage(src, cause = null) {
+  if (!isHttpUrl(src)) {
+    if (cause) throw cause;
+    throw new Error("Image source cannot be proxied");
+  }
+  return fetch(`/api/image-proxy?url=${encodeURIComponent(src)}`, { credentials: "include" });
+}
+
+function isHttpUrl(value = "") {
+  return /^https?:\/\//i.test(String(value || ""));
+}
+
+function isFetchableImageUrl(value = "") {
+  const source = String(value || "");
+  return isHttpUrl(source) || source.startsWith("blob:");
+}
+
+function shouldPersistGeneratedSource(value = "") {
+  const source = String(value || "");
+  return source.startsWith("data:") || isFetchableImageUrl(source);
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error || new Error("Unable to read image blob"));
+    reader.readAsDataURL(blob);
+  });
 }

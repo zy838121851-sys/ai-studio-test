@@ -52,10 +52,14 @@ export function createWorkspaceLauncherWorkspaceContext({
     addChatImage: actions.addChatImage,
     renderChatImagePreview: actions.renderChatImagePreview,
     updateActiveProject: actions.updateActiveProject,
+    saveCurrentProject: safeSaveCurrentProject,
     makeProjectTitle: actions.makeProjectTitle,
     postJsonRequest: actions.postJsonRequest,
     buildChatImagePayload: actions.buildChatImagePayload,
     readFileAsDataUrl: actions.readFileAsDataUrl,
-    detectGenerationKind: actions.detectGenerationKind
+    detectGenerationKind: actions.detectGenerationKind,
+    getPendingHomeGenerationFocus: actions.getPendingHomeGenerationFocus,
+    setPendingHomeGenerationFocus: actions.setPendingHomeGenerationFocus,
+    centerViewOnNode: actions.centerViewOnNode
   };
 }

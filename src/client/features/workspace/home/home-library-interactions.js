@@ -35,6 +35,7 @@ export function bindHomeLibraryInteractions({
     getChatDragDepth,
     setChatDragDepth,
     setLibraryViewModeStorage,
+    renderHomeHistory,
     getPendingUploadPoint,
     setPendingUploadPoint
   } = actions;
@@ -123,6 +124,16 @@ export function bindHomeLibraryInteractions({
     if (deleteButton) {
       event.preventDefault();
       event.stopPropagation();
+      const card = deleteButton.closest(".home-history-card");
+      deleteButton.disabled = true;
+      card?.classList.add("is-removing");
+      globalThis.setTimeout?.(() => {
+        if (typeof renderHomeHistory === "function") {
+          renderHomeHistory();
+        } else if (card?.isConnected) {
+          card.remove();
+        }
+      }, 160);
       const deleteAction = deleteProject || globalThis.AIStudioCompatibilityBridge?.deleteProject;
       deleteAction?.(deleteButton.dataset.deleteProject);
       return;
@@ -143,13 +154,21 @@ export function bindHomeLibraryInteractions({
 
   uploadAsset?.addEventListener("click", () => {
     setPendingUploadPoint(null);
+    if (assetUploadInput?.dataset) assetUploadInput.dataset.uploadIntent = "library";
     assetUploadInput?.click();
   });
 
   assetUploadInput?.addEventListener("change", () => {
+    if (
+      assetUploadInput.dataset.uploadIntent === "library"
+      || assetUploadInput.dataset.uploadHandledByLibrary === "true"
+    ) {
+      return;
+    }
     const point = getPendingUploadPoint();
     uploadAsReference(assetUploadInput.files, point);
     setPendingUploadPoint(null);
+    delete assetUploadInput.dataset.uploadIntent;
     assetUploadInput.value = "";
   });
 

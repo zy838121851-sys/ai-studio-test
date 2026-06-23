@@ -1,12 +1,14 @@
 import {
   callQwenImage,
   callQwenText,
-  callQwenVision
+  callQwenVision,
+  callWanImageExpand
 } from "./qwen.provider.js";
 
 const qwenProvider = {
   id: "qwen",
   generateImage: callQwenImage,
+  expandImage: callWanImageExpand,
   analyzeImage: callQwenVision,
   generateText: callQwenText
 };

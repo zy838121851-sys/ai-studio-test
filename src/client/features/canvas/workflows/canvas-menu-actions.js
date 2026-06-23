@@ -1,8 +1,85 @@
+﻿import { openImageCompareFromSelection } from "../image-compare.js";
+
 const NODE_PRESETS = {
-  text: { kind: "2d", title: "文本节点", desc: "脚本、广告词、品牌文案" },
-  audio: { kind: "video", title: "音频节点", desc: "音频素材、节奏和可视化参考" },
-  playlist: { kind: "video", title: "播放列表", desc: "整理多个镜头、图片或视频片段" }
+  text: { kind: "2d", title: "Text node", desc: "Script, copy, notes" },
+  audio: { kind: "video", title: "Audio node", desc: "Audio, rhythm and visual references" },
+  playlist: { kind: "video", title: "Playlist", desc: "Organize shots, images or clips" }
 };
+
+let nodeClipboard = null;
+
+const SAFE_EXPORT_STYLE_PROPERTIES = [
+  "align-items",
+  "aspect-ratio",
+  "background-color",
+  "border",
+  "border-bottom",
+  "border-color",
+  "border-left",
+  "border-radius",
+  "border-right",
+  "border-style",
+  "border-top",
+  "border-width",
+  "box-shadow",
+  "box-sizing",
+  "color",
+  "display",
+  "flex",
+  "flex-basis",
+  "flex-direction",
+  "flex-grow",
+  "flex-shrink",
+  "flex-wrap",
+  "font",
+  "font-family",
+  "font-size",
+  "font-style",
+  "font-weight",
+  "gap",
+  "grid-template-columns",
+  "height",
+  "justify-content",
+  "letter-spacing",
+  "line-height",
+  "margin",
+  "margin-bottom",
+  "margin-left",
+  "margin-right",
+  "margin-top",
+  "max-height",
+  "max-width",
+  "min-height",
+  "min-width",
+  "object-fit",
+  "object-position",
+  "opacity",
+  "overflow",
+  "overflow-wrap",
+  "padding",
+  "padding-bottom",
+  "padding-left",
+  "padding-right",
+  "padding-top",
+  "position",
+  "text-align",
+  "text-decoration",
+  "text-overflow",
+  "text-transform",
+  "vertical-align",
+  "white-space",
+  "width",
+  "word-break"
+];
+
+const GROUP_COLOR_SWATCHES = [
+  { label: "玻璃白", color: "rgba(255,255,255,0.52)", swatch: "rgba(255,255,255,0.72)" },
+  { label: "浅蓝", color: "rgba(219,234,254,0.56)", swatch: "#bfdbfe" },
+  { label: "浅绿", color: "rgba(220,252,231,0.56)", swatch: "#bbf7d0" },
+  { label: "暖黄", color: "rgba(254,243,199,0.58)", swatch: "#fde68a" },
+  { label: "浅粉", color: "rgba(252,231,243,0.58)", swatch: "#fbcfe8" },
+  { label: "浅灰", color: "rgba(229,231,235,0.62)", swatch: "#d1d5db" }
+];
 
 export function bindCanvasMenuActions({
   elements = {},
@@ -22,6 +99,7 @@ export function bindCanvasMenuActions({
     getAddMenuPoint = () => null,
     setAddMenuPoint = () => {},
     getContextMenuPoint = () => null,
+    getContextMenuTargetNode = () => null,
     setPendingUploadPoint = () => {}
   } = state;
 
@@ -32,6 +110,9 @@ export function bindCanvasMenuActions({
     showAddNodeMenu = () => {},
     addNode = () => {},
     addChat = () => {},
+    selectNode = () => {},
+    deleteSelectedNode = () => {},
+    saveCurrentProject = null,
     recordCanvasEvent = () => {},
     openAssetLibrary = () => {}
   } = actions;
@@ -60,11 +141,18 @@ export function bindCanvasMenuActions({
 
     if (type === "upload" || type === "image" || type === "video" || type === "model") {
       setPendingUploadPoint(point);
+      if (assetUploadInput?.dataset) assetUploadInput.dataset.uploadIntent = "canvas";
       assetUploadInput?.click();
       return;
     }
 
     addNode({ ...(NODE_PRESETS[type] || NODE_PRESETS.text), x: point.x, y: point.y });
+  });
+
+  createSelectionActionBar({
+    addNode,
+    selectNode,
+    addChat
   });
 
   canvasContextMenu?.addEventListener("pointerdown", (event) => {
@@ -74,15 +162,33 @@ export function bindCanvasMenuActions({
   canvasContextMenu?.addEventListener("click", async (event) => {
     const button = event.target.closest("[data-context-action]");
     if (!button) return;
+
     const action = button.dataset.contextAction;
+
     const point = getContextMenuPoint() || getViewportCenterWorldPoint(canvasViewport, viewportPointToWorld);
+    const targetNode = getContextTargetNode(canvasContextMenu, getContextMenuTargetNode);
     hideCanvasContextMenu();
+
+    if (action === "copy") {
+      if (targetNode) nodeClipboard = snapshotNodeForClipboard(targetNode);
+      return;
+    }
+
+    if (action === "image-command") {
+      runCanvasImageMenuCommand(button.dataset.imageCommand, {
+        targetNode,
+        selectNode,
+        addChat
+      });
+      return;
+    }
 
     if (action === "upload" || action === "asset") {
       setPendingUploadPoint(point);
       if (action === "asset") {
-        openAssetLibrary();
+        openAssetLibrary(point);
       } else {
+        if (assetUploadInput?.dataset) assetUploadInput.dataset.uploadIntent = "canvas";
         assetUploadInput?.click();
       }
       return;
@@ -98,8 +204,8 @@ export function bindCanvasMenuActions({
     if (action === "tool") {
       addNode({
         kind: "2d",
-        title: "辅助工具",
-        desc: "用于整理素材、脚本、播放列表或工作流。",
+        title: "Helper tool",
+        desc: "Use this node for organizing assets, scripts, playlists or workflows.",
         x: point.x,
         y: point.y
       });
@@ -107,12 +213,80 @@ export function bindCanvasMenuActions({
     }
 
     if (action === "paste") {
+      if (nodeClipboard) {
+        const pasted = pasteNodeFromClipboard({
+          snapshot: nodeClipboard,
+          point,
+          addNode,
+          selectNode
+        });
+        if (!pasted) addChat("assistant", "The copied module could not be pasted.");
+        return;
+      }
       try {
         const text = await navigator.clipboard.readText();
         if (text && promptInput) promptInput.value = `${promptInput.value}${promptInput.value ? "\n" : ""}${text}`;
         promptInput?.focus();
       } catch {
-        addChat("assistant", "浏览器没有授予剪贴板读取权限，可以用 Ctrl+V 粘贴到输入框。");
+        addChat("assistant", "Clipboard read access was not granted. Use Ctrl+V in the input box instead.");
+      }
+      return;
+    }
+
+    if (action === "delete") {
+      if (targetNode && !targetNode.classList.contains("selected")) selectNode(targetNode);
+      deleteSelectedNode();
+      return;
+    }
+
+    if (action === "lock") {
+      if (targetNode) toggleNodeLock(targetNode);
+      return;
+    }
+
+    if (action === "group") {
+      groupSelectedNodes({ targetNode, addNode, selectNode, addChat });
+      return;
+    }
+
+    if (action === "ungroup") {
+      ungroupNodes({ targetNode, selectNode, addChat });
+      return;
+    }
+
+    if (action === "group-color") {
+      updateGroupBackgroundColor({
+        targetNode,
+        color: button.dataset.groupColor || "",
+        addChat
+      });
+      return;
+    }
+
+    if (action === "unlock-all") {
+      unlockAllNodes();
+      return;
+    }
+
+    if (action === "save") {
+      if (typeof saveCurrentProject === "function") {
+        await saveCurrentProject();
+      } else {
+        document.querySelector("[data-save-project]")?.click();
+      }
+      return;
+    }
+
+    if (action === "export") {
+      try {
+        await exportNodesByScope({
+          scope: button.dataset.exportScope || "selected",
+          targetNode,
+          addChat
+        });
+      } catch (error) {
+        console.error("Failed to export canvas node", error);
+        addChat("assistant", "Export failed. Check whether the image source is still accessible and try again.");
       }
       return;
     }
@@ -120,8 +294,297 @@ export function bindCanvasMenuActions({
     if (action === "undo" || action === "redo") {
       recordCanvasEvent(action, { source: "context-menu" });
     }
-    addChat("assistant", `${action === "undo" ? "撤销" : "重做"}功能已预留，下一步可以接入历史栈。`);
+    addChat("assistant", `${action === "undo" ? "Undo" : "Redo"} is reserved for the history stack.`);
   });
+}
+
+function createSelectionActionBar({
+  addNode = () => null,
+  selectNode = null,
+  addChat = () => {}
+} = {}) {
+  if (document.querySelector(".selection-action-bar")) return;
+  const bar = document.createElement("div");
+  bar.className = "selection-action-bar";
+  bar.setAttribute("role", "toolbar");
+  bar.setAttribute("aria-label", "Selection actions");
+  bar.innerHTML = `
+    <button class="selection-action-button selection-group-toggle" type="button" data-selection-action="group-toggle" title="&#25171;&#32452;" aria-label="&#25171;&#32452;">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="7" width="7" height="7" rx="1.5" /><rect x="13" y="10" width="7" height="7" rx="1.5" /><path d="M8 4h8" /><path d="M8 20h8" /></svg>
+      <span data-group-toggle-label>&#25171;&#32452;</span>
+    </button>
+    <button class="selection-action-button selection-compare-button" type="button" data-selection-action="compare" title="&#23545;&#27604;&#22270;&#29255;" aria-label="&#23545;&#27604;&#22270;&#29255;">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h5v14H6z" /><path d="M13 5h5v14h-5z" /></svg>
+      <span>&#23545;&#27604;&#22270;&#29255;</span>
+    </button>
+    <div class="selection-color-group" aria-label="&#32972;&#26223;&#33394;">
+      <span>&#32972;&#26223;&#33394;</span>
+      ${GROUP_COLOR_SWATCHES.map((item) => `
+        <button class="selection-color-swatch" type="button" data-selection-action="group-color" data-group-color="${item.color}" title="${item.label}" aria-label="${item.label}" style="--swatch: ${item.swatch}"></button>
+      `).join("")}
+    </div>
+  `;
+  document.body.appendChild(bar);
+
+  let scheduled = false;
+  let toolbarDrag = null;
+  const scheduleUpdate = () => {
+    if (scheduled) return;
+    scheduled = true;
+    window.requestAnimationFrame(() => {
+      scheduled = false;
+      updateSelectionActionBar(bar);
+    });
+  };
+
+  bar.addEventListener("pointerdown", (event) => {
+    event.stopPropagation();
+    if (event.button !== 0 || event.target.closest("[data-selection-action]")) return;
+    const nodes = getSelectionMoveNodes();
+    if (!nodes.length) return;
+    event.preventDefault();
+    toolbarDrag = {
+      startX: event.clientX,
+      startY: event.clientY,
+      zoom: getCanvasZoomFromDom(),
+      nodes: nodes.map((node) => ({
+        node,
+        x: parseFloat(node.style.left || "0") || 0,
+        y: parseFloat(node.style.top || "0") || 0
+      }))
+    };
+    try {
+      bar.setPointerCapture?.(event.pointerId);
+    } catch {
+      // Pointer capture can fail for synthetic events.
+    }
+  });
+  bar.addEventListener("pointermove", (event) => {
+    if (!toolbarDrag) return;
+    event.preventDefault();
+    const deltaX = (event.clientX - toolbarDrag.startX) / toolbarDrag.zoom;
+    const deltaY = (event.clientY - toolbarDrag.startY) / toolbarDrag.zoom;
+    toolbarDrag.nodes.forEach(({ node, x, y }) => {
+      if (!node.isConnected) return;
+      node.style.left = `${x + deltaX}px`;
+      node.style.top = `${y + deltaY}px`;
+    });
+    scheduleUpdate();
+  });
+  bar.addEventListener("pointerup", () => {
+    toolbarDrag = null;
+    scheduleUpdate();
+  });
+  bar.addEventListener("pointercancel", () => {
+    toolbarDrag = null;
+    scheduleUpdate();
+  });
+  bar.addEventListener("click", (event) => {
+    event.stopPropagation();
+    const button = event.target.closest("[data-selection-action]");
+    if (!button || button.disabled) return;
+    const action = button.dataset.selectionAction;
+    const targetNode = getSelectionToolbarTargetNode();
+    if (action === "group-toggle") {
+      const selection = getSelectionToolbarState();
+      if (selection.mode === "ungroup") {
+        ungroupNodes({ targetNode, selectNode, addChat });
+      } else {
+        groupSelectedNodes({ targetNode, addNode, selectNode, addChat });
+      }
+    } else if (action === "compare") {
+      openImageCompareFromSelection({
+        selectedNodes: new Set(getMenuCanvasNodes().filter((node) => node.classList.contains("selected"))),
+        getNodeTitle: getToolbarNodeTitle,
+        notify: (message) => addChat("assistant", message),
+        root: document
+      });
+    } else if (action === "group-color") {
+      updateGroupBackgroundColor({
+        targetNode,
+        color: button.dataset.groupColor || "",
+        addChat
+      });
+    }
+    scheduleUpdate();
+  });
+
+  const observer = new MutationObserver((mutations) => {
+    if (mutations.every((mutation) => bar.contains(mutation.target))) return;
+    scheduleUpdate();
+  });
+  observer.observe(document.body, {
+    subtree: true,
+    childList: true,
+    attributes: true,
+    attributeFilter: ["class", "style", "data-group-id"]
+  });
+  window.addEventListener("resize", scheduleUpdate, { passive: true });
+  window.addEventListener("scroll", scheduleUpdate, { passive: true, capture: true });
+  document.addEventListener("pointerup", scheduleUpdate, true);
+  document.addEventListener("keyup", scheduleUpdate, true);
+  scheduleUpdate();
+}
+
+function updateSelectionActionBar(bar) {
+  const selection = getSelectionToolbarState();
+  if (!selection.shouldShow || !selection.bounds) {
+    bar.classList.remove("open");
+    return;
+  }
+  const left = Math.max(16, Math.min(
+    window.innerWidth - bar.offsetWidth - 16,
+    selection.bounds.left + selection.bounds.width / 2 - bar.offsetWidth / 2
+  ));
+  const top = Math.max(16, selection.bounds.top - bar.offsetHeight - 14);
+  bar.style.left = `${Math.round(left)}px`;
+  bar.style.top = `${Math.round(top)}px`;
+  bar.classList.add("open");
+  const groupToggle = bar.querySelector('[data-selection-action="group-toggle"]');
+  const groupToggleLabel = bar.querySelector("[data-group-toggle-label]");
+  if (groupToggle) {
+    groupToggle.disabled = !selection.canGroup && !selection.canUngroup;
+    groupToggle.dataset.mode = selection.mode;
+    const label = selection.mode === "ungroup" ? "解组" : "打组";
+    groupToggle.title = label;
+    groupToggle.setAttribute("aria-label", label);
+    if (groupToggleLabel) groupToggleLabel.textContent = label;
+  }
+  bar.querySelector('[data-selection-action="compare"]').disabled = !selection.canCompare;
+  bar.querySelectorAll('[data-selection-action="group-color"]').forEach((button) => {
+    button.disabled = !selection.canStyleGroup;
+  });
+}
+
+function getSelectionToolbarState() {
+  const selected = getMenuCanvasNodes().filter((node) => node.classList.contains("selected"));
+  const selectedImages = selected.filter(isCanvasImageNode);
+  const selectedGroups = selected.filter((node) => node.classList.contains("node-group"));
+  const selectedGroupMembers = selected.filter((node) => !node.classList.contains("node-group") && node.dataset.groupId);
+  const groupableImages = selectedImages.filter((node) => !node.dataset.groupId);
+  const canUngroup = selectedGroups.length > 0 || selectedGroupMembers.length > 0;
+  const canGroup = !canUngroup && groupableImages.length >= 2;
+  const shouldShow = selectedImages.length >= 2 || selectedGroups.length > 0 || selectedGroupMembers.length > 0;
+  const bounds = shouldShow ? getViewportUnionRect(selected.length ? selected : selectedImages) : null;
+  return {
+    shouldShow,
+    bounds,
+    mode: canUngroup ? "ungroup" : "group",
+    canGroup,
+    canUngroup,
+    canCompare: selectedImages.length === 2,
+    canStyleGroup: canUngroup
+  };
+}
+
+function getSelectionToolbarTargetNode() {
+  return document.querySelector(".node-group.selected[data-active-selection='true']")
+    || document.querySelector(".node-card.selected[data-active-selection='true'][data-group-id]")
+    || document.querySelector(".node-group.selected")
+    || document.querySelector(".node-card.selected[data-group-id]")
+    || document.querySelector(".node-card.selected");
+}
+
+function getSelectionMoveNodes() {
+  const nodes = new Set(getMenuCanvasNodes().filter((node) => node.classList.contains("selected")));
+  Array.from(nodes).forEach((node) => {
+    const groupId = node.dataset.groupId || "";
+    if (!groupId) return;
+    document.querySelectorAll(`.node-card[data-group-id="${escapeAttributeValue(groupId)}"]`).forEach((groupNode) => {
+      nodes.add(groupNode);
+    });
+  });
+  return Array.from(nodes).filter((node) => node?.isConnected && !isNodeLocked(node));
+}
+
+function getCanvasZoomFromDom() {
+  const world = document.querySelector("#canvasWorld");
+  const transform = world ? window.getComputedStyle(world).transform : "";
+  if (!transform || transform === "none") return 1;
+  const match = transform.match(/^matrix\(([^,]+)/);
+  const zoom = match ? Number(match[1]) : 1;
+  return Number.isFinite(zoom) && zoom > 0 ? zoom : 1;
+}
+
+function getViewportUnionRect(nodes = []) {
+  const rects = nodes
+    .filter((node) => node?.isConnected)
+    .map((node) => node.getBoundingClientRect())
+    .filter((rect) => rect.width > 0 && rect.height > 0);
+  if (!rects.length) return null;
+  const left = Math.min(...rects.map((rect) => rect.left));
+  const top = Math.min(...rects.map((rect) => rect.top));
+  const right = Math.max(...rects.map((rect) => rect.right));
+  const bottom = Math.max(...rects.map((rect) => rect.bottom));
+  return {
+    left,
+    top,
+    width: right - left,
+    height: bottom - top
+  };
+}
+
+function isCanvasImageNode(node) {
+  return Boolean(node?.classList?.contains("node-image") && node.querySelector?.(".image-frame img"));
+}
+
+function getToolbarNodeTitle(node) {
+  return cleanText(
+    node?.querySelector?.("h3, .node-title, [data-node-title], .image-file-name")?.textContent
+      || node?.querySelector?.(".image-frame img")?.alt
+      || node?.dataset?.title
+      || ""
+  );
+}
+
+export function runCanvasImageMenuCommand(command, {
+  targetNode = null,
+  selectNode = null,
+  addChat = () => {}
+} = {}) {
+  if (!command) return false;
+  const allNodes = getMenuCanvasNodes();
+  const currentTarget = targetNode?.isConnected ? targetNode : document.querySelector(".node-card.selected");
+
+  if (command === "select-all") {
+    selectCanvasNodes(allNodes, selectNode);
+    return true;
+  }
+
+  if (command === "select-current") {
+    if (currentTarget) selectCanvasNodes([currentTarget], selectNode);
+    return true;
+  }
+
+  if (command === "relink-image") {
+    relinkCanvasImage(currentTarget || getCommandNodes({ targetNode: currentTarget })[0], addChat);
+    return true;
+  }
+
+  const nodes = getCommandNodes({ targetNode: currentTarget });
+  if (!nodes.length) return false;
+
+  if (command === "arrange-best") {
+    arrangeNodes(nodes);
+    return true;
+  }
+  if (command === "arrange-name") {
+    arrangeNodes([...nodes].sort((a, b) => getNodeSortTitle(a).localeCompare(getNodeSortTitle(b), "zh-Hans-CN")));
+    return true;
+  }
+  if (command === "arrange-added") {
+    arrangeNodes([...nodes].sort((a, b) => getNodeSortIndex(a) - getNodeSortIndex(b)));
+    return true;
+  }
+  if (command.startsWith("align-")) {
+    alignNodes(nodes, command.replace("align-", ""));
+    return true;
+  }
+  if (command.startsWith("normalize-")) {
+    normalizeNodes(nodes, command.replace("normalize-", ""));
+    return true;
+  }
+  return false;
 }
 
 function getViewportCenterWorldPoint(canvasViewport, viewportPointToWorld) {
@@ -130,4 +593,801 @@ function getViewportCenterWorldPoint(canvasViewport, viewportPointToWorld) {
     rect.left + canvasViewport.clientWidth / 2,
     rect.top + canvasViewport.clientHeight / 2
   );
+}
+
+function getMenuCanvasNodes() {
+  return Array.from(document.querySelectorAll(".node-card"))
+    .filter((node) => node.isConnected
+      && !node.classList.contains("hidden")
+      && !node.classList.contains("stack-member-hidden"));
+}
+
+function getCommandNodes({ targetNode = null } = {}) {
+  const selected = getMenuCanvasNodes().filter((node) => node.classList.contains("selected"));
+  const nodes = selected.length ? selected : (targetNode ? [targetNode] : []);
+  return nodes.filter((node) => node?.isConnected && !isNodeLocked(node));
+}
+
+function selectCanvasNodes(nodes, selectNode) {
+  if (!nodes.length) return;
+  if (typeof selectNode === "function") {
+    nodes.forEach((node, index) => selectNode(node, index > 0));
+    return;
+  }
+  document.querySelectorAll(".node-card.selected").forEach((node) => node.classList.remove("selected"));
+  nodes.forEach((node) => node.classList.add("selected"));
+}
+
+function arrangeNodes(nodes) {
+  if (nodes.length <= 1) return;
+  const bounds = nodes.map(getNodeLayoutBounds);
+  const minX = Math.min(...bounds.map((item) => item.x));
+  const minY = Math.min(...bounds.map((item) => item.y));
+  const columns = Math.max(1, Math.ceil(Math.sqrt(nodes.length)));
+  const gap = 32;
+  const columnWidth = Math.max(...bounds.map((item) => item.width)) + gap;
+  const rowHeight = Math.max(...bounds.map((item) => item.height)) + gap;
+  nodes.forEach((node, index) => {
+    node.style.left = `${minX + (index % columns) * columnWidth}px`;
+    node.style.top = `${minY + Math.floor(index / columns) * rowHeight}px`;
+    node.style.zIndex = String(10 + index);
+  });
+}
+
+function alignNodes(nodes, mode) {
+  if (nodes.length <= 1 && mode !== "stack") return;
+  const bounds = nodes.map(getNodeLayoutBounds);
+  if (mode === "left") {
+    const x = Math.min(...bounds.map((item) => item.x));
+    nodes.forEach((node) => { node.style.left = `${x}px`; });
+    return;
+  }
+  if (mode === "right") {
+    const right = Math.max(...bounds.map((item) => item.x + item.width));
+    nodes.forEach((node) => { node.style.left = `${right - getNodeLayoutBounds(node).width}px`; });
+    return;
+  }
+  if (mode === "top") {
+    const y = Math.min(...bounds.map((item) => item.y));
+    nodes.forEach((node) => { node.style.top = `${y}px`; });
+    return;
+  }
+  if (mode === "bottom") {
+    const bottom = Math.max(...bounds.map((item) => item.y + item.height));
+    nodes.forEach((node) => { node.style.top = `${bottom - getNodeLayoutBounds(node).height}px`; });
+    return;
+  }
+  if (mode === "stack") {
+    const anchor = bounds[0] || { x: 0, y: 0 };
+    nodes.forEach((node, index) => {
+      node.style.left = `${anchor.x + index * 18}px`;
+      node.style.top = `${anchor.y + index * 18}px`;
+      node.style.zIndex = String(20 + index);
+    });
+  }
+}
+
+function normalizeNodes(nodes, mode) {
+  if (nodes.length <= 1) return;
+  const reference = getNodeLayoutBounds(nodes[0]);
+  if (mode === "height") {
+    nodes.forEach((node) => setNodeLayoutHeight(node, reference.height));
+    return;
+  }
+  if (mode === "width") {
+    nodes.forEach((node) => setNodeLayoutWidth(node, reference.width));
+    return;
+  }
+  if (mode === "size") {
+    nodes.forEach((node) => {
+      setNodeLayoutWidth(node, reference.width);
+      setNodeLayoutHeight(node, reference.height);
+    });
+    return;
+  }
+  if (mode === "ratio") {
+    const ratio = reference.width / Math.max(1, reference.height);
+    nodes.forEach((node) => {
+      const width = getNodeLayoutBounds(node).width;
+      setNodeLayoutHeight(node, Math.max(24, width / ratio));
+    });
+  }
+}
+
+function relinkCanvasImage(node, addChat) {
+  const imageNode = node?.classList?.contains("node-image")
+    ? node
+    : document.querySelector(".node-image.selected") || document.querySelector(".node-image");
+  if (!imageNode) {
+    addChat("assistant", "没有可重新链接的图片模块。");
+    return;
+  }
+  const image = imageNode.querySelector(".image-frame img");
+  if (!image) {
+    addChat("assistant", "当前模块没有可重新链接的图片。");
+    return;
+  }
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.addEventListener("change", () => {
+    const file = input.files?.[0];
+    if (!file) return;
+    const url = URL.createObjectURL(file);
+    image.src = url;
+    image.alt = file.name;
+    const title = imageNode.querySelector("h3, .node-title, [data-node-title]");
+    if (title) title.textContent = file.name;
+  }, { once: true });
+  input.click();
+}
+
+function getNodeLayoutBounds(node) {
+  return {
+    x: parseFloat(node.style.left || "0") || 0,
+    y: parseFloat(node.style.top || "0") || 0,
+    width: Math.max(1, node.offsetWidth || parseFloat(node.style.width || "0") || 1),
+    height: Math.max(1, node.offsetHeight || parseFloat(node.style.minHeight || "0") || 1)
+  };
+}
+
+function setNodeLayoutWidth(node, width) {
+  node.dataset.manualSize = "true";
+  node.style.width = `${Math.max(24, Math.round(width))}px`;
+}
+
+function setNodeLayoutHeight(node, height) {
+  node.dataset.manualSize = "true";
+  const nextHeight = Math.max(24, Math.round(height));
+  if (node.classList.contains("node-image") || node.classList.contains("node-model")) {
+    const frame = node.querySelector(".image-frame, .model-frame");
+    if (frame) frame.style.aspectRatio = "auto";
+  }
+  node.style.minHeight = `${nextHeight}px`;
+}
+
+function getNodeSortTitle(node) {
+  return cleanText(
+    node.querySelector("h3, .node-title, [data-node-title]")?.textContent
+      || node.querySelector(".image-frame img")?.alt
+      || node.dataset.title
+      || ""
+  );
+}
+
+function getNodeSortIndex(node) {
+  const idNumber = Number(String(node.dataset.nodeId || "").replace(/\D+/g, ""));
+  if (Number.isFinite(idNumber)) return idNumber;
+  return Array.from(node.parentElement?.children || []).indexOf(node);
+}
+
+function isNodeLocked(node) {
+  return node?.dataset?.locked === "true" || node?.classList?.contains("node-locked");
+}
+
+function getContextTargetNode(canvasContextMenu, getContextMenuTargetNode) {
+  const direct = getContextMenuTargetNode();
+  if (direct?.isConnected) return direct;
+  const id = canvasContextMenu?.dataset?.contextNodeId;
+  if (!id) return document.querySelector(".node-card.selected");
+  return document.querySelector(`.node-card[data-node-id="${escapeAttributeValue(id)}"]`);
+}
+
+function snapshotNodeForClipboard(node) {
+  const image = node.querySelector(".image-frame img");
+  const title = cleanText(
+    node.querySelector("h3, .node-title, [data-node-title]")?.textContent
+      || image?.alt
+      || node.dataset.title
+      || node.textContent
+      || "Copied node"
+  );
+  const desc = cleanText(
+    node.querySelector("p, .node-desc, [data-node-desc]")?.textContent
+      || node.dataset.desc
+      || ""
+  );
+  return {
+    kind: getNodeKind(node),
+    title,
+    desc,
+    media: image ? {
+      url: image.currentSrc || image.src,
+      name: title,
+      type: image.dataset.mimeType || "image/png"
+    } : undefined,
+    width: node.style.width || "",
+    minHeight: node.style.minHeight || ""
+  };
+}
+
+function pasteNodeFromClipboard({ snapshot, point, addNode, selectNode }) {
+  if (!snapshot) return null;
+  const pasted = addNode({
+    kind: snapshot.kind || "2d",
+    title: snapshot.title || "Copied node",
+    desc: snapshot.desc || "",
+    x: point.x + 24,
+    y: point.y + 24,
+    media: snapshot.media
+  });
+  if (!pasted) return null;
+  if (snapshot.width) pasted.style.width = snapshot.width;
+  if (snapshot.minHeight && !pasted.classList.contains("node-image")) pasted.style.minHeight = snapshot.minHeight;
+  pasted.dataset.locked = "false";
+  pasted.classList.remove("node-locked", "selected");
+  selectNode(pasted);
+  return pasted;
+}
+
+function toggleNodeLock(node) {
+  const nextLocked = node.dataset.locked !== "true";
+  node.dataset.locked = nextLocked ? "true" : "false";
+  node.classList.toggle("node-locked", nextLocked);
+}
+
+function unlockAllNodes() {
+  getMenuCanvasNodes().forEach((node) => {
+    node.dataset.locked = "false";
+    node.classList.remove("node-locked");
+  });
+}
+
+function groupSelectedNodes({
+  targetNode = null,
+  addNode = () => null,
+  selectNode = null,
+  addChat = () => {}
+} = {}) {
+  const members = getGroupableSelection(targetNode);
+  if (members.length < 2) {
+    addChat("assistant", "请先选择至少 2 个模块再打组。");
+    return null;
+  }
+  const bounds = getNodesUnionBounds(members);
+  const padding = 28;
+  const groupId = `group-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
+  const groupNode = addNode({
+    kind: "group",
+    title: "Group",
+    desc: "",
+    x: bounds.x - padding,
+    y: bounds.y - padding,
+    media: {}
+  });
+  if (!groupNode) return null;
+  configureGroupNode(groupNode, {
+    groupId,
+    width: bounds.width + padding * 2,
+    height: bounds.height + padding * 2
+  });
+  const firstMember = members[0];
+  if (firstMember?.parentElement && groupNode.parentElement === firstMember.parentElement) {
+    firstMember.parentElement.insertBefore(groupNode, firstMember);
+  }
+  members.forEach((node) => {
+    node.dataset.groupId = groupId;
+  });
+  selectCanvasNodes([groupNode, ...members], selectNode);
+  return groupNode;
+}
+
+function configureGroupNode(groupNode, {
+  groupId,
+  width,
+  height,
+  background = "rgba(255,255,255,0.52)"
+} = {}) {
+  groupNode.className = "node-card node-group canvas-group";
+  groupNode.dataset.kind = "group";
+  groupNode.dataset.groupId = groupId || groupNode.dataset.groupId || "";
+  groupNode.dataset.groupBackground = background;
+  groupNode.style.width = `${Math.max(120, Math.round(width || groupNode.offsetWidth || 320))}px`;
+  groupNode.style.minHeight = `${Math.max(90, Math.round(height || groupNode.offsetHeight || 220))}px`;
+  groupNode.style.background = background;
+  groupNode.innerHTML = `
+    <div class="canvas-group-label">Group</div>
+    <div class="canvas-group-fill" aria-hidden="true"></div>
+  `;
+}
+
+function getGroupableSelection(targetNode = null) {
+  const selected = getMenuCanvasNodes()
+    .filter((node) => node.classList.contains("selected"))
+    .filter((node) => !node.classList.contains("node-group"))
+    .filter((node) => !node.dataset.groupId);
+  if (selected.length) return selected;
+  return targetNode?.isConnected
+    && !targetNode.classList.contains("node-group")
+    && !targetNode.dataset.groupId
+    ? [targetNode]
+    : [];
+}
+
+function getGroupMembers(groupId) {
+  if (!groupId) return [];
+  return getMenuCanvasNodes().filter((node) => node.dataset.groupId === groupId && !node.classList.contains("node-group"));
+}
+
+function getGroupNodeForTarget(targetNode = null) {
+  if (!targetNode?.isConnected) return null;
+  if (targetNode.classList.contains("node-group")) return targetNode;
+  const groupId = targetNode.dataset.groupId || "";
+  return groupId ? document.querySelector(`.node-group[data-group-id="${escapeAttributeValue(groupId)}"]`) : null;
+}
+
+function ungroupNodes({ targetNode = null, selectNode = null, addChat = () => {} } = {}) {
+  const groupNode = getGroupNodeForTarget(targetNode) || document.querySelector(".node-group.selected");
+  if (!groupNode) {
+    addChat("assistant", "请先选择一个组。");
+    return;
+  }
+  const groupId = groupNode.dataset.groupId || "";
+  const members = getGroupMembers(groupId);
+  members.forEach((node) => {
+    delete node.dataset.groupId;
+  });
+  groupNode.remove();
+  selectCanvasNodes(members, selectNode);
+}
+
+function updateGroupBackgroundColor({ targetNode = null, color = "", addChat = () => {} } = {}) {
+  const groupNode = getGroupNodeForTarget(targetNode) || document.querySelector(".node-group.selected");
+  if (!groupNode || !color) {
+    addChat("assistant", "请先选择一个组再更换背景色。");
+    return;
+  }
+  groupNode.dataset.groupBackground = color;
+  groupNode.style.background = color;
+}
+
+function getNodeKind(node) {
+  if (node.classList.contains("node-image")) return "image";
+  if (node.classList.contains("node-group")) return "group";
+  if (node.classList.contains("node-model")) return "model";
+  if (node.classList.contains("node-video")) return "video";
+  if (node.classList.contains("canvas-text")) return "2d";
+  return node.dataset.kind || "2d";
+}
+
+async function exportNode(node, format = "png") {
+  const normalizedFormat = format === "jpeg" ? "jpg" : format;
+  const svgText = await buildNodeSvg(node);
+  const title = cleanFileName(
+    node.querySelector("h3, .node-title, [data-node-title]")?.textContent
+      || node.querySelector(".image-frame img")?.alt
+      || "canvas-node"
+  );
+  if (normalizedFormat === "svg") {
+    downloadBlob(new Blob([svgText], { type: "image/svg+xml;charset=utf-8" }), `${title}.svg`);
+    return;
+  }
+  const blob = await rasterizeSvg(svgText, node.offsetWidth, node.offsetHeight, normalizedFormat);
+  downloadBlob(blob, `${title}.${normalizedFormat}`);
+}
+
+async function exportNodesByScope({ scope = "selected", targetNode = null, addChat = () => {} } = {}) {
+  const nodes = getImageNodesForExport(scope, targetNode);
+  if (!nodes.length) {
+    addChat("assistant", scope === "all" ? "画布上还没有可导出的图片。" : "请先选择要导出的图片。");
+    return;
+  }
+
+  if (typeof window.showDirectoryPicker === "function") {
+    const directoryHandle = await pickExportDirectory();
+    if (!directoryHandle) return;
+    const files = await renderExportFiles(nodes);
+    if (!files.length) {
+      addChat("assistant", "没有图片成功渲染，导出已取消。");
+      return;
+    }
+    try {
+      await ensureDirectoryWritePermission(directoryHandle);
+      await writeExportFilesToDirectory(directoryHandle, files);
+      addChat("assistant", `已导出 ${files.length} 张图片。`);
+    } catch (error) {
+      console.warn("Failed to write files to selected directory", error);
+      files.forEach((file, index) => {
+        window.setTimeout(() => downloadBlob(file.blob, file.fileName), index * 120);
+      });
+      addChat("assistant", `文件夹写入失败，已改为浏览器下载 ${files.length} 张图片。`);
+    }
+    return;
+  }
+
+  const files = await renderExportFiles(nodes);
+  if (!files.length) {
+    addChat("assistant", "没有图片成功渲染，导出已取消。");
+    return;
+  }
+  files.forEach((file, index) => {
+    window.setTimeout(() => downloadBlob(file.blob, file.fileName), index * 120);
+  });
+  addChat("assistant", `浏览器不支持文件夹选择，已开始下载 ${files.length} 张图片。`);
+}
+
+async function renderExportFiles(nodes = []) {
+  const files = [];
+  for (const node of nodes) {
+    try {
+      files.push({
+        fileName: getUniqueExportFileName(files, getImageExportFileName(node)),
+        blob: await renderImageNodeToPng(node)
+      });
+    } catch (error) {
+      console.warn("Failed to render image node for export", error);
+    }
+  }
+  return files;
+}
+
+async function pickExportDirectory() {
+  try {
+    return await window.showDirectoryPicker({ mode: "readwrite" });
+  } catch (error) {
+    if (error?.name !== "AbortError") throw error;
+    return null;
+  }
+}
+
+async function ensureDirectoryWritePermission(directoryHandle) {
+  if (!directoryHandle) return;
+  const options = { mode: "readwrite" };
+  if (typeof directoryHandle.queryPermission === "function") {
+    const currentPermission = await directoryHandle.queryPermission(options);
+    if (currentPermission === "granted") return;
+  }
+  if (typeof directoryHandle.requestPermission === "function") {
+    const nextPermission = await directoryHandle.requestPermission(options);
+    if (nextPermission !== "granted") {
+      throw new Error("Directory write permission was not granted");
+    }
+  }
+}
+
+function getImageNodesForExport(scope = "selected", targetNode = null) {
+  const imageNodes = getMenuCanvasNodes().filter(isExportableImageNode);
+  if (scope === "all") return imageNodes;
+  const selectedImages = imageNodes.filter((node) => node.classList.contains("selected"));
+  if (selectedImages.length) return selectedImages;
+  return isExportableImageNode(targetNode) ? [targetNode] : [];
+}
+
+function isExportableImageNode(node) {
+  return Boolean(node?.isConnected
+    && node.classList?.contains("node-image")
+    && node.querySelector?.(".image-frame img"));
+}
+
+async function renderImageNodeToPng(node) {
+  const rect = getImageExportRect(node);
+  if (!rect) throw new Error("No image bounds available for export");
+  const scale = Math.max(1, Math.min(3, window.devicePixelRatio || 2));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.ceil(rect.width * scale));
+  canvas.height = Math.max(1, Math.ceil(rect.height * scale));
+  const context = canvas.getContext("2d");
+  context.scale(scale, scale);
+  context.clearRect(0, 0, rect.width, rect.height);
+  const image = await loadCanvasImage(rect.image.currentSrc || rect.image.src);
+  drawImageIntoRect({
+    context,
+    image,
+    x: 0,
+    y: 0,
+    width: rect.width,
+    height: rect.height,
+    objectFit: window.getComputedStyle(rect.image).objectFit || "cover"
+  });
+  return canvasToBlob(canvas, "image/png");
+}
+
+function getImageExportFileName(node) {
+  const title = cleanFileName(stripImageExtension(node.querySelector(".image-file-name, h3, .node-title, [data-node-title]")?.textContent
+    || node.querySelector(".image-frame img")?.alt
+    || "canvas-image"));
+  return `${title}.png`;
+}
+
+function getUniqueExportFileName(existingFiles, fileName) {
+  const used = new Set(existingFiles.map((file) => file.fileName));
+  if (!used.has(fileName)) return fileName;
+  const base = stripImageExtension(fileName);
+  let index = 2;
+  let nextName = `${base}-${index}.png`;
+  while (used.has(nextName)) {
+    index += 1;
+    nextName = `${base}-${index}.png`;
+  }
+  return nextName;
+}
+
+async function writeExportFilesToDirectory(directoryHandle, files) {
+  for (const file of files) {
+    const fileHandle = await directoryHandle.getFileHandle(file.fileName, { create: true });
+    const writable = await fileHandle.createWritable();
+    await writable.write(file.blob);
+    await writable.close();
+  }
+}
+
+function getImageExportRect(node) {
+  const frame = node?.querySelector?.(".image-frame");
+  const image = frame?.querySelector?.("img");
+  if (!frame || !image) return null;
+  const nodeBounds = getNodeLayoutBounds(node);
+  const width = Math.max(1, frame.offsetWidth || node.offsetWidth || nodeBounds.width);
+  const height = Math.max(1, frame.offsetHeight || node.offsetHeight || nodeBounds.height);
+  return {
+    image,
+    x: nodeBounds.x + frame.offsetLeft,
+    y: nodeBounds.y + frame.offsetTop,
+    width,
+    height
+  };
+}
+
+function getRectUnionBounds(rects) {
+  const minX = Math.min(...rects.map((rect) => rect.x));
+  const minY = Math.min(...rects.map((rect) => rect.y));
+  const maxX = Math.max(...rects.map((rect) => rect.x + rect.width));
+  const maxY = Math.max(...rects.map((rect) => rect.y + rect.height));
+  return {
+    x: minX,
+    y: minY,
+    width: Math.max(1, Math.ceil(maxX - minX)),
+    height: Math.max(1, Math.ceil(maxY - minY))
+  };
+}
+
+async function loadCanvasImage(src) {
+  if (!src) throw new Error("Missing image source");
+  const image = new Image();
+  image.decoding = "async";
+  image.crossOrigin = "anonymous";
+  image.src = src.startsWith("data:") ? src : await imageSourceToDataUrl(src);
+  if (image.decode) {
+    await image.decode();
+    return image;
+  }
+  await new Promise((resolve, reject) => {
+    image.onload = resolve;
+    image.onerror = () => reject(new Error("Unable to load image for export"));
+  });
+  return image;
+}
+
+async function imageSourceToDataUrl(src) {
+  let response;
+  try {
+    response = await fetch(src, { credentials: "include" });
+  } catch (error) {
+    response = await fetchProxiedImage(src, error);
+  }
+  if (!response?.ok && isHttpUrl(src)) {
+    response = await fetchProxiedImage(src);
+  }
+  if (!response.ok) throw new Error("Unable to read image for export");
+  return blobToDataUrl(await response.blob());
+}
+
+async function fetchProxiedImage(src, cause = null) {
+  if (!isHttpUrl(src)) {
+    if (cause) throw cause;
+    throw new Error("Image source cannot be proxied");
+  }
+  return fetch(`/api/image-proxy?url=${encodeURIComponent(src)}`, { credentials: "include" });
+}
+
+function isHttpUrl(value = "") {
+  return /^https?:\/\//i.test(String(value || ""));
+}
+
+function drawImageIntoRect({ context, image, x, y, width, height, objectFit = "cover" }) {
+  const sourceWidth = image.naturalWidth || image.width;
+  const sourceHeight = image.naturalHeight || image.height;
+  if (!sourceWidth || !sourceHeight) return;
+  if (objectFit === "contain") {
+    const scale = Math.min(width / sourceWidth, height / sourceHeight);
+    const drawWidth = sourceWidth * scale;
+    const drawHeight = sourceHeight * scale;
+    context.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
+    return;
+  }
+  const scale = Math.max(width / sourceWidth, height / sourceHeight);
+  const cropWidth = width / scale;
+  const cropHeight = height / scale;
+  const sourceX = (sourceWidth - cropWidth) / 2;
+  const sourceY = (sourceHeight - cropHeight) / 2;
+  context.drawImage(image, sourceX, sourceY, cropWidth, cropHeight, x, y, width, height);
+}
+
+function canvasToBlob(canvas, type) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error("Canvas export returned an empty blob"));
+      }
+    }, type);
+  });
+}
+
+function getSelectedOrTargetNodes(targetNode = null) {
+  const selected = getMenuCanvasNodes().filter((node) => node.classList.contains("selected"));
+  if (selected.length) return selected;
+  return targetNode?.isConnected ? [targetNode] : [];
+}
+
+async function buildNodesSvg(nodes) {
+  const bounds = getNodesUnionBounds(nodes);
+  const clones = await Promise.all(nodes.map(async (node) => {
+    const nodeBounds = getNodeLayoutBounds(node);
+    const clone = node.cloneNode(true);
+    inlineComputedTree(node, clone);
+    prepareExportClone(clone);
+    clone.style.position = "absolute";
+    clone.style.left = `${nodeBounds.x - bounds.x}px`;
+    clone.style.top = `${nodeBounds.y - bounds.y}px`;
+    clone.style.margin = "0";
+    clone.style.transform = "none";
+    clone.style.boxSizing = "border-box";
+    await inlineCloneImages(clone);
+    return clone.outerHTML;
+  }));
+  return `
+<svg xmlns="http://www.w3.org/2000/svg" width="${bounds.width}" height="${bounds.height}" viewBox="0 0 ${bounds.width} ${bounds.height}">
+  <foreignObject width="100%" height="100%">
+    <body xmlns="http://www.w3.org/1999/xhtml" data-view="canvas" data-theme="${escapeHtml(document.body?.dataset?.theme || "light")}" style="margin:0;width:${bounds.width}px;height:${bounds.height}px;overflow:hidden;background:transparent;position:relative;">
+      ${clones.join("")}
+    </body>
+  </foreignObject>
+</svg>`.trim();
+}
+
+function getNodesUnionBounds(nodes) {
+  const rects = nodes.map(getNodeLayoutBounds);
+  const minX = Math.min(...rects.map((rect) => rect.x));
+  const minY = Math.min(...rects.map((rect) => rect.y));
+  const maxX = Math.max(...rects.map((rect) => rect.x + rect.width));
+  const maxY = Math.max(...rects.map((rect) => rect.y + rect.height));
+  return {
+    x: minX,
+    y: minY,
+    width: Math.max(1, Math.ceil(maxX - minX)),
+    height: Math.max(1, Math.ceil(maxY - minY))
+  };
+}
+
+async function buildNodeSvg(node) {
+  const width = Math.max(1, Math.ceil(node.offsetWidth || node.getBoundingClientRect().width || 1));
+  const height = Math.max(1, Math.ceil(node.offsetHeight || node.getBoundingClientRect().height || 1));
+  const clone = node.cloneNode(true);
+  inlineComputedTree(node, clone);
+  prepareExportClone(clone);
+  clone.style.position = "relative";
+  clone.style.left = "0";
+  clone.style.top = "0";
+  clone.style.margin = "0";
+  clone.style.transform = "none";
+  clone.style.boxSizing = "border-box";
+  await inlineCloneImages(clone);
+  return `
+<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}" viewBox="0 0 ${width} ${height}">
+  <foreignObject width="100%" height="100%">
+    <body xmlns="http://www.w3.org/1999/xhtml" data-view="canvas" data-theme="${escapeHtml(document.body?.dataset?.theme || "light")}" style="margin:0;width:${width}px;height:${height}px;overflow:hidden;background:transparent;">
+      ${clone.outerHTML}
+    </body>
+  </foreignObject>
+</svg>`.trim();
+}
+
+function prepareExportClone(clone) {
+  clone.classList.remove("selected", "node-locked");
+  clone.querySelectorAll(".resize-handle, .image-node-toolbar, .canvas-asset-savebar, .node-download, .node-expand, .stack-toggle, .stack-tray").forEach((item) => item.remove());
+}
+
+function inlineComputedTree(sourceNode, cloneNode) {
+  const computed = window.getComputedStyle(sourceNode);
+  cloneNode.style.cssText = SAFE_EXPORT_STYLE_PROPERTIES
+    .map((property) => `${property}:${computed.getPropertyValue(property)};`)
+    .join("");
+  Array.from(sourceNode.children).forEach((sourceChild, index) => {
+    const cloneChild = cloneNode.children[index];
+    if (cloneChild) inlineComputedTree(sourceChild, cloneChild);
+  });
+}
+
+async function inlineCloneImages(root) {
+  const images = Array.from(root.querySelectorAll("img"));
+  await Promise.all(images.map(async (image) => {
+    const src = image.currentSrc || image.src;
+    if (!src || src.startsWith("data:")) return;
+    try {
+      const response = await fetch(src, { credentials: "include" });
+      if (!response.ok) return;
+      const blob = await response.blob();
+      image.src = await blobToDataUrl(blob);
+      image.removeAttribute("srcset");
+      image.removeAttribute("crossorigin");
+    } catch {
+      // If a remote image blocks reading, keep the original source for SVG export.
+    }
+  }));
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || new Error("Unable to read image blob"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function rasterizeSvg(svgText, width, height, format) {
+  return new Promise((resolve, reject) => {
+    const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgText)}`;
+    const image = new Image();
+    image.onload = () => {
+      const scale = Math.max(1, Math.min(3, window.devicePixelRatio || 2));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.ceil(width * scale));
+      canvas.height = Math.max(1, Math.ceil(height * scale));
+      const context = canvas.getContext("2d");
+      context.scale(scale, scale);
+      if (format === "jpg") {
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, width, height);
+      }
+      context.drawImage(image, 0, 0, width, height);
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error("Canvas export returned an empty blob"));
+          return;
+        }
+        resolve(blob);
+      }, format === "jpg" ? "image/jpeg" : "image/png", 0.94);
+    };
+    image.onerror = () => {
+      reject(new Error("Unable to render SVG export"));
+    };
+    image.src = url;
+  });
+}
+
+function downloadBlob(blob, fileName) {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = fileName;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function cleanText(value = "") {
+  return String(value).replace(/\s+/g, " ").trim().slice(0, 120);
+}
+
+function cleanFileName(value = "") {
+  return cleanText(value).replace(/[\\/:*?"<>|]+/g, "-") || "canvas-node";
+}
+
+function stripImageExtension(value = "") {
+  return String(value).replace(/\.(png|jpe?g|webp|gif|avif|bmp|svg)$/i, "");
+}
+
+function escapeAttributeValue(value = "") {
+  return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+
+function escapeHtml(value = "") {
+  return String(value)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
 }

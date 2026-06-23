@@ -216,7 +216,7 @@ export function positionShapeToolbar({ toolbar, node, nodeRect, isLinear }) {
 export function createDrawingPreviewElement({ viewportRect, tool, renderSvg, buildPenSvg }) {
   const preview = document.createElement("div");
   preview.className = `canvas-drawing-preview preview-${tool}`;
-  preview.innerHTML = tool === "pen" ? buildPenSvg(viewportRect) : renderSvg(tool);
+  preview.innerHTML = tool === "pen" || tool === "laser" ? buildPenSvg(viewportRect) : renderSvg(tool);
   return preview;
 }
 
@@ -240,7 +240,7 @@ export function createDrawingState({ tool, preview, startClientX, startClientY, 
 
 export function updateDrawingPreviewElement(drawing, pointsToPath, buildLinearPreviewSvg) {
   if (!drawing) return;
-  if (drawing.tool === "pen") {
+  if (drawing.tool === "pen" || drawing.tool === "laser") {
     const last = drawing.points[drawing.points.length - 1];
     if (!last || Math.hypot(drawing.currentX - last.x, drawing.currentY - last.y) > 2) {
       drawing.points.push({ x: drawing.currentX, y: drawing.currentY });

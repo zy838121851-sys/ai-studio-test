@@ -41,6 +41,7 @@ export function createCanvasToolWorkflow({
     if (tool === "image") {
       const nextPoint = viewportCenterPoint();
       setPendingUploadPoint(nextPoint);
+      if (assetUploadInput?.dataset) assetUploadInput.dataset.uploadIntent = "canvas";
       assetUploadInput?.click();
       return;
     }

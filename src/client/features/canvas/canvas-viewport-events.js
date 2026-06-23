@@ -186,8 +186,15 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
   });
 
   resolvedCanvasViewport.addEventListener("contextmenu", (event) => {
-    if (event.target.closest(".node-card") || event.target.closest(".add-node-menu") || event.target.closest(".image-edit-popover")) return;
+    if (event.target.closest(".add-node-menu") || event.target.closest(".image-edit-popover")) return;
+    const node = event.target.closest(".node-card");
     event.preventDefault();
+    if (node) {
+      event.stopPropagation();
+      if (!node.classList.contains("selected")) selectNode(node);
+      showCanvasContextMenu(event.clientX, event.clientY, node);
+      return;
+    }
     showCanvasContextMenu(event.clientX, event.clientY);
   });
 
@@ -242,12 +249,18 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
     const asset = getLibraryAssets().find((item) => item.id === event.dataTransfer.getData("text/plain"));
     if (!asset) return;
     const point = viewportPointToWorld(event.clientX, event.clientY);
+    const kind = asset.type === "model3d" ? "model" : (asset.type === "image" ? "image" : asset.type);
     addNode({
-      kind: asset.type,
+      kind,
       title: asset.title,
-      desc: asset.desc,
+      desc: asset.desc || asset.prompt || asset.source || "Asset library item",
       x: point.x,
-      y: point.y
+      y: point.y,
+      media: {
+        url: asset.url || asset.thumbnailUrl,
+        name: asset.title,
+        type: asset.mimeType || (kind === "image" ? "image/png" : "")
+      }
     });
   });
 }

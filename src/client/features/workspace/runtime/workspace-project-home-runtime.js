@@ -22,7 +22,8 @@ export function createWorkspaceProjectHomeRuntime({
       getLibraryViewMode: state.getLibraryViewMode,
       getSelectedNodes: state.getSelectedNodes,
       getSelectedNode: state.getSelectedNode,
-      setSelectedNode: state.setSelectedNode
+      setSelectedNode: state.setSelectedNode,
+      getAssets: state.getAssets
     },
     elements: {
       body: document?.body,
@@ -61,7 +62,9 @@ export function createWorkspaceProjectHomeRuntime({
       waitFor: services.waitFor
     },
     services: {
-      escapeHtml: services.escapeHtml
+      escapeHtml: services.escapeHtml,
+      resolveAssetUrl: services.resolveAssetUrl,
+      ensureAssetsReady: services.ensureAssetsReady
     }
   });
 

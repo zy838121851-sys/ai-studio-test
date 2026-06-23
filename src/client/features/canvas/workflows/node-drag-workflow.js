@@ -2,6 +2,7 @@ export function createNodeDragWorkflow({
   elements = {},
   services = {}
 } = {}) {
+  const enableDragStacking = false;
   const {
     getActiveCanvasTool = () => "",
     stopNativeDrag = () => {},
@@ -100,6 +101,7 @@ export function createNodeDragWorkflow({
   }
 
   function findStackTarget(dragged) {
+    if (!enableDragStacking) return null;
     const draggedBounds = getNodeBounds(dragged);
     const draggedCenterX = draggedBounds.x + draggedBounds.width / 2;
     let best = null;
@@ -126,6 +128,11 @@ export function createNodeDragWorkflow({
   }
 
   function setActiveStackTarget(node) {
+    if (!enableDragStacking) {
+      if (activeStackTarget) activeStackTarget.classList.remove("stack-drop-target");
+      activeStackTarget = null;
+      return;
+    }
     if (activeStackTarget === node) return;
     if (activeStackTarget) activeStackTarget.classList.remove("stack-drop-target");
     activeStackTarget = node;
@@ -191,6 +198,7 @@ export function createNodeDragWorkflow({
       const value = Number(getZoom());
       return Number.isFinite(value) && value > 0 ? value : 1;
     };
+    const isLocked = () => node.dataset.locked === "true" || node.classList.contains("node-locked");
 
     node.addEventListener("pointerdown", (event) => {
       if (getActiveCanvasTool() === "eraser" && event.button === 0) {
@@ -205,6 +213,15 @@ export function createNodeDragWorkflow({
       if (event.target.isContentEditable && node.classList.contains("text-editing")) {
         if (!getSelectedNodes().has(node)) selectNode(node);
         event.stopPropagation();
+        return;
+      }
+      if (isLocked()) {
+        if (event.button === 0) {
+          event.preventDefault();
+          event.stopPropagation();
+          hideAddNodeMenu();
+          if (!getSelectedNodes().has(node)) selectNode(node, event.shiftKey);
+        }
         return;
       }
       const resizeHandle = event.target.closest(".resize-handle");
@@ -235,7 +252,12 @@ export function createNodeDragWorkflow({
       event.preventDefault();
       event.stopPropagation();
       hideAddNodeMenu();
-      if (!getSelectedNodes().has(node)) selectNode(node);
+      const selectedBeforeDrag = getCurrentDragSelection();
+      if (event.shiftKey) {
+        selectNode(node, true);
+      } else if (!selectedBeforeDrag.has(node)) {
+        selectNode(node);
+      }
       dragging = true;
       if (hasShapeNodeInSet(node, getSelectedNodes())) hideShapeToolbar();
       if (hasTextNodeInSet(node, getSelectedNodes())) hideTextToolbar(getTextFormatToolbar());
@@ -246,8 +268,11 @@ export function createNodeDragWorkflow({
         x: parseFloat(node.style.left || "0"),
         y: parseFloat(node.style.top || "0")
       };
-      const dragNodes = new Set(getSelectedNodes());
-      dragNodes.add(node);
+      const dragSelection = getCurrentDragSelection(node);
+      const dragNodes = expandDragNodesWithGroups(
+        dragSelection,
+        node
+      );
       groupOriginals = Array.from(dragNodes).map((item) => ({
         node: item,
         x: parseFloat(item.style.left || "0"),
@@ -306,10 +331,6 @@ export function createNodeDragWorkflow({
 
     node.addEventListener("pointerup", () => {
       if (dragging) {
-        const stackTarget = activeStackTarget || findStackTarget(node);
-        Array.from(getSelectedNodes())
-          .filter((item) => item !== stackTarget)
-          .forEach((item) => stackNode(stackTarget, item));
         recordStyleUndo("move-nodes", dragSnapshots);
       }
       if (resizing) {
@@ -349,6 +370,35 @@ export function createNodeDragWorkflow({
       node,
       style: node?.getAttribute("style") || ""
     };
+  }
+
+  function expandDragNodesWithGroups(selectedNodes, activeNode) {
+    const dragNodes = new Set(selectedNodes || []);
+    if (activeNode) dragNodes.add(activeNode);
+    Array.from(dragNodes).forEach((item) => {
+      const groupId = item?.dataset?.groupId || "";
+      if (!groupId) return;
+      const root = item.ownerDocument || document;
+      root.querySelectorAll(`.node-card[data-group-id="${escapeCssValue(groupId)}"]`).forEach((groupItem) => {
+        dragNodes.add(groupItem);
+      });
+    });
+    return dragNodes;
+  }
+
+  function getCurrentDragSelection(activeNode = null) {
+    const dragSelection = new Set(getSelectedNodes() || []);
+    const root = activeNode?.ownerDocument || document;
+    root.querySelectorAll?.(".node-card.selected").forEach((item) => {
+      dragSelection.add(item);
+    });
+    if (activeNode) dragSelection.add(activeNode);
+    return dragSelection;
+  }
+
+  function escapeCssValue(value = "") {
+    if (globalThis.CSS?.escape) return CSS.escape(String(value));
+    return String(value).replace(/["\\]/g, "\\$&");
   }
 
   function restoreNodeStyles(snapshots = []) {

@@ -38,7 +38,9 @@ export function createCanvasGenerationRuntimeInputs({
       getImageFilesFromList: services.getImageFilesFromList,
       runDirectorAction: (...args) => actions.runDirectorAction(...args),
       setUploadChoiceHover: services.setUploadChoiceHover,
-      syncCanvasTransform: canvasSurfaceRuntime.syncCanvasTransform
+      syncCanvasTransform: canvasSurfaceRuntime.syncCanvasTransform,
+      registerUploadedAsset: services.registerUploadedAsset,
+      registerGeneratedAsset: services.registerGeneratedAsset
     },
     defaults: {
       directorActions: defaults.directorActions,

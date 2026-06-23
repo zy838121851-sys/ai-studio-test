@@ -18,7 +18,8 @@ export function createCanvasGenerationBootstrap({
       markGeneratedNodeContext: services.markGeneratedNodeContext,
       recordCanvasEvent: services.recordCanvasEvent,
       addSourceBadgeElement: services.addSourceBadgeElement,
-      selectNode: services.selectNode
+      selectNode: services.selectNode,
+      registerGeneratedAsset: services.registerGeneratedAsset
     }
   });
 
@@ -76,6 +77,7 @@ export function createCanvasGenerationBootstrap({
       createDirectorCard: directorCardWorkflow.createDirectorCard,
       setUploadChoiceHover: services.setUploadChoiceHover,
       syncCanvasTransform: services.syncCanvasTransform,
+      registerUploadedAsset: services.registerUploadedAsset,
       setUploadDragDepth: state.setUploadDragDepth,
       setChatDragDepth: state.setChatDragDepth,
       escapeHtml: services.escapeHtml

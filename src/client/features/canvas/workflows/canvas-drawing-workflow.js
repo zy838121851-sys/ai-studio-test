@@ -7,6 +7,142 @@ import {
 import { buildLinearSvg, buildPointsPath } from "../drawing-tools.js";
 import { renderToolSvg } from "../node-icons.js";
 
+const FREEHAND_DRAW_TOOLS = new Set(["pen", "laser"]);
+const LASER_TRAIL_LIFETIME = 1500;
+const LASER_POINT_MIN_DISTANCE = 1.6;
+
+function buildLaserTrailSvg(viewportRect) {
+  return `
+    <svg viewBox="0 0 ${viewportRect.width} ${viewportRect.height}" preserveAspectRatio="none">
+      <g class="laser-trail" data-laser-trail></g>
+    </svg>
+  `;
+}
+
+function syncLaserPreviewFrame(preview) {
+  if (!preview) return;
+  Object.assign(preview.style, {
+    left: "0px",
+    top: "0px",
+    width: "100%",
+    height: "100%"
+  });
+}
+
+function startLaserTrailLoop(drawing) {
+  drawing.laserActive = true;
+  drawing.laserFrameId = window.requestAnimationFrame(() => animateLaserTrail(drawing));
+}
+
+function stopLaserTrailLoop(drawing) {
+  if (drawing?.laserFrameId) window.cancelAnimationFrame(drawing.laserFrameId);
+  drawing.laserFrameId = 0;
+}
+
+function removeLaserTrailPreview(drawing) {
+  stopLaserTrailLoop(drawing);
+  drawing?.preview?.remove?.();
+}
+
+function animateLaserTrail(drawing) {
+  if (!drawing?.preview?.isConnected) return;
+  const hasVisibleTrail = renderLaserTrail(drawing, performance.now());
+  if (drawing.laserActive || hasVisibleTrail) {
+    drawing.laserFrameId = window.requestAnimationFrame(() => animateLaserTrail(drawing));
+    return;
+  }
+  drawing.preview.remove();
+}
+
+function appendLaserPoint(drawing, now = performance.now()) {
+  if (!drawing) return;
+  const next = { x: drawing.currentX, y: drawing.currentY, time: now };
+  const last = drawing.points[drawing.points.length - 1];
+  if (!last || now - (last.time || 0) > LASER_TRAIL_LIFETIME) {
+    drawing.points = [next];
+    return;
+  }
+  if (Math.hypot(next.x - last.x, next.y - last.y) >= LASER_POINT_MIN_DISTANCE) {
+    drawing.points.push(next);
+  }
+}
+
+function renderLaserTrail(drawing, now = performance.now()) {
+  const group = drawing?.preview?.querySelector?.("[data-laser-trail]");
+  if (!group) return false;
+  pruneLaserPoints(drawing, now);
+  const points = drawing.points || [];
+  if (points.length < 2) {
+    group.innerHTML = "";
+    return false;
+  }
+  const cutoff = now - LASER_TRAIL_LIFETIME;
+  const visibleStartTime = Math.max(cutoff, points[0]?.time || cutoff);
+  const visibleEndTime = points[points.length - 1]?.time || visibleStartTime;
+  const visibleSpan = Math.max(1, visibleEndTime - visibleStartTime);
+  const paths = [];
+  for (let index = 1; index < points.length; index += 1) {
+    const rawStart = points[index - 1];
+    const end = points[index];
+    if (!end || end.time <= cutoff) continue;
+    const start = rawStart.time < cutoff ? interpolateLaserPoint(rawStart, end, cutoff) : rawStart;
+    const distance = Math.hypot(end.x - start.x, end.y - start.y);
+    if (distance < 0.4) continue;
+    const strokePosition = clamp01((end.time - visibleStartTime) / visibleSpan);
+    const agePosition = clamp01((end.time - cutoff) / LASER_TRAIL_LIFETIME);
+    const width = getLaserStrokeWidth(strokePosition);
+    const opacity = getLaserStrokeOpacity(agePosition);
+    const d = `M${formatNumber(start.x)} ${formatNumber(start.y)}L${formatNumber(end.x)} ${formatNumber(end.y)}`;
+    paths.push(`<path class="laser-trail-glow" d="${d}" stroke-width="${formatNumber(width + 8)}" opacity="${formatNumber(opacity * 0.24)}" />`);
+    paths.push(`<path class="laser-trail-core" d="${d}" stroke-width="${formatNumber(width)}" opacity="${formatNumber(opacity)}" />`);
+  }
+  const head = points[points.length - 1];
+  const headAge = now - (head?.time || 0);
+  if (head && headAge <= LASER_TRAIL_LIFETIME) {
+    const headPosition = clamp01((head.time - cutoff) / LASER_TRAIL_LIFETIME);
+    const headOpacity = getLaserStrokeOpacity(headPosition) * clamp01(1 - headAge / LASER_TRAIL_LIFETIME);
+    paths.push(`<circle class="laser-trail-head" cx="${formatNumber(head.x)}" cy="${formatNumber(head.y)}" r="${formatNumber(2.2 + headPosition * 2.4)}" opacity="${formatNumber(headOpacity)}" />`);
+  }
+  group.innerHTML = paths.join("");
+  return paths.length > 0;
+}
+
+function pruneLaserPoints(drawing, now = performance.now()) {
+  const points = drawing?.points;
+  if (!Array.isArray(points) || !points.length) return;
+  const cutoff = now - LASER_TRAIL_LIFETIME;
+  while (points.length > 1 && (points[1].time || 0) < cutoff) points.shift();
+  if (points.length === 1 && (points[0].time || 0) < cutoff) points.shift();
+}
+
+function interpolateLaserPoint(start, end, cutoff) {
+  const span = Math.max(1, (end.time || 0) - (start.time || 0));
+  const progress = clamp01((cutoff - (start.time || 0)) / span);
+  return {
+    x: start.x + (end.x - start.x) * progress,
+    y: start.y + (end.y - start.y) * progress,
+    time: cutoff
+  };
+}
+
+function getLaserStrokeWidth(position) {
+  const taper = Math.sin(clamp01(position) * Math.PI);
+  return 1.3 + 4.9 * Math.pow(Math.max(0, taper), 0.58);
+}
+
+function getLaserStrokeOpacity(position) {
+  return 0.1 + 0.9 * Math.pow(clamp01(position), 0.72);
+}
+
+function formatNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number) ? number.toFixed(2) : "0";
+}
+
+function clamp01(value) {
+  return Math.max(0, Math.min(1, Number(value) || 0));
+}
+
 export function createCanvasDrawingWorkflow({
   elements = {},
   state = {},
@@ -49,6 +185,7 @@ export function createCanvasDrawingWorkflow({
       arrow: "Arrow",
       line: "Line",
       pen: "Pen",
+      laser: "Laser",
       text: "Text",
       "text-rect": "Text",
       "text-circle": "Text",
@@ -64,6 +201,7 @@ export function createCanvasDrawingWorkflow({
       arrow: { width: 260, height: 110 },
       line: { width: 260, height: 80 },
       pen: { width: 260, height: 120 },
+      laser: { width: 260, height: 120 },
       text: { width: 260, height: 96 },
       "text-rect": { width: 220, height: 140 },
       "text-circle": { width: 170, height: 170 },
@@ -137,22 +275,36 @@ export function createCanvasDrawingWorkflow({
       viewportRect: rect,
       tool,
       renderSvg: renderToolSvg,
-      buildPenSvg: (viewportRect) => `<svg viewBox="0 0 ${viewportRect.width} ${viewportRect.height}" preserveAspectRatio="none"><path /></svg>`
+      buildPenSvg: (viewportRect) => tool === "laser"
+        ? buildLaserTrailSvg(viewportRect)
+        : `<svg viewBox="0 0 ${viewportRect.width} ${viewportRect.height}" preserveAspectRatio="none"><path /></svg>`
     });
     canvasViewport.appendChild(preview);
-    setCanvasDrawing(createDrawingState({
+    const drawingState = createDrawingState({
       tool,
       preview,
       startClientX,
       startClientY,
       viewportRect: rect
-    }));
+    });
+    if (tool === "laser") {
+      syncLaserPreviewFrame(preview);
+      drawingState.points = drawingState.points.map((point) => ({ ...point, time: performance.now() }));
+      startLaserTrailLoop(drawingState);
+    }
+    setCanvasDrawing(drawingState);
     canvasViewport.classList.add("drawing");
     updateDrawingPreview();
   }
 
   function updateDrawingPreview() {
     const drawing = getCanvasDrawing();
+    if (drawing?.tool === "laser") {
+      syncLaserPreviewFrame(drawing.preview);
+      appendLaserPoint(drawing);
+      renderLaserTrail(drawing);
+      return;
+    }
     updateDrawingPreviewElement(drawing, pointsToPath, buildLinearSvg);
   }
 
@@ -169,11 +321,20 @@ export function createCanvasDrawingWorkflow({
     const moved = Math.abs(drawing.currentClientX - drawing.startClientX) > 4
       || Math.abs(drawing.currentClientY - drawing.startClientY) > 4;
     const tool = drawing.tool;
-    drawing.preview.remove();
     setCanvasDrawing(null);
     canvasViewport.classList.remove("drawing");
+    if (tool === "laser") {
+      drawing.laserActive = false;
+      if (!moved) {
+        removeLaserTrailPreview(drawing);
+        return;
+      }
+      renderLaserTrail(drawing);
+      return;
+    }
+    drawing.preview.remove();
     if (!moved) return;
-    if (tool === "pen") {
+    if (FREEHAND_DRAW_TOOLS.has(tool)) {
       const worldPoints = drawing.points.map((point) => viewportPointToWorld(viewportRect.left + point.x, viewportRect.top + point.y));
       const minX = Math.min(...worldPoints.map((point) => point.x));
       const minY = Math.min(...worldPoints.map((point) => point.y));

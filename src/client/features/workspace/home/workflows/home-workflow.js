@@ -37,6 +37,13 @@ export function createHomeWorkflow({
     generateHomeProject = async () => {}
   } = actions;
 
+  let selectedHomeFiles = [];
+
+  function getSelectedHomeFiles() {
+    const stateFiles = typeof getHomeImageFiles === "function" ? getHomeImageFiles() : [];
+    return selectedHomeFiles.length ? selectedHomeFiles : Array.from(stateFiles || []);
+  }
+
   function syncHomeModelPicker() {
     syncHomeModelPickerView({
       select: homeModelSelect,
@@ -48,10 +55,10 @@ export function createHomeWorkflow({
   function renderHomeFilePreview() {
     renderHomeFilePreviewList({
       container: homeFilePreview,
-      files: getHomeImageFiles(),
+      files: getSelectedHomeFiles(),
       escapeHtml,
       onRemove: (index) => {
-        const nextFiles = getHomeImageFiles().slice();
+        const nextFiles = getSelectedHomeFiles().slice();
         nextFiles.splice(index, 1);
         setHomeFiles(nextFiles);
         homePromptInput?.focus();
@@ -60,7 +67,8 @@ export function createHomeWorkflow({
   }
 
   function setHomeFiles(files) {
-    const nextFiles = getImageFilesFromList(files || []);
+    const nextFiles = getImageFilesFromList(files || []).slice(0, 3);
+    selectedHomeFiles = nextFiles;
     setHomeImageFiles(nextFiles);
     applyHomeFileState({
       form: homePromptForm,
@@ -68,6 +76,12 @@ export function createHomeWorkflow({
       count: nextFiles.length
     });
     renderHomeFilePreview();
+  }
+
+  function addHomeFiles(files) {
+    const incomingFiles = getImageFilesFromList(files || []);
+    if (!incomingFiles.length) return;
+    setHomeFiles([...getSelectedHomeFiles(), ...incomingFiles]);
   }
 
   function openHomeFilePicker() {
@@ -103,7 +117,7 @@ export function createHomeWorkflow({
   async function submitHomePrompt(event) {
     event?.preventDefault?.();
     const prompt = homePromptInput?.value.trim() || "";
-    const files = getHomeImageFiles().slice();
+    const files = getSelectedHomeFiles().slice();
     if (!prompt && !files.length) return;
 
     const model = homeModelSelect?.value;
@@ -122,7 +136,7 @@ export function createHomeWorkflow({
   function bindHomeControls() {
     homeUploadButton?.addEventListener("click", openHomeFilePicker);
     homeFileInput?.addEventListener("change", () => {
-      setHomeFiles(homeFileInput.files);
+      addHomeFiles(homeFileInput.files);
       homeFileInput.value = "";
       homePromptInput?.focus();
     });

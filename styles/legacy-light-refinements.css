@@ -1,7 +1,8 @@
 ﻿
 /* Light-only refinements: remove default blue menu selections */
 body[data-theme="light"] .add-node-menu,
-body[data-theme="light"] .canvas-context-menu {
+body[data-theme="light"] .canvas-context-menu,
+body[data-theme="light"] .canvas-context-menu .context-submenu-panel {
   color: #182230 !important;
   background: rgba(255, 255, 255, 0.78) !important;
   border: 1px solid rgba(255, 255, 255, 0.86) !important;
@@ -13,7 +14,9 @@ body[data-theme="light"] .canvas-context-menu {
 body[data-theme="light"] .add-node-menu button,
 body[data-theme="light"] .add-node-menu button:first-of-type,
 body[data-theme="light"] .canvas-context-menu button,
-body[data-theme="light"] .canvas-context-menu button:first-child {
+body[data-theme="light"] .canvas-context-menu button:first-child,
+body[data-theme="light"] .canvas-context-menu .context-submenu-panel button,
+body[data-theme="light"] .canvas-context-menu .context-submenu-panel button:first-child {
   color: #182230 !important;
   border: 1px solid rgba(255, 255, 255, 0.62) !important;
   background: rgba(247, 250, 255, 0.58) !important;
@@ -23,7 +26,9 @@ body[data-theme="light"] .canvas-context-menu button:first-child {
 body[data-theme="light"] .add-node-menu button:hover,
 body[data-theme="light"] .add-node-menu button:first-of-type:hover,
 body[data-theme="light"] .canvas-context-menu button:hover,
-body[data-theme="light"] .canvas-context-menu button:first-child:hover {
+body[data-theme="light"] .canvas-context-menu button:first-child:hover,
+body[data-theme="light"] .canvas-context-menu .context-submenu-panel button:hover,
+body[data-theme="light"] .canvas-context-menu .context-submenu-panel button:first-child:hover {
   color: #111827 !important;
   border-color: rgba(255, 255, 255, 0.92) !important;
   background: rgba(255, 255, 255, 0.92) !important;

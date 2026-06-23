@@ -2,6 +2,11 @@ import {
   buildDirectorPrompt as buildDirectorPromptText,
   buildTextAssetDescription
 } from "../director-workflow.js";
+import {
+  getQwenImageSizeForDimensions,
+  getQwenImageSizeForElement
+} from "../../ai/image-generator.js";
+import { getImageNodePreviewMetrics } from "../../canvas/upload-nodes.js";
 
 export function createDirectorActionWorkflow({
   services = {}
@@ -85,13 +90,17 @@ export function createDirectorActionWorkflow({
 
     setChatCollapsed(false);
     const bounds = getNodeBounds(productNode);
+    const sourceMetrics = getImageNodePreviewMetrics(productNode, {
+      minWidth: 160,
+      maxWidth: Infinity
+    });
     const previewNode = addGenerationPreview({
       title: `${action.title}.png`,
-      desc: "AI-generated result ready",
+      desc: "正在根据当前图片生成结果",
       x: bounds.x + bounds.width + 420,
       y: bounds.y + (productNode._stackChildren?.length || 0) * 34,
-      width: Math.max(280, Math.min(420, productNode.offsetWidth || 320)),
-      aspectRatio: "1 / 1"
+      width: sourceMetrics.width,
+      aspectRatio: sourceMetrics.aspectRatio
     });
     updateCorePreviewCard(options.coreWorkspace, options.coreIndex || 0, action, "loading");
     const progress = addChat("assistant", `Generating result for ${action.title}`);
@@ -100,11 +109,15 @@ export function createDirectorActionWorkflow({
     try {
       const productImage = productNode.querySelector(".image-frame img");
       const images = productImage ? [await readImageSourceAsDataUrl(productImage.src)] : [];
+      const outputSize = sourceMetrics.naturalWidth && sourceMetrics.naturalHeight
+        ? getQwenImageSizeForDimensions(sourceMetrics.naturalWidth, sourceMetrics.naturalHeight)
+        : (productImage ? getQwenImageSizeForElement(productImage) : "");
       const modelPrompt = buildDirectorPrompt(productNode, action);
       const result = await postJsonRequest("/api/chat", buildChatImagePayload({
         model: getChatModel(),
         prompt: modelPrompt,
-        images
+        images,
+        size: outputSize
       }));
       if (result.imageUrl) {
         const imageNode = replacePreviewWithImage(previewNode, {

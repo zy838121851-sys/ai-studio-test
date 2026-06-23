@@ -7,6 +7,7 @@ export {
   saveProjectsToStorage,
   getActiveProjectId,
   setActiveProjectId,
+  clearProjectsStorage,
   getLibraryViewMode,
   setLibraryViewMode,
   createProjectRecord,

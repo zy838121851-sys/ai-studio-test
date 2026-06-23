@@ -48,6 +48,7 @@ export function createGenerationUploadWorkflow({
     setChatDragDepth = () => {},
     setUploadChoiceHover = () => {},
     syncCanvasTransform = () => {},
+    registerUploadedAsset = () => Promise.resolve(null),
     escapeHtml = (value = "") => String(value),
   } = services;
 
@@ -101,11 +102,61 @@ export function createGenerationUploadWorkflow({
           kind,
           name: item.file.name
         });
+        persistUploadedAssetForNode(item.node, item.file, kind);
         if (kind === "image") scheduleAICoreAgent("upload_pause", item.node, 5000);
       });
     }
 
     return accepted;
+  }
+
+  function persistUploadedAssetForNode(node, file, kind) {
+    if (!node || !file) return null;
+    node.dataset.uploadPending = "true";
+    const transientUrl = node.dataset.objectUrl || node.querySelector?.(".image-frame img")?.src || "";
+    const promise = Promise.resolve(registerUploadedAsset(file, {
+      type: kind === "model" ? "model3d" : kind,
+      title: file.name,
+      source: "upload"
+    }))
+      .then((result) => {
+        const asset = result?.asset || result || null;
+        applyPersistentAssetToNode(node, asset, transientUrl);
+        return asset;
+      })
+      .catch((error) => {
+        console.warn("[canvas] Failed to persist uploaded asset", error);
+        return null;
+      })
+      .finally(() => {
+        if (node._uploadPersistencePromise === promise) delete node._uploadPersistencePromise;
+        delete node.dataset.uploadPending;
+      });
+    node._uploadPersistencePromise = promise;
+    return promise;
+  }
+
+  function applyPersistentAssetToNode(node, asset, transientUrl = "") {
+    const persistentUrl = asset?.url || asset?.thumbnailUrl || asset?.thumbnail || "";
+    if (!node || !persistentUrl || String(persistentUrl).startsWith("blob:")) return;
+    const image = node.querySelector?.(".image-frame img");
+    const video = node.querySelector?.("video");
+    node.dataset.objectUrl = persistentUrl;
+    node.dataset.assetId = asset?.id || "";
+    node.dataset.uploadPersisted = "true";
+    if (image) {
+      image.src = persistentUrl;
+      image.removeAttribute("srcset");
+    }
+    if (video) video.src = persistentUrl;
+    if (
+      transientUrl
+      && String(transientUrl).startsWith("blob:")
+      && typeof URL !== "undefined"
+      && typeof URL.revokeObjectURL === "function"
+    ) {
+      URL.revokeObjectURL(transientUrl);
+    }
   }
 
   function renderChatImagePreview() {

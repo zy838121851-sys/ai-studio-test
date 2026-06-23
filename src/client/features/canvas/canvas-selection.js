@@ -31,6 +31,7 @@ export function clearSelectedNodeElements(selectedNodes) {
     delete node.dataset.activeSelection;
   });
   selectedNodes.clear();
+  syncMultiSelectionState(root);
   return null;
 }
 
@@ -40,6 +41,7 @@ export function addSelectedNodeElement(selectedNodes, node, additive = false) {
   selectedNodes.add(node);
   node.classList.add("selected");
   markActiveSelectedNode(node, selectedNodes);
+  syncMultiSelectionState(node.ownerDocument || globalThis.document);
   return node;
 }
 
@@ -51,6 +53,7 @@ export function replaceSelectedNodeElements(selectedNodes, nodes = []) {
   });
   const activeNode = nodes[nodes.length - 1] || null;
   markActiveSelectedNode(activeNode, selectedNodes);
+  syncMultiSelectionState(activeNode?.ownerDocument || globalThis.document);
   return activeNode;
 }
 
@@ -65,4 +68,19 @@ function clearActiveSelectedNode(selectedNodes) {
 function markActiveSelectedNode(node, selectedNodes) {
   clearActiveSelectedNode(selectedNodes);
   if (node) node.dataset.activeSelection = "true";
+}
+
+function syncMultiSelectionState(root = globalThis.document) {
+  const documentRef = root?.nodeType === 9 ? root : root?.ownerDocument || globalThis.document;
+  const selectedNodes = Array.from(documentRef?.querySelectorAll?.(".node-card.selected") || []);
+  const selectedCount = selectedNodes.length;
+  const selectedImageCount = selectedNodes.filter((node) => (
+    node.classList.contains("node-image") && node.querySelector(".image-frame img")
+  )).length;
+  const canCompareImages = selectedCount === 2 && selectedImageCount === 2;
+  if (canCompareImages && !selectedNodes.some((node) => node.dataset.activeSelection === "true")) {
+    selectedNodes[selectedNodes.length - 1].dataset.activeSelection = "true";
+  }
+  documentRef?.body?.classList.toggle("canvas-has-multi-selection", selectedCount > 1);
+  documentRef?.body?.classList.toggle("canvas-has-compare-selection", canCompareImages);
 }

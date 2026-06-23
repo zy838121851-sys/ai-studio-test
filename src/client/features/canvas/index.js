@@ -93,6 +93,7 @@ export {
 } from "./components/upload-choice-bubbles.js";
 export { createCanvasCoordinateWorkflow } from "./workflows/canvas-coordinate-workflow.js";
 export { createCanvasCropWorkflow } from "./workflows/canvas-crop-workflow.js";
+export { createCanvasExpandWorkflow } from "./workflows/canvas-expand-workflow.js";
 export { createCanvasDrawingWorkflow } from "./workflows/canvas-drawing-workflow.js";
 export { createCanvasLightboxWorkflow } from "./workflows/canvas-lightbox-workflow.js";
 export { bindCanvasMenuActions } from "./workflows/canvas-menu-actions.js";

@@ -1,52 +1,55 @@
-export function buildAnalyzeImagePrompt({ title = "当前素材", refreshCount = 0 } = {}) {
+export function buildAnalyzeImagePrompt({ title = "Current asset", refreshCount = 0 } = {}) {
   return `
-你是图片理解模型，需要返回 JSON，不要输出 Markdown。
-输入是画布中的素材：${title}，最近是第 ${Number(refreshCount) || 0} 次刷新。
-请快速给出素材属性，并返回以下字段：
+You are an image understanding model. Return JSON only. Do not output Markdown.
+The input is a canvas asset named "${title}". It has been refreshed ${Number(refreshCount) || 0} times.
+Return these fields:
 {
-  "category": "素材类型，如图标/角色/产品/场景/服装/包装/其他",
-  "industry": "可能行业，如潮玩/电商/设计/游戏/广告等",
-  "style": "视觉风格（现代/写实/卡通/低多边形/像素等）",
-  "emotion": "表达情绪（可选）",
-  "materials": ["后续建议物料，如 2D渲染, 3D素材, 实拍照, 毛绒贴图 等"],
+  "category": "asset type, such as icon/character/product/scene/clothing/package/other",
+  "industry": "possible industry, such as designer toy/e-commerce/design/game/advertising",
+  "style": "visual style, such as modern/realistic/cartoon/low-poly/pixel",
+  "emotion": "expressed emotion, or empty",
+  "materials": ["suggested follow-up materials, such as 2D render, 3D asset, product photo, plush texture"],
   "nextActions": [
-    { "type": "render3d", "label": "3D 渲染", "description": "生成 3D 视角" },
-    { "type": "productPhoto", "label": "拍摄风格图", "description": "生成产品摄影风格素材" },
-    { "type": "editText", "label": "文案扩写", "description": "生成同主题文案/标题" }
+    { "type": "render3d", "label": "3D render", "description": "Generate a 3D view" },
+    { "type": "productPhoto", "label": "Product photo", "description": "Generate a product photography style asset" },
+    { "type": "editText", "label": "Copy expansion", "description": "Generate related copy or titles" }
   ],
-  "targetAudience": "可能目标用户"
+  "targetAudience": "possible target audience"
 }
 `;
 }
 
 export function buildExtractImageTextPrompt() {
   return `
-你是 OCR 解析模型。
-请从图片提取可读文字，按 JSON 返回：
+You are an OCR analysis model. Extract all readable text from the image.
+Return JSON only. Do not output Markdown.
+The response must use this shape:
 {
   "texts": [
-    { "text": "识别出的文字", "role": "标题/按钮/标签/说明/其他", "x": 0, "y": 0, "width": 0, "height": 0 }
+    { "text": "recognized text", "role": "title/button/label/body/other", "x": 0, "y": 0, "width": 0, "height": 0 }
   ]
 }
-若无明显文字，返回空数组。不要输出 Markdown。`;
+If there is no clear readable text, return {"texts": []}.
+Coordinates can be approximate; use 0 when unknown.
+`;
 }
 
 export function buildPrepareActionPrompt({ analysis, action } = {}) {
   return `
-你是动作策略模型。根据当前素材分析和用户目标，返回一段可执行提示词 JSON。
-分析:
+You are an action strategy model. Based on the current asset analysis and user goal, return one executable prompt as JSON.
+Analysis:
 ${JSON.stringify(analysis || {}, null, 2)}
 
-动作:
+Action:
 ${JSON.stringify(action || {}, null, 2)}
 
-请返回:
+Return:
 {
-  "prompt": "用于下一步生成/编辑的提示词",
+  "prompt": "prompt for the next generation or edit step",
   "decisionStyles": [
-    { "label": "默认", "prompt": "更稳健的实现方式" },
-    { "label": "探索", "prompt": "更有创意的实现方式" },
-    { "label": "高还原", "prompt": "更接近原图风格的实现方式" }
+    { "label": "Default", "prompt": "a more stable implementation" },
+    { "label": "Explore", "prompt": "a more creative implementation" },
+    { "label": "High fidelity", "prompt": "an implementation closer to the source image style" }
   ]
 }
 `;
@@ -54,19 +57,19 @@ ${JSON.stringify(action || {}, null, 2)}
 
 export function buildCanvasAgentPrompt({ canvasState } = {}) {
   return `
-你是隐藏式 AI 助理，不要聊天，仅返回下一条可执行建议。
-输入：画布状态如下
+You are an unobtrusive AI assistant. Do not chat. Return only the next actionable suggestion.
+Canvas state:
 ${JSON.stringify(canvasState || {}, null, 2)}
 
-仅返回 JSON，不要 Markdown：
+Return JSON only. Do not output Markdown:
 {
-  "text": "建议文案（4-8个字）",
+  "text": "suggestion copy, 4-8 Chinese characters when possible",
   "actionType": "generate_variant | explore | render3d | productPhoto | packaging | poster | detail | script | closeup",
-  "mockResult": "若用户触发按钮后可直接生成的模拟结果说明"
+  "mockResult": "description of the result that can be generated if the user triggers the action"
 }
 `;
 }
 
 export function buildExtractPromptPrompt(input = {}) {
-  return `基于下列信息抽取适合该图像生成的 prompt（只返回 JSON）：\n${JSON.stringify(input, null, 2)}`;
+  return `Extract a prompt suitable for image generation from the following information. Return JSON only:\n${JSON.stringify(input, null, 2)}`;
 }

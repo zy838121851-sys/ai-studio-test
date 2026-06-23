@@ -1,4 +1,5 @@
 import { createCanvasCropWorkflow } from "../workflows/canvas-crop-workflow.js";
+import { createCanvasExpandWorkflow } from "../workflows/canvas-expand-workflow.js";
 import { createCanvasLightboxWorkflow } from "../workflows/canvas-lightbox-workflow.js";
 import { createCanvasMenuStateWorkflow } from "../workflows/canvas-menu-state-workflow.js";
 import { createViewportWorkflow } from "../workflows/viewport-workflow.js";
@@ -39,14 +40,36 @@ export function createCanvasSurfaceBootstrap({
     }
   });
 
+  const expandWorkflow = createCanvasExpandWorkflow({
+    elements: {
+      canvasWorld: elements.canvasWorld
+    },
+    services: {
+      centerViewOnNode: services.centerViewOnNode,
+      hideImageEditPopover: services.hideImageEditPopover,
+      hideImageCropOverlay: cropWorkflow.hideImageCropOverlay,
+      hideCanvasContextMenu: menuStateWorkflow.hideCanvasContextMenu,
+      hideAddNodeMenu: menuStateWorkflow.hideAddNodeMenu,
+      selectNode: services.selectNode,
+      runImageEditCommand: services.runImageEditCommand,
+      getZoom: state.getZoom
+    }
+  });
+
   let showImageLightbox = () => {};
   const nodeControlsManager = createNodeControlsManager({
     getNodeTitle: services.getNodeTitle,
     openImageLightbox: (...args) => showImageLightbox(...args),
     positionTextFormatToolbar: services.positionTextFormatToolbar,
     runImageEditCommand: services.runImageEditCommand,
+    registerImageAsset: services.registerImageAsset,
+    removeImageAsset: services.removeImageAsset,
+    getAssetCollections: services.getAssetCollections,
+    createAssetCollection: services.createAssetCollection,
     showImageTextEditor: services.showImageTextEditor,
     startImageCrop: cropWorkflow.startImageCrop,
+    startImageExpand: expandWorkflow.startImageExpand,
+    getSelectedNodes: state.getSelectedNodes,
     isEditingImageNode: services.isEditingImageNode,
     isImageEditPopoverOpen: services.isImageEditPopoverOpen,
     selectImageNode: services.selectNode
@@ -128,6 +151,7 @@ export function createCanvasSurfaceBootstrap({
   return {
     ...menuStateWorkflow,
     ...cropWorkflow,
+    ...expandWorkflow,
     ...nodeHelpers,
     ...lightboxWorkflow,
     applyTransform: viewportWorkflow.applyTransform,

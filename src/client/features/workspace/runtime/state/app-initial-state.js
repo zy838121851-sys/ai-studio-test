@@ -14,6 +14,7 @@ export function createAppInitialState({
     pendingUploadPoint: null,
     chatImageFiles: [],
     homeImageFiles: [],
+    pendingHomeGenerationFocus: false,
     chatDragDepth: 0,
     activeCanvasTool: "",
     nodeIdSeed: 0,

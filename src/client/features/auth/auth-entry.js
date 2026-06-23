@@ -53,6 +53,12 @@ export function initAuthEntry(root = document) {
     if (!user) closeAccountMenu();
   };
 
+  const emitAuthChanged = () => {
+    window.dispatchEvent(new CustomEvent("ai-studio-auth-changed", {
+      detail: { user }
+    }));
+  };
+
   const openAccountMenu = () => {
     if (!user || !accountPopover) return;
     window.clearTimeout(closeMenuTimer);
@@ -97,6 +103,7 @@ export function initAuthEntry(root = document) {
       user = null;
     }
     renderEntry();
+    emitAuthChanged();
   };
 
   entryButton.addEventListener("click", () => {
@@ -128,6 +135,7 @@ export function initAuthEntry(root = document) {
     user = null;
     closeAccountMenu();
     renderEntry();
+    emitAuthChanged();
     logoutButton.disabled = false;
   });
 
@@ -157,6 +165,7 @@ export function initAuthEntry(root = document) {
       const result = mode === "register" ? await register(payload) : await login(payload);
       user = result.user || null;
       renderEntry();
+      emitAuthChanged();
       closeDialog();
       form.reset();
     } catch (error) {

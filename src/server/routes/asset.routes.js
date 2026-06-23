@@ -1,0 +1,204 @@
+import { Router } from "express";
+import { env } from "../config/env.js";
+import { requireAuth } from "../middleware/auth.middleware.js";
+import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
+import {
+  addAssetToProject,
+  createGeneratedAsset,
+  createUploadedAsset,
+  getAsset,
+  listAssets,
+  moveAssetToCollection,
+  softDeleteAsset,
+  updateAsset
+} from "../services/asset.service.js";
+
+const uploadLimiter = createRateLimiter({
+  namespace: "asset-upload",
+  windowMs: 60 * 1000,
+  max: 20,
+  message: "Too many upload requests"
+});
+
+function userIdFromRequest(req) {
+  return req.auth.user.id;
+}
+
+function handleAssetError(res, error) {
+  res.status(error.status || 400).json({
+    message: error.status ? error.message : (error.message || "Asset request failed")
+  });
+}
+
+export function createAssetRouter() {
+  const router = Router();
+  router.use(requireAuth);
+
+  router.get("/assets", (req, res) => {
+    res.json({
+      assets: listAssets(userIdFromRequest(req), {
+        projectId: req.query.projectId,
+        collection: req.query.collection,
+        collectionId: req.query.collectionId
+      })
+    });
+  });
+
+  router.post("/assets/upload", uploadLimiter, async (req, res) => {
+    try {
+      const multipart = await parseMultipartForm(req);
+      const asset = createUploadedAsset(userIdFromRequest(req), multipart);
+      res.status(201).json({ asset });
+    } catch (error) {
+      handleAssetError(res, error);
+    }
+  });
+
+  router.post("/assets/generated", (req, res) => {
+    try {
+      const asset = createGeneratedAsset(userIdFromRequest(req), req.body);
+      res.status(201).json({ asset });
+    } catch (error) {
+      handleAssetError(res, error);
+    }
+  });
+
+  router.get("/assets/:id", (req, res) => {
+    const asset = getAsset(userIdFromRequest(req), req.params.id);
+    if (!asset) {
+      res.status(404).json({ message: "Asset not found" });
+      return;
+    }
+    res.json({ asset });
+  });
+
+  router.patch("/assets/:id", (req, res) => {
+    try {
+      const asset = updateAsset(userIdFromRequest(req), req.params.id, req.body);
+      if (!asset) {
+        res.status(404).json({ message: "Asset not found" });
+        return;
+      }
+      res.json({ asset });
+    } catch (error) {
+      handleAssetError(res, error);
+    }
+  });
+
+  router.delete("/assets/:id", (req, res) => {
+    const asset = softDeleteAsset(userIdFromRequest(req), req.params.id);
+    if (!asset) {
+      res.status(404).json({ message: "Asset not found" });
+      return;
+    }
+    res.json({ asset });
+  });
+
+  router.post("/assets/:id/add-to-project", (req, res) => {
+    try {
+      const asset = addAssetToProject(userIdFromRequest(req), req.params.id, req.body);
+      if (!asset) {
+        res.status(404).json({ message: "Asset not found" });
+        return;
+      }
+      res.json({ asset });
+    } catch (error) {
+      handleAssetError(res, error);
+    }
+  });
+
+  router.post("/assets/:id/move-to-collection", (req, res) => {
+    try {
+      const asset = moveAssetToCollection(userIdFromRequest(req), req.params.id, req.body);
+      if (!asset) {
+        res.status(404).json({ message: "Asset not found" });
+        return;
+      }
+      res.json({ asset });
+    } catch (error) {
+      handleAssetError(res, error);
+    }
+  });
+
+  return router;
+}
+
+async function parseMultipartForm(req) {
+  const contentType = req.headers["content-type"] || "";
+  const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
+  if (!boundaryMatch) {
+    const error = new Error("multipart/form-data is required");
+    error.status = 400;
+    throw error;
+  }
+  const boundary = Buffer.from(`--${boundaryMatch[1] || boundaryMatch[2]}`);
+  const buffer = await readRequestBuffer(req);
+  const parts = splitMultipartBuffer(buffer, boundary);
+  const fields = {};
+  let file = null;
+
+  parts.forEach((part) => {
+    const parsed = parseMultipartPart(part);
+    if (!parsed?.name) return;
+    if (parsed.filename) {
+      file = {
+        filename: parsed.filename,
+        mimeType: parsed.contentType || "application/octet-stream",
+        buffer: parsed.body
+      };
+      return;
+    }
+    fields[parsed.name] = parsed.body.toString("utf8");
+  });
+
+  return { file, fields };
+}
+
+function readRequestBuffer(req) {
+  return new Promise((resolve, reject) => {
+    const chunks = [];
+    let total = 0;
+    req.on("data", (chunk) => {
+      total += chunk.length;
+      if (total > env.maxUploadBytes) {
+        const error = new Error("Upload is too large");
+        error.status = 413;
+        reject(error);
+        req.destroy();
+        return;
+      }
+      chunks.push(Buffer.from(chunk));
+    });
+    req.on("end", () => resolve(Buffer.concat(chunks)));
+    req.on("error", reject);
+  });
+}
+
+function splitMultipartBuffer(buffer, boundary) {
+  const parts = [];
+  let start = buffer.indexOf(boundary);
+  while (start !== -1) {
+    start += boundary.length;
+    if (buffer[start] === 45 && buffer[start + 1] === 45) break;
+    if (buffer[start] === 13 && buffer[start + 1] === 10) start += 2;
+    const end = buffer.indexOf(boundary, start);
+    if (end === -1) break;
+    const part = buffer.subarray(start, end - 2);
+    if (part.length) parts.push(part);
+    start = end;
+  }
+  return parts;
+}
+
+function parseMultipartPart(part) {
+  const separator = Buffer.from("\r\n\r\n");
+  const splitAt = part.indexOf(separator);
+  if (splitAt === -1) return null;
+  const headerText = part.subarray(0, splitAt).toString("utf8");
+  const body = part.subarray(splitAt + separator.length);
+  const disposition = headerText.match(/content-disposition:\s*form-data;([^\r\n]+)/i)?.[1] || "";
+  const name = disposition.match(/name="([^"]+)"/i)?.[1] || "";
+  const filename = disposition.match(/filename="([^"]*)"/i)?.[1] || "";
+  const contentType = headerText.match(/content-type:\s*([^\r\n]+)/i)?.[1]?.trim() || "";
+  return { name, filename, contentType, body };
+}

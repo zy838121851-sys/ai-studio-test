@@ -33,6 +33,11 @@ export function clearActiveProjectId() {
   getStorage().removeItem(ACTIVE_PROJECT_KEY);
 }
 
+export function clearProjectsStorage() {
+  getStorage().removeItem(PROJECTS_KEY);
+  getStorage().removeItem(ACTIVE_PROJECT_KEY);
+}
+
 export function getLibraryViewMode() {
   return getStorage().getItem(LIBRARY_VIEW_KEY) || "stack";
 }

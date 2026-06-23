@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-store" />
   <title>Fresh Ideas AI Canvas</title>
-  <link rel="stylesheet" href="./styles.css?v=20260609-canvas-cleanup" />
+  <link rel="stylesheet" href="./styles.css?v=20260617-ordered-reference-images-1" />
 </head>
 
 <body>
@@ -163,7 +163,6 @@
     <section class="project-library-view app-view" id="projectLibraryView" aria-label="项目库">
       <nav class="home-nav library-nav">
         <button class="brand-mark" type="button" data-brand-menu>D</button>
-        <button type="button" data-new-project>新建项目</button>
       </nav>
       <section class="library-shell">
         <div class="project-grid" id="projectGrid"></div>
@@ -192,11 +191,11 @@
       <section class="simple-page-shell">
         <p>Assets</p>
         <h1>素材库</h1>
-        <div class="simple-card-grid">
-          <article><strong>上传素材</strong><span>图片、视频、3D 模型会在这里归档。</span></article>
-          <article><strong>智能分类</strong><span>按行业、物料类型和项目自动整理。</span></article>
-          <article><strong>引用记录</strong><span>查看素材被哪些画布和生成任务使用。</span></article>
+        <div class="assets-page-toolbar">
+          <button class="upload-asset" id="assetsPageUploadAsset" type="button">上传素材</button>
+          <span>按图板整理收藏、上传和生成的素材。</span>
         </div>
+        <div class="asset-list assets-page-list" id="assetsPageAssetList"></div>
       </section>
     </section>
 
@@ -257,9 +256,15 @@
             </div>
           </div>
           <button class="rail-btn" data-tool="text" title="文字"><span>A</span></button>
-          <button class="rail-btn" data-tool="pen" title="画笔">
-            <svg viewBox="0 0 24 24"><path d="M4 20c1.7-.2 3.2-.7 4.4-1.8" /><path d="M7.5 17.5l9.9-9.9 3 3-9.9 9.9c-.6.6-1.6.6-2.2 0l-.8-.8c-.6-.6-.6-1.6 0-2.2z" /><path d="M15.8 5.2l1.5-1.5c.7-.7 1.8-.7 2.5 0l.5.5c.7.7.7 1.8 0 2.5l-1.5 1.5" /></svg>
-          </button>
+          <div class="pen-tool-group">
+            <button class="rail-btn" data-tool="pen" title="画笔">
+              <svg viewBox="0 0 24 24"><path d="M4 20c1.7-.2 3.2-.7 4.4-1.8" /><path d="M7.5 17.5l9.9-9.9 3 3-9.9 9.9c-.6.6-1.6.6-2.2 0l-.8-.8c-.6-.6-.6-1.6 0-2.2z" /><path d="M15.8 5.2l1.5-1.5c.7-.7 1.8-.7 2.5 0l.5.5c.7.7.7 1.8 0 2.5l-1.5 1.5" /></svg>
+            </button>
+            <div class="pen-tool-menu" aria-label="选择画笔">
+              <button type="button" data-pen-tool="pen"><span>画笔</span></button>
+              <button type="button" data-pen-tool="laser"><span>激光笔</span></button>
+            </div>
+          </div>
           <button class="rail-btn" data-tool="eraser" title="橡皮擦">
             <svg viewBox="0 0 24 24"><path d="M4 15l8-8 7 7-5 5H8l-4-4z" /><path d="M12 19h8" /></svg>
           </button>
@@ -299,16 +304,53 @@
       </div>
 
       <div class="canvas-context-menu" id="canvasContextMenu" aria-label="画布菜单">
-        <button data-context-action="upload" type="button"><strong>上传</strong></button>
-        <button data-context-action="asset" type="button"><strong>添加资产</strong></button>
-        <span></span>
-        <button data-context-action="node" type="button"><strong>添加节点</strong></button>
-        <button data-context-action="tool" type="button"><strong>添加辅助工具</strong></button>
-        <span></span>
-        <button data-context-action="undo" type="button"><strong>撤销</strong><kbd>CtrlZ</kbd></button>
-        <button data-context-action="redo" type="button"><strong>重做</strong><kbd>ShiftCtrlZ</kbd></button>
-        <span></span>
+        <button data-context-action="upload" data-context-scope="canvas" type="button"><strong>上传</strong></button>
+        <button data-context-action="asset" data-context-scope="canvas" type="button"><strong>添加素材</strong></button>
+        <button data-context-action="image-command" data-image-command="select-all" data-context-scope="canvas" type="button"><strong>选择全部</strong><kbd>Ctrl+A</kbd></button>
+        <span data-context-scope="canvas"></span>
+        <button data-context-action="copy" data-context-scope="node" type="button"><strong>复制</strong><kbd>CtrlC</kbd></button>
         <button data-context-action="paste" type="button"><strong>粘贴</strong><kbd>CtrlV</kbd></button>
+        <div class="context-submenu" data-context-scope="node">
+          <button type="button"><strong>图像</strong><em>›</em></button>
+          <div class="context-submenu-panel" role="menu" aria-label="图像菜单">
+            <div class="context-submenu">
+              <button type="button"><strong>排版</strong><em>›</em></button>
+              <div class="context-submenu-panel" role="menu" aria-label="排版">
+                <button data-context-action="image-command" data-image-command="arrange-best" type="button"><strong>最优</strong><kbd>Ctrl+P</kbd></button>
+                <button data-context-action="image-command" data-image-command="arrange-name" type="button"><strong>按名称</strong><kbd>Ctrl+Alt+N</kbd></button>
+                <button data-context-action="image-command" data-image-command="arrange-added" type="button"><strong>按添加</strong><kbd>Ctrl+Alt+A</kbd></button>
+              </div>
+            </div>
+            <div class="context-submenu">
+              <button type="button"><strong>对齐</strong><em>›</em></button>
+              <div class="context-submenu-panel" role="menu" aria-label="对齐">
+                <button data-context-action="image-command" data-image-command="align-left" type="button"><strong>左</strong><kbd>Ctrl+Left</kbd></button>
+                <button data-context-action="image-command" data-image-command="align-right" type="button"><strong>右</strong><kbd>Ctrl+Right</kbd></button>
+                <button data-context-action="image-command" data-image-command="align-top" type="button"><strong>顶</strong><kbd>Ctrl+Up</kbd></button>
+                <button data-context-action="image-command" data-image-command="align-bottom" type="button"><strong>底</strong><kbd>Ctrl+Down</kbd></button>
+                <button data-context-action="image-command" data-image-command="align-stack" type="button"><strong>堆叠</strong><kbd>Ctrl+Alt+S</kbd></button>
+              </div>
+            </div>
+            <div class="context-submenu">
+              <button type="button"><strong>规范</strong><em>›</em></button>
+              <div class="context-submenu-panel" role="menu" aria-label="规范">
+                <button data-context-action="image-command" data-image-command="normalize-height" type="button"><strong>高度</strong><kbd>Ctrl+Alt+Left</kbd></button>
+                <button data-context-action="image-command" data-image-command="normalize-width" type="button"><strong>宽度</strong><kbd>Ctrl+Alt+Right</kbd></button>
+                <button data-context-action="image-command" data-image-command="normalize-size" type="button"><strong>大小</strong><kbd>Ctrl+Alt+Up</kbd></button>
+                <button data-context-action="image-command" data-image-command="normalize-ratio" type="button"><strong>比例</strong><kbd>Ctrl+Alt+Down</kbd></button>
+              </div>
+            </div>
+          </div>
+        </div>
+        <button data-context-action="delete" data-context-scope="node" type="button"><strong>删除</strong></button>
+        <button data-context-action="lock" data-context-scope="node" type="button"><strong>锁定</strong></button>
+        <div class="context-submenu">
+          <button data-context-action="export" type="button"><strong>导出</strong><em>›</em></button>
+          <div class="context-submenu-panel" role="menu" aria-label="导出范围">
+            <button data-context-action="export" data-export-scope="selected" type="button"><strong>导出所选</strong></button>
+            <button data-context-action="export" data-export-scope="all" type="button"><strong>导出全部</strong></button>
+          </div>
+        </div>
       </div>
 
       <div class="image-edit-popover" id="imageEditPopover" aria-label="图片编辑">
@@ -326,9 +368,9 @@
             <option value="qwen-image-edit-plus">Qwen Image Edit Plus</option>
           </select>
           <select id="imageEditSize" title="生成尺寸">
-            <option value="auto">原图比例</option>
+            <option value="auto" selected>原图比例</option>
             <option value="1:1">1:1</option>
-            <option value="16:9" selected>16:9</option>
+            <option value="16:9">16:9</option>
             <option value="9:16">9:16</option>
             <option value="4:3">4:3</option>
             <option value="3:4">3:4</option>
@@ -459,7 +501,7 @@
     </aside>
   </main>
 
-  <script type="module" src="./app.js?v=20260613-canvas-fix-6"></script>
+  <script type="module" src="./app.js?v=20260617-ordered-reference-images-1"></script>
 </body>
 
 </html>

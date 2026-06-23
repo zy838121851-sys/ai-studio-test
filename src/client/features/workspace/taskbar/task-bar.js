@@ -1,3 +1,66 @@
+import {
+  getImageNodePreviewMetrics,
+  getPreviewHeight,
+  readImageFilePreviewMetrics
+} from "../../canvas/upload-nodes.js";
+import {
+  getQwenImageSizeForDimensions,
+  getQwenImageSizeForElement
+} from "../../ai/image-generator.js";
+import { enhanceCompactSelects } from "../../../lib/compact-select.js";
+
+function findActiveTaskbarImageNode(root = globalThis.document) {
+  return root?.querySelector?.("#canvasWorld .node-image.selected[data-active-selection='true']")
+    || root?.querySelector?.("#canvasWorld .node-image.selected")
+    || null;
+}
+
+async function resolveTaskbarGenerationMetrics(files = []) {
+  const sourceNode = findActiveTaskbarImageNode();
+  if (sourceNode) {
+    const metrics = getImageNodePreviewMetrics(sourceNode);
+    return {
+      ...metrics,
+      sourceNode,
+      outputSize: metrics.naturalWidth && metrics.naturalHeight
+        ? getQwenImageSizeForDimensions(metrics.naturalWidth, metrics.naturalHeight)
+        : (metrics.image ? getQwenImageSizeForElement(metrics.image) : "")
+    };
+  }
+  const fileMetrics = await readImageFilePreviewMetrics(files[0]);
+  if (fileMetrics) {
+    return {
+      ...fileMetrics,
+      sourceNode: null,
+      outputSize: getQwenImageSizeForDimensions(fileMetrics.naturalWidth, fileMetrics.naturalHeight)
+    };
+  }
+  return {
+    width: 320,
+    height: 320,
+    aspectRatio: "",
+    sourceNode: null,
+    outputSize: ""
+  };
+}
+
+function getTaskbarGenerationPlacement(metrics, target) {
+  const width = metrics.width || 320;
+  const height = metrics.height || getPreviewHeight(width, metrics.aspectRatio, width);
+  if (metrics.sourceNode) {
+    const sourceX = Number.parseFloat(metrics.sourceNode.style.left || "0");
+    const sourceY = Number.parseFloat(metrics.sourceNode.style.top || "0");
+    return {
+      x: sourceX + (metrics.sourceNode.offsetWidth || width) + 48,
+      y: sourceY
+    };
+  }
+  return {
+    x: target.x - width / 2,
+    y: target.y - height / 2
+  };
+}
+
 export function initTaskBar({
   root = document,
   handlers = {},
@@ -71,6 +134,7 @@ export function initTaskBar({
   } = state;
   const fallbackOpenAssetLibrary = () => floatingLibrary?.classList.add("open");
   const fallbackCloseAssetLibrary = () => floatingLibrary?.classList.remove("open");
+  enhanceCompactSelects(root);
 
   let chatFloatDrag = null;
 
@@ -223,6 +287,8 @@ export function initTaskBar({
     setChatCollapsed(false);
     addChat("user", `${prompt || "Analyze assets"}${currentFiles.length ? ` (${currentFiles.length} images attached)` : ""}`);
     promptInput.value = "";
+    const files = Array.from(currentFiles || []);
+    const generationMetrics = await resolveTaskbarGenerationMetrics(files);
     setChatImageFiles([]);
     renderChatImagePreview();
 
@@ -239,21 +305,29 @@ export function initTaskBar({
     const target = viewportRectToWorldCenter
       ? viewportRectToWorldCenter()
       : viewportPointToWorld(window.innerWidth / 2, window.innerHeight / 2);
+    const placement = getTaskbarGenerationPlacement(generationMetrics, target);
     const previewNode = addGenerationPreview({
       title: "Qwen generated asset.png",
-      desc: prompt || "Generated from prompt",
-      x: target.x - 160,
-      y: target.y - 120,
-      width: 320,
-      aspectRatio: "1 / 1"
+      desc: generationMetrics.sourceNode
+        ? "正在根据当前图片生成结果"
+        : (files.length ? "正在根据参考图生成结果" : "正在根据提示词生成结果"),
+      x: placement.x,
+      y: placement.y,
+      width: generationMetrics.width,
+      aspectRatio: generationMetrics.aspectRatio
     });
 
     updateThinking(thinking, 2);
 
     try {
-      const images = await Promise.all(currentFiles.map(applyFileToDataUrl));
+      const images = await Promise.all(files.map(applyFileToDataUrl));
       updateThinking(thinking, 3);
-      const result = await postJson("/api/chat", buildChatImagePayload({ model: chatModelSelect?.value, prompt, images }));
+      const result = await postJson("/api/chat", buildChatImagePayload({
+        model: chatModelSelect?.value,
+        prompt,
+        images,
+        size: generationMetrics.outputSize
+      }));
       updateChat(progress, result.text || result.message || "Generation complete.");
       if (result.imageUrl) {
         replacePreviewWithImage(previewNode, {
@@ -261,7 +335,7 @@ export function initTaskBar({
           desc: "AI generation result",
           url: result.imageUrl,
           width: previewNode.offsetWidth,
-          aspectRatio: previewNode.querySelector(".image-frame")?.style.aspectRatio || "1 / 1",
+          aspectRatio: generationMetrics.aspectRatio || "",
           prompt,
           actionType: detectKind(prompt),
           model: chatModelSelect?.value

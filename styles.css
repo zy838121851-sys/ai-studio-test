@@ -1,4 +1,5 @@
 @import url("./styles/globals.css");
 @import url("./styles/workspace.css");
 @import url("./styles/components.css");
-@import url("./styles/legacy-split.css");
+@import url("./styles/image-compare.css");
+@import url("./styles/legacy-split.css?v=20260618-expand-glass-1");

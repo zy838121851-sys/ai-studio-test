@@ -17,16 +17,30 @@ export function createImageEditCommand({
     return () => Promise.resolve();
   }
 
-  return function runImageEditCommand(sourceNode, prompt, label = "Image Editing") {
-    const count = Math.max(1, Math.min(4, Number.parseInt(getImageEditCount(), 10) || 1));
-    const model = getImageEditModel();
+  return function runImageEditCommand(sourceNode, prompt, label = "Image Editing", options = {}) {
+    const requestedCount = options.count ?? getImageEditCount();
+    const count = Math.max(1, Math.min(4, Number.parseInt(requestedCount, 10) || 1));
+    const model = options.model || getImageEditModel();
+    const referenceNodes = Array.isArray(options.referenceNodes) && options.referenceNodes.length
+      ? options.referenceNodes
+      : [sourceNode];
     const runOne = (index) => executeImageEditAction({
       sourceNode,
+      referenceNodes,
       prompt,
       label: count > 1 ? `${label} ${index + 1}/${count}` : label,
       model,
       readImageSourceAsDataUrl,
       getOutputSize,
+      outputSize: options.outputSize,
+      previewWidth: options.previewWidth,
+      previewAspectRatio: options.previewAspectRatio,
+      outputX: options.outputX,
+      outputY: options.outputY,
+      actionType: options.actionType,
+      targetLongEdge: options.targetLongEdge,
+      expand: options.expand,
+      referenceImages: options.referenceImages,
       createPreview: addGenerationPreview,
       replacePreview: replacePreviewWithImage,
       addSourceBadge,

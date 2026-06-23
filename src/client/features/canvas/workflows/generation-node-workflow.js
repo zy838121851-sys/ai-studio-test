@@ -8,7 +8,8 @@ export function createGenerationNodeWorkflow({
     markGeneratedNodeContext = () => {},
     recordCanvasEvent = () => {},
     addSourceBadgeElement = () => {},
-    selectNode = () => {}
+    selectNode = () => {},
+    registerGeneratedAsset = null
   } = services;
 
   function addGenerationPreview({ title, desc, x, y, width, aspectRatio }) {
@@ -34,7 +35,7 @@ export function createGenerationNodeWorkflow({
     actionType = "",
     model = ""
   }) {
-    return replacePreviewNodeWithImage({
+    const node = replacePreviewNodeWithImage({
       previewNode,
       addNode,
       applyGeneratedContext: markGeneratedNodeContext,
@@ -54,8 +55,10 @@ export function createGenerationNodeWorkflow({
       prompt,
       sourceNode,
       actionType,
-      model
+      model,
+      registerGeneratedAsset
     });
+    return node;
   }
 
   function addSourceBadge(node, sourceNode, label = "来源") {

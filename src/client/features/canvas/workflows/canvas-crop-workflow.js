@@ -10,6 +10,7 @@ export function createCanvasCropWorkflow({
   state = {},
   services = {}
 } = {}) {
+  let cropConfirming = false;
   const {
     getCroppingImageNode = () => null,
     setCroppingImageNode = () => {}
@@ -33,7 +34,7 @@ export function createCanvasCropWorkflow({
       onAction: (action) => {
         if (action === "cancel") hideImageCropOverlay();
         if (action === "reset") restoreOriginalImageCrop();
-        if (action === "confirm") confirmImageCrop();
+        if (action === "confirm") void confirmImageCrop();
       }
     });
     updateCropRestoreButtonForNode(node);
@@ -124,42 +125,34 @@ export function createCanvasCropWorkflow({
     return Number.isFinite(fallback) && fallback > 0 ? fallback : 1;
   }
 
-  function confirmImageCrop() {
+  async function confirmImageCrop() {
+    if (cropConfirming) return;
     const sourceNode = getCroppingImageNode();
     const sourceImg = sourceNode?.querySelector(".image-frame img");
-    if (!sourceImg?.complete) return;
+    if (!sourceImg?.src) return;
     const stage = sourceNode.querySelector(".image-frame");
     const box = getCropBox(sourceNode);
     const before = snapshotImageCropState(sourceNode);
-    if (!sourceNode.dataset.cropOriginalSrc) {
-      sourceNode.dataset.cropOriginalSrc = sourceImg.src;
-      sourceNode.dataset.cropOriginalAspect = stage.style.aspectRatio || `${sourceImg.naturalWidth || 1} / ${sourceImg.naturalHeight || 1}`;
-      sourceNode.dataset.cropOriginalWidth = sourceNode.style.width || "";
-      sourceNode.dataset.cropOriginalManualSize = sourceNode.dataset.manualSize || "";
+    cropConfirming = true;
+    try {
+      const cropResult = await cropImageForCanvas(sourceImg, { stage, box });
+      if (!sourceNode.dataset.cropOriginalSrc) {
+        sourceNode.dataset.cropOriginalSrc = sourceImg.src;
+        sourceNode.dataset.cropOriginalAspect = stage.style.aspectRatio || `${cropResult.naturalWidth} / ${cropResult.naturalHeight}`;
+        sourceNode.dataset.cropOriginalWidth = sourceNode.style.width || "";
+        sourceNode.dataset.cropOriginalManualSize = sourceNode.dataset.manualSize || "";
+      }
+      sourceImg.src = cropResult.dataUrl;
+      const frame = sourceNode.querySelector(".image-frame");
+      frame.style.aspectRatio = `${cropResult.width} / ${cropResult.height}`;
+      sourceNode.dataset.manualSize = "true";
+      cropConfirming = false;
+      hideImageCropOverlay();
+      recordCropUndo(sourceNode, before);
+    } catch (error) {
+      console.warn("[image-crop] Failed to confirm image crop", error);
+      cropConfirming = false;
     }
-    const scaleX = sourceImg.naturalWidth / stage.offsetWidth;
-    const scaleY = sourceImg.naturalHeight / stage.offsetHeight;
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.max(1, Math.round(box.width * scaleX));
-    canvas.height = Math.max(1, Math.round(box.height * scaleY));
-    const context = canvas.getContext("2d");
-    context.drawImage(
-      sourceImg,
-      box.x * scaleX,
-      box.y * scaleY,
-      box.width * scaleX,
-      box.height * scaleY,
-      0,
-      0,
-      canvas.width,
-      canvas.height
-    );
-    sourceImg.src = canvas.toDataURL("image/png");
-    const frame = sourceNode.querySelector(".image-frame");
-    frame.style.aspectRatio = `${canvas.width} / ${canvas.height}`;
-    sourceNode.dataset.manualSize = "true";
-    hideImageCropOverlay();
-    recordCropUndo(sourceNode, before);
   }
 
   function updateCropRestoreButton(node = getCroppingImageNode()) {
@@ -203,6 +196,103 @@ export function createCanvasCropWorkflow({
       removeImageCropOverlay(node);
     }
     setCroppingImageNode(null);
+    cropConfirming = false;
+  }
+
+  async function cropImageForCanvas(sourceImg, { stage, box }) {
+    const src = sourceImg.currentSrc || sourceImg.src || "";
+    if (sourceImg.complete && (sourceImg.naturalWidth || sourceImg.width)) {
+      try {
+        return cropDrawableImage(sourceImg, { stage, box });
+      } catch (error) {
+        if (!isHttpUrl(src)) throw error;
+      }
+    }
+    return cropDrawableImage(await loadCanvasSafeImage(src), { stage, box });
+  }
+
+  function cropDrawableImage(image, { stage, box }) {
+    const naturalWidth = image.naturalWidth || image.width || 1;
+    const naturalHeight = image.naturalHeight || image.height || 1;
+    const scaleX = naturalWidth / Math.max(1, stage.offsetWidth);
+    const scaleY = naturalHeight / Math.max(1, stage.offsetHeight);
+    const canvas = document.createElement("canvas");
+    canvas.width = Math.max(1, Math.round(box.width * scaleX));
+    canvas.height = Math.max(1, Math.round(box.height * scaleY));
+    const context = canvas.getContext("2d");
+    if (!context) throw new Error("Unable to create crop canvas");
+    context.drawImage(
+      image,
+      box.x * scaleX,
+      box.y * scaleY,
+      box.width * scaleX,
+      box.height * scaleY,
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+    return {
+      dataUrl: canvas.toDataURL("image/png"),
+      width: canvas.width,
+      height: canvas.height,
+      naturalWidth,
+      naturalHeight
+    };
+  }
+
+  async function loadCanvasSafeImage(src) {
+    if (!src) throw new Error("Missing image source");
+    const image = new Image();
+    image.decoding = "async";
+    image.crossOrigin = "anonymous";
+    image.src = src.startsWith("data:") || src.startsWith("blob:")
+      ? src
+      : await imageSourceToDataUrl(src);
+    if (image.decode) {
+      await image.decode();
+      return image;
+    }
+    await new Promise((resolve, reject) => {
+      image.onload = resolve;
+      image.onerror = () => reject(new Error("Unable to load image for crop"));
+    });
+    return image;
+  }
+
+  async function imageSourceToDataUrl(src) {
+    let response;
+    try {
+      response = await fetch(src, { credentials: "include" });
+    } catch (error) {
+      response = await fetchProxiedImage(src, error);
+    }
+    if (!response?.ok && isHttpUrl(src)) {
+      response = await fetchProxiedImage(src);
+    }
+    if (!response?.ok) throw new Error("Unable to read image for crop");
+    return blobToDataUrl(await response.blob());
+  }
+
+  async function fetchProxiedImage(src, cause = null) {
+    if (!isHttpUrl(src)) {
+      if (cause) throw cause;
+      throw new Error("Image source cannot be proxied");
+    }
+    return fetch(`/api/image-proxy?url=${encodeURIComponent(src)}`, { credentials: "include" });
+  }
+
+  function isHttpUrl(value = "") {
+    return /^https?:\/\//i.test(String(value || ""));
+  }
+
+  function blobToDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result || ""));
+      reader.onerror = () => reject(reader.error || new Error("Unable to read image blob"));
+      reader.readAsDataURL(blob);
+    });
   }
 
   function snapshotImageCropState(node) {

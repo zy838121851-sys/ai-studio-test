@@ -1,7 +1,11 @@
 export const DEFAULT_CANVAS_PAN = Object.freeze({ x: -900, y: -600 });
-export const DEFAULT_CANVAS_ZOOM = 0.5;
+export const DEFAULT_CANVAS_ZOOM = 1;
 export const MIN_CANVAS_ZOOM = 0.2;
 export const MAX_CANVAS_ZOOM = 2.5;
+export const MIN_CANVAS_CONTROL_SCALE = 0.42;
+export const MAX_CANVAS_CONTROL_SCALE = 2.6;
+export const MIN_CANVAS_PROMPT_SCALE = 0.78;
+export const MAX_CANVAS_PROMPT_SCALE = 1.55;
 
 export function clampCanvasZoom(value) {
   const numeric = Number(value);
@@ -13,10 +17,29 @@ export function getCanvasTransformStyle(pan, zoom) {
   return `translate(${pan.x}px, ${pan.y}px) scale(${zoom})`;
 }
 
+function clampValue(value, min, max) {
+  return Math.min(max, Math.max(min, value));
+}
+
+export function getInverseCanvasUiScale(zoom, min = MIN_CANVAS_CONTROL_SCALE, max = MAX_CANVAS_CONTROL_SCALE) {
+  const numeric = Number(zoom);
+  const safeZoom = Number.isFinite(numeric) && numeric > 0 ? numeric : DEFAULT_CANVAS_ZOOM;
+  return clampValue(1 / safeZoom, min, max);
+}
+
+export function syncCanvasUiScale(zoom, root = globalThis.document?.documentElement) {
+  if (!root?.style) return;
+  const controlScale = getInverseCanvasUiScale(zoom);
+  const promptScale = getInverseCanvasUiScale(zoom, MIN_CANVAS_PROMPT_SCALE, MAX_CANVAS_PROMPT_SCALE);
+  root.style.setProperty("--canvas-control-scale", controlScale.toFixed(3));
+  root.style.setProperty("--canvas-prompt-scale", promptScale.toFixed(3));
+}
+
 export function syncZoomControls({ zoom, zoomText, zoomRange }) {
   const percent = Math.round(zoom * 100);
   if (zoomText) zoomText.textContent = `${percent}%`;
   if (zoomRange) zoomRange.value = percent;
+  syncCanvasUiScale(zoom);
 }
 
 export function centerPanOnWorldPoint(point, zoom) {

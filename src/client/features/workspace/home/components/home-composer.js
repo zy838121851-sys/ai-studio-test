@@ -28,6 +28,7 @@ export function renderHomeFilePreview({ container, files = [], escapeHtml, onRem
     const url = getHomePreviewUrl(file);
     item.innerHTML = `
       <img src="${url}" alt="${escapeHtml(file.name)}" />
+      <b>图${index + 1}</b>
       <button type="button" aria-label="移除文件" title="移除文件"><span aria-hidden="true">×</span></button>
     `;
     item.querySelector("button")?.addEventListener("click", () => onRemove?.(index));

@@ -1,6 +1,14 @@
 import { Router } from "express";
 import { createSession, clearSessionCookie, destroySession, getSessionToken, setSessionCookie } from "../auth/session.js";
 import { authenticateUser, createUser } from "../auth/user.service.js";
+import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
+
+const authLimiter = createRateLimiter({
+  namespace: "auth",
+  windowMs: 15 * 60 * 1000,
+  max: 30,
+  message: "Too many authentication attempts"
+});
 
 function handleAuthError(res, error) {
   res.status(error.status || 500).json({
@@ -11,7 +19,7 @@ function handleAuthError(res, error) {
 export function createAuthRouter() {
   const router = Router();
 
-  router.post("/auth/register", (req, res) => {
+  router.post("/auth/register", authLimiter, (req, res) => {
     try {
       const user = createUser(req.body);
       const token = createSession(user.id);
@@ -22,7 +30,7 @@ export function createAuthRouter() {
     }
   });
 
-  router.post("/auth/login", (req, res) => {
+  router.post("/auth/login", authLimiter, (req, res) => {
     try {
       const user = authenticateUser(req.body);
       const token = createSession(user.id);

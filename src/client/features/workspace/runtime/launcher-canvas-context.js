@@ -37,6 +37,7 @@ export function createWorkspaceLauncherCanvasContext({ actions = {}, constants =
     getAddMenuPoint: actions.getAddMenuPoint,
     setAddMenuPoint: actions.setAddMenuPoint,
     getContextMenuPoint: actions.getContextMenuPoint,
+    getContextMenuTargetNode: actions.getContextMenuTargetNode,
     setContextMenuPoint: actions.setContextMenuPoint,
     viewportPointToWorld: actions.viewportPointToWorld,
     hideAddNodeMenu: actions.hideAddNodeMenu,

@@ -50,6 +50,7 @@ export function createCanvasRuntimeBindingPayload(runtime = {}) {
       addNode: runtime.addNode,
       getActiveCanvasTool: () => runtime.getActiveCanvasTool(),
       getLibraryAssets: () => runtime.getLibraryAssets(),
+      addChat: runtime.addChat,
       hideImageLightbox: runtime.hideImageLightbox,
       hideImageCropOverlay: runtime.hideImageCropOverlay,
       hideUploadModeBubbles: runtime.hideUploadModeBubbles,

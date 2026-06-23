@@ -25,20 +25,31 @@ export function createImageCropControls({ node, onPointerDown, onAction }) {
     actions = document.createElement("div");
     actions.className = "crop-actions";
     actions.innerHTML = `
-      <button type="button" data-crop-action="cancel">×</button>
+      <button type="button" data-crop-action="cancel">&times;</button>
       <span></span>
-      <button type="button" data-crop-action="reset">复原</button>
-      <button type="button" data-crop-ratio="free">宽高比</button>
-      <button type="button" class="crop-confirm" data-crop-action="confirm">✓ 确认裁剪</button>
+      <button type="button" data-crop-action="reset">&#22797;&#21407;</button>
+      <button type="button" data-crop-ratio="free">&#23485;&#39640;&#27604;</button>
+      <button type="button" class="crop-confirm" data-crop-action="confirm">&#10003; &#30830;&#35748;&#35009;&#21098;</button>
     `;
-    actions.addEventListener("pointerdown", (event) => event.stopPropagation());
+    actions.addEventListener("pointerdown", stopCropActionEvent);
+    actions.addEventListener("pointerup", stopCropActionEvent);
+    actions.addEventListener("pointercancel", stopCropActionEvent);
+    actions.addEventListener("dblclick", stopCropActionEvent);
     actions.addEventListener("click", (event) => {
-      const action = event.target.closest("[data-crop-action]")?.dataset.cropAction;
-      if (action) onAction?.(action);
+      event.preventDefault();
+      event.stopPropagation();
+      const button = event.target.closest("button");
+      const action = button?.dataset.cropAction;
+      if (!action || button.disabled) return;
+      onAction?.(action);
     });
     node.appendChild(actions);
   }
   return { frame, layer, actions, cropBox: layer.querySelector(".crop-box") };
+}
+
+function stopCropActionEvent(event) {
+  event.stopPropagation();
 }
 
 export function setCropBoxForNode({ node, box, ensureControls, minSize = 80 }) {

@@ -15,12 +15,21 @@ import {
   renderProjectLibraryContent,
   showProjectSaveStatus
 } from "./components/project-library.js";
+import {
+  deleteRemoteProject,
+  getRemoteProject,
+  listRemoteProjects,
+  saveRemoteProject,
+  saveRemoteProjectCanvas,
+  updateRemoteProject
+} from "../ai/project-client.js";
 import { createProjectRuntime } from "./runtime.js";
 import { createProjectRuntimeBootstrap } from "./runtime-bootstrap.js";
-import { createProjectSavePatch } from "./snapshot.js";
+import { createProjectSavePatch, restoreCanvasSnapshotJson } from "./snapshot.js";
 import { createProjectWorkflowRuntime } from "./project-workflow-bootstrap.js";
 import {
   formatProjectDate,
+  clearProjectsStorage,
   getActiveProjectId,
   hasDemoProjectsSeeded,
   loadProjectsFromStorage,
@@ -37,11 +46,16 @@ export function createProjectFeatureRuntime({
   chat = {},
   services = {}
 } = {}) {
+  const remoteProjectsEnabled = typeof listRemoteProjects === "function" && typeof saveRemoteProject === "function";
+  if (remoteProjectsEnabled) clearProjectsStorage();
+
   const runtimeBootstrap = createProjectRuntimeBootstrap({
     loadProjectsFromStorage,
     getActiveProjectId,
     setActiveProjectId,
     createProjectRuntime,
+    useStorage: !remoteProjectsEnabled,
+    persistLocal: !remoteProjectsEnabled,
     onChange({ projects: nextProjects, activeProjectId: nextActiveProjectId, activeProject }) {
       state.setProjects?.(nextProjects);
       state.setActiveProjectIdInMemory?.(nextActiveProjectId);
@@ -61,7 +75,7 @@ export function createProjectFeatureRuntime({
       get activeProjectId() { return state.getActiveProjectId?.() || ""; },
       set activeProjectId(value) {
         state.setActiveProjectIdInMemory?.(value);
-        setActiveProjectId(value);
+        if (!remoteProjectsEnabled) setActiveProjectId(value);
       },
       get libraryTransitionDirection() { return state.getLibraryTransitionDirection?.() || 0; },
       set libraryTransitionDirection(value) { state.setLibraryTransitionDirection?.(value); },
@@ -75,9 +89,17 @@ export function createProjectFeatureRuntime({
       buildDemoProjects,
       hasDemoProjectsSeeded,
       markDemoProjectsSeeded,
-      saveProjectsToStorage,
+      saveProjectsToStorage: remoteProjectsEnabled ? () => {} : saveProjectsToStorage,
+      remoteProjectsEnabled,
       makeProjectTitleFromPrompt: makeProjectTitle,
       createProjectSavePatch,
+      restoreCanvasSnapshotJson,
+      listRemoteProjects,
+      createRemoteProject: saveRemoteProject,
+      getRemoteProject,
+      updateRemoteProject,
+      deleteRemoteProject,
+      saveRemoteProjectCanvas,
       getProjectDisplayPrompt,
       getProjectDisplayTitle,
       getProjectPreview,
@@ -85,6 +107,8 @@ export function createProjectFeatureRuntime({
       makeDemoThumb,
       wrapProjectIndex,
       formatProjectDate,
+      resolveAssetUrl: services.resolveAssetUrl,
+      ensureAssetsReady: services.ensureAssetsReady,
       escapeHtml: services.escapeHtml
     },
     projectRuntime: runtimeBootstrap.projectRuntime,
@@ -103,6 +127,20 @@ export function createProjectFeatureRuntime({
       updateProjectTitleView: ui.updateProjectTitleView
     },
     chat
+  });
+
+  workflowRuntime.syncRemoteProjects?.();
+  window.addEventListener("ai-studio-auth-changed", (event) => {
+    if (event.detail?.user) {
+      workflowRuntime.syncRemoteProjects?.();
+      return;
+    }
+    runtimeBootstrap.projectRuntime?.replace?.([]);
+    state.setProjects?.([]);
+    state.setActiveProjectIdInMemory?.("");
+    workflowRuntime.renderProjectLibrary?.();
+    workflowRuntime.renderHomeHistory?.();
+    workflowRuntime.updateProjectTitle?.(null);
   });
 
   return {

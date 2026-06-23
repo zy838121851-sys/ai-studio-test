@@ -103,7 +103,24 @@ body[data-view="canvas"] .shape-tool-group {
   height: 40px;
 }
 
+body[data-view="canvas"] .pen-tool-group {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 40px;
+}
+
 body[data-view="canvas"] .shape-tool-group::after {
+  content: "";
+  position: absolute;
+  left: 100%;
+  top: -10px;
+  width: 14px;
+  height: calc(100% + 20px);
+}
+
+body[data-view="canvas"] .pen-tool-group::after {
   content: "";
   position: absolute;
   left: 100%;
@@ -133,8 +150,37 @@ body[data-view="canvas"] .shape-tool-menu {
   transition: opacity 0.16s ease, transform 0.16s ease;
 }
 
+body[data-view="canvas"] .pen-tool-menu {
+  position: absolute;
+  left: calc(100% + 4px);
+  top: 50%;
+  z-index: 20;
+  display: grid;
+  gap: 8px;
+  width: 132px;
+  padding: 9px;
+  border: 1px solid rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 18px 42px rgba(31, 46, 72, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(24px) saturate(1.4);
+  -webkit-backdrop-filter: blur(24px) saturate(1.4);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(6px, -50%);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
 body[data-view="canvas"] .shape-tool-group:hover .shape-tool-menu,
 body[data-view="canvas"] .shape-tool-menu:hover {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(0, -50%);
+}
+
+body[data-view="canvas"] .pen-tool-group:hover .pen-tool-menu,
+body[data-view="canvas"] .pen-tool-group:focus-within .pen-tool-menu,
+body[data-view="canvas"] .pen-tool-menu:hover {
   opacity: 1;
   pointer-events: auto;
   transform: translate(0, -50%);
@@ -165,7 +211,27 @@ body[data-view="canvas"] .shape-tool-menu button {
   background: transparent;
 }
 
+body[data-view="canvas"] .pen-tool-menu button {
+  display: flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 11px;
+  color: #17202c;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 780;
+  text-align: left;
+}
+
 body[data-view="canvas"] .shape-tool-menu button:hover {
+  background: rgba(244, 247, 251, 0.96);
+  box-shadow: inset 0 0 0 1px rgba(23, 32, 44, 0.08);
+}
+
+body[data-view="canvas"] .pen-tool-menu button:hover,
+body[data-view="canvas"] .pen-tool-menu button.active {
   background: rgba(244, 247, 251, 0.96);
   box-shadow: inset 0 0 0 1px rgba(23, 32, 44, 0.08);
 }
@@ -230,7 +296,8 @@ body[data-view="canvas"] .canvas-drawing-preview svg {
 
 body[data-view="canvas"] .canvas-drawing-preview.preview-line svg,
 body[data-view="canvas"] .canvas-drawing-preview.preview-arrow svg,
-body[data-view="canvas"] .canvas-drawing-preview.preview-pen svg {
+body[data-view="canvas"] .canvas-drawing-preview.preview-pen svg,
+body[data-view="canvas"] .canvas-drawing-preview.preview-laser svg {
   fill: none;
 }
 
@@ -240,6 +307,56 @@ body[data-view="canvas"] .canvas-drawing-preview.preview-pen {
 
 body[data-view="canvas"] .canvas-drawing-preview.preview-pen svg {
   stroke-width: 4;
+}
+
+body[data-view="canvas"] .canvas-drawing-preview.preview-laser {
+  z-index: 80;
+  color: #ff3b30;
+  opacity: 1;
+}
+
+body[data-view="canvas"] .canvas-drawing-preview.preview-laser svg {
+  stroke: currentColor;
+  overflow: visible;
+  filter:
+    drop-shadow(0 0 5px rgba(255, 59, 48, 0.88))
+    drop-shadow(0 0 14px rgba(255, 59, 48, 0.36));
+}
+
+body[data-view="canvas"] .canvas-drawing-preview.preview-laser .laser-trail path,
+body[data-view="canvas"] .canvas-drawing-preview.preview-laser .laser-trail circle {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+body[data-view="canvas"] .canvas-drawing-preview.preview-laser .laser-trail-glow {
+  stroke: rgba(255, 59, 48, 0.64);
+}
+
+body[data-view="canvas"] .canvas-drawing-preview.preview-laser .laser-trail-core {
+  stroke: #ff2f25;
+}
+
+body[data-view="canvas"] .canvas-drawing-preview.preview-laser .laser-trail-head {
+  fill: rgba(255, 238, 226, 0.88);
+  stroke: rgba(255, 59, 48, 0.9);
+  stroke-width: 2.2;
+}
+
+@keyframes laserTrailFade {
+  0% {
+    opacity: 0.95;
+    filter: blur(0);
+  }
+  55% {
+    opacity: 0.38;
+  }
+  100% {
+    opacity: 0;
+    filter: blur(2px);
+  }
 }
 
 .canvas-eraser-stroke {

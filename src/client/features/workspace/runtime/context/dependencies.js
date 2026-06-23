@@ -96,6 +96,7 @@ export function buildRuntimeUIDependencies(deps = {}) {
     getAddMenuPoint: deps.getAddMenuPoint,
     setAddMenuPoint: deps.setAddMenuPoint,
     getContextMenuPoint: deps.getContextMenuPoint,
+    getContextMenuTargetNode: deps.getContextMenuTargetNode,
     setContextMenuPoint: deps.setContextMenuPoint,
     setPendingUploadPoint: deps.setPendingUploadPoint,
     viewportPointToWorld: deps.viewportPointToWorld,
@@ -105,6 +106,7 @@ export function buildRuntimeUIDependencies(deps = {}) {
     addNode: deps.addNode,
     addChat: deps.addChat,
     openAssetLibraryPanel: deps.openAssetLibraryPanel,
+    openAssetPickerPanel: deps.openAssetPickerPanel,
     aiCore: deps.aiCore,
     aiCoreHint: deps.aiCoreHint,
     appRoot: deps.appRoot,
@@ -208,6 +210,7 @@ export function buildRuntimeActionDependencies(deps = {}) {
     updateChat: deps.updateChat,
     renderChatImagePreview: deps.renderChatImagePreview,
     openAssetLibraryPanel: deps.openAssetLibraryPanel,
+    openAssetPickerPanel: deps.openAssetPickerPanel,
     aiCore: deps.aiCore,
     aiCoreHint: deps.aiCoreHint,
     appRoot: deps.appRoot,
@@ -320,11 +323,15 @@ export function buildRuntimeActionDependencies(deps = {}) {
     addGenerationPreview: deps.addGenerationPreview,
     replacePreviewWithImage: deps.replacePreviewWithImage,
     updateActiveProject: deps.updateActiveProject,
+    saveCurrentProject: deps.saveCurrentProject,
     makeProjectTitle: deps.makeProjectTitle,
     postJsonRequest: deps.postJsonRequest,
     buildChatImagePayload: deps.buildChatImagePayload,
     readFileAsDataUrl: deps.readFileAsDataUrl,
-    detectGenerationKind: deps.detectGenerationKind
+    detectGenerationKind: deps.detectGenerationKind,
+    getPendingHomeGenerationFocus: deps.getPendingHomeGenerationFocus,
+    setPendingHomeGenerationFocus: deps.setPendingHomeGenerationFocus,
+    centerViewOnNode: deps.centerViewOnNode
   };
 }
 

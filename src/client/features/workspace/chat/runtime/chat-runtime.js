@@ -11,12 +11,16 @@ export function buildChatRuntimeInputs(deps) {
     addGenerationPreview: deps.addGenerationPreview,
     replacePreviewWithImage: deps.replacePreviewWithImage,
     updateActiveProject: deps.updateActiveProject,
+    saveCurrentProject: deps.saveCurrentProject,
     getActiveProject: deps.getActiveProject,
     makeProjectTitle: deps.makeProjectTitle,
     postJsonRequest: deps.postJsonRequest,
     buildChatImagePayload: deps.buildChatImagePayload,
     readFileAsDataUrl: deps.readFileAsDataUrl,
-    detectGenerationKind: deps.detectGenerationKind
+    detectGenerationKind: deps.detectGenerationKind,
+    getPendingHomeGenerationFocus: deps.getPendingHomeGenerationFocus,
+    setPendingHomeGenerationFocus: deps.setPendingHomeGenerationFocus,
+    centerViewOnNode: deps.centerViewOnNode
   };
 }
 
@@ -31,12 +35,16 @@ export function buildChatRuntimeRefGroup({
   addGenerationPreview,
   replacePreviewWithImage,
   updateActiveProject,
+  saveCurrentProject,
   getActiveProject,
   makeProjectTitle,
   postJsonRequest,
   buildChatImagePayload,
   readFileAsDataUrl,
-  detectGenerationKind
+  detectGenerationKind,
+  getPendingHomeGenerationFocus,
+  setPendingHomeGenerationFocus,
+  centerViewOnNode
 }) {
   return {
     recordCanvasEvent,
@@ -49,12 +57,16 @@ export function buildChatRuntimeRefGroup({
     addGenerationPreview,
     replacePreviewWithImage,
     updateActiveProject,
+    saveCurrentProject,
     getActiveProject,
     makeProjectTitle,
     postJsonRequest,
     buildChatImagePayload,
     readFileAsDataUrl,
-    detectGenerationKind
+    detectGenerationKind,
+    getPendingHomeGenerationFocus,
+    setPendingHomeGenerationFocus,
+    centerViewOnNode
   };
 }
 
@@ -70,12 +82,16 @@ export function buildChatRuntimeSources(deps = {}) {
     addGenerationPreview,
     replacePreviewWithImage,
     updateActiveProject,
+    saveCurrentProject,
     getActiveProject,
     makeProjectTitle,
     postJsonRequest,
     buildChatImagePayload,
     readFileAsDataUrl,
     detectGenerationKind,
+    getPendingHomeGenerationFocus,
+    setPendingHomeGenerationFocus,
+    centerViewOnNode,
     ...directChatSources
   } = deps;
 
@@ -90,12 +106,16 @@ export function buildChatRuntimeSources(deps = {}) {
     addGenerationPreview,
     replacePreviewWithImage,
     updateActiveProject,
+    saveCurrentProject,
     getActiveProject,
     makeProjectTitle,
     postJsonRequest,
     buildChatImagePayload,
     readFileAsDataUrl,
-    detectGenerationKind
+    detectGenerationKind,
+    getPendingHomeGenerationFocus,
+    setPendingHomeGenerationFocus,
+    centerViewOnNode
   };
   return {
     ...directChatSources,
@@ -114,12 +134,16 @@ export function buildChatRuntimeDependencyInputs({
   addGenerationPreview,
   replacePreviewWithImage,
   updateActiveProject,
+  saveCurrentProject,
   getActiveProject,
   makeProjectTitle,
   postJsonRequest,
   buildChatImagePayload,
   readFileAsDataUrl,
   detectGenerationKind,
+  getPendingHomeGenerationFocus,
+  setPendingHomeGenerationFocus,
+  centerViewOnNode,
   ...directChatInputs
 }) {
   const mappedChatInputs = {
@@ -133,12 +157,16 @@ export function buildChatRuntimeDependencyInputs({
     addGenerationPreview,
     replacePreviewWithImage,
     updateActiveProject,
+    saveCurrentProject,
     getActiveProject,
     makeProjectTitle,
     postJsonRequest,
     buildChatImagePayload,
     readFileAsDataUrl,
-    detectGenerationKind
+    detectGenerationKind,
+    getPendingHomeGenerationFocus,
+    setPendingHomeGenerationFocus,
+    centerViewOnNode
   };
   return {
     ...directChatInputs,
@@ -157,12 +185,16 @@ export function buildChatRuntimeBootstrapBindings({
   addGenerationPreview,
   replacePreviewWithImage,
   updateActiveProject,
+  saveCurrentProject,
   getActiveProject,
   makeProjectTitle,
   postJsonRequest,
   buildChatImagePayload,
   readFileAsDataUrl,
-  detectGenerationKind
+  detectGenerationKind,
+  getPendingHomeGenerationFocus,
+  setPendingHomeGenerationFocus,
+  centerViewOnNode
 } = {}) {
   return {
     recordCanvasEvent,
@@ -175,11 +207,15 @@ export function buildChatRuntimeBootstrapBindings({
     addGenerationPreview,
     replacePreviewWithImage,
     updateActiveProject,
+    saveCurrentProject,
     getActiveProject,
     makeProjectTitle,
     postJsonRequest,
     buildChatImagePayload,
     readFileAsDataUrl,
-    detectGenerationKind
+    detectGenerationKind,
+    getPendingHomeGenerationFocus,
+    setPendingHomeGenerationFocus,
+    centerViewOnNode
   };
 }

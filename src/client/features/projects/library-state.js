@@ -8,11 +8,17 @@ export function getProjectDisplayPrompt(project) {
 }
 
 export function getProjectPreview(project, index = 0, makeFallbackThumb) {
-  if (project?.thumbnail) return project.thumbnail;
+  if (isRenderableProjectThumbnail(project?.thumbnail)) return project.thumbnail;
   if (typeof makeFallbackThumb === "function") {
     return makeFallbackThumb(getProjectDisplayTitle(project, index), index);
   }
   return "";
+}
+
+function isRenderableProjectThumbnail(value = "") {
+  const thumbnail = String(value || "").trim();
+  if (!thumbnail) return false;
+  return /^(?:https?:|data:image\/|blob:|\/(?:uploads|api)\/)/i.test(thumbnail);
 }
 
 export function getLibraryTransitionDirection({ currentIndex, nextIndex }) {

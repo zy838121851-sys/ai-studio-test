@@ -65,10 +65,22 @@ export function createNodeRuntimeHelpers(deps) {
       initModelViewer: getInitModelViewer(),
       onImageLoaded: (node, image) => {
         const frame = node.querySelector(".image-frame");
+        node.dataset.imageNaturalWidth = String(image.naturalWidth || "");
+        node.dataset.imageNaturalHeight = String(image.naturalHeight || "");
+        const naturalAspect = `${image.naturalWidth} / ${Math.max(1, image.naturalHeight)}`;
+        const naturalRatio = image.naturalWidth / Math.max(1, image.naturalHeight);
+        const currentAspect = String(frame?.style?.aspectRatio || "").replace(/\s+/g, "");
+        const shouldRepairLegacyGeneratedSquare = node.dataset.sourceMode === "generated"
+          && node.dataset.manualSize === "true"
+          && currentAspect === "1/1"
+          && Math.abs(naturalRatio - 1) > 0.01
+          && !node.dataset.cropOriginalAspect;
+        if (shouldRepairLegacyGeneratedSquare) {
+          frame.style.aspectRatio = naturalAspect;
+        }
         if (!node.dataset.manualSize) {
-          frame.style.aspectRatio = `${image.naturalWidth} / ${Math.max(1, image.naturalHeight)}`;
-          const ratio = image.naturalWidth / Math.max(1, image.naturalHeight);
-          node.style.width = `${Math.min(560, Math.max(260, 320 * ratio))}px`;
+          frame.style.aspectRatio = naturalAspect;
+          node.style.width = `${Math.min(560, Math.max(260, 320 * naturalRatio))}px`;
         }
         if (getIsEditingImageNode()(node) && getIsImageEditPopoverOpen()) {
           getPositionImageEditPopover()(node);

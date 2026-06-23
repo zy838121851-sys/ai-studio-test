@@ -13,7 +13,8 @@ export function createCanvasInteractionRuntimeInputs({
       getPan: state.getPan,
       getZoom: state.getZoom,
       getNextCanvasNodeId: state.getNextCanvasNodeId,
-      getSelectedNode: state.getSelectedNode
+      getSelectedNode: state.getSelectedNode,
+      getSelectedNodes: state.getSelectedNodes
     },
     services: {
       createImageTextPanel: services.createImageTextPanel,

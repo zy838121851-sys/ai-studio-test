@@ -44,7 +44,9 @@ export function createWorkspaceCanvasGenerationAppRuntime({
       getImageFilesFromList: services.getImageFilesFromList,
       runDirectorAction: services.runDirectorAction,
       setUploadChoiceHover: services.setUploadChoiceHover,
-      syncCanvasTransform: services.syncCanvasTransform
+      syncCanvasTransform: services.syncCanvasTransform,
+      registerUploadedAsset: services.registerUploadedAsset,
+      registerGeneratedAsset: services.registerGeneratedAsset
     },
     defaults: {
       directorActions: defaults.directorActions,

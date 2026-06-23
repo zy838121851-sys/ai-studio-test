@@ -11,13 +11,23 @@ export function createWorkspaceAssetRuntime({
     eventBus,
     elements: {
       assetList: elements.assetList,
+      pageAssetList: elements.assetsPageAssetList,
+      pageUploadButton: elements.assetsPageUploadAsset,
+      assetUploadInput: elements.assetUploadInput,
       floatingLibrary: elements.floatingLibrary
     },
     state: {
-      assets: state.assets
+      assets: state.assets,
+      getAssets: state.getAssets,
+      setAssets: state.setAssets,
+      getActiveProjectId: state.getActiveProjectId,
+      getProjects: state.getProjects
     },
     services: {
-      escapeHtml: services.escapeHtml
+      escapeHtml: services.escapeHtml,
+      insertAssetToCanvas: services.insertAssetToCanvas,
+      openProject: services.openProject,
+      saveCurrentProject: services.saveCurrentProject
     }
   });
 }

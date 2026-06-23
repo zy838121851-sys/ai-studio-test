@@ -22,7 +22,7 @@ export function renderChatImagePreviewList({
     const item = document.createElement("button");
     item.type = "button";
     item.title = "移除图片";
-    item.innerHTML = `<img src="${getChatPreviewUrl(file)}" alt="${escapeHtml(file.name)}" /><span aria-hidden="true">×</span>`;
+    item.innerHTML = `<img src="${getChatPreviewUrl(file)}" alt="${escapeHtml(file.name)}" /><b>图${index + 1}</b><span aria-hidden="true">x</span>`;
     item.addEventListener("click", () => onRemove?.(index));
     container.appendChild(item);
   });
@@ -39,7 +39,9 @@ export function addImageFilesToPreview({
 }) {
   const images = getImageFiles(incomingFiles);
   if (!images.length) return false;
-  currentFiles.push(...images);
+  const remaining = Math.max(0, 3 - currentFiles.length);
+  if (!remaining) return false;
+  currentFiles.push(...images.slice(0, remaining));
   render();
   promptForm?.classList.remove("drag-over");
   resetDragDepth?.();

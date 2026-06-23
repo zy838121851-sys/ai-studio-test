@@ -24,7 +24,21 @@ export function bindCanvasToolControls({
   root.querySelectorAll(".rail-btn[data-tool]").forEach((button) => {
     button.addEventListener("click", () => {
       setActiveRailPanelButton(button);
+      if (button.dataset.tool === "pen") {
+        root.querySelectorAll("[data-pen-tool]").forEach((item) => item.classList.toggle("active", item.dataset.penTool === "pen"));
+      }
       runCanvasTool(button.dataset.tool);
+    });
+  });
+
+  root.querySelectorAll("[data-pen-tool]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      root.querySelectorAll("[data-pen-tool]").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      setActiveRailPanelButton(root.querySelector('.rail-btn[data-tool="pen"]'));
+      runCanvasTool(button.dataset.penTool);
     });
   });
 
@@ -69,4 +83,3 @@ export function bindCanvasToolControls({
     toggleToolRailCollapsed(toolRail, toggleToolRail);
   });
 }
-

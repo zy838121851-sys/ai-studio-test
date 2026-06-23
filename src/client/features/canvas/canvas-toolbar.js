@@ -32,6 +32,9 @@ export function initCanvasToolbar({
       if (typeof setActiveRailPanelButton === "function") {
         setActiveRailPanelButton(button, root);
       }
+      if (button.dataset.tool === "pen") {
+        root.querySelectorAll("[data-pen-tool]").forEach((item) => item.classList.toggle("active", item.dataset.penTool === "pen"));
+      }
       if (typeof runCanvasTool === "function") {
         runCanvasTool(button.dataset.tool);
       } else {
@@ -48,6 +51,23 @@ export function initCanvasToolbar({
         setShapeTool(button.dataset.shapeTool);
       } else {
         dispatcher("canvas:shape-tool-request", { tool: button.dataset.shapeTool, button });
+      }
+    });
+  });
+
+  root.querySelectorAll("[data-pen-tool]").forEach((button) => {
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      root.querySelectorAll("[data-pen-tool]").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      if (typeof setActiveRailPanelButton === "function") {
+        setActiveRailPanelButton(root.querySelector('.rail-btn[data-tool="pen"]'), root);
+      }
+      if (typeof runCanvasTool === "function") {
+        runCanvasTool(button.dataset.penTool);
+      } else {
+        dispatcher("canvas:tool-request", { tool: button.dataset.penTool, button });
       }
     });
   });
@@ -123,7 +143,8 @@ export function initCanvasToolbar({
 
 export function setActiveRailButton(tool, root = document) {
   root.querySelectorAll(".rail-btn").forEach((item) => item.classList.remove("active"));
-  if (tool) root.querySelector(`.rail-btn[data-tool="${tool}"]`)?.classList.add("active");
+  if (tool) root.querySelector(`.rail-btn[data-tool="${tool === "laser" ? "pen" : tool}"]`)?.classList.add("active");
+  root.querySelectorAll("[data-pen-tool]").forEach((item) => item.classList.toggle("active", item.dataset.penTool === tool));
 }
 
 export function setActiveRailPanelButton(button, root = document) {

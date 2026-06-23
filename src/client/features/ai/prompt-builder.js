@@ -24,10 +24,12 @@ export function getDefaultReferencePrompt(imageCount = 0) {
     : "";
 }
 
-export function buildChatImagePayload({ model, prompt, images = [] } = {}) {
-  return {
+export function buildChatImagePayload({ model, prompt, images = [], size } = {}) {
+  const payload = {
     model,
     prompt,
     images
   };
+  if (size) payload.size = size;
+  return payload;
 }

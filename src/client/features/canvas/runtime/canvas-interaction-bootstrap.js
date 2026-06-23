@@ -34,6 +34,7 @@ export function createCanvasInteractionBootstrap({
       createImageTextPanel: services.createImageTextPanel,
       imageEditPopover: elements.imageEditPopover,
       editImageThumb: elements.editImageThumb,
+      editAddRef: elements.editAddRef,
       imageEditPrompt: elements.imageEditPrompt
     },
     services: {
@@ -42,6 +43,7 @@ export function createCanvasInteractionBootstrap({
       positionImageTextPanelElement: services.positionImageTextPanelElement,
       readImageSourceAsDataUrl: services.readImageSourceAsDataUrl,
       getZoom: state.getZoom,
+      getSelectedNodes: state.getSelectedNodes,
       postJsonRequest: services.postJsonRequest,
       runImageEditCommand: services.runImageEditCommand,
       buildImageTextEditPrompt: services.buildImageTextEditPrompt,

@@ -10,17 +10,20 @@ import {
 export function createProjectRuntime({
   projects = [],
   activeProjectId = "",
+  persistLocal = true,
   onChange = () => {}
 } = {}) {
   let items = Array.from(projects);
   let activeId = activeProjectId;
 
   function notify(activeProject = getActive()) {
-    saveProjectsToStorage(items);
-    if (activeId) {
-      setActiveProjectId(activeId);
-    } else {
-      clearActiveProjectId();
+    if (persistLocal) {
+      saveProjectsToStorage(items);
+      if (activeId) {
+        setActiveProjectId(activeId);
+      } else {
+        clearActiveProjectId();
+      }
     }
     onChange({ projects: items, activeProjectId: activeId, activeProject });
     return activeProject;
@@ -32,6 +35,7 @@ export function createProjectRuntime({
 
   function replace(nextProjects) {
     items = Array.from(nextProjects || []);
+    if (activeId && !items.some((item) => item.id === activeId)) activeId = "";
     if (!activeId && items[0]) activeId = items[0].id;
     return notify(getActive());
   }

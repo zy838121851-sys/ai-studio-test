@@ -7,6 +7,7 @@ export function createImageEditWorkflow({
     createImageTextPanel,
     imageEditPopover,
     editImageThumb,
+    editAddRef,
     imageEditPrompt
   } = elements;
 
@@ -16,6 +17,7 @@ export function createImageEditWorkflow({
     positionImageTextPanelElement,
     readImageSourceAsDataUrl = async () => "",
     getZoom = () => 1,
+    getSelectedNodes = () => new Set(),
     postJsonRequest = async () => ({}),
     runImageEditCommand = () => Promise.resolve(),
     buildImageTextEditPrompt = (items = []) => "",
@@ -29,9 +31,83 @@ export function createImageEditWorkflow({
   const state = {
     editingImageNode: null,
     textEditingImageNode: null,
+    imageEditReferenceNodes: [],
     imageEditDrafts: new WeakMap(),
-    imageEditPromptBound: false
+    imageEditPromptBound: false,
+    imageEditReferenceBound: false
   };
+
+  function getImageNodeSrc(node) {
+    return node?.querySelector?.(".image-frame img")?.src || "";
+  }
+
+  function isReferenceImageNode(node) {
+    return Boolean(node?.isConnected && node.classList?.contains("node-image") && getImageNodeSrc(node));
+  }
+
+  function getSelectedImageNodes() {
+    const selected = typeof getSelectedNodes === "function" ? Array.from(getSelectedNodes() || []) : [];
+    const nodes = selected.length
+      ? selected
+      : Array.from(canvasWorld?.querySelectorAll?.(".node-card.selected") || []);
+    return nodes.filter(isReferenceImageNode);
+  }
+
+  function normalizeReferenceNodes(nodes = []) {
+    const seen = new Set();
+    const next = [];
+    nodes.forEach((node) => {
+      const src = getImageNodeSrc(node);
+      if (!src || seen.has(src) || next.length >= 3) return;
+      seen.add(src);
+      next.push(node);
+    });
+    return next;
+  }
+
+  function renderImageEditReferences() {
+    if (!imageEditPopover) return;
+    imageEditPopover.querySelectorAll(".edit-reference-thumb").forEach((item) => item.remove());
+    const refs = normalizeReferenceNodes(state.imageEditReferenceNodes);
+    state.imageEditReferenceNodes = refs;
+    if (editImageThumb) {
+      editImageThumb.src = getImageNodeSrc(refs[0]) || "";
+      editImageThumb.title = refs.length > 1 ? `\u56fe1\uff0c\u5df2\u5f15\u7528 ${refs.length} \u5f20\u53c2\u8003\u56fe` : "\u56fe1\uff0c\u5f53\u524d\u56fe\u7247";
+    }
+    refs.slice(1).forEach((node, index) => {
+      const thumb = document.createElement("img");
+      thumb.className = "edit-reference-thumb";
+      thumb.src = getImageNodeSrc(node);
+      thumb.alt = `\u53c2\u8003\u56fe ${index + 2}`;
+      thumb.title = `\u56fe${index + 2}\uff0c\u70b9\u51fb\u79fb\u9664\u53c2\u8003\u56fe`;
+      thumb.addEventListener("click", () => {
+        state.imageEditReferenceNodes = normalizeReferenceNodes([
+          state.imageEditReferenceNodes[0],
+          ...state.imageEditReferenceNodes.slice(1).filter((item) => item !== node)
+        ]);
+        renderImageEditReferences();
+      });
+      editAddRef?.before(thumb);
+    });
+    if (editAddRef) {
+      editAddRef.disabled = refs.length >= 3;
+      editAddRef.title = refs.length >= 3 ? "\u6700\u591a\u5f15\u7528 3 \u5f20\u53c2\u8003\u56fe" : "\u4ece\u5f53\u524d\u9009\u4e2d\u56fe\u7247\u6dfb\u52a0\u53c2\u8003";
+      editAddRef.setAttribute("aria-label", editAddRef.title);
+    }
+  }
+
+  function addSelectedReferences() {
+    const current = state.imageEditReferenceNodes.length
+      ? state.imageEditReferenceNodes
+      : [state.editingImageNode].filter(Boolean);
+    const selected = getSelectedImageNodes();
+    state.imageEditReferenceNodes = normalizeReferenceNodes([
+      current[0],
+      ...current.slice(1),
+      ...selected.filter((node) => node !== current[0])
+    ]);
+    renderImageEditReferences();
+  }
 
   function getImageEditDraft(node) {
     if (!node) return "";
@@ -54,17 +130,23 @@ export function createImageEditWorkflow({
   }
 
   function bindImageEditDraftInput() {
-    if (state.imageEditPromptBound || !imageEditPrompt) return;
-    imageEditPrompt.addEventListener("input", () => {
-      saveImageEditDraft();
-    });
-    state.imageEditPromptBound = true;
+    if (!state.imageEditPromptBound && imageEditPrompt) {
+      imageEditPrompt.addEventListener("input", () => {
+        saveImageEditDraft();
+      });
+      state.imageEditPromptBound = true;
+    }
+    if (!state.imageEditReferenceBound && editAddRef) {
+      editAddRef.addEventListener("click", addSelectedReferences);
+      state.imageEditReferenceBound = true;
+    }
   }
 
   function hideImageEditPopover({ preserveDraft = true } = {}) {
     if (preserveDraft) saveImageEditDraft();
     imageEditPopover?.classList.remove("open");
     state.editingImageNode = null;
+    state.imageEditReferenceNodes = [];
   }
 
   function ensureImageTextPanel() {
@@ -117,7 +199,7 @@ export function createImageEditWorkflow({
     const panel = ensureImageTextPanel();
     if (!panel) return;
     panel.classList.add("open", "loading");
-    panel.querySelector("[data-text-edit-status]").textContent = "Reading text from image, please wait...";
+    panel.querySelector("[data-text-edit-status]").textContent = "\u6b63\u5728\u8bc6\u522b\u56fe\u7247\u6587\u5b57...";
     panel.querySelector("[data-text-edit-list]").innerHTML = "";
     positionImageTextPanel();
     try {
@@ -125,7 +207,7 @@ export function createImageEditWorkflow({
       const result = await postJsonRequest("/api/extract-image-text", { image });
       renderImageTextInputs(panel, result.texts || result.analysis?.texts || []);
     } catch (error) {
-      panel.querySelector("[data-text-edit-status]").textContent = "Text extraction failed: " + error.message;
+      panel.querySelector("[data-text-edit-status]").textContent = "\u6587\u5b57\u8bc6\u522b\u5931\u8d25\uff1a" + error.message;
       renderImageTextInputs(panel, []);
     } finally {
       panel.classList.remove("loading");
@@ -138,13 +220,16 @@ export function createImageEditWorkflow({
     if (!panel || !sourceNode) return;
     const edits = getImageTextEdits(panel);
     if (!edits.length) {
-      panel.querySelector("[data-text-edit-status]").textContent = "Please edit text content first before saving.";
+      panel.querySelector("[data-text-edit-status]").textContent = "\u8bf7\u5148\u4fee\u6539\u6216\u8f93\u5165\u6587\u5b57\u5185\u5bb9\u3002";
       return;
     }
     const prompt = buildImageTextEditPrompt(edits);
     panel.classList.add("loading");
-    panel.querySelector("[data-text-edit-status]").textContent = "AI text edit is running...";
-    await runImageEditCommand(sourceNode, prompt, "AI Text Editing");
+    panel.querySelector("[data-text-edit-status]").textContent = "\u6b63\u5728\u751f\u6210\u6587\u5b57\u4fee\u6539\u7ed3\u679c...";
+    await runImageEditCommand(sourceNode, prompt, "\u4fee\u6539\u6587\u5b57", {
+      actionType: "text_edit",
+      count: 1
+    });
     hideImageTextPanel();
   }
 
@@ -156,7 +241,8 @@ export function createImageEditWorkflow({
     }
     bindImageEditDraftInput();
     state.editingImageNode = node;
-    if (editImageThumb) editImageThumb.src = img.src;
+    state.imageEditReferenceNodes = normalizeReferenceNodes([node, ...getSelectedImageNodes().filter((item) => item !== node)]);
+    renderImageEditReferences();
     const promptValue = presetPrompt || getImageEditDraft(node);
     if (imageEditPrompt) imageEditPrompt.value = promptValue;
     if (imageEditPopover && canvasWorld && imageEditPopover.parentElement !== canvasWorld) {
@@ -183,7 +269,9 @@ export function createImageEditWorkflow({
     const sourceNode = state.editingImageNode;
     if (!sourceNode) return;
     saveImageEditDraft(sourceNode);
-    return Promise.resolve(runImageEditCommand(sourceNode, imageEditPrompt.value, "AI Image Editing"))
+    return Promise.resolve(runImageEditCommand(sourceNode, imageEditPrompt.value, "AI Image Editing", {
+      referenceNodes: state.imageEditReferenceNodes.slice()
+    }))
       .then((result) => {
         const results = Array.isArray(result) ? result : [result];
         const hasError = results.some((item) => item?.error);

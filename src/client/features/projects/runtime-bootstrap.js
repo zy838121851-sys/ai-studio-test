@@ -3,12 +3,14 @@ export function createProjectRuntimeBootstrap({
   getActiveProjectId,
   setActiveProjectId,
   createProjectRuntime,
-  onChange
+  onChange,
+  useStorage = true,
+  persistLocal = true
 } = {}) {
-  let projects = loadProjectsFromStorage?.() || [];
-  let activeProjectId = getActiveProjectId?.() || "";
+  let projects = useStorage ? loadProjectsFromStorage?.() || [] : [];
+  let activeProjectId = useStorage ? getActiveProjectId?.() || "" : "";
 
-  if (!activeProjectId && projects[0]) {
+  if (useStorage && !activeProjectId && projects[0]) {
     activeProjectId = projects[0].id;
     setActiveProjectId?.(activeProjectId);
   }
@@ -16,6 +18,7 @@ export function createProjectRuntimeBootstrap({
   const projectRuntime = createProjectRuntime?.({
     projects,
     activeProjectId,
+    persistLocal,
     onChange(payload = {}) {
       projects = payload.projects || projects;
       activeProjectId = payload.activeProjectId || activeProjectId;

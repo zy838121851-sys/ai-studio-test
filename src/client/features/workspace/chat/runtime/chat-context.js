@@ -10,12 +10,16 @@ export function createRuntimeChatContext(deps = {}) {
     addGenerationPreview,
     replacePreviewWithImage,
     updateActiveProject,
+    saveCurrentProject,
     getActiveProject,
     makeProjectTitle,
     postJsonRequest,
     buildChatImagePayload,
     readFileAsDataUrl,
-    detectGenerationKind
+    detectGenerationKind,
+    getPendingHomeGenerationFocus,
+    setPendingHomeGenerationFocus,
+    centerViewOnNode
   } = deps;
 
   return {
@@ -29,11 +33,15 @@ export function createRuntimeChatContext(deps = {}) {
     addGenerationPreview,
     replacePreviewWithImage,
     updateActiveProject,
+    saveCurrentProject,
     getActiveProject,
     makeProjectTitle,
     postJsonRequest,
     buildChatImagePayload,
     readFileAsDataUrl,
-    detectGenerationKind
+    detectGenerationKind,
+    getPendingHomeGenerationFocus,
+    setPendingHomeGenerationFocus,
+    centerViewOnNode
   };
 }

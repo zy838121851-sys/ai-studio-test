@@ -7,8 +7,8 @@ export function createCanvasMenuWorkflow({
     canvasContextMenu,
     canvasViewport,
     width = 360,
-    contextWidth = 300,
-    contextHeight = 445,
+    contextWidth = 230,
+    contextHeight = 330,
     contextAddNodeHeight = 520
   } = elements;
 
@@ -21,6 +21,7 @@ export function createCanvasMenuWorkflow({
 
   let addMenuPoint = null;
   let contextMenuPoint = null;
+  let contextMenuTargetNode = null;
 
   function showAddNodeMenu(clientX, clientY) {
     addMenuPoint = viewportPointToWorld(clientX, clientY);
@@ -34,8 +35,17 @@ export function createCanvasMenuWorkflow({
     });
   }
 
-  function showCanvasContextMenu(clientX, clientY) {
+  function showCanvasContextMenu(clientX, clientY, targetNode = null) {
     contextMenuPoint = viewportPointToWorld(clientX, clientY);
+    contextMenuTargetNode = targetNode || null;
+    if (canvasContextMenu) {
+      canvasContextMenu.dataset.contextMode = contextMenuTargetNode ? "node" : "canvas";
+      canvasContextMenu.dataset.contextNodeId = contextMenuTargetNode?.dataset?.nodeId || "";
+      const lockButton = canvasContextMenu.querySelector('[data-context-action="lock"] strong');
+      if (lockButton) {
+        lockButton.textContent = contextMenuTargetNode?.dataset?.locked === "true" ? "解锁" : "锁定";
+      }
+    }
     hideAddNodeMenu();
     hideImageEditPopover();
     showViewportMenu({
@@ -58,6 +68,7 @@ export function createCanvasMenuWorkflow({
     getContextMenuPoint: () => contextMenuPoint,
     setContextMenuPoint: (point) => {
       contextMenuPoint = point;
-    }
+    },
+    getContextMenuTargetNode: () => contextMenuTargetNode
   };
 }

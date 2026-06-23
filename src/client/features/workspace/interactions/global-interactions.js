@@ -57,7 +57,21 @@ export function bindGlobalInteractions({
     const toolButton = event.target.closest(".rail-btn[data-tool]");
     if (toolButton) {
       setActiveRailPanelButton(toolButton);
+      if (toolButton.dataset.tool === "pen") {
+        documentRoot.querySelectorAll("[data-pen-tool]").forEach((item) => item.classList.toggle("active", item.dataset.penTool === "pen"));
+      }
       runCanvasTool(toolButton.dataset.tool);
+      return;
+    }
+
+    const penToolButton = event.target.closest("[data-pen-tool]");
+    if (penToolButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      documentRoot.querySelectorAll("[data-pen-tool]").forEach((item) => item.classList.remove("active"));
+      penToolButton.classList.add("active");
+      setActiveRailPanelButton(documentRoot.querySelector('.rail-btn[data-tool="pen"]'));
+      runCanvasTool(penToolButton.dataset.penTool);
       return;
     }
 
@@ -141,4 +155,3 @@ export function bindGlobalInteractions({
     });
   }
 }
-
