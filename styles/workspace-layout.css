@@ -381,78 +381,161 @@ body:not([data-view="canvas"]) .app {
 }
 
 .auth-dialog-panel header p {
-  margin: 0 0 4px;
-  color: rgba(23, 32, 44, 0.42);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  display: none;
 }
 
 .auth-dialog-panel header h2 {
-  margin: 0 0 18px;
+  margin: 0 0 14px;
   color: #17202c;
-  font-size: 22px;
-  font-weight: 850;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-align: center;
+}
+
+.auth-wechat-panel {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  margin: 2px 0 24px;
+}
+
+.auth-wechat-panel.hidden,
+.auth-form.hidden {
+  display: none;
+}
+
+.auth-wechat-card {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #101827;
+}
+
+.auth-wechat-card strong {
+  font-size: 24px;
+  font-weight: 900;
   letter-spacing: 0;
 }
 
-.auth-tabs {
+.auth-wechat-card small {
+  color: rgba(17, 24, 39, 0.56);
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.auth-wechat-qr {
+  position: relative;
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  margin-bottom: 18px;
-  padding: 5px;
-  border-radius: 999px;
-  background: rgba(241, 245, 249, 0.9);
+  place-items: center;
+  width: 218px;
+  height: 218px;
+  margin-top: 8px;
+  background:
+    linear-gradient(90deg, #111 10px, transparent 10px) 0 0 / 22px 22px,
+    linear-gradient(#111 10px, transparent 10px) 0 0 / 22px 22px,
+    #fff;
+  box-shadow: inset 0 0 0 10px #fff;
+  overflow: hidden;
 }
 
-.auth-tabs button {
-  min-height: 34px;
-  border: 0;
-  border-radius: 999px;
-  color: rgba(23, 32, 44, 0.58);
-  background: transparent;
-  font-weight: 800;
+.auth-wechat-qr img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
 }
 
-.auth-tabs button.active {
-  color: #17202c;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 8px 20px rgba(31, 46, 72, 0.08);
+.auth-wechat-qr img:not([src]) {
+  display: none;
 }
 
-.auth-methods,
-.auth-oauth-row {
+.auth-wechat-qr > span {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  border: 8px solid #111;
+  background: #fff;
+}
+
+.auth-wechat-qr > span:nth-of-type(1) {
+  top: 16px;
+  left: 16px;
+}
+
+.auth-wechat-qr > span:nth-of-type(2) {
+  top: 16px;
+  right: 16px;
+}
+
+.auth-wechat-qr > span:nth-of-type(3) {
+  bottom: 16px;
+  left: 16px;
+}
+
+.auth-wechat-qr > span:nth-of-type(4) {
+  right: 46px;
+  bottom: 46px;
+  width: 22px;
+  height: 22px;
+  border-width: 6px;
+}
+
+.auth-legal {
+  margin: 0;
+  color: rgba(17, 24, 39, 0.48);
+  font-size: 13px;
+}
+
+.auth-legal a {
+  color: #2563eb;
+  text-decoration: none;
+}
+
+.auth-alt-heading {
+  margin: 0 0 18px;
+  color: rgba(17, 24, 39, 0.48);
+  font-size: 14px;
+  font-weight: 750;
+  text-align: center;
+}
+
+.auth-icon-methods {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-  margin-bottom: 12px;
+  gap: 20px;
+  margin-bottom: 14px;
 }
 
-.auth-oauth-row {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.auth-icon-methods button {
+  display: grid;
+  place-items: center;
+  min-height: 50px;
+  border: 1px solid rgba(17, 24, 39, 0.1);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.9);
+  color: rgba(17, 24, 39, 0.62);
 }
 
-.auth-methods button,
-.auth-oauth-row button,
-.auth-code-button {
-  min-height: 36px;
-  border: 1px solid rgba(17, 24, 39, 0.08);
-  border-radius: 10px;
-  background: rgba(255, 255, 255, 0.86);
-  color: #17202c;
-  font-size: 12px;
-  font-weight: 750;
+.auth-icon-methods button.active {
+  color: #111827;
+  border-color: rgba(17, 24, 39, 0.2);
+  background: rgba(249, 250, 251, 0.98);
 }
 
-.auth-methods button.active {
-  background: rgba(23, 32, 44, 0.92);
-  color: #fff;
+.auth-icon-methods svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
 }
 
-.auth-methods button:disabled,
-.auth-oauth-row button:disabled,
+.auth-icon-methods button:disabled,
+.auth-wechat-card:disabled,
 .auth-code-button:disabled {
   cursor: not-allowed;
   opacity: 0.46;
@@ -471,6 +554,7 @@ body:not([data-view="canvas"]) .app {
   font-weight: 750;
 }
 
+.auth-form.hidden,
 .auth-form label.hidden,
 .auth-code-button.hidden {
   display: none;

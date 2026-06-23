@@ -136,24 +136,33 @@
           <p>Account</p>
           <h2 id="authDialogTitle">登录到 AI Studio</h2>
         </header>
-        <div class="auth-tabs" role="tablist">
-          <button class="active" type="button" data-auth-mode="login">登录</button>
-          <button type="button" data-auth-mode="register">注册</button>
+        <div class="auth-wechat-panel" data-auth-wechat-panel>
+          <button class="auth-wechat-card" type="button" data-auth-oauth="wechat" aria-label="微信扫码登录">
+            <small>关注后自动登录</small>
+            <span class="auth-wechat-qr" aria-hidden="true">
+              <img id="authWechatQr" alt="" />
+              <span></span><span></span><span></span><span></span>
+            </span>
+          </button>
+          <p class="auth-legal">「扫码登录」代表同意 <a href="#terms">《用户协议》</a> <a href="#privacy">《隐私政策》</a></p>
         </div>
-        <div class="auth-methods" role="tablist" aria-label="登录方式">
-          <button class="active" type="button" data-auth-method="email-code">邮箱验证码</button>
-          <button type="button" data-auth-method="phone-code">手机号</button>
-          <button type="button" data-auth-method="password">邮箱密码</button>
+        <div class="auth-alt-heading">其他登录方式</div>
+        <div class="auth-icon-methods" role="tablist" aria-label="其他登录方式">
+          <button type="button" data-auth-method="email-code" aria-label="邮箱验证码登录" title="邮箱验证码">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.8 6h14.4c.9 0 1.8.8 1.8 1.8v8.4c0 1-.9 1.8-1.8 1.8H4.8c-.9 0-1.8-.8-1.8-1.8V7.8C3 6.8 3.9 6 4.8 6Zm.9 2.2 6.3 4.4 6.3-4.4H5.7Zm13.5 7.6V10l-6.7 4.6a.9.9 0 0 1-1 0L4.8 10v5.8h14.4Z"/></svg>
+            <span class="visually-hidden">邮箱验证码</span>
+          </button>
+          <button type="button" data-auth-oauth="qq" aria-label="QQ 登录" title="QQ 登录">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8c-2.7 0-4.8 2.3-4.8 5.3v1.4c-.9 1-1.5 2.3-1.5 3.7 0 .9.3 1.6.8 2.1-.4.7-.8 1.5-.8 2.3 0 1.2.8 2 2 2 .6 0 1.2-.2 1.7-.5.8.5 1.6.8 2.6.8s1.8-.3 2.6-.8c.5.3 1.1.5 1.7.5 1.2 0 2-.8 2-2 0-.8-.3-1.6-.8-2.3.5-.5.8-1.2.8-2.1 0-1.4-.6-2.7-1.5-3.7V8.1c0-3-2.1-5.3-4.8-5.3Zm-2.4 8.5c.5 0 .9.5.9 1.1s-.4 1.1-.9 1.1-.9-.5-.9-1.1.4-1.1.9-1.1Zm4.8 0c.5 0 .9.5.9 1.1s-.4 1.1-.9 1.1-.9-.5-.9-1.1.4-1.1.9-1.1Z"/></svg>
+            <span class="visually-hidden">QQ 登录</span>
+          </button>
+          <button type="button" data-auth-method="phone-code" aria-label="手机号验证码登录" title="手机号验证码">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2.8h8c1.1 0 2 .9 2 2v14.4c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V4.8c0-1.1.9-2 2-2Zm0 3v11.5h8V5.8H8Zm3 12.8v.8h2v-.8h-2Z"/></svg>
+            <span class="visually-hidden">手机号验证码</span>
+          </button>
         </div>
-        <div class="auth-oauth-row">
-          <button type="button" data-auth-oauth="wechat">微信扫码登录</button>
-          <button type="button" data-auth-oauth="qq">QQ 登录</button>
-        </div>
-        <form class="auth-form" id="authForm">
-          <label class="auth-name-field hidden">
-            <span>昵称</span>
-            <input id="authName" type="text" autocomplete="name" placeholder="你的昵称" />
-          </label>
+        <p class="auth-message" id="authMessage" role="status"></p>
+        <form class="auth-form hidden" id="authForm">
           <label class="auth-email-field">
             <span>邮箱</span>
             <input id="authEmail" type="email" autocomplete="email" placeholder="you@example.com" />
@@ -167,11 +176,6 @@
             <input id="authCode" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="6 位验证码" />
           </label>
           <button class="auth-code-button" id="authSendCode" type="button">发送验证码</button>
-          <label class="auth-password-field hidden">
-            <span>密码</span>
-            <input id="authPassword" type="password" autocomplete="current-password" placeholder="至少 8 位" />
-          </label>
-          <p class="auth-message" id="authMessage" role="status"></p>
           <button class="auth-submit" id="authSubmit" type="submit">登录</button>
         </form>
       </section>

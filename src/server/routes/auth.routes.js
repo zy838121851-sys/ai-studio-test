@@ -1,4 +1,5 @@
 import { Router } from "express";
+import QRCode from "qrcode";
 import { createSession, clearSessionCookie, destroySession, getSessionToken, setSessionCookie } from "../auth/session.js";
 import { authenticateUser, createUser } from "../auth/user.service.js";
 import { createOAuthStart, handleOAuthCallback } from "../auth/oauth.service.js";
@@ -82,6 +83,26 @@ export function createAuthRouter() {
         return;
       }
       res.redirect(result.authorizationUrl);
+    } catch (error) {
+      handleAuthError(res, error);
+    }
+  });
+
+  router.get("/auth/oauth/:provider/qr.svg", authLimiter, async (req, res) => {
+    try {
+      const result = createOAuthStart(req.params.provider, {
+        redirectTo: req.query.redirectTo
+      });
+      const svg = await QRCode.toString(result.authorizationUrl, {
+        type: "svg",
+        width: 280,
+        margin: 1,
+        color: {
+          dark: "#111111",
+          light: "#ffffff"
+        }
+      });
+      res.type("image/svg+xml").send(svg);
     } catch (error) {
       handleAuthError(res, error);
     }

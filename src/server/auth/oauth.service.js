@@ -8,6 +8,8 @@ const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
 const PROVIDERS = {
   wechat: {
     authUrl: "https://open.weixin.qq.com/connect/qrconnect",
+    clientIdParam: "appid",
+    authHash: "#wechat_redirect",
     tokenUrl: "https://api.weixin.qq.com/sns/oauth2/access_token",
     userUrl: "https://api.weixin.qq.com/sns/userinfo",
     scope: "snsapi_login",
@@ -61,16 +63,16 @@ export function createOAuthStart(provider, { redirectTo = "/" } = {}) {
 
   const params = new URLSearchParams({
     response_type: "code",
-    client_id: config.clientId(),
     redirect_uri: config.redirectUri(),
     scope: config.scope,
     state
   });
+  params.set(config.clientIdParam || "client_id", config.clientId());
 
   return {
     provider: cleanProvider,
     state,
-    authorizationUrl: `${config.authUrl}?${params.toString()}`
+    authorizationUrl: `${config.authUrl}?${params.toString()}${config.authHash || ""}`
   };
 }
 

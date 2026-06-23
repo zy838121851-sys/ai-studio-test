@@ -93,7 +93,7 @@ try {
     body: {
       channel: "email",
       target: `code-${Date.now()}@example.test`,
-      purpose: "register"
+      purpose: "login"
     }
   });
   assert(emailCode.status === 200, `send email code expected 200, got ${emailCode.status}`);
@@ -105,7 +105,7 @@ try {
       channel: "email",
       target: emailCode.data.target,
       code: emailCode.data.code,
-      purpose: "register",
+      purpose: "login",
       name: "Email Code Smoke"
     }
   });
@@ -117,7 +117,7 @@ try {
     body: {
       channel: "sms",
       target: "+8613800000000",
-      purpose: "register"
+      purpose: "login"
     }
   });
   assert(phoneCode.status === 200, `send phone code expected 200, got ${phoneCode.status}`);
@@ -129,7 +129,7 @@ try {
       channel: "sms",
       target: phoneCode.data.target,
       code: phoneCode.data.code,
-      purpose: "register",
+      purpose: "login",
       name: "Phone Code Smoke"
     }
   });
