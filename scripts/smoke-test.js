@@ -56,6 +56,13 @@ try {
   const health = await request(baseUrl, "/api/health");
   assert(health.status === 200, `health expected 200, got ${health.status}`);
 
+  const authProviders = await request(baseUrl, "/api/auth/providers");
+  assert(authProviders.status === 200, `auth providers expected 200, got ${authProviders.status}`);
+  assert(authProviders.data.emailCode?.configured === true, "email code provider should be configured in test mode");
+  assert(authProviders.data.smsCode?.configured === true, "sms code provider should be configured in test mode");
+  assert(authProviders.data.oauth?.wechat?.configured === false, "wechat OAuth should be unconfigured in smoke test");
+  assert(authProviders.data.oauth?.qq?.configured === false, "qq OAuth should be unconfigured in smoke test");
+
   const unauthProjects = await request(baseUrl, "/api/projects");
   assert(unauthProjects.status === 401, `unauth projects expected 401, got ${unauthProjects.status}`);
 

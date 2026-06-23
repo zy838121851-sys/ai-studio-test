@@ -4,6 +4,7 @@
     "start": "node server.js",
     "check": "node scripts/check-js.js && npm audit --omit=dev && node scripts/check-db.js",
     "smoke": "node scripts/smoke-test.js",
+    "auth:check": "node scripts/check-auth-config.js",
     "db:backup": "node scripts/backup-data.js",
     "db:check": "node scripts/check-db.js",
     "db:cleanup-sessions": "node scripts/cleanup-orphan-sessions.js",

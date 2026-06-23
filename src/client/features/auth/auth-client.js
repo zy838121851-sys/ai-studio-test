@@ -39,6 +39,10 @@ export function getCurrentUser() {
   return requestJson("/api/auth/me");
 }
 
+export function getAuthProviders() {
+  return requestJson("/api/auth/providers");
+}
+
 export function login({ email, password }) {
   return requestJson("/api/auth/login", {
     method: "POST",

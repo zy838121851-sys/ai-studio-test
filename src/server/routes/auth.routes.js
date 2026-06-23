@@ -2,6 +2,7 @@ import { Router } from "express";
 import { createSession, clearSessionCookie, destroySession, getSessionToken, setSessionCookie } from "../auth/session.js";
 import { authenticateUser, createUser } from "../auth/user.service.js";
 import { createOAuthStart, handleOAuthCallback } from "../auth/oauth.service.js";
+import { getAuthProviderStatus } from "../auth/provider-status.service.js";
 import { sendVerificationCode, verifyCodeAndGetUser } from "../auth/verification.service.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 
@@ -109,6 +110,10 @@ export function createAuthRouter() {
 
   router.get("/auth/me", (req, res) => {
     res.json({ user: req.auth?.user || null });
+  });
+
+  router.get("/auth/providers", (_req, res) => {
+    res.json(getAuthProviderStatus());
   });
 
   return router;

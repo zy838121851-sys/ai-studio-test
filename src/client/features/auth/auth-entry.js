@@ -1,4 +1,5 @@
 import {
+  getAuthProviders,
   getCurrentUser,
   login,
   logout,
@@ -39,6 +40,7 @@ export function initAuthEntry(root = document) {
   let mode = "login";
   let method = "email-code";
   let user = null;
+  let providerStatus = null;
   let closeMenuTimer = 0;
 
   const setMessage = (text = "", kind = "") => {
@@ -90,7 +92,40 @@ export function initAuthEntry(root = document) {
     closeMenuTimer = window.setTimeout(closeAccountMenu, 160);
   };
 
+  const methodAvailability = () => ({
+    "email-code": providerStatus?.emailCode?.configured !== false,
+    "phone-code": providerStatus?.smsCode?.configured !== false,
+    password: true
+  });
+
+  const isMethodAvailable = (name) => methodAvailability()[name] !== false;
+
+  const providerLabel = (name) => {
+    if (name === "email-code") return "邮箱验证码";
+    if (name === "phone-code") return "短信验证码";
+    return "邮箱密码";
+  };
+
+  const applyProviderStatus = () => {
+    const availability = methodAvailability();
+    methodButtons.forEach((button) => {
+      const nextMethod = button.dataset.authMethod;
+      const available = availability[nextMethod] !== false;
+      button.disabled = !available;
+      button.title = available ? "" : `${providerLabel(nextMethod)}未配置`;
+    });
+    oauthButtons.forEach((button) => {
+      const provider = button.dataset.authOauth;
+      const available = providerStatus?.oauth?.[provider]?.configured !== false;
+      button.disabled = !available;
+      button.title = available ? "" : `${button.textContent.trim()}未配置`;
+    });
+  };
+
   const applyMethod = () => {
+    if (!isMethodAvailable(method)) {
+      method = Object.keys(methodAvailability()).find((name) => isMethodAvailable(name)) || "password";
+    }
     const usesEmail = method === "email-code" || method === "password";
     const usesPhone = method === "phone-code";
     const usesCode = method === "email-code" || method === "phone-code";
@@ -105,6 +140,8 @@ export function initAuthEntry(root = document) {
     if (codeInput) codeInput.required = usesCode;
     if (passwordInput) passwordInput.required = usesPassword;
     methodButtons.forEach((button) => button.classList.toggle("active", button.dataset.authMethod === method));
+    applyProviderStatus();
+    if (codeButton) codeButton.disabled = usesCode && !isMethodAvailable(method);
     submit.textContent = usesPassword ? (mode === "register" ? "注册" : "登录") : "验证码登录";
   };
 
@@ -140,6 +177,15 @@ export function initAuthEntry(root = document) {
     }
     renderEntry();
     emitAuthChanged();
+  };
+
+  const refreshProviderStatus = async () => {
+    try {
+      providerStatus = await getAuthProviders();
+    } catch {
+      providerStatus = null;
+    }
+    applyMethod();
   };
 
   entryButton.addEventListener("click", () => {
@@ -187,6 +233,10 @@ export function initAuthEntry(root = document) {
 
   methodButtons.forEach((button) => {
     button.addEventListener("click", () => {
+      if (button.disabled) {
+        setMessage(button.title || "该登录方式未配置", "error");
+        return;
+      }
       method = button.dataset.authMethod || "email-code";
       applyMethod();
       setMessage();
@@ -194,10 +244,20 @@ export function initAuthEntry(root = document) {
   });
 
   oauthButtons.forEach((button) => {
-    button.addEventListener("click", () => startOAuth(button.dataset.authOauth));
+    button.addEventListener("click", () => {
+      if (button.disabled) {
+        setMessage(button.title || "该第三方登录未配置", "error");
+        return;
+      }
+      startOAuth(button.dataset.authOauth);
+    });
   });
 
   codeButton?.addEventListener("click", async () => {
+    if (!isMethodAvailable(method)) {
+      setMessage(`${providerLabel(method)}未配置`, "error");
+      return;
+    }
     codeButton.disabled = true;
     setMessage("正在发送验证码...");
     try {
@@ -208,7 +268,7 @@ export function initAuthEntry(root = document) {
     } catch (error) {
       setMessage(error.message || "验证码发送失败", "error");
     } finally {
-      codeButton.disabled = false;
+      codeButton.disabled = !isMethodAvailable(method);
     }
   });
 
@@ -248,6 +308,7 @@ export function initAuthEntry(root = document) {
   });
 
   setMode("login");
+  refreshProviderStatus();
   refresh();
 
   return { refresh };
