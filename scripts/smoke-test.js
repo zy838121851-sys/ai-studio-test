@@ -89,6 +89,16 @@ try {
   });
   assert(duplicate.status === 409, `duplicate register expected 409, got ${duplicate.status}`);
 
+  const passwordLogin = await request(baseUrl, "/api/auth/login", {
+    method: "POST",
+    body: {
+      email: register.data.user.email,
+      password: "correct-horse-battery"
+    }
+  });
+  assert(passwordLogin.status === 200, `password login expected 200, got ${passwordLogin.status}`);
+  assert(passwordLogin.headers.get("set-cookie")?.includes("ai_studio_session="), "password login did not set session cookie");
+
   const emailCode = await request(baseUrl, "/api/auth/code/send", {
     method: "POST",
     body: {

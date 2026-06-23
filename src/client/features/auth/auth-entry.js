@@ -3,6 +3,7 @@ import {
   getAuthProviders,
   getCurrentUser,
   getOAuthStatus,
+  login,
   logout,
   sendAuthCode,
   startOAuth,
@@ -24,9 +25,11 @@ export function initAuthEntry(root = document) {
   const emailInput = root.querySelector("#authEmail");
   const phoneInput = root.querySelector("#authPhone");
   const codeInput = root.querySelector("#authCode");
+  const passwordInput = root.querySelector("#authPassword");
   const emailField = root.querySelector(".auth-email-field");
   const phoneField = root.querySelector(".auth-phone-field");
   const codeField = root.querySelector(".auth-code-field");
+  const passwordField = root.querySelector(".auth-password-field");
   const message = root.querySelector("#authMessage");
   const submit = root.querySelector("#authSubmit");
   const codeButton = root.querySelector("#authSendCode");
@@ -93,7 +96,8 @@ export function initAuthEntry(root = document) {
 
   const methodAvailability = () => ({
     "email-code": providerStatus?.emailCode?.configured !== false,
-    "phone-code": providerStatus?.smsCode?.configured !== false
+    "phone-code": providerStatus?.smsCode?.configured !== false,
+    password: true
   });
 
   const isMethodAvailable = (name) => methodAvailability()[name] !== false;
@@ -102,6 +106,7 @@ export function initAuthEntry(root = document) {
   const providerLabel = (name) => {
     if (name === "email-code") return "邮箱验证码";
     if (name === "phone-code") return "手机号验证码";
+    if (name === "password") return "邮箱密码";
     if (name === "qq") return "QQ 登录";
     return "微信扫码登录";
   };
@@ -184,17 +189,20 @@ export function initAuthEntry(root = document) {
 
   const applyMethod = () => {
     const usesEmail = method === "email-code";
+    const usesPassword = method === "password";
     const usesPhone = method === "phone-code";
-    const usesCode = usesEmail || usesPhone;
+    const usesCode = method === "email-code" || method === "phone-code";
     wechatPanel?.classList.toggle("hidden", method !== "wechat");
-    form.classList.toggle("hidden", !usesCode);
-    emailField?.classList.toggle("hidden", !usesEmail);
+    form.classList.toggle("hidden", !(usesCode || usesPassword));
+    emailField?.classList.toggle("hidden", !(usesEmail || usesPassword));
     phoneField?.classList.toggle("hidden", !usesPhone);
     codeField?.classList.toggle("hidden", !usesCode);
+    passwordField?.classList.toggle("hidden", !usesPassword);
     codeButton?.classList.toggle("hidden", !usesCode);
-    if (emailInput) emailInput.required = usesEmail;
+    if (emailInput) emailInput.required = usesEmail || usesPassword;
     if (phoneInput) phoneInput.required = usesPhone;
     if (codeInput) codeInput.required = usesCode;
+    if (passwordInput) passwordInput.required = usesPassword;
     methodButtons.forEach((button) => button.classList.toggle("active", button.dataset.authMethod === method));
     if (title) title.textContent = method === "wechat" ? "微信一键登录" : `${providerLabel(method)}登录`;
     if (submit) submit.textContent = "登录";
@@ -336,13 +344,17 @@ export function initAuthEntry(root = document) {
     submit.disabled = true;
     setMessage("正在登录...");
     try {
-      const channel = method === "phone-code" ? "sms" : "email";
-      const result = await verifyAuthCode({
-        channel,
-        target: channel === "sms" ? phoneInput.value : emailInput.value,
-        code: codeInput.value,
-        purpose: "login"
-      });
+      const result = method === "password"
+        ? await login({
+          email: emailInput.value,
+          password: passwordInput.value
+        })
+        : await verifyAuthCode({
+          channel: method === "phone-code" ? "sms" : "email",
+          target: method === "phone-code" ? phoneInput.value : emailInput.value,
+          code: codeInput.value,
+          purpose: "login"
+        });
       user = result.user || null;
       renderEntry();
       emitAuthChanged();

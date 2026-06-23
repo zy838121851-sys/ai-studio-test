@@ -160,6 +160,10 @@
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 2.8h8c1.1 0 2 .9 2 2v14.4c0 1.1-.9 2-2 2H8c-1.1 0-2-.9-2-2V4.8c0-1.1.9-2 2-2Zm0 3v11.5h8V5.8H8Zm3 12.8v.8h2v-.8h-2Z"/></svg>
             <span class="visually-hidden">手机号验证码</span>
           </button>
+          <button type="button" data-auth-method="password" aria-label="邮箱密码登录" title="邮箱密码">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10V8a5 5 0 0 1 10 0v2h.8c1 0 1.8.8 1.8 1.8v6.4c0 1-.8 1.8-1.8 1.8H6.2c-1 0-1.8-.8-1.8-1.8v-6.4c0-1 .8-1.8 1.8-1.8H7Zm2 0h6V8a3 3 0 0 0-6 0v2Zm3 3.2a1.4 1.4 0 0 0-.7 2.6V17h1.4v-1.2a1.4 1.4 0 0 0-.7-2.6Z"/></svg>
+            <span class="visually-hidden">邮箱密码</span>
+          </button>
         </div>
         <p class="auth-message" id="authMessage" role="status"></p>
         <form class="auth-form hidden" id="authForm">
@@ -174,6 +178,10 @@
           <label class="auth-code-field">
             <span>验证码</span>
             <input id="authCode" type="text" inputmode="numeric" autocomplete="one-time-code" placeholder="6 位验证码" />
+          </label>
+          <label class="auth-password-field hidden">
+            <span>密码</span>
+            <input id="authPassword" type="password" autocomplete="current-password" placeholder="至少 8 位" />
           </label>
           <button class="auth-code-button" id="authSendCode" type="button">发送验证码</button>
           <button class="auth-submit" id="authSubmit" type="submit">登录</button>
