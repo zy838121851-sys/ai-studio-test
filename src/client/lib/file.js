@@ -39,8 +39,12 @@ export function fileToDataUrl(file) {
 
 export async function imageSourceToDataUrl(src) {
   if (!src) throw new Error("Missing image source");
-  if (src.startsWith("data:") || /^https?:\/\//i.test(src)) return src;
-  const response = await fetch(src);
+  if (src.startsWith("data:")) return src;
+  const url = new URL(src, window.location.href);
+  const isSameOrigin = url.origin === window.location.origin;
+  if (!isSameOrigin && /^https?:$/i.test(url.protocol)) return src;
+  const response = await fetch(url.href, { credentials: "include" });
+  if (!response.ok) throw new Error("Unable to read image source");
   const blob = await response.blob();
   return fileToDataUrl(blob);
 }
