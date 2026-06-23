@@ -21,7 +21,6 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
     panForZoomAroundWorldPoint,
     viewportPointToWorld,
     applyTransform,
-    showAddNodeMenu,
     showCanvasContextMenu,
     isPointInAICore,
     setAICoreState,
@@ -176,13 +175,6 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
     if (getSelectionDrag()) finishSelectionBox();
     setIsPanning(false);
     resolvedCanvasViewport.classList.remove("dragging");
-  });
-
-  resolvedCanvasViewport.addEventListener("dblclick", (event) => {
-    if (getActiveCanvasTool()) return;
-    if (event.target.closest(".node-card") || event.target.closest(".add-node-menu") || event.target.closest(".canvas-context-menu")) return;
-    event.preventDefault();
-    showAddNodeMenu(event.clientX, event.clientY);
   });
 
   resolvedCanvasViewport.addEventListener("contextmenu", (event) => {
