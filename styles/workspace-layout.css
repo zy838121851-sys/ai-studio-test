@@ -1244,6 +1244,10 @@ body.canvas-entering .chat-panel {
   transform: translateY(-2px);
 }
 
+.home-history-card.is-create > button:not(.home-history-delete) {
+  min-height: 260px;
+}
+
 .home-history-delete {
   position: absolute;
   top: 18px;
