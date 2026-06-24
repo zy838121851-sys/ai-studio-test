@@ -61,7 +61,9 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
   let addNode = appState.addNode;
   let ensureResizeHandles = appState.ensureResizeHandles;
   let ensureNodeControls = appState.ensureNodeControls;
+  let recordUndoAction = () => {};
   let undoLastCanvasAction = () => false;
+  let redoLastCanvasAction = () => false;
   let canvasGenerationRuntime;
   let canvasInteractionRuntime;
   let canvasOperationsRuntime;
@@ -254,7 +256,9 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
     applyTransform,
     centerViewOnNode,
     returnViewToContent,
-    undoLastCanvasAction
+    recordUndoAction,
+    undoLastCanvasAction,
+    redoLastCanvasAction
   } = createWorkspaceCanvasCompositionBundle({
     document,
     elements: workspaceElements,
@@ -416,7 +420,9 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
       setChatCollapsed,
       applyTransform,
       returnViewToContent,
+      recordUndoAction,
       undoLastCanvasAction,
+      redoLastCanvasAction,
       setAICoreState,
       isPointInAICore,
       updateAICoreDragState,

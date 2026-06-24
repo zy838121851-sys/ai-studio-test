@@ -156,8 +156,8 @@ export function setToolRailCollapsed(toolRail, toggleButton, collapsed) {
   toolRail?.classList.toggle("collapsed", collapsed);
   toggleButton?.setAttribute("aria-expanded", String(!collapsed));
   if (toggleButton) {
-    toggleButton.textContent = "+";
     toggleButton.title = collapsed ? "展开工具栏" : "收起工具栏";
+    toggleButton.setAttribute("aria-label", toggleButton.title);
   }
 }
 

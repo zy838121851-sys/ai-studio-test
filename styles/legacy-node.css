@@ -1090,7 +1090,77 @@ body.canvas-has-multi-selection .node-image .node-expand {
 }
 
 .image-expand-actions {
-  min-width: 320px;
+  bottom: -152px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  width: min(620px, max(440px, 100%));
+  min-width: 440px;
+  height: auto;
+  padding: 12px;
+  border-radius: 28px;
+  align-items: stretch;
+  cursor: default;
+}
+
+.image-expand-prompt-field {
+  display: grid;
+  min-width: 0;
+}
+
+.image-expand-prompt-field textarea {
+  width: 100%;
+  min-height: 58px;
+  max-height: 92px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  color: rgba(245, 247, 250, 0.9);
+  background: rgba(255, 255, 255, 0.07);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.45;
+  resize: vertical;
+  outline: none;
+}
+
+.image-expand-prompt-field textarea:focus {
+  border-color: rgba(127, 200, 255, 0.54);
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 0 0 3px rgba(127, 200, 255, 0.16);
+}
+
+.image-expand-prompt-field textarea::placeholder {
+  color: rgba(245, 247, 250, 0.42);
+}
+
+.image-expand-action-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.image-expand-action-row .image-expand-action-divider {
+  flex: 0 0 1px;
+  width: 1px;
+  height: 22px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.image-expand-action-row button[data-expand-action="cancel"] {
+  flex: 0 0 42px;
+  width: 42px;
+  padding: 0;
+  font-size: 18px;
+}
+
+.image-expand-action-row button[data-expand-action="reset"] {
+  flex: 0 0 72px;
+}
+
+.image-expand-action-row .crop-confirm {
+  flex: 1 1 142px;
 }
 
 .image-expand-box.is-confirming {

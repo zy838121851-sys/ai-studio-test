@@ -151,19 +151,20 @@
     transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.rail-main::before {
-  content: "+";
+.rail-main::before,
+.rail-main::after {
+  content: none;
+}
+
+.rail-main-icon {
   display: block;
-  width: 1em;
-  height: 1em;
-  color: currentColor;
-  font-size: 28px;
-  font-weight: 300;
-  line-height: 0.9;
-  text-align: center;
-  transform: translateY(-1px) rotate(0deg);
-  transform-origin: 50% 50%;
-  transition: transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .tool-rail:not(.collapsed) .rail-main {
@@ -171,8 +172,18 @@
   transform: scale(1);
 }
 
-.tool-rail:not(.collapsed) .rail-main::before {
-  transform: translateY(-1px) rotate(45deg);
+.rail-main-icon path {
+  transition: opacity 0.18s ease;
+}
+
+.tool-rail.collapsed .rail-icon-close,
+.tool-rail:not(.collapsed) .rail-icon-plus {
+  opacity: 0;
+}
+
+.tool-rail.collapsed .rail-icon-plus,
+.tool-rail:not(.collapsed) .rail-icon-close {
+  opacity: 1;
 }
 
 .rail-items {

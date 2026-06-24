@@ -61,6 +61,14 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
     }
   }
 
+  function finishPointerInteraction() {
+    if (getCanvasDrawing()) finishCanvasDrawing();
+    if (getEraserDrag()) finishEraserDrag();
+    if (getSelectionDrag()) finishSelectionBox();
+    setIsPanning(false);
+    resolvedCanvasViewport.classList.remove("dragging");
+  }
+
   resolvedCanvasViewport.addEventListener("wheel", (event) => {
     if (event.target.closest(".model-viewer")) return;
     event.preventDefault();
@@ -91,7 +99,7 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
       capturePointer(event);
       return;
     }
-    if (event.button === 0 && getActiveCanvasTool() && !event.target.closest(".node-card")) {
+    if (event.button === 0 && getActiveCanvasTool() && !event.target.closest(".node-card, .canvas-object")) {
       event.preventDefault();
       event.stopPropagation();
       hideAddNodeMenu();
@@ -169,17 +177,13 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
     applyTransform();
   });
 
-  resolvedCanvasViewport.addEventListener("pointerup", () => {
-    if (getCanvasDrawing()) finishCanvasDrawing();
-    if (getEraserDrag()) finishEraserDrag();
-    if (getSelectionDrag()) finishSelectionBox();
-    setIsPanning(false);
-    resolvedCanvasViewport.classList.remove("dragging");
-  });
+  resolvedCanvasViewport.addEventListener("pointerup", finishPointerInteraction);
+  window.addEventListener("pointerup", finishPointerInteraction);
+  window.addEventListener("pointercancel", finishPointerInteraction);
 
   resolvedCanvasViewport.addEventListener("contextmenu", (event) => {
     if (event.target.closest(".add-node-menu") || event.target.closest(".image-edit-popover")) return;
-    const node = event.target.closest(".node-card");
+    const node = event.target.closest(".node-card, .canvas-object");
     event.preventDefault();
     if (node) {
       event.stopPropagation();
@@ -223,7 +227,7 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
 
   resolvedCanvasViewport.addEventListener("drop", (event) => {
     event.preventDefault();
-    if (event.target.closest(".node-card")) return;
+    if (event.target.closest(".node-card, .canvas-object")) return;
     if (event.dataTransfer.files.length) {
       event.stopPropagation();
       const point = viewportPointToWorld(event.clientX, event.clientY);

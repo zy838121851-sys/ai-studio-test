@@ -465,6 +465,26 @@ body[data-theme="dark"] .image-expand-actions .crop-confirm:hover:not(:disabled)
   color: var(--theme-faint) !important;
 }
 
+.image-expand-prompt-field textarea {
+  color: var(--theme-text) !important;
+  border-color: var(--theme-hairline) !important;
+  background: color-mix(in srgb, var(--theme-surface-strong) 42%, transparent) !important;
+}
+
+.image-expand-prompt-field textarea:focus {
+  border-color: color-mix(in srgb, var(--theme-primary) 58%, var(--theme-hairline)) !important;
+  background: color-mix(in srgb, var(--theme-surface-strong) 56%, transparent) !important;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--theme-primary) 18%, transparent) !important;
+}
+
+.image-expand-prompt-field textarea::placeholder {
+  color: var(--theme-faint) !important;
+}
+
+.image-expand-action-row .image-expand-action-divider {
+  background: var(--theme-hairline) !important;
+}
+
 .edit-head img,
 .chat-image-preview button,
 .asset-generation-preview,

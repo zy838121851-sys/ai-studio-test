@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-store" />
   <title>Fresh Ideas AI Canvas</title>
-  <link rel="stylesheet" href="./styles.css?v=20260617-ordered-reference-images-1" />
+  <link rel="stylesheet" href="./styles.css?v=20260624-tool-rail-open-1" />
 </head>
 
 <body>
@@ -274,8 +274,15 @@
         <button type="button"><strong>缩小</strong><kbd>Ctrl + -</kbd></button>
       </div>
 
-      <aside class="tool-rail collapsed" id="toolRail" aria-label="工具栏">
-        <button id="toggleToolRail" class="rail-main" title="展开工具栏" aria-expanded="false">+</button>
+      <aside class="tool-rail" id="toolRail" aria-label="工具栏">
+        <button id="toggleToolRail" class="rail-main" title="收起工具栏" aria-label="收起工具栏" aria-expanded="true">
+          <svg class="rail-main-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path class="rail-icon-close" d="M8 8l8 8" />
+            <path class="rail-icon-close" d="M16 8l-8 8" />
+            <path class="rail-icon-plus" d="M7 12h10" />
+            <path class="rail-icon-plus" d="M12 7v10" />
+          </svg>
+        </button>
         <div class="rail-items">
           <button class="rail-btn active" data-tool="select" title="选择">
             <svg viewBox="0 0 24 24"><path d="M5 3l10 10-5 1.2L8.2 20 5 3z" /></svg>
@@ -348,6 +355,15 @@
         <span data-context-scope="canvas"></span>
         <button data-context-action="copy" data-context-scope="node" type="button"><strong>复制</strong><kbd>CtrlC</kbd></button>
         <button data-context-action="paste" type="button"><strong>粘贴</strong><kbd>CtrlV</kbd></button>
+        <div class="context-submenu" data-context-scope="node">
+          <button type="button"><strong>图层</strong><em>›</em></button>
+          <div class="context-submenu-panel" role="menu" aria-label="图层">
+            <button data-context-action="canvas-command" data-canvas-command="layer-up" type="button"><strong>上移一层</strong><kbd>Ctrl + ]</kbd></button>
+            <button data-context-action="canvas-command" data-canvas-command="layer-down" type="button"><strong>下移一层</strong><kbd>Ctrl + [</kbd></button>
+            <button data-context-action="canvas-command" data-canvas-command="layer-front" type="button"><strong>移到顶层</strong><kbd>]</kbd></button>
+            <button data-context-action="canvas-command" data-canvas-command="layer-back" type="button"><strong>移到底层</strong><kbd>[</kbd></button>
+          </div>
+        </div>
         <div class="context-submenu" data-context-scope="node">
           <button type="button"><strong>图像</strong><em>›</em></button>
           <div class="context-submenu-panel" role="menu" aria-label="图像菜单">
@@ -527,7 +543,7 @@
     </aside>
   </main>
 
-  <script type="module" src="./app.js?v=20260617-ordered-reference-images-1"></script>
+  <script type="module" src="./app.js?v=20260624-image-align-gallery-2"></script>
 </body>
 
 </html>

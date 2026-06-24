@@ -82,6 +82,7 @@ export function createCanvasOperationsBootstrap({
       buildPointsPath: services.buildPointsPath,
       getCanvasNodeScreenRect: services.getCanvasNodeScreenRect,
       clearSelection: services.clearSelection,
+      selectNodes: services.selectNodes,
       removeNode: services.removeNode,
       recordCanvasEvent: services.recordCanvasEvent,
       recordUndoAction: services.recordUndoAction

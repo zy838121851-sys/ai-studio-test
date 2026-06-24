@@ -10,6 +10,7 @@ export function createEraserWorkflow({
     buildPointsPath = () => "",
     getCanvasNodeScreenRect = () => null,
     clearSelection = () => {},
+    selectNodes = () => {},
     removeNode = () => {},
     recordCanvasEvent = () => {},
     recordUndoAction = () => {}
@@ -105,10 +106,19 @@ export function createEraserWorkflow({
     recordUndoAction({
       type: "erase-nodes",
       undo: () => {
+        const restoredNodes = [];
         undoEntries.forEach(({ node, parent, nextSibling }) => {
           if (!parent || node.isConnected) return;
           parent.insertBefore(node, nextSibling?.isConnected ? nextSibling : null);
           node.classList.remove("eraser-marked");
+          restoredNodes.push(node);
+        });
+        if (restoredNodes.length) selectNodes(restoredNodes);
+      },
+      redo: () => {
+        clearSelection();
+        undoEntries.forEach(({ node }) => {
+          if (node?.isConnected) node.remove();
         });
       }
     });

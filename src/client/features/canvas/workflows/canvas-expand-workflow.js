@@ -72,10 +72,15 @@ export function createCanvasExpandWorkflow({
       <span class="expand-edge expand-w"></span>
       <span class="expand-edge expand-e"></span>
       <div class="crop-actions image-expand-actions">
-        <button type="button" data-expand-action="cancel">&times;</button>
-        <span></span>
-        <button type="button" data-expand-action="reset">&#37325;&#32622;</button>
-        <button type="button" class="crop-confirm" data-expand-action="confirm">&#10003; &#30830;&#35748;&#25193;&#22270;</button>
+        <label class="image-expand-prompt-field">
+          <textarea data-expand-prompt rows="2" placeholder="&#25551;&#36848;&#25193;&#22270;&#21306;&#22495;&#38656;&#35201;&#34917;&#20986;&#30340;&#20869;&#23481;&#12289;&#39118;&#26684;&#25110;&#20809;&#32447;"></textarea>
+        </label>
+        <div class="image-expand-action-row">
+          <button type="button" data-expand-action="cancel">&times;</button>
+          <span class="image-expand-action-divider"></span>
+          <button type="button" data-expand-action="reset">&#37325;&#32622;</button>
+          <button type="button" class="crop-confirm" data-expand-action="confirm">&#10003; &#30830;&#35748;&#25193;&#22270;</button>
+        </div>
       </div>
     `;
     overlay.addEventListener("pointerdown", handleExpandPointerDown);
@@ -219,9 +224,10 @@ export function createCanvasExpandWorkflow({
     const box = normalizeExpandBox(getExpandBox(), sourceRect);
     const outputSize = getQwenImageSizeForDimensions(box.width, box.height, { maxSize: 2048 });
     const expand = buildWanExpandParameters({ sourceRect, box });
+    const userPrompt = state.overlay?.querySelector("[data-expand-prompt]")?.value?.trim() || "";
     setExpandConfirming(true);
     try {
-      const prompt = buildExpandPrompt({ sourceRect, box });
+      const prompt = buildExpandPrompt({ sourceRect, box, userPrompt });
       hideImageExpandOverlay({ invalidate: false });
       await runImageEditCommand(node, prompt, "\u6269\u56fe", {
         actionType: "expand_image",
@@ -257,11 +263,13 @@ export function createCanvasExpandWorkflow({
     overlay.classList.toggle("is-confirming", state.confirming);
     const confirmButton = overlay.querySelector('[data-expand-action="confirm"]');
     const resetButton = overlay.querySelector('[data-expand-action="reset"]');
+    const promptInput = overlay.querySelector("[data-expand-prompt]");
     if (confirmButton) {
       confirmButton.disabled = state.confirming;
       confirmButton.textContent = state.confirming ? "\u51c6\u5907\u6269\u56fe..." : "\u2713 \u786e\u8ba4\u6269\u56fe";
     }
     if (resetButton) resetButton.disabled = state.confirming;
+    if (promptInput) promptInput.disabled = state.confirming;
   }
 
   function getSafeZoom() {
@@ -309,18 +317,20 @@ function normalizeExpandBox(box, sourceRect) {
   };
 }
 
-function buildExpandPrompt({ sourceRect, box }) {
+function buildExpandPrompt({ sourceRect, box, userPrompt = "" }) {
   const left = Math.round(sourceRect.x - box.x);
   const top = Math.round(sourceRect.y - box.y);
   const right = Math.round(box.x + box.width - sourceRect.x - sourceRect.width);
   const bottom = Math.round(box.y + box.height - sourceRect.y - sourceRect.height);
+  const request = String(userPrompt || "").trim();
   return [
     "Expand the original image into the larger area selected by the user.",
     `The selected expansion margins are left ${left}px, right ${right}px, top ${top}px, bottom ${bottom}px.`,
     "Keep the original image content unchanged and only imagine the newly exposed outside area.",
     "Continue the same scene, lighting, perspective, depth of field, texture, and style.",
-    "Do not crop, stretch, move, fade, repaint, or replace the original subject. Do not add unrelated objects."
-  ].join("\n");
+    "Do not crop, stretch, move, fade, repaint, or replace the original subject. Do not add unrelated objects.",
+    request ? `User expansion prompt: ${request}` : ""
+  ].filter(Boolean).join("\n");
 }
 
 function buildWanExpandParameters({ sourceRect, box }) {

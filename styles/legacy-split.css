@@ -3,13 +3,13 @@
 @import url("./legacy-canvas.css?v=20260617-ordered-reference-images-1");
 @import url("./legacy-canvas-visual.css");
 @import url("./legacy-chat.css?v=20260617-ordered-reference-images-1");
-@import url("./legacy-node.css");
+@import url("./legacy-node.css?v=20260624-expand-prompt-1");
 @import url("./legacy-overrides.css");
-@import url("./legacy-compact-controls.css");
+@import url("./legacy-compact-controls.css?v=20260624-tool-rail-open-1");
 @import url("./legacy-rail-polish.css");
 @import url("./legacy-light-refinements.css");
 @import url("./legacy-theme-ios.css");
-@import url("./legacy-theme-sync.css?v=20260618-expand-glass-1");
+@import url("./legacy-theme-sync.css?v=20260624-expand-prompt-1");
 @import url("./legacy-ai-core.css");
 @import url("./legacy-ai-core-analysis.css");
 @import url("./legacy-ai-core-workspace.css");

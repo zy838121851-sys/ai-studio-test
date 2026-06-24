@@ -8,7 +8,7 @@ export function createCanvasMenuWorkflow({
     canvasViewport,
     width = 360,
     contextWidth = 230,
-    contextHeight = 330,
+    contextHeight = 390,
     contextAddNodeHeight = 520
   } = elements;
 

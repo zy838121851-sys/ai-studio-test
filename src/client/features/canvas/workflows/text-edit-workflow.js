@@ -76,6 +76,11 @@ export function createTextEditWorkflow({
           if (!editor.isConnected) return;
           editor.setAttribute("style", before);
           positionTextFormatToolbar();
+        },
+        redo: () => {
+          if (!editor.isConnected) return;
+          editor.setAttribute("style", after);
+          positionTextFormatToolbar();
         }
       });
     }

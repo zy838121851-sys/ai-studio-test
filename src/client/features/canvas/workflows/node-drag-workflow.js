@@ -415,11 +415,18 @@ export function createNodeDragWorkflow({
   }
 
   function recordStyleUndo(type, beforeSnapshots = []) {
-    const changed = beforeSnapshots.filter(({ node, style }) => node?.isConnected && node.getAttribute("style") !== style);
+    const changed = beforeSnapshots
+      .filter(({ node, style }) => node?.isConnected && node.getAttribute("style") !== style)
+      .map(({ node, style }) => ({
+        node,
+        beforeStyle: style,
+        afterStyle: node.getAttribute("style") || ""
+      }));
     if (!changed.length) return;
     recordUndoAction({
       type,
-      undo: () => restoreNodeStyles(changed)
+      undo: () => restoreNodeStyles(changed.map(({ node, beforeStyle }) => ({ node, style: beforeStyle }))),
+      redo: () => restoreNodeStyles(changed.map(({ node, afterStyle }) => ({ node, style: afterStyle })))
     });
   }
 

@@ -83,6 +83,8 @@ export function initTaskBar({
     jumpToCenter = () => {},
     fitView = () => {},
     zoomByStep = () => {},
+    undoLastCanvasAction = () => false,
+    redoLastCanvasAction = () => false,
     positionFloatingMenu = null
   } = handlers;
   const {
@@ -263,11 +265,13 @@ export function initTaskBar({
   });
 
   undoButton?.addEventListener("click", () => {
-    recordCanvasEvent("undo", { source: "bottom-control" });
+    const didUndo = undoLastCanvasAction({ source: "bottom-control" });
+    if (!didUndo) recordCanvasEvent("undo", { source: "bottom-control", empty: true });
   });
 
   redoButton?.addEventListener("click", () => {
-    recordCanvasEvent("redo", { source: "bottom-control" });
+    const didRedo = redoLastCanvasAction({ source: "bottom-control" });
+    if (!didRedo) recordCanvasEvent("redo", { source: "bottom-control", empty: true });
   });
 
   if (bindPromptSubmit) promptForm?.addEventListener("submit", async (event) => {

@@ -46,7 +46,8 @@ export function createWorkspaceCanvasOperationsAppRuntime({
       getCanvasNodeScreenRect: services.getCanvasNodeScreenRect,
       clearSelection: services.clearSelection,
       removeNode: services.removeNode,
-      recordCanvasEvent: services.recordCanvasEvent
+      recordCanvasEvent: services.recordCanvasEvent,
+      recordUndoAction: services.recordUndoAction
     }
   });
 }

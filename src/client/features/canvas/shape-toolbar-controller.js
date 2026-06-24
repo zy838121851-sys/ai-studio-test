@@ -213,9 +213,11 @@ export function createShapeToolbarController({
   const recordShapeStyleUndo = (node, before, type) => {
     if (!node?.isConnected || !before) return;
     if ((node.getAttribute("style") || "") === before.style) return;
+    const after = snapshotShapeStyle(node);
     recordUndoAction({
       type,
-      undo: () => restoreShapeStyle(node, before)
+      undo: () => restoreShapeStyle(node, before),
+      redo: () => restoreShapeStyle(node, after)
     });
   };
 

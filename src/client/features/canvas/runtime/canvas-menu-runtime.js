@@ -28,7 +28,8 @@ export function createCanvasMenuRuntimePayload(runtime = {}) {
       deleteSelectedNode: runtime.deleteSelectedNode,
       saveCurrentProject: runtime.saveCurrentProject,
       recordCanvasEvent: runtime.recordCanvasEvent,
-      openAssetLibrary: runtime.openAssetPickerPanel || runtime.openAssetLibrary
+      openAssetLibrary: runtime.openAssetPickerPanel || runtime.openAssetLibrary,
+      recordUndoAction: runtime.recordUndoAction
     }
   };
 }

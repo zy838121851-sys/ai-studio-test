@@ -60,7 +60,9 @@ export function createCanvasRuntimeBindingPayload(runtime = {}) {
       setAICoreState: runtime.setAICoreState,
       clearPendingUploadChoice: () => runtime.setPendingUploadChoice(null),
       deleteSelectedNode: runtime.deleteSelectedNode,
-      undoLastCanvasAction: runtime.undoLastCanvasAction
+      undoLastCanvasAction: runtime.undoLastCanvasAction,
+      redoLastCanvasAction: runtime.redoLastCanvasAction,
+      recordUndoAction: runtime.recordUndoAction
     }
   };
 }

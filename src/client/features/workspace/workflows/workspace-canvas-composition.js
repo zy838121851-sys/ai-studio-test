@@ -28,34 +28,93 @@ export function createWorkspaceCanvasCompositionBundle({
   let renderStackTray = () => {};
   let stackNode = () => false;
   const undoStack = [];
+  const redoStack = [];
   const maxUndoSteps = 10;
+
+  function updateHistoryButtons() {
+    if (elements.undoButton) elements.undoButton.disabled = !undoStack.length;
+    if (elements.redoButton) elements.redoButton.disabled = !redoStack.length;
+  }
 
   function recordUndoAction(action) {
     if (!action || typeof action.undo !== "function") return;
     undoStack.push(action);
+    redoStack.length = 0;
     if (undoStack.length > maxUndoSteps) {
       undoStack.splice(0, undoStack.length - maxUndoSteps);
     }
+    updateHistoryButtons();
   }
 
-  function undoLastCanvasAction() {
+  function undoLastCanvasAction(meta = {}) {
     const action = undoStack.pop();
-    if (!action) return false;
+    if (!action) {
+      updateHistoryButtons();
+      return false;
+    }
     action.undo();
+    if (typeof action.redo === "function") redoStack.push(action);
     actions.recordCanvasEvent?.("undo", {
+      ...meta,
       actionType: action.type || "canvas-action"
     });
+    updateHistoryButtons();
     return true;
+  }
+
+  function redoLastCanvasAction(meta = {}) {
+    const action = redoStack.pop();
+    if (!action || typeof action.redo !== "function") {
+      updateHistoryButtons();
+      return false;
+    }
+    action.redo();
+    undoStack.push(action);
+    if (undoStack.length > maxUndoSteps) {
+      undoStack.splice(0, undoStack.length - maxUndoSteps);
+    }
+    actions.recordCanvasEvent?.("redo", {
+      ...meta,
+      actionType: action.type || "canvas-action"
+    });
+    updateHistoryButtons();
+    return true;
+  }
+
+  function restoreHistoryNodes(entries = []) {
+    const restoredNodes = [];
+    entries.forEach(({ node, parent, nextSibling }) => {
+      if (!parent || node.isConnected) return;
+      parent.insertBefore(node, nextSibling?.isConnected ? nextSibling : null);
+      node.classList.remove("eraser-marked");
+      restoredNodes.push(node);
+    });
+    if (restoredNodes.length) canvasSelectionRuntime.selectNodes(restoredNodes);
+  }
+
+  function detachHistoryNodes(entries = []) {
+    canvasSelectionRuntime.clearSelection();
+    entries.forEach(({ node }) => {
+      if (node?.isConnected) node.remove();
+    });
   }
 
   function recordCreateNodeUndo(node) {
     if (!node) return;
+    const entry = {
+      node,
+      parent: node.parentNode,
+      nextSibling: node.nextSibling
+    };
     recordUndoAction({
       type: "create-node",
       undo: () => {
         if (!node.isConnected) return;
         canvasSelectionRuntime.selectNode(null);
         node.remove();
+      },
+      redo: () => {
+        restoreHistoryNodes([entry]);
       }
     });
   }
@@ -186,18 +245,15 @@ export function createWorkspaceCanvasCompositionBundle({
     recordUndoAction({
       type: "delete-nodes",
       undo: () => {
-        undoEntries.forEach(({ node, parent, nextSibling }) => {
-          if (!parent || node.isConnected) return;
-          parent.insertBefore(node, nextSibling?.isConnected ? nextSibling : null);
-          node.classList.remove("eraser-marked");
-        });
-        const restoredNodes = undoEntries
-          .map(({ node }) => node)
-          .filter((node) => node.isConnected);
-        if (restoredNodes.length) canvasSelectionRuntime.selectNodes(restoredNodes);
+        restoreHistoryNodes(undoEntries);
+      },
+      redo: () => {
+        detachHistoryNodes(undoEntries);
       }
     });
   };
+
+  updateHistoryButtons();
 
   return {
     canvasGenerationRuntime,
@@ -216,6 +272,8 @@ export function createWorkspaceCanvasCompositionBundle({
     applyTransform: canvasSurfaceRuntime.applyTransform,
     centerViewOnNode: canvasSurfaceRuntime.centerViewOnNode,
     returnViewToContent: canvasSurfaceRuntime.returnViewToContent,
-    undoLastCanvasAction
+    recordUndoAction,
+    undoLastCanvasAction,
+    redoLastCanvasAction
   };
 }

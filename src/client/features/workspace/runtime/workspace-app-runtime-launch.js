@@ -35,7 +35,9 @@ export function launchWorkspaceAppRuntime({
     runImageEditCommand,
     runDirectorAction,
     recordCanvasEvent,
-    undoLastCanvasAction
+    recordUndoAction,
+    undoLastCanvasAction,
+    redoLastCanvasAction
   } = actions;
 
   const {
@@ -68,7 +70,9 @@ export function launchWorkspaceAppRuntime({
       setChatCollapsed,
       applyTransform,
       returnViewToContent,
+      recordUndoAction,
       undoLastCanvasAction,
+      redoLastCanvasAction,
       positionFloatingMenu,
       setActiveRailPanelButton,
       hideImageLightbox: canvasSurfaceRuntime.hideImageLightbox,

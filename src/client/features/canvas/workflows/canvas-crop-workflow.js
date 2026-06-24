@@ -344,9 +344,11 @@ export function createCanvasCropWorkflow({
 
   function recordCropUndo(node, before) {
     if (!node?.isConnected || !before) return;
+    const after = snapshotImageCropState(node);
     recordUndoAction({
       type: "crop-image",
-      undo: () => restoreImageCropState(node, before)
+      undo: () => restoreImageCropState(node, before),
+      redo: () => restoreImageCropState(node, after)
     });
   }
 

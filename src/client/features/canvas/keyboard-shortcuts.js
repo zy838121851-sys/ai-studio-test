@@ -1,4 +1,4 @@
-import { runCanvasImageMenuCommand } from "./workflows/canvas-menu-actions.js";
+import { runCanvasObjectMenuCommand } from "./workflows/canvas-menu-actions.js";
 
 export function bindCanvasKeyboardShortcuts({ root, stateHost, actions }) {
   const {
@@ -12,6 +12,8 @@ export function bindCanvasKeyboardShortcuts({ root, stateHost, actions }) {
     clearPendingUploadChoice,
     deleteSelectedNode,
     undoLastCanvasAction,
+    redoLastCanvasAction,
+    recordUndoAction,
     selectNode,
     addChat
   } = actions;
@@ -23,14 +25,27 @@ export function bindCanvasKeyboardShortcuts({ root, stateHost, actions }) {
 
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z" && !event.shiftKey) {
       event.preventDefault();
-      undoLastCanvasAction?.();
+      undoLastCanvasAction?.({ source: "keyboard" });
+      return;
+    }
+    if (
+      ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "z") ||
+      ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "y")
+    ) {
+      event.preventDefault();
+      redoLastCanvasAction?.({ source: "keyboard" });
       return;
     }
 
-    const imageCommand = getImageShortcutCommand(event);
-    if (imageCommand) {
+    const canvasCommand = getCanvasShortcutCommand(event);
+    if (canvasCommand) {
       event.preventDefault();
-      runCanvasImageMenuCommand(imageCommand, { selectNode, addChat });
+      runCanvasObjectMenuCommand(canvasCommand, {
+        targetNode: getCanvasShortcutTargetNode(),
+        selectNode,
+        addChat,
+        recordUndoAction
+      });
       return;
     }
 
@@ -51,14 +66,22 @@ export function bindCanvasKeyboardShortcuts({ root, stateHost, actions }) {
       event.preventDefault();
       deleteSelectedNode?.();
     }
-  });
+  }, { capture: true });
 }
 
-function getImageShortcutCommand(event) {
+export function getCanvasShortcutCommand(event) {
   if (document.body?.dataset?.view !== "canvas") return "";
   const key = normalizeShortcutKey(event);
   const primary = event.ctrlKey || event.metaKey;
+  if (!primary && !event.altKey && !event.shiftKey) {
+    if (key === "]") return "layer-front";
+    if (key === "[") return "layer-back";
+  }
   if (!primary) return "";
+  if (!event.altKey && !event.shiftKey) {
+    if (key === "]") return "layer-up";
+    if (key === "[") return "layer-down";
+  }
 
   if (event.altKey && event.shiftKey && key === "r") return "relink-image";
   if (event.altKey) {
@@ -83,9 +106,22 @@ function getImageShortcutCommand(event) {
 
 function normalizeShortcutKey(event) {
   const key = event.key || "";
+  if (event.code === "BracketRight") return "]";
+  if (event.code === "BracketLeft") return "[";
+  if (event.code === "ArrowLeft") return "arrowleft";
+  if (event.code === "ArrowRight") return "arrowright";
+  if (event.code === "ArrowUp") return "arrowup";
+  if (event.code === "ArrowDown") return "arrowdown";
   if (key === "Left") return "arrowleft";
   if (key === "Right") return "arrowright";
   if (key === "Up") return "arrowup";
   if (key === "Down") return "arrowdown";
   return key.toLowerCase();
+}
+
+function getCanvasShortcutTargetNode() {
+  const root = document.querySelector("#canvasWorld") || document;
+  return root.querySelector(".node-card.selected[data-active-selection='true'], .canvas-object.selected[data-active-selection='true']")
+    || Array.from(root.querySelectorAll(".node-card.selected, .canvas-object.selected")).at(-1)
+    || null;
 }

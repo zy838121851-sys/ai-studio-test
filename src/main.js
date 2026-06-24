@@ -1,1 +1,1 @@
-import "./client/main.js?v=20260611-refactor-fix-1";
+import "./client/main.js?v=20260624-image-align-gallery-2";

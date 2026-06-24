@@ -81,6 +81,8 @@ const GROUP_COLOR_SWATCHES = [
   { label: "浅灰", color: "rgba(229,231,235,0.62)", swatch: "#d1d5db" }
 ];
 
+const CANVAS_NODE_SELECTOR = ".node-card, .canvas-object";
+
 export function bindCanvasMenuActions({
   elements = {},
   state = {},
@@ -114,7 +116,8 @@ export function bindCanvasMenuActions({
     deleteSelectedNode = () => {},
     saveCurrentProject = null,
     recordCanvasEvent = () => {},
-    openAssetLibrary = () => {}
+    openAssetLibrary = () => {},
+    recordUndoAction = null
   } = actions;
 
   imageEditPopover?.addEventListener("pointerdown", (event) => {
@@ -152,7 +155,8 @@ export function bindCanvasMenuActions({
   createSelectionActionBar({
     addNode,
     selectNode,
-    addChat
+    addChat,
+    recordUndoAction
   });
 
   canvasContextMenu?.addEventListener("pointerdown", (event) => {
@@ -174,11 +178,12 @@ export function bindCanvasMenuActions({
       return;
     }
 
-    if (action === "image-command") {
-      runCanvasImageMenuCommand(button.dataset.imageCommand, {
+    if (action === "canvas-command" || action === "image-command") {
+      runCanvasObjectMenuCommand(button.dataset.canvasCommand || button.dataset.imageCommand, {
         targetNode,
         selectNode,
-        addChat
+        addChat,
+        recordUndoAction
       });
       return;
     }
@@ -245,7 +250,7 @@ export function bindCanvasMenuActions({
     }
 
     if (action === "group") {
-      groupSelectedNodes({ targetNode, addNode, selectNode, addChat });
+      groupSelectedNodes({ targetNode, addNode, selectNode, addChat, recordUndoAction });
       return;
     }
 
@@ -301,7 +306,8 @@ export function bindCanvasMenuActions({
 function createSelectionActionBar({
   addNode = () => null,
   selectNode = null,
-  addChat = () => {}
+  addChat = () => {},
+  recordUndoAction = null
 } = {}) {
   if (document.querySelector(".selection-action-bar")) return;
   const bar = document.createElement("div");
@@ -390,7 +396,7 @@ function createSelectionActionBar({
       if (selection.mode === "ungroup") {
         ungroupNodes({ targetNode, selectNode, addChat });
       } else {
-        groupSelectedNodes({ targetNode, addNode, selectNode, addChat });
+        groupSelectedNodes({ targetNode, addNode, selectNode, addChat, recordUndoAction });
       }
     } else if (action === "compare") {
       openImageCompareFromSelection({
@@ -537,14 +543,19 @@ function getToolbarNodeTitle(node) {
   );
 }
 
-export function runCanvasImageMenuCommand(command, {
+export function runCanvasImageMenuCommand(command, options = {}) {
+  return runCanvasObjectMenuCommand(command, options);
+}
+
+export function runCanvasObjectMenuCommand(command, {
   targetNode = null,
   selectNode = null,
-  addChat = () => {}
+  addChat = () => {},
+  recordUndoAction = null
 } = {}) {
   if (!command) return false;
   const allNodes = getMenuCanvasNodes();
-  const currentTarget = targetNode?.isConnected ? targetNode : document.querySelector(".node-card.selected");
+  const currentTarget = targetNode?.isConnected ? targetNode : document.querySelector(`${CANVAS_NODE_SELECTOR}.selected`);
 
   if (command === "select-all") {
     selectCanvasNodes(allNodes, selectNode);
@@ -561,29 +572,50 @@ export function runCanvasImageMenuCommand(command, {
     return true;
   }
 
-  const nodes = getCommandNodes({ targetNode: currentTarget });
-  if (!nodes.length) return false;
+  const nodes = command.startsWith("layer-")
+    ? getLayerCommandNodes({ targetNode: currentTarget })
+    : getCommandNodes({ targetNode: currentTarget });
 
   if (command === "arrange-best") {
-    arrangeNodes(nodes);
-    return true;
+    return arrangeNodes(
+      getImageLayoutCommandNodes({ targetNode: currentTarget }),
+      { recordUndoAction, mode: "best" }
+    );
   }
   if (command === "arrange-name") {
-    arrangeNodes([...nodes].sort((a, b) => getNodeSortTitle(a).localeCompare(getNodeSortTitle(b), "zh-Hans-CN")));
-    return true;
+    return arrangeNodes(
+      getImageLayoutCommandNodes({ targetNode: currentTarget })
+        .sort((a, b) => getNodeSortTitle(a).localeCompare(getNodeSortTitle(b), "zh-Hans-CN")),
+      { recordUndoAction, mode: "name" }
+    );
   }
   if (command === "arrange-added") {
-    arrangeNodes([...nodes].sort((a, b) => getNodeSortIndex(a) - getNodeSortIndex(b)));
+    return arrangeNodes(
+      getImageLayoutCommandNodes({ targetNode: currentTarget })
+        .sort((a, b) => getNodeSortIndex(a) - getNodeSortIndex(b)),
+      { recordUndoAction, mode: "added" }
+    );
+  }
+  if (command.startsWith("layer-")) {
+    if (!nodes.length) return false;
+    reorderNodeLayers(nodes, command.replace("layer-", ""), selectNode);
     return true;
   }
   if (command.startsWith("align-")) {
-    alignNodes(nodes, command.replace("align-", ""));
-    return true;
+    return alignNodes(
+      getImageLayoutCommandNodes({ targetNode: currentTarget }),
+      command.replace("align-", ""),
+      recordUndoAction
+    );
   }
   if (command.startsWith("normalize-")) {
-    normalizeNodes(nodes, command.replace("normalize-", ""));
-    return true;
+    return normalizeNodes(
+      getImageLayoutCommandNodes({ targetNode: currentTarget }),
+      command.replace("normalize-", ""),
+      recordUndoAction
+    );
   }
+  if (!nodes.length) return false;
   return false;
 }
 
@@ -596,7 +628,8 @@ function getViewportCenterWorldPoint(canvasViewport, viewportPointToWorld) {
 }
 
 function getMenuCanvasNodes() {
-  return Array.from(document.querySelectorAll(".node-card"))
+  return Array.from(document.querySelectorAll(CANVAS_NODE_SELECTOR))
+    .filter((node, index, nodes) => nodes.indexOf(node) === index)
     .filter((node) => node.isConnected
       && !node.classList.contains("hidden")
       && !node.classList.contains("stack-member-hidden"));
@@ -608,55 +641,265 @@ function getCommandNodes({ targetNode = null } = {}) {
   return nodes.filter((node) => node?.isConnected && !isNodeLocked(node));
 }
 
+function getImageLayoutCommandNodes({ targetNode = null } = {}) {
+  const selected = getMenuCanvasNodes().filter((node) => node.classList.contains("selected"));
+  const nodes = selected.length ? selected : (targetNode ? [targetNode] : []);
+  return nodes.filter((node) => node?.isConnected && isCanvasImageNode(node) && !isNodeLocked(node));
+}
+
+function getLayerCommandNodes({ targetNode = null } = {}) {
+  const activeSelected = getMenuCanvasNodes().filter((node) => node.classList.contains("selected"));
+  const targetIsSelected = targetNode?.isConnected && targetNode.classList.contains("selected");
+  const nodes = targetIsSelected && activeSelected.length
+    ? activeSelected
+    : (targetNode ? [targetNode] : activeSelected);
+  return nodes.filter((node) => node?.isConnected && !isNodeLocked(node));
+}
+
 function selectCanvasNodes(nodes, selectNode) {
   if (!nodes.length) return;
   if (typeof selectNode === "function") {
     nodes.forEach((node, index) => selectNode(node, index > 0));
     return;
   }
-  document.querySelectorAll(".node-card.selected").forEach((node) => node.classList.remove("selected"));
+  document.querySelectorAll(`${CANVAS_NODE_SELECTOR}.selected`).forEach((node) => node.classList.remove("selected"));
   nodes.forEach((node) => node.classList.add("selected"));
 }
 
-function arrangeNodes(nodes) {
-  if (nodes.length <= 1) return;
-  const bounds = nodes.map(getNodeLayoutBounds);
-  const minX = Math.min(...bounds.map((item) => item.x));
-  const minY = Math.min(...bounds.map((item) => item.y));
-  const columns = Math.max(1, Math.ceil(Math.sqrt(nodes.length)));
-  const gap = 32;
-  const columnWidth = Math.max(...bounds.map((item) => item.width)) + gap;
-  const rowHeight = Math.max(...bounds.map((item) => item.height)) + gap;
-  nodes.forEach((node, index) => {
-    node.style.left = `${minX + (index % columns) * columnWidth}px`;
-    node.style.top = `${minY + Math.floor(index / columns) * rowHeight}px`;
-    node.style.zIndex = String(10 + index);
+function arrangeNodes(nodes, { recordUndoAction = null, mode = "best" } = {}) {
+  if (nodes.length <= 1) return false;
+  const ordered = mode === "best" ? sortNodesByCanvasPosition(nodes) : nodes;
+  return layoutNodesInCompactGallery(ordered, {
+    gap: 8,
+    recordUndoAction,
+    type: "arrange-images"
   });
 }
 
-function alignNodes(nodes, mode) {
-  if (nodes.length <= 1 && mode !== "stack") return;
+function layoutNodesInCompactGallery(nodes, {
+  gap = 8,
+  recordUndoAction = null,
+  type = "arrange-images",
+  axis = "rows",
+  anchorX = "left",
+  anchorY = "top"
+} = {}) {
+  const layoutNodes = nodes.filter((node) => node?.isConnected && !isNodeLocked(node));
+  if (layoutNodes.length <= 1) return false;
+
+  const before = snapshotLayoutNodes(layoutNodes);
+  const bounds = layoutNodes.map(getNodeLayoutBounds);
+  const union = getLayoutUnionBounds(bounds);
+  const originalRight = union.x + union.width;
+  const originalBottom = union.y + union.height;
+  const maxWidth = Math.max(...bounds.map((item) => item.width));
+  const maxHeight = Math.max(...bounds.map((item) => item.height));
+  const totalArea = bounds.reduce((sum, item) => sum + item.width * item.height, 0);
+  const compactWidth = Math.sqrt(totalArea * 3.2);
+  const compactHeight = Math.sqrt(totalArea / 3.2);
+  const targetWidth = Math.max(
+    maxWidth,
+    Math.min(Math.max(union.width, maxWidth), compactWidth)
+  );
+  const targetHeight = Math.max(
+    maxHeight,
+    Math.min(Math.max(union.height, maxHeight), compactHeight)
+  );
+
+  if (axis === "columns") {
+    layoutNodesByColumns(layoutNodes, bounds, {
+      gap,
+      left: union.x,
+      top: union.y,
+      bottom: originalBottom,
+      targetHeight,
+      anchorY
+    });
+    return recordLayoutMutation(layoutNodes, before, type, recordUndoAction);
+  }
+
+  layoutNodesByRows(layoutNodes, bounds, {
+    gap,
+    left: union.x,
+    right: originalRight,
+    bottom: originalBottom,
+    top: union.y,
+    targetWidth,
+    anchorX,
+    anchorY
+  });
+
+  return recordLayoutMutation(layoutNodes, before, type, recordUndoAction);
+}
+
+function layoutNodesByRows(nodes, bounds, {
+  gap,
+  left,
+  right,
+  bottom,
+  top,
+  targetWidth,
+  anchorX,
+  anchorY
+}) {
+  const rows = [];
+  let current = [];
+  let rowWidth = 0;
+  let rowHeight = 0;
+  bounds.forEach((size, index) => {
+    const nextWidth = current.length ? rowWidth + gap + size.width : size.width;
+    if (current.length && nextWidth > targetWidth) {
+      rows.push({ items: current, width: rowWidth, height: rowHeight });
+      current = [];
+      rowWidth = 0;
+      rowHeight = 0;
+    }
+    current.push({ node: nodes[index], size, index });
+    rowWidth = current.length === 1 ? size.width : rowWidth + gap + size.width;
+    rowHeight = Math.max(rowHeight, size.height);
+  });
+  if (current.length) rows.push({ items: current, width: rowWidth, height: rowHeight });
+
+  const totalHeight = rows.reduce((sum, row, index) => sum + row.height + (index ? gap : 0), 0);
+  let cursorY = anchorY === "bottom" ? bottom - totalHeight : top;
+  rows.forEach((row) => {
+    let cursorX = anchorX === "right" ? right - row.width : left;
+    row.items.forEach(({ node, size, index }) => {
+      node.style.left = `${Math.round(cursorX)}px`;
+      node.style.top = `${Math.round(cursorY)}px`;
+      node.style.zIndex = String(20 + index);
+      cursorX += size.width + gap;
+    });
+    cursorY += row.height + gap;
+  });
+}
+
+function layoutNodesByColumns(nodes, bounds, {
+  gap,
+  left,
+  top,
+  bottom,
+  targetHeight,
+  anchorY
+}) {
+  const columns = [];
+  let current = [];
+  let columnWidth = 0;
+  let columnHeight = 0;
+  bounds.forEach((size, index) => {
+    const nextHeight = current.length ? columnHeight + gap + size.height : size.height;
+    if (current.length && nextHeight > targetHeight) {
+      columns.push({ items: current, width: columnWidth, height: columnHeight });
+      current = [];
+      columnWidth = 0;
+      columnHeight = 0;
+    }
+    current.push({ node: nodes[index], size, index });
+    columnWidth = Math.max(columnWidth, size.width);
+    columnHeight = current.length === 1 ? size.height : columnHeight + gap + size.height;
+  });
+  if (current.length) columns.push({ items: current, width: columnWidth, height: columnHeight });
+
+  let cursorX = left;
+  columns.forEach((column) => {
+    let cursorY = anchorY === "bottom" ? bottom - column.height : top;
+    column.items.forEach(({ node, size, index }) => {
+      node.style.left = `${Math.round(cursorX)}px`;
+      node.style.top = `${Math.round(cursorY)}px`;
+      node.style.zIndex = String(20 + index);
+      cursorY += size.height + gap;
+    });
+    cursorX += column.width + gap;
+  });
+}
+
+function sortNodesByCanvasPosition(nodes) {
+  return [...nodes].sort((a, b) => {
+    const aBounds = getNodeLayoutBounds(a);
+    const bBounds = getNodeLayoutBounds(b);
+    const sameVisualRow = Math.abs(aBounds.y - bBounds.y) <= 48;
+    return (sameVisualRow ? 0 : aBounds.y - bBounds.y)
+      || aBounds.x - bBounds.x
+      || getNodeSortIndex(a) - getNodeSortIndex(b);
+  });
+}
+
+function getLayoutUnionBounds(bounds = []) {
+  const left = Math.min(...bounds.map((item) => item.x));
+  const top = Math.min(...bounds.map((item) => item.y));
+  const right = Math.max(...bounds.map((item) => item.x + item.width));
+  const bottom = Math.max(...bounds.map((item) => item.y + item.height));
+  return {
+    x: left,
+    y: top,
+    width: right - left,
+    height: bottom - top
+  };
+}
+
+function reorderNodeLayers(nodes, mode, selectNode) {
+  if (!nodes.length) return;
+  const selectedSet = new Set(nodes);
+  const ordered = getLayerOrderedNodes();
+  const selected = ordered.filter((node) => selectedSet.has(node));
+  const unselected = ordered.filter((node) => !selectedSet.has(node));
+  if (!selected.length) return;
+
+  let nextOrder = ordered.slice();
+  if (mode === "front") {
+    nextOrder = [...unselected, ...selected];
+  } else if (mode === "back") {
+    nextOrder = [...selected, ...unselected];
+  } else if (mode === "up") {
+    for (let index = nextOrder.length - 2; index >= 0; index -= 1) {
+      if (selectedSet.has(nextOrder[index]) && !selectedSet.has(nextOrder[index + 1])) {
+        [nextOrder[index], nextOrder[index + 1]] = [nextOrder[index + 1], nextOrder[index]];
+      }
+    }
+  } else if (mode === "down") {
+    for (let index = 1; index < nextOrder.length; index += 1) {
+      if (selectedSet.has(nextOrder[index]) && !selectedSet.has(nextOrder[index - 1])) {
+        [nextOrder[index - 1], nextOrder[index]] = [nextOrder[index], nextOrder[index - 1]];
+      }
+    }
+  }
+
+  if (nextOrder.every((node, index) => node === ordered[index])) return;
+  nextOrder.forEach((node, index) => {
+    node.style.zIndex = String(10 + index);
+  });
+  selectCanvasNodes(selected, selectNode);
+}
+
+function getLayerOrderedNodes() {
+  return getMenuCanvasNodes()
+    .map((node, index) => ({
+      node,
+      index,
+      zIndex: normalizeLayerZIndex(node.style.zIndex, index)
+    }))
+    .sort((a, b) => a.zIndex - b.zIndex || a.index - b.index)
+    .map(({ node }) => node);
+}
+
+function normalizeLayerZIndex(value, fallbackIndex = 0) {
+  const parsed = Number.parseInt(value || "", 10);
+  return Number.isFinite(parsed) ? parsed : 10 + fallbackIndex;
+}
+
+function alignNodes(nodes, mode, recordUndoAction) {
+  if (nodes.length <= 1) return false;
+  if (mode === "left" || mode === "right" || mode === "top" || mode === "bottom") {
+    return layoutNodesInCompactGallery(sortNodesByCanvasPosition(nodes), {
+      gap: 0,
+      recordUndoAction,
+      type: "align-images",
+      anchorX: mode === "right" ? "right" : "left",
+      anchorY: mode === "bottom" ? "bottom" : "top"
+    });
+  }
+  const before = snapshotLayoutNodes(nodes);
   const bounds = nodes.map(getNodeLayoutBounds);
-  if (mode === "left") {
-    const x = Math.min(...bounds.map((item) => item.x));
-    nodes.forEach((node) => { node.style.left = `${x}px`; });
-    return;
-  }
-  if (mode === "right") {
-    const right = Math.max(...bounds.map((item) => item.x + item.width));
-    nodes.forEach((node) => { node.style.left = `${right - getNodeLayoutBounds(node).width}px`; });
-    return;
-  }
-  if (mode === "top") {
-    const y = Math.min(...bounds.map((item) => item.y));
-    nodes.forEach((node) => { node.style.top = `${y}px`; });
-    return;
-  }
-  if (mode === "bottom") {
-    const bottom = Math.max(...bounds.map((item) => item.y + item.height));
-    nodes.forEach((node) => { node.style.top = `${bottom - getNodeLayoutBounds(node).height}px`; });
-    return;
-  }
   if (mode === "stack") {
     const anchor = bounds[0] || { x: 0, y: 0 };
     nodes.forEach((node, index) => {
@@ -664,34 +907,41 @@ function alignNodes(nodes, mode) {
       node.style.top = `${anchor.y + index * 18}px`;
       node.style.zIndex = String(20 + index);
     });
+    return recordLayoutMutation(nodes, before, "align-images", recordUndoAction);
   }
+  return false;
 }
 
-function normalizeNodes(nodes, mode) {
-  if (nodes.length <= 1) return;
-  const reference = getNodeLayoutBounds(nodes[0]);
+function normalizeNodes(nodes, mode, recordUndoAction) {
+  if (nodes.length <= 1) return false;
+  const before = snapshotLayoutNodes(nodes);
+  const bounds = nodes.map(getNodeLayoutBounds);
+  const averageWidth = bounds.reduce((sum, item) => sum + item.width, 0) / bounds.length;
+  const averageHeight = bounds.reduce((sum, item) => sum + item.height, 0) / bounds.length;
   if (mode === "height") {
-    nodes.forEach((node) => setNodeLayoutHeight(node, reference.height));
-    return;
+    nodes.forEach((node) => setNodeLayoutHeight(node, averageHeight));
+    return recordLayoutMutation(nodes, before, "normalize-images", recordUndoAction);
   }
   if (mode === "width") {
-    nodes.forEach((node) => setNodeLayoutWidth(node, reference.width));
-    return;
+    nodes.forEach((node) => setNodeLayoutWidth(node, averageWidth));
+    return recordLayoutMutation(nodes, before, "normalize-images", recordUndoAction);
   }
   if (mode === "size") {
     nodes.forEach((node) => {
-      setNodeLayoutWidth(node, reference.width);
-      setNodeLayoutHeight(node, reference.height);
+      setNodeLayoutSize(node, averageWidth, averageHeight);
     });
-    return;
+    return recordLayoutMutation(nodes, before, "normalize-images", recordUndoAction);
   }
   if (mode === "ratio") {
-    const ratio = reference.width / Math.max(1, reference.height);
-    nodes.forEach((node) => {
-      const width = getNodeLayoutBounds(node).width;
-      setNodeLayoutHeight(node, Math.max(24, width / ratio));
+    const averageRatio = bounds.reduce((sum, item) => sum + (item.width / Math.max(1, item.height)), 0) / bounds.length;
+    nodes.forEach((node, index) => {
+      const area = Math.max(24 * 24, bounds[index].width * bounds[index].height);
+      const width = Math.sqrt(area * averageRatio);
+      setNodeLayoutFrameSize(node, width, width / averageRatio);
     });
+    return recordLayoutMutation(nodes, before, "normalize-images", recordUndoAction);
   }
+  return false;
 }
 
 function relinkCanvasImage(node, addChat) {
@@ -722,7 +972,84 @@ function relinkCanvasImage(node, addChat) {
   input.click();
 }
 
+function snapshotLayoutNodes(nodes) {
+  return nodes.map((node) => {
+    const frame = node.querySelector(".image-frame, .model-frame");
+    return {
+      node,
+      left: node.style.left || "",
+      top: node.style.top || "",
+      width: node.style.width || "",
+      height: node.style.height || "",
+      minHeight: node.style.minHeight || "",
+      zIndex: node.style.zIndex || "",
+      manualSize: node.dataset.manualSize,
+      frameAspectRatio: frame?.style?.aspectRatio || ""
+    };
+  });
+}
+
+function restoreLayoutNodes(entries = []) {
+  entries.forEach((entry) => {
+    if (!entry?.node?.isConnected) return;
+    const { node } = entry;
+    node.style.left = entry.left;
+    node.style.top = entry.top;
+    node.style.width = entry.width;
+    node.style.height = entry.height;
+    node.style.minHeight = entry.minHeight;
+    node.style.zIndex = entry.zIndex;
+    if (entry.manualSize === undefined) {
+      delete node.dataset.manualSize;
+    } else {
+      node.dataset.manualSize = entry.manualSize;
+    }
+    const frame = node.querySelector(".image-frame, .model-frame");
+    if (frame) frame.style.aspectRatio = entry.frameAspectRatio;
+  });
+}
+
+function recordLayoutMutation(nodes, before, type, recordUndoAction) {
+  const after = snapshotLayoutNodes(nodes);
+  const changed = after.some((entry, index) => !areLayoutSnapshotsEqual(entry, before[index]));
+  if (!changed) return false;
+  if (typeof recordUndoAction === "function") {
+    recordUndoAction({
+      type,
+      undo: () => restoreLayoutNodes(before),
+      redo: () => restoreLayoutNodes(after)
+    });
+  }
+  return true;
+}
+
+function areLayoutSnapshotsEqual(a, b) {
+  if (!a || !b) return false;
+  return a.left === b.left
+    && a.top === b.top
+    && a.width === b.width
+    && a.height === b.height
+    && a.minHeight === b.minHeight
+    && a.zIndex === b.zIndex
+    && a.manualSize === b.manualSize
+    && a.frameAspectRatio === b.frameAspectRatio;
+}
+
 function getNodeLayoutBounds(node) {
+  if (node?.classList?.contains("node-image")) {
+    const frame = node.querySelector(".image-frame");
+    const width = Math.max(1, node.offsetWidth || parseFloat(node.style.width || "0") || 1);
+    const height = Math.max(
+      1,
+      frame?.offsetHeight || getImageFrameHeightFromAspect(node, width) || parseFloat(node.style.minHeight || "0") || 1
+    );
+    return {
+      x: parseFloat(node.style.left || "0") || 0,
+      y: parseFloat(node.style.top || "0") || 0,
+      width,
+      height
+    };
+  }
   return {
     x: parseFloat(node.style.left || "0") || 0,
     y: parseFloat(node.style.top || "0") || 0,
@@ -733,17 +1060,96 @@ function getNodeLayoutBounds(node) {
 
 function setNodeLayoutWidth(node, width) {
   node.dataset.manualSize = "true";
-  node.style.width = `${Math.max(24, Math.round(width))}px`;
+  const nextWidth = Math.max(24, Math.round(width));
+  if (node.classList.contains("node-image")) {
+    const ratio = getImageDisplayAspectRatio(node);
+    const frame = node.querySelector(".image-frame");
+    if (frame) frame.style.aspectRatio = `${nextWidth} / ${Math.max(24, Math.round(nextWidth / ratio))}`;
+    node.style.minHeight = "";
+    node.style.height = "";
+  }
+  node.style.width = `${nextWidth}px`;
 }
 
 function setNodeLayoutHeight(node, height) {
   node.dataset.manualSize = "true";
   const nextHeight = Math.max(24, Math.round(height));
-  if (node.classList.contains("node-image") || node.classList.contains("node-model")) {
-    const frame = node.querySelector(".image-frame, .model-frame");
+  if (node.classList.contains("node-image")) {
+    const ratio = getImageDisplayAspectRatio(node);
+    const nextWidth = Math.max(24, Math.round(nextHeight * ratio));
+    const frame = node.querySelector(".image-frame");
+    if (frame) frame.style.aspectRatio = `${nextWidth} / ${nextHeight}`;
+    node.style.width = `${nextWidth}px`;
+    node.style.minHeight = "";
+    node.style.height = "";
+    return;
+  }
+  if (node.classList.contains("node-model")) {
+    const frame = node.querySelector(".model-frame");
     if (frame) frame.style.aspectRatio = "auto";
   }
   node.style.minHeight = `${nextHeight}px`;
+}
+
+function setNodeLayoutSize(node, width, height) {
+  node.dataset.manualSize = "true";
+  if (node.classList.contains("node-image")) {
+    const ratio = getImageDisplayAspectRatio(node);
+    const targetArea = Math.max(24 * 24, Math.max(24, width) * Math.max(24, height));
+    const nextWidth = Math.max(24, Math.round(Math.sqrt(targetArea * ratio)));
+    const nextHeight = Math.max(24, Math.round(nextWidth / ratio));
+    const frame = node.querySelector(".image-frame");
+    if (frame) frame.style.aspectRatio = `${nextWidth} / ${nextHeight}`;
+    node.style.width = `${nextWidth}px`;
+    node.style.minHeight = "";
+    node.style.height = "";
+    return;
+  }
+  const nextWidth = Math.max(24, Math.round(width));
+  const nextHeight = Math.max(24, Math.round(height));
+  node.style.width = `${nextWidth}px`;
+  setNodeLayoutHeight(node, nextHeight);
+}
+
+function setNodeLayoutFrameSize(node, width, height) {
+  node.dataset.manualSize = "true";
+  const nextWidth = Math.max(24, Math.round(width));
+  const nextHeight = Math.max(24, Math.round(height));
+  node.style.width = `${nextWidth}px`;
+  if (node.classList.contains("node-image")) {
+    const frame = node.querySelector(".image-frame");
+    if (frame) frame.style.aspectRatio = `${nextWidth} / ${nextHeight}`;
+    node.style.minHeight = "";
+    node.style.height = "";
+    return;
+  }
+  setNodeLayoutHeight(node, nextHeight);
+}
+
+function getImageDisplayAspectRatio(node) {
+  const image = node?.querySelector?.(".image-frame img");
+  const naturalWidth = Number.parseFloat(node?.dataset?.imageNaturalWidth || "") || image?.naturalWidth || 0;
+  const naturalHeight = Number.parseFloat(node?.dataset?.imageNaturalHeight || "") || image?.naturalHeight || 0;
+  if (naturalWidth > 0 && naturalHeight > 0) return naturalWidth / naturalHeight;
+  const frame = node?.querySelector?.(".image-frame");
+  return parseAspectRatio(frame?.style?.aspectRatio || window.getComputedStyle(frame || node).aspectRatio || "") || 1;
+}
+
+function getImageFrameHeightFromAspect(node, width) {
+  const frame = node?.querySelector?.(".image-frame");
+  const ratio = parseAspectRatio(frame?.style?.aspectRatio || window.getComputedStyle(frame || node).aspectRatio || "");
+  return ratio ? width / ratio : 0;
+}
+
+function parseAspectRatio(value = "") {
+  const normalized = String(value || "").trim();
+  if (!normalized || normalized === "auto") return 0;
+  const parts = normalized.split("/").map((part) => Number.parseFloat(part.trim()));
+  if (parts.length === 2 && parts.every((part) => Number.isFinite(part) && part > 0)) {
+    return parts[0] / parts[1];
+  }
+  const numeric = Number.parseFloat(normalized);
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
 }
 
 function getNodeSortTitle(node) {
@@ -837,13 +1243,21 @@ function groupSelectedNodes({
   targetNode = null,
   addNode = () => null,
   selectNode = null,
-  addChat = () => {}
+  addChat = () => {},
+  recordUndoAction = null
 } = {}) {
-  const members = getGroupableSelection(targetNode);
+  const members = sortNodesByCanvasPosition(getGroupableSelection(targetNode))
+    .filter(isCanvasImageNode)
+    .filter((node) => !isNodeLocked(node));
   if (members.length < 2) {
     addChat("assistant", "请先选择至少 2 个模块再打组。");
     return null;
   }
+  layoutNodesInCompactGallery(members, {
+    gap: 8,
+    recordUndoAction,
+    type: "group-arrange-images"
+  });
   const bounds = getNodesUnionBounds(members);
   const padding = 28;
   const groupId = `group-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;

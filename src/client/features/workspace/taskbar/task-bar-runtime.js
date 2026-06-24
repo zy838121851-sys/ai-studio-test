@@ -34,6 +34,8 @@ export function createTaskBarRuntimePayload(runtime = {}) {
         runtime.setZoom(runtime.clampCanvasZoom(absolute ? Number(value) : runtime.getZoom() + Number(value)));
         runtime.applyTransform();
       },
+      undoLastCanvasAction: runtime.undoLastCanvasAction,
+      redoLastCanvasAction: runtime.redoLastCanvasAction,
       positionFloatingMenu: runtime.positionFloatingMenu
     },
     elements: {
