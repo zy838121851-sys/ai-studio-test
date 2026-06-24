@@ -1,4 +1,8 @@
 import { runCanvasObjectMenuCommand } from "./workflows/canvas-menu-actions.js";
+import {
+  getDroppedExternalImageUrl,
+  importExternalImageUrl
+} from "./canvas-viewport-events.js";
 
 export function bindCanvasKeyboardShortcuts({ root, stateHost, actions }) {
   const {
@@ -15,13 +19,39 @@ export function bindCanvasKeyboardShortcuts({ root, stateHost, actions }) {
     redoLastCanvasAction,
     recordUndoAction,
     selectNode,
-    addChat
+    addChat,
+    uploadAsReference,
+    viewportPointToWorld
   } = actions;
+
+  root.addEventListener("paste", (event) => {
+    const target = event.target;
+    if (isEditablePasteTarget(target) || document.body?.dataset?.view !== "canvas") return;
+
+    const files = getClipboardImageFiles(event.clipboardData);
+    if (files.length) {
+      event.preventDefault();
+      uploadAsReference?.(files, getCanvasPastePoint(viewportPointToWorld));
+      return;
+    }
+
+    const externalImageUrl = getDroppedExternalImageUrl(event.clipboardData);
+    if (!externalImageUrl) return;
+
+    event.preventDefault();
+    importExternalImageUrl(externalImageUrl)
+      .then((file) => {
+        uploadAsReference?.([file], getCanvasPastePoint(viewportPointToWorld));
+      })
+      .catch((error) => {
+        console.warn("[canvas] Failed to paste external image", error);
+        addChat?.("assistant", "无法粘贴这个网页图片。请尝试复制原图，或先保存到本地再导入。");
+      });
+  }, { capture: true });
 
   root.addEventListener("keydown", (event) => {
     const target = event.target;
-    const isTyping = target?.matches?.("input, textarea") || target?.isContentEditable;
-    if (isTyping) return;
+    if (isEditablePasteTarget(target)) return;
 
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z" && !event.shiftKey) {
       event.preventDefault();
@@ -67,6 +97,46 @@ export function bindCanvasKeyboardShortcuts({ root, stateHost, actions }) {
       deleteSelectedNode?.();
     }
   }, { capture: true });
+}
+
+function isEditablePasteTarget(target) {
+  return Boolean(target?.matches?.("input, textarea") || target?.isContentEditable);
+}
+
+function getClipboardImageFiles(clipboardData) {
+  const directFiles = Array.from(clipboardData?.files || [])
+    .filter((file) => file?.type?.startsWith("image/"));
+  if (directFiles.length) return directFiles;
+
+  return Array.from(clipboardData?.items || [])
+    .filter((item) => item?.kind === "file" && item.type?.startsWith("image/"))
+    .map((item, index) => normalizeClipboardImageFile(item.getAsFile?.(), index))
+    .filter(Boolean);
+}
+
+function normalizeClipboardImageFile(file, index = 0) {
+  if (!file || file.name) return file;
+  const extension = getClipboardImageExtension(file.type);
+  return new File([file], `pasted-image-${Date.now()}-${index + 1}.${extension}`, {
+    type: file.type || "image/png"
+  });
+}
+
+function getClipboardImageExtension(mimeType = "") {
+  const type = String(mimeType || "").toLowerCase();
+  if (type === "image/jpeg") return "jpg";
+  if (type === "image/webp") return "webp";
+  if (type === "image/gif") return "gif";
+  if (type === "image/svg+xml") return "svg";
+  if (type === "image/avif") return "avif";
+  return "png";
+}
+
+function getCanvasPastePoint(viewportPointToWorld) {
+  const canvasViewport = document.querySelector("#canvasViewport");
+  const rect = canvasViewport?.getBoundingClientRect?.();
+  if (!rect || typeof viewportPointToWorld !== "function") return { x: 0, y: 0 };
+  return viewportPointToWorld(rect.left + rect.width / 2, rect.top + rect.height / 2);
 }
 
 export function getCanvasShortcutCommand(event) {
