@@ -22,8 +22,6 @@ export function createWorkspaceCanvasNodeDragCompositionRuntime({
       getVisibleCanvasNodes: services.getVisibleCanvasNodes,
       positionTextFormatToolbar: services.positionTextFormatToolbar,
       positionShapeFormatToolbar: services.positionShapeFormatToolbar,
-      startEraserDrag: services.startEraserDrag,
-      updateEraserDrag: services.updateEraserDrag,
       positionDirectorCard: services.positionDirectorCard,
       positionCanvasSuggestionBubble: services.positionCanvasSuggestionBubble,
       positionAgentBubble: services.positionAgentBubble,

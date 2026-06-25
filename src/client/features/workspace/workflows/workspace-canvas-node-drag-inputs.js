@@ -33,8 +33,6 @@ export function createCanvasNodeDragRuntimeInputs({
       getVisibleCanvasNodes: () => services.getVisibleCanvasNodes(canvasWorld),
       positionTextFormatToolbar: canvasInteractionRuntime.positionTextFormatToolbar,
       positionShapeFormatToolbar: canvasInteractionRuntime.positionShapeFormatToolbar,
-      startEraserDrag: canvasOperationsRuntime.startEraserDrag,
-      updateEraserDrag: canvasOperationsRuntime.updateEraserDrag,
       positionDirectorCard: canvasGenerationRuntime.positionDirectorCard,
       positionCanvasSuggestionBubble: actions.positionCanvasSuggestionBubble,
       positionAgentBubble: actions.positionAgentBubble,

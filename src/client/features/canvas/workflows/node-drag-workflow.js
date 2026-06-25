@@ -23,8 +23,6 @@ export function createNodeDragWorkflow({
     getVisibleCanvasNodes = () => [],
     positionTextFormatToolbar = () => {},
     positionShapeFormatToolbar = () => {},
-    startEraserDrag = () => {},
-    updateEraserDrag = () => {},
     positionDirectorCard = () => {},
     positionCanvasSuggestionBubble = () => {},
     positionAgentBubble = () => {},
@@ -203,15 +201,6 @@ export function createNodeDragWorkflow({
     node.addEventListener("pointerdown", (event) => {
       if (isGeneratorPanelInteraction(node, event.target)) {
         event.stopPropagation();
-        return;
-      }
-      if (getActiveCanvasTool() === "eraser" && event.button === 0) {
-        event.preventDefault();
-        event.stopPropagation();
-        startEraserDrag(event);
-        updateEraserDrag(event);
-        const captureTarget = node;
-        safelyCapturePointer(captureTarget, event.pointerId);
         return;
       }
       if (event.target.isContentEditable && node.classList.contains("text-editing")) {

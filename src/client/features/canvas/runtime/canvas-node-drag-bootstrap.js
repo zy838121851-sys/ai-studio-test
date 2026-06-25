@@ -29,8 +29,6 @@ export function createCanvasNodeDragBootstrap({
       positionTextFormatToolbar: services.positionTextFormatToolbar,
       positionShapeFormatToolbar: services.positionShapeFormatToolbar,
       getTextFormatToolbar: () => elements.textFormatToolbar,
-      startEraserDrag: services.startEraserDrag,
-      updateEraserDrag: services.updateEraserDrag,
       positionDirectorCard: services.positionDirectorCard,
       positionCanvasSuggestionBubble: services.positionCanvasSuggestionBubble,
       positionAgentBubble: services.positionAgentBubble,

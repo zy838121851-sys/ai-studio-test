@@ -146,6 +146,31 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
     return Boolean(event.target.closest(".node-image .image-frame"));
   }
 
+  function canStartEraserFromEvent(event) {
+    if (event.button !== 0 || getActiveCanvasTool() !== "eraser") return false;
+    if (event.target.closest([
+      ".resize-handle",
+      "button",
+      "input",
+      "select",
+      "textarea",
+      "a",
+      "[contenteditable='true']",
+      ".add-node-menu",
+      ".canvas-context-menu",
+      ".image-edit-popover",
+      "[data-image-generator-form]",
+      ".image-node-toolbar",
+      ".canvas-asset-savebar",
+      ".node-download",
+      ".node-expand",
+      ".model-viewer"
+    ].join(","))) {
+      return false;
+    }
+    return true;
+  }
+
   function startCanvasDrawingFromEvent(event) {
     event.preventDefault();
     event.stopPropagation();
@@ -158,10 +183,26 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
     beginPointerInteraction(event);
   }
 
+  function startEraserFromEvent(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
+    hideAddNodeMenu();
+    hideCanvasContextMenu();
+    hideImageEditPopover();
+    startEraserDrag(event);
+    beginPointerInteraction(event);
+  }
+
   resolvedCanvasViewport.addEventListener("pointerdown", (event) => {
     if (event.button !== 0) return;
     if (event.target.closest(".canvas-context-menu")) return;
     hideCanvasContextMenu();
+  }, { capture: true });
+
+  resolvedCanvasViewport.addEventListener("pointerdown", (event) => {
+    if (!canStartEraserFromEvent(event)) return;
+    startEraserFromEvent(event);
   }, { capture: true });
 
   resolvedCanvasViewport.addEventListener("pointerdown", (event) => {
@@ -189,16 +230,6 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
 
   resolvedCanvasViewport.addEventListener("pointerdown", (event) => {
     if (event.button !== 0 && event.button !== 1) return;
-    if (event.button === 0 && getActiveCanvasTool() === "eraser") {
-      event.preventDefault();
-      event.stopPropagation();
-      hideAddNodeMenu();
-      hideCanvasContextMenu();
-      hideImageEditPopover();
-      startEraserDrag(event);
-      beginPointerInteraction(event);
-      return;
-    }
     if (event.button === 0 && getActiveCanvasTool() && !event.target.closest(".node-card, .canvas-object")) {
       if (getActiveCanvasTool() === "text") {
         event.preventDefault();

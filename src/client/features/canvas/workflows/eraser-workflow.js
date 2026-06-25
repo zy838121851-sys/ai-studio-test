@@ -16,7 +16,7 @@ export function createEraserWorkflow({
     getCanvasNodeScreenRect = () => null,
     clearSelection = () => {},
     selectNodes = () => {},
-    removeNode = () => {},
+    removeNode = null,
     recordCanvasEvent = () => {},
     recordUndoAction = () => {}
   } = services;
@@ -48,6 +48,7 @@ export function createEraserWorkflow({
 
   function startEraserDrag(event) {
     if (!canvasViewport || !canvasViewport.getBoundingClientRect) return;
+    clearPendingEraserDrag();
     const point = getViewportPoint(event);
     const stroke = createEraserStroke();
     if (!stroke) return;
@@ -91,18 +92,44 @@ export function createEraserWorkflow({
     });
   }
 
+  function clearPendingEraserDrag() {
+    if (!eraserDrag) return;
+    Array.from(eraserDrag.marked || []).forEach((node) => node?.classList?.remove("eraser-marked"));
+    removeEraserStroke(eraserDrag.stroke, { fade: false });
+    eraserDrag = null;
+    canvasViewport?.classList?.remove("erasing");
+  }
+
+  function removeEraserStroke(stroke, { fade = true } = {}) {
+    if (!stroke) return;
+    const removeStroke = () => {
+      const overlay = stroke.parentElement;
+      stroke.remove();
+      cleanupCanvasInteractionOverlay(overlay);
+    };
+    if (!fade) {
+      removeStroke();
+      return;
+    }
+    stroke.classList.add("fade-out");
+    window.setTimeout(removeStroke, 180);
+  }
+
+  function removeMarkedNode(node) {
+    if (!node?.isConnected) return;
+    node.classList.remove("eraser-marked");
+    if (typeof removeNode === "function") {
+      removeNode(node);
+      return;
+    }
+    node.remove();
+  }
+
   function finishEraserDrag() {
     if (!eraserDrag) return;
     const marked = Array.from(eraserDrag.marked);
     const stroke = eraserDrag.stroke;
-    if (stroke?.classList) {
-      stroke.classList.add("fade-out");
-      window.setTimeout(() => {
-        const overlay = stroke.parentElement;
-        stroke.remove();
-        cleanupCanvasInteractionOverlay(overlay);
-      }, 180);
-    }
+    removeEraserStroke(stroke);
     eraserDrag = null;
     if (canvasViewport?.classList) {
       canvasViewport.classList.remove("erasing");
@@ -127,14 +154,12 @@ export function createEraserWorkflow({
       },
       redo: () => {
         clearSelection();
-        undoEntries.forEach(({ node }) => {
-          if (node?.isConnected) node.remove();
-        });
+        undoEntries.forEach(({ node }) => removeMarkedNode(node));
       }
     });
     marked.forEach((node) => node.classList.remove("eraser-marked"));
     clearSelection();
-    marked.forEach((node) => node.remove());
+    marked.forEach((node) => removeMarkedNode(node));
     recordCanvasEvent("erase", {
       count: marked.length,
       nodeIds: marked.map((node) => node.dataset.nodeId)
