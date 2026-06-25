@@ -190,9 +190,11 @@ function buildWanExpandPrompt(prompt = "") {
   const userPrompt = String(prompt || "").trim();
   return [
     "Expand the input image outward only in the requested directions.",
-    "Keep the original image content unchanged, preserving subject, lighting, texture, perspective, colors, and sharpness.",
-    "Generate only plausible surrounding content that naturally continues the original scene.",
-    "Do not repaint, crop, stretch, fade, or restyle the original image.",
+    "Keep the original image area unchanged, preserving subject, identity, composition, lighting, texture, perspective, colors, and sharpness.",
+    "Use the expansion plan to actively complete the newly exposed area with plausible surrounding environment, background, surface details, atmosphere, and composition balance.",
+    "The added area should look like it was part of the original shot or illustration, with seamless continuation across the original borders.",
+    "Do not repaint, crop, stretch, fade, restyle, or change the original image content.",
+    "Do not add unrelated subjects or visual elements that contradict the source image.",
     userPrompt ? `User request: ${userPrompt}` : ""
   ].filter(Boolean).join("\n");
 }

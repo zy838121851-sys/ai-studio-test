@@ -183,12 +183,20 @@ export async function executeImageEditAction({
   });
 
   addChat?.("user", `${label} ${fileName}`);
-  const thinking = addThinking?.(label, [
-    "\u8bfb\u53d6\u539f\u56fe",
-    "\u6574\u7406\u7f16\u8f91\u6307\u4ee4",
-    "\u8c03\u7528\u56fe\u7247\u7f16\u8f91\u6a21\u578b",
-    "\u5199\u5165\u753b\u5e03"
-  ]);
+  const thinkingSteps = actionType === "expand_image"
+    ? [
+      "\u8bfb\u53d6\u539f\u56fe",
+      "\u5206\u6790\u539f\u56fe\u5e76\u89c4\u5212\u6269\u56fe",
+      "\u8c03\u7528\u6269\u56fe\u6a21\u578b",
+      "\u5199\u5165\u753b\u5e03"
+    ]
+    : [
+      "\u8bfb\u53d6\u539f\u56fe",
+      "\u6574\u7406\u7f16\u8f91\u6307\u4ee4",
+      "\u8c03\u7528\u56fe\u7247\u7f16\u8f91\u6a21\u578b",
+      "\u5199\u5165\u753b\u5e03"
+    ];
+  const thinking = addThinking?.(label, thinkingSteps);
   const progress = addChat?.("assistant", `\u6b63\u5728\u6267\u884c${label}...`);
   progress?.classList.add("loading");
   sourceNode.dataset.editPrompt = prompt;
@@ -212,9 +220,6 @@ export async function executeImageEditAction({
     let outputUrl = result.imageUrl || (result.imageBase64 ? `data:image/png;base64,${result.imageBase64}` : "");
     if (outputUrl && actionType === "remove_background") {
       outputUrl = await makeBackgroundTransparent(outputUrl);
-    }
-    if (outputUrl && targetLongEdge) {
-      outputUrl = await upscaleImageSourceToLongEdge(outputUrl, targetLongEdge);
     }
     updateThinking?.(thinking, 3);
     if (outputUrl) {
@@ -248,32 +253,6 @@ export async function executeImageEditAction({
 function getPreviewHeightForAspect(width, aspectRatio, fallbackHeight = 240) {
   const ratio = readAspectRatio(aspectRatio);
   return ratio ? width / ratio : fallbackHeight;
-}
-
-async function upscaleImageSourceToLongEdge(src, targetLongEdge) {
-  const target = Math.round(Number(targetLongEdge) || 0);
-  if (!target || typeof document === "undefined" || typeof Image === "undefined") return src;
-  try {
-    const source = await imageSourceToDataUrl(src);
-    const image = await loadImageElement(source);
-    const naturalWidth = image.naturalWidth || image.width;
-    const naturalHeight = image.naturalHeight || image.height;
-    const longEdge = Math.max(naturalWidth, naturalHeight);
-    if (!longEdge || longEdge >= target) return src;
-    const scale = target / longEdge;
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.round(naturalWidth * scale);
-    canvas.height = Math.round(naturalHeight * scale);
-    const context = canvas.getContext("2d");
-    if (!context) return src;
-    context.imageSmoothingEnabled = true;
-    context.imageSmoothingQuality = "high";
-    context.drawImage(image, 0, 0, canvas.width, canvas.height);
-    return canvas.toDataURL("image/png");
-  } catch (error) {
-    console.warn("[image-edit] Failed to upscale generated output", error);
-    return src;
-  }
 }
 
 async function makeBackgroundTransparent(src) {

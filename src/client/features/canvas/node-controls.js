@@ -48,7 +48,7 @@ export function createNodeControlsManager({
       });
       return;
     }
-    const managedToolbar = createImageToolbar((action, currentToolbar) => {
+    const managedToolbar = createImageToolbar((action, currentToolbar, actionButton) => {
       const img = node.querySelector(".image-frame img");
       if (!img) return;
       if (action === "more") {
@@ -67,29 +67,23 @@ export function createNodeControlsManager({
       }
       if (action === "crop") return startImageCrop(node);
       if (action === "upscale-menu") {
-        currentToolbar.classList.toggle("menu-open");
+        setToolbarUpscaleSize(currentToolbar, currentToolbar.dataset.upscaleSize || "2k");
+        currentToolbar.classList.add("mode-upscale");
+        return;
+      }
+      if (action === "upscale-size") {
+        setToolbarUpscaleSize(currentToolbar, actionButton?.dataset.upscaleSize || "2k");
+        return;
+      }
+      if (action === "upscale-generate") {
+        const targetLongEdge = currentToolbar.dataset.upscaleSize === "4k" ? 4096 : 2048;
+        currentToolbar.classList.remove("mode-upscale", "menu-open");
+        runImageUpscale({ node, img, targetLongEdge, runImageEditCommand });
         return;
       }
       if (action === "upscale-2k" || action === "upscale-4k") {
-        const target = action === "upscale-4k" ? "4K" : "2K";
         const targetLongEdge = action === "upscale-4k" ? 4096 : 2048;
-        runImageEditCommand(
-          node,
-          [
-            `Enhance and upscale this image for ${target} output.`,
-            "Use the uploaded image as the exact source image.",
-            "Preserve the composition, subject identity, silhouette, colors, pose, layout, and all visible design details.",
-            "Improve clarity, edges, fine texture, material definition, and remove noise or compression artifacts.",
-            "Do not redesign, crop, add new objects, change text, or change the background."
-          ].join("\n"),
-          `\u9ad8\u6e05\u5316 ${target}`,
-          {
-            actionType: "upscale",
-            count: 1,
-            outputSize: getQwenImageSizeForElement(img, { maxSize: 2048 }),
-            targetLongEdge
-          }
-        );
+        runImageUpscale({ node, img, targetLongEdge, runImageEditCommand });
         return;
       }
       if (action === "remove-bg") {
@@ -195,6 +189,44 @@ export function createNodeControlsManager({
     ensureResizeHandles,
     ensureNodeControls
   };
+}
+
+function setToolbarUpscaleSize(toolbar, size = "2k") {
+  const nextSize = size === "4k" ? "4k" : "2k";
+  toolbar.dataset.upscaleSize = nextSize;
+  toolbar.querySelectorAll("[data-upscale-size]").forEach((button) => {
+    const selected = button.dataset.upscaleSize === nextSize;
+    button.classList.toggle("selected", selected);
+    button.setAttribute("aria-pressed", String(selected));
+  });
+}
+
+function runImageUpscale({ node, img, targetLongEdge, runImageEditCommand }) {
+  const target = targetLongEdge === 4096 ? "4K" : "2K";
+  runImageEditCommand(
+    node,
+    buildImageUpscalePrompt(targetLongEdge),
+    `\u9ad8\u6e05\u5316 ${target}`,
+    {
+      actionType: "upscale",
+      count: 1,
+      outputSize: getQwenImageSizeForElement(img, { maxSize: targetLongEdge }),
+      targetLongEdge
+    }
+  );
+}
+
+export function buildImageUpscalePrompt(targetLongEdge = 2048) {
+  const target = Math.round(Number(targetLongEdge) || 0) === 4096 ? "4K" : "2K";
+  return [
+    `Create a genuinely sharper ${target} super-resolution version of the reference image.`,
+    "Do not merely resize or interpolate pixels. Reconstruct real-looking fine detail from the source image.",
+    "Remove blur, softness, compression artifacts, scaling artifacts, pixelation, and muddy texture.",
+    "Restore crisp edges, local contrast, micro-texture, hair/fur/fabric/material grain, natural detail separation, and clean high-frequency detail.",
+    "Keep the original composition, subject identity, silhouette, pose, layout, colors, lighting direction, camera angle, background structure, and style consistent.",
+    "If the source is heavily blurred, infer plausible fine texture that matches the original image content without changing the subject or adding new objects.",
+    "Do not crop, extend, replace, recolor, relight, stylize, beautify, or change any readable text."
+  ].join("\n");
 }
 
 function ensureAssetSaveBar(node, {

@@ -55,6 +55,47 @@ Return:
 `;
 }
 
+export function buildExpandImagePlanPrompt({ prompt = "", expand = {} } = {}) {
+  return `
+You are an expert image outpainting planner. Return JSON only. Do not output Markdown.
+Look at the input image and infer what should naturally exist just outside its current frame.
+Your plan will be sent directly to an image expansion model, so it must be concrete, visual, and actionable.
+
+Expansion request:
+${String(prompt || "").trim() || "No extra user request was provided."}
+
+Requested expansion scale:
+${JSON.stringify(expand || {}, null, 2)}
+
+Return:
+{
+  "sceneSummary": "one concise sentence describing the original image, subject, setting, style, lighting, camera angle, and color palette",
+  "continuityRules": [
+    "rules for preserving the original subject and image identity"
+  ],
+  "outsideAreaPlan": {
+    "left": "2-4 concrete visual details to generate on the left expansion area, or empty string if left_scale is 1",
+    "right": "2-4 concrete visual details to generate on the right expansion area, or empty string if right_scale is 1",
+    "top": "2-4 concrete visual details to generate on the top expansion area, or empty string if top_scale is 1",
+    "bottom": "2-4 concrete visual details to generate on the bottom expansion area, or empty string if bottom_scale is 1"
+  },
+  "negative": [
+    "things that would break continuity or change the original image"
+  ],
+  "outpaintPrompt": "a polished English prompt for the image expansion model. It must actively describe the surrounding content to add, while preserving the original image unchanged."
+}
+
+Rules:
+- Preserve the original image content exactly.
+- For newly exposed areas, actively infer plausible surrounding environment, background, surface, props, atmosphere, lighting continuation, and composition balance.
+- Add contextually likely details when useful. Do not leave new areas empty unless the source image is intentionally minimal.
+- If the image is a product, character, UI, illustration, logo, food, fashion, architecture, or scene, choose expansion details that fit that category instead of generic filler.
+- Match the original lens/camera angle, linework, rendering medium, material texture, shadows, depth of field, and color temperature.
+- The outpaintPrompt must mention the most important side-specific additions and should not merely say "continue the same scene".
+- Do not invent a different subject, different style, different camera angle, or unrelated objects.
+`;
+}
+
 export function buildCanvasAgentPrompt({ canvasState } = {}) {
   return `
 You are an unobtrusive AI assistant. Do not chat. Return only the next actionable suggestion.

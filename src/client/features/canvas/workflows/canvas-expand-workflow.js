@@ -1,7 +1,7 @@
 import { getQwenImageSizeForDimensions } from "../../ai/image-generator.js";
 
 const EXPAND_MIN_MARGIN = 36;
-const EXPAND_DEFAULT_RATIO = 0.18;
+const EXPAND_DEFAULT_RATIO = 0.32;
 const EXPAND_MIN_SIZE = 96;
 
 export function createCanvasExpandWorkflow({
@@ -52,13 +52,7 @@ export function createCanvasExpandWorkflow({
     const sourceRect = readImageFrameWorldRect(node);
     if (!sourceRect.width || !sourceRect.height) return;
     state.sourceRect = sourceRect;
-    const margin = Math.max(EXPAND_MIN_MARGIN, Math.round(Math.min(sourceRect.width, sourceRect.height) * EXPAND_DEFAULT_RATIO));
-    const box = normalizeExpandBox({
-      x: sourceRect.x - margin,
-      y: sourceRect.y - margin,
-      width: sourceRect.width + margin * 2,
-      height: sourceRect.height + margin * 2
-    }, sourceRect);
+    const box = createDefaultExpandBox(sourceRect);
     const overlay = document.createElement("div");
     overlay.className = "image-expand-box";
     overlay.innerHTML = `
@@ -298,6 +292,16 @@ export function createCanvasExpandWorkflow({
   };
 }
 
+export function createDefaultExpandBox(sourceRect) {
+  const margin = Math.max(EXPAND_MIN_MARGIN, Math.round(Math.min(sourceRect.width, sourceRect.height) * EXPAND_DEFAULT_RATIO));
+  return normalizeExpandBox({
+    x: sourceRect.x - margin,
+    y: sourceRect.y - margin,
+    width: sourceRect.width + margin * 2,
+    height: sourceRect.height + margin * 2
+  }, sourceRect);
+}
+
 function normalizeExpandBox(box, sourceRect) {
   let left = Number(box.x) || 0;
   let top = Number(box.y) || 0;
@@ -317,18 +321,19 @@ function normalizeExpandBox(box, sourceRect) {
   };
 }
 
-function buildExpandPrompt({ sourceRect, box, userPrompt = "" }) {
+export function buildExpandPrompt({ sourceRect, box, userPrompt = "" }) {
   const left = Math.round(sourceRect.x - box.x);
   const top = Math.round(sourceRect.y - box.y);
   const right = Math.round(box.x + box.width - sourceRect.x - sourceRect.width);
   const bottom = Math.round(box.y + box.height - sourceRect.y - sourceRect.height);
   const request = String(userPrompt || "").trim();
   return [
-    "Expand the original image into the larger area selected by the user.",
+    "Outpaint the original image into the larger area selected by the user.",
     `The selected expansion margins are left ${left}px, right ${right}px, top ${top}px, bottom ${bottom}px.`,
-    "Keep the original image content unchanged and only imagine the newly exposed outside area.",
-    "Continue the same scene, lighting, perspective, depth of field, texture, and style.",
-    "Do not crop, stretch, move, fade, repaint, or replace the original subject. Do not add unrelated objects.",
+    "Keep the original image content unchanged, and generate new pixels only in the newly exposed outside area.",
+    "Actively infer and complete the surrounding environment, background, surfaces, props, atmosphere, lighting continuation, perspective, depth of field, texture, and style.",
+    "Make the expanded composition feel intentionally shot or illustrated at the larger frame size, with natural continuity across all seams.",
+    "Do not crop, stretch, move, fade, repaint, replace, recolor, or relight the original subject.",
     request ? `User expansion prompt: ${request}` : ""
   ].filter(Boolean).join("\n");
 }

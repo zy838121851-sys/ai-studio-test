@@ -31,6 +31,20 @@ export function setAIProvider(providerId) {
   return getAIProvider();
 }
 
+export function registerAIProvider(provider) {
+  if (!provider?.id) throw new Error("AI provider must include an id");
+  const previous = providers.get(provider.id);
+  providers.set(provider.id, provider);
+  return () => {
+    if (previous) {
+      providers.set(provider.id, previous);
+    } else {
+      providers.delete(provider.id);
+    }
+    if (!providers.has(activeProviderId)) activeProviderId = "qwen";
+  };
+}
+
 export function listAIProviders() {
   return Array.from(providers.keys());
 }
