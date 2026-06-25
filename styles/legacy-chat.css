@@ -417,11 +417,22 @@
   }
 
   .empty-state {
-    min-width: 560px;
+    width: min(460px, calc(100vw - 40px));
+    min-width: 0;
+  }
+
+  .empty-state p {
+    font-size: 18px;
+  }
+
+  .empty-state-actions {
+    gap: 24px;
+    margin-top: 28px;
+    font-size: 16px;
   }
 
   .quick-actions {
-    max-width: 560px;
+    max-width: 460px;
   }
 }
 

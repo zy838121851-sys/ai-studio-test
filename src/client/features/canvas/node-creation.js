@@ -6,6 +6,7 @@ import {
 
 export function createWorkspaceNode({
   config,
+  options = {},
   renderTemplate,
   emptyState,
   canvasWorld,
@@ -17,7 +18,7 @@ export function createWorkspaceNode({
   onImageDoubleClick
 }) {
   const { kind, title, desc, x, y, media } = config;
-  emptyState?.classList.add("hidden");
+  if (!options.suppressEmptyState) emptyState?.classList.add("hidden");
 
   const node = createCanvasNodeElement({
     kind,
@@ -45,8 +46,8 @@ export function createWorkspaceNode({
 
   canvasWorld.appendChild(node);
   if (kind === "model" && media?.file) initModelViewer(node, media.file);
-  selectNode(node);
-  if (kind === "image-generator") {
+  if (options.select !== false) selectNode(node);
+  if (kind === "image-generator" && options.openGeneratorPopover !== false) {
     requestAnimationFrame(() => {
       node.ownerDocument?.dispatchEvent(new CustomEvent("canvas:image-generator-selected", {
         detail: { node, openPopover: true, reason: "created", focusPrompt: true }

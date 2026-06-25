@@ -219,14 +219,20 @@ export function createProjectWorkflow(ctx) {
     selectLibraryProject(currentIndex + direction);
   }
 
-  function resetCanvasForProject() {
+  function resetCanvasForProject({ showEmptyState = true } = {}) {
     state.selectedNodes.clear();
     state.selectedNode = null;
     if (canvasWorld) {
       canvasWorld.querySelectorAll(".node-card").forEach((node) => removeNodeDeep(node));
     }
     document.querySelectorAll(".canvas-ai-suggestions").forEach((item) => item.remove());
-    if (emptyState) emptyState.classList.remove("hidden");
+    syncCanvasEmptyState({ allowShow: showEmptyState });
+  }
+
+  function syncCanvasEmptyState({ allowShow = true } = {}) {
+    if (!emptyState) return;
+    const hasNodes = Boolean(canvasWorld?.querySelector(".node-card"));
+    emptyState.classList.toggle("hidden", !allowShow || hasNodes);
   }
 
   async function openProject(projectId) {
@@ -234,39 +240,55 @@ export function createProjectWorkflow(ctx) {
     if (!project) return;
     const remoteProject = await fetchRemoteProject(project.id);
     if (remoteProject) project = remoteProject;
-    if (!projectRuntime.setActive(project.id)) {
-      state.activeProjectId = project.id;
-    }
-    resetCanvasForProject();
-    showView("canvas");
-    applyTransform();
-    await ensureAssetsReady?.();
-    const restoredCount = restoreCanvasSnapshotJson?.({
-      snapshotJson: project.canvasSnapshotJson,
-      addNode,
-      canvasWorld,
-      resolveAssetUrl: services.resolveAssetUrl
-    }) || 0;
-    if (!restoredCount && project.thumbnail) {
-      const node = addNode({
-        kind: "image",
-        title: `${project.title}.png`,
-        desc: project.prompt || "Project restore image",
-        x: -160,
-        y: -120,
-        media: {
-          url: project.thumbnail,
-          name: `${project.title}.png`,
-          type: "image/png"
+    const hasRestorableContent = projectHasRestorableCanvasContent(project);
+    appRoot?.classList.add("canvas-restoring");
+    try {
+      await ensureAssetsReady?.();
+      await preloadProjectMedia(project);
+      if (!projectRuntime.setActive(project.id)) {
+        state.activeProjectId = project.id;
+      }
+      resetCanvasForProject({ showEmptyState: !hasRestorableContent });
+      const restoredCount = restoreCanvasSnapshotJson?.({
+        snapshotJson: project.canvasSnapshotJson,
+        addNode,
+        canvasWorld,
+        resolveAssetUrl: services.resolveAssetUrl,
+        nodeOptions: {
+          select: false,
+          suppressEmptyState: true,
+          openGeneratorPopover: false
         }
-      });
-      markGeneratedNodeContext(node, {
-        prompt: project.prompt,
-        actionType: "project_restore"
-      });
-    }
-    if (restoredCount) {
-      await persistRestoredSnapshotRepair(project);
+      }) || 0;
+      if (!restoredCount && project.thumbnail) {
+        const node = addNode({
+          kind: "image",
+          title: `${project.title}.png`,
+          desc: project.prompt || "Project restore image",
+          x: -160,
+          y: -120,
+          media: {
+            url: project.thumbnail,
+            name: `${project.title}.png`,
+            type: "image/png"
+          }
+        }, {
+          select: false,
+          suppressEmptyState: true
+        });
+        markGeneratedNodeContext(node, {
+          prompt: project.prompt,
+          actionType: "project_restore"
+        });
+      }
+      if (restoredCount) {
+        await persistRestoredSnapshotRepair(project);
+      }
+      showView("canvas");
+      applyTransform();
+      syncCanvasEmptyState({ allowShow: true });
+    } finally {
+      appRoot?.classList.remove("canvas-restoring");
     }
   }
 
@@ -286,7 +308,14 @@ export function createProjectWorkflow(ctx) {
   function newBlankProject() {
     const project = createProject({ title: "Fresh Ideas", prompt: "" });
     resetCanvasForProject();
-    openProject(project.id);
+    if (!projectRuntime.setActive(project.id)) {
+      state.activeProjectId = project.id;
+    }
+    showView("canvas");
+    updateProjectTitle(project);
+    updateProjectTitleView(project);
+    applyTransform();
+    syncCanvasEmptyState();
   }
 
   function makeProjectTitle(prompt) {
@@ -523,6 +552,73 @@ export function createProjectWorkflow(ctx) {
 
 function getImageFilesFromList(files) {
   return Array.from(files || []).filter((item) => item?.type?.startsWith("image/") || /\.(?:png|jpe?g|webp|gif|bmp|heic)$/i.test(item?.name || ""));
+}
+
+function projectHasRestorableCanvasContent(project = {}) {
+  if (Number(project.itemCount || 0) > 0) return true;
+  if (String(project.thumbnail || "").trim()) return true;
+  const snapshot = parseSnapshotJson(project.canvasSnapshotJson);
+  return Array.isArray(snapshot?.nodes) && snapshot.nodes.length > 0;
+}
+
+async function preloadProjectMedia(project = {}, timeoutMs = 420) {
+  const urls = getProjectMediaUrls(project);
+  if (!urls.length || typeof Image !== "function") return;
+  await Promise.race([
+    Promise.allSettled(urls.map((url) => preloadImage(url))),
+    new Promise((resolve) => setTimeout(resolve, timeoutMs))
+  ]);
+}
+
+function getProjectMediaUrls(project = {}) {
+  const urls = new Set();
+  const thumbnail = String(project.thumbnail || "").trim();
+  if (isPreloadableImageUrl(thumbnail)) urls.add(thumbnail);
+  const snapshot = parseSnapshotJson(project.canvasSnapshotJson);
+  (snapshot?.nodes || []).forEach((node) => {
+    [
+      node?.media?.url,
+      node?.dataset?.objectUrl,
+      extractSnapshotImageUrl(node?.html)
+    ].forEach((url) => {
+      const value = String(url || "").trim();
+      if (isPreloadableImageUrl(value)) urls.add(value);
+    });
+  });
+  return Array.from(urls).slice(0, 8);
+}
+
+function preloadImage(url) {
+  return new Promise((resolve) => {
+    const image = new Image();
+    image.decoding = "async";
+    image.onload = () => resolve(true);
+    image.onerror = () => resolve(false);
+    image.src = url;
+    if (typeof image.decode === "function") {
+      image.decode().then(() => resolve(true)).catch(() => resolve(false));
+    }
+  });
+}
+
+function extractSnapshotImageUrl(html = "") {
+  const match = String(html || "").match(/<img\b[^>]*\bsrc=["']([^"']+)["']/i);
+  return decodeHtmlAttribute(match?.[1] || "");
+}
+
+function decodeHtmlAttribute(value = "") {
+  return String(value || "")
+    .replaceAll("&amp;", "&")
+    .replaceAll("&quot;", "\"")
+    .replaceAll("&#39;", "'")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">");
+}
+
+function isPreloadableImageUrl(url = "") {
+  const value = String(url || "").trim();
+  if (!value || value.startsWith("blob:")) return false;
+  return /^(?:https?:|data:image\/|\/)/i.test(value);
 }
 
 async function waitForPendingCanvasUploads(canvasWorld) {

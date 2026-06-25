@@ -87,7 +87,8 @@ export function createCanvasGenerationBootstrap({
 
   const imageGeneratorWorkflow = createImageGeneratorWorkflow({
     elements: {
-      canvasWorld: elements.canvasWorld
+      canvasWorld: elements.canvasWorld,
+      canvasViewport: elements.canvasViewport
     },
     services: {
       addNode: services.addNode,

@@ -31,7 +31,8 @@ export function restoreCanvasSnapshotJson({
   snapshotJson,
   addNode,
   canvasWorld,
-  resolveAssetUrl = null
+  resolveAssetUrl = null,
+  nodeOptions = {}
 } = {}) {
   const snapshot = parseSnapshot(snapshotJson);
   if (!snapshot?.nodes?.length || typeof addNode !== "function") return 0;
@@ -46,7 +47,7 @@ export function restoreCanvasSnapshotJson({
       x: Number(item.x || 0),
       y: Number(item.y || 0),
       media
-    });
+    }, nodeOptions);
     if (!node) return;
     applyNodeSnapshot(node, item);
     restoredCount += 1;
@@ -102,6 +103,9 @@ function applyNodeSnapshot(node, item) {
     if (key === "objectUrl" && isTransientUrl(value)) return;
     node.dataset[key] = value;
   });
+  if ((item.kind || item.dataset?.kind) === "image" && node.style.width) {
+    node.dataset.manualSize = node.dataset.manualSize || "true";
+  }
   if (item.html && item.kind !== "image") {
     node.innerHTML = item.html;
   }

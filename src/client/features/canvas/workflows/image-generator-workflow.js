@@ -23,7 +23,8 @@ export function createImageGeneratorWorkflow({
   services = {}
 } = {}) {
   const {
-    canvasWorld = globalThis.document?.querySelector?.("#canvasWorld")
+    canvasWorld = globalThis.document?.querySelector?.("#canvasWorld"),
+    canvasViewport = globalThis.document?.querySelector?.("#canvasViewport")
   } = elements;
 
   const {
@@ -146,7 +147,7 @@ export function createImageGeneratorWorkflow({
     if (event.detail?.openPopover) {
       showGeneratorPopover(node);
       if (event.detail?.focusPrompt) {
-        requestAnimationFrame(() => getGeneratorControls().promptInput?.focus?.());
+        requestAnimationFrame(() => focusGeneratorPrompt());
       }
       return;
     }
@@ -211,7 +212,7 @@ export function createImageGeneratorWorkflow({
       event.preventDefault();
       resetGeneratorInput(node);
       syncGeneratorFrameToRatio(node, getGeneratorRatioValue(node));
-      controls.promptInput?.focus();
+      focusGeneratorPrompt(controls.promptInput);
       return;
     }
 
@@ -219,7 +220,7 @@ export function createImageGeneratorWorkflow({
     if (expandButton) {
       event.preventDefault();
       controls.popover?.classList.toggle("generator-panel-expanded");
-      controls.promptInput?.focus();
+      focusGeneratorPrompt(controls.promptInput);
       positionGeneratorPopover();
       return;
     }
@@ -264,7 +265,7 @@ export function createImageGeneratorWorkflow({
     const references = getGeneratorReferences(node);
     if (!prompt && !references.length) {
       updateGeneratorStatus(node, "请输入提示词，或拖入参考图");
-      promptInput?.focus();
+      focusGeneratorPrompt(promptInput);
       return;
     }
 
@@ -954,6 +955,7 @@ export function createImageGeneratorWorkflow({
   }
 
   function positionGeneratorPopover() {
+    resetCanvasViewportScroll();
     const node = activeGeneratorNode;
     const nextPopover = getGeneratorPopover();
     if (!node || !nextPopover?.classList.contains("open")) return null;
@@ -987,13 +989,95 @@ export function createImageGeneratorWorkflow({
     const editScale = getInverseCanvasUiScale(safeZoom);
     const scaledGap = (22 * editScreenScale) / safeZoom;
 
+    const position = getVisibleGeneratorPopoverPosition({
+      frameLeft,
+      frameTop,
+      frameWidth,
+      frameHeight,
+      popoverWidth,
+      popoverHeight,
+      screenWidth: targetScreenWidth,
+      screenHeight: targetScreenHeight,
+      gap: scaledGap,
+      zoom: safeZoom
+    });
+
     nextPopover.style.width = `${popoverWidth}px`;
     nextPopover.style.height = `${popoverHeight}px`;
     nextPopover.style.minHeight = `${popoverHeight}px`;
     nextPopover.style.setProperty("--edit-scale", editScale.toFixed(3));
-    nextPopover.style.left = `${frameLeft + frameWidth / 2 - popoverWidth / 2}px`;
-    nextPopover.style.top = `${frameTop + frameHeight + scaledGap}px`;
+    nextPopover.style.left = `${position.left}px`;
+    nextPopover.style.top = `${position.top}px`;
+    resetCanvasViewportScroll();
     return { popoverWidth, popoverHeight, editScale };
+  }
+
+  function getVisibleGeneratorPopoverPosition({
+    frameLeft,
+    frameTop,
+    frameWidth,
+    frameHeight,
+    popoverWidth,
+    popoverHeight,
+    screenWidth,
+    screenHeight,
+    gap,
+    zoom
+  } = {}) {
+    let left = frameLeft + frameWidth / 2 - popoverWidth / 2;
+    let top = frameTop + frameHeight + gap;
+    const viewportRect = canvasViewport?.getBoundingClientRect?.();
+    const worldRect = canvasWorld?.getBoundingClientRect?.();
+    if (!viewportRect || !worldRect || !Number.isFinite(zoom) || zoom <= 0) {
+      return { left, top };
+    }
+
+    const margin = 16;
+    const screenLeft = worldRect.left + left * zoom;
+    const belowScreenTop = worldRect.top + (frameTop + frameHeight + gap) * zoom;
+    const aboveScreenTop = worldRect.top + (frameTop - gap - popoverHeight) * zoom;
+    const belowFits = belowScreenTop + screenHeight <= viewportRect.bottom - margin;
+    const aboveFits = aboveScreenTop >= viewportRect.top + margin;
+    const preferredScreenTop = belowFits || !aboveFits ? belowScreenTop : aboveScreenTop;
+
+    const clampedScreenLeft = clampScreenPosition(
+      screenLeft,
+      viewportRect.left + margin,
+      viewportRect.right - screenWidth - margin
+    );
+    const clampedScreenTop = clampScreenPosition(
+      preferredScreenTop,
+      viewportRect.top + margin,
+      viewportRect.bottom - screenHeight - margin
+    );
+
+    left = (clampedScreenLeft - worldRect.left) / zoom;
+    top = (clampedScreenTop - worldRect.top) / zoom;
+    return { left, top };
+  }
+
+  function clampScreenPosition(value, min, max) {
+    const safeMin = Number.isFinite(min) ? min : 0;
+    const safeMax = Number.isFinite(max) ? max : safeMin;
+    if (safeMax < safeMin) return safeMin;
+    return Math.min(safeMax, Math.max(safeMin, value));
+  }
+
+  function focusGeneratorPrompt(input = getGeneratorControls().promptInput) {
+    if (!input?.focus) return;
+    resetCanvasViewportScroll();
+    try {
+      input.focus({ preventScroll: true });
+    } catch {
+      input.focus();
+    }
+    resetCanvasViewportScroll();
+  }
+
+  function resetCanvasViewportScroll() {
+    if (!canvasViewport) return;
+    if (canvasViewport.scrollLeft) canvasViewport.scrollLeft = 0;
+    if (canvasViewport.scrollTop) canvasViewport.scrollTop = 0;
   }
 
   function getElementOffsetWithinNode(element, node) {

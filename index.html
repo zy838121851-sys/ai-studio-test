@@ -496,8 +496,35 @@
 
       <div class="canvas-viewport" id="canvasViewport">
         <div class="canvas-world" id="canvasWorld">
-          <div class="empty-state" id="emptyState"></div>
-
+          <div class="empty-state" id="emptyState" aria-label="空画布提示">
+            <div class="empty-state-spark" aria-hidden="true">
+              <svg viewBox="0 0 64 64" focusable="false">
+                <path d="M31.5 9.5c3.7 11.4 7.6 15.3 19 19-11.4 3.7-15.3 7.6-19 19-3.7-11.4-7.6-15.3-19-19 11.4-3.7 15.3-7.6 19-19Z" />
+                <path d="M51 6.5c.9 2.7 1.9 3.7 4.5 4.5-2.7.9-3.7 1.9-4.5 4.5-.9-2.7-1.9-3.7-4.5-4.5 2.7-.9 3.7-1.9 4.5-4.5Z" />
+                <path d="M13 18.5c.6 1.8 1.2 2.4 3 3-1.8.6-2.4 1.2-3 3-.6-1.8-1.2-2.4-3-3 1.8-.6 2.4-1.2 3-3Z" />
+              </svg>
+            </div>
+            <p>双击自由生成 · 右键上传图片</p>
+            <div class="empty-state-actions" aria-hidden="true">
+              <span class="empty-state-action">
+                <svg viewBox="0 0 44 56" focusable="false">
+                  <rect x="7" y="4" width="30" height="48" rx="15" />
+                  <path d="M22 5v18" />
+                  <path class="mouse-click-mark" d="M10 6 6 1M5 14 0 13M13 1 12-5" />
+                </svg>
+                双击
+              </span>
+              <span class="empty-state-dot"></span>
+              <span class="empty-state-action">
+                <svg viewBox="0 0 44 56" focusable="false">
+                  <rect x="7" y="4" width="30" height="48" rx="15" />
+                  <path d="M22 5v18" />
+                  <path d="M22 23h15" />
+                </svg>
+                右键
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -569,7 +596,7 @@
     </aside>
   </main>
 
-  <script type="module" src="./app.js?v=20260625-generator-convert-1"></script>
+  <script type="module" src="./app.js?v=20260625-canvas-restore-1"></script>
 </body>
 
 </html>

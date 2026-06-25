@@ -48,11 +48,12 @@ export function createNodeRuntimeHelpers(deps) {
     return getElementWorldBounds(node);
   }
 
-  function addNode({ kind, title, desc, x, y, media }) {
+  function addNode({ kind, title, desc, x, y, media }, options = {}) {
     const workspaceCreator = createWorkspaceNode;
     if (typeof workspaceCreator !== "function") return null;
     return workspaceCreator({
       config: { kind, title, desc, x, y, media },
+      options,
       renderTemplate: nodeTemplate,
       emptyState: getEmptyState?.(),
       canvasWorld: getCanvasWorld?.(),

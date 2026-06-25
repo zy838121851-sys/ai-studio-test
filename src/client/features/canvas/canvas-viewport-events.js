@@ -66,6 +66,46 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
     return;
   }
   const resolvedAppRoot = appRoot || globalThis.document?.querySelector(".app");
+  let activePointerId = null;
+  let pointerSessionBound = false;
+  let lastPointerMoveEvent = null;
+
+  function isActivePointerEvent(event) {
+    return activePointerId !== null && event?.pointerId === activePointerId;
+  }
+
+  function hasActivePointerWork() {
+    return Boolean(getCanvasDrawing() || getEraserDrag() || getSelectionDrag() || getIsPanning());
+  }
+
+  function bindPointerSession(event) {
+    activePointerId = event.pointerId;
+    lastPointerMoveEvent = null;
+    if (pointerSessionBound) return;
+    pointerSessionBound = true;
+    resolvedCanvasViewport.addEventListener("pointermove", handlePointerMove);
+    resolvedCanvasViewport.addEventListener("pointerup", finishPointerInteraction);
+    resolvedCanvasViewport.addEventListener("pointercancel", finishPointerInteraction);
+    window.addEventListener("pointermove", handlePointerMove, true);
+    window.addEventListener("pointerup", finishPointerInteraction, true);
+    window.addEventListener("pointercancel", finishPointerInteraction, true);
+  }
+
+  function unbindPointerSession() {
+    if (!pointerSessionBound) {
+      activePointerId = null;
+      return;
+    }
+    pointerSessionBound = false;
+    resolvedCanvasViewport.removeEventListener("pointermove", handlePointerMove);
+    resolvedCanvasViewport.removeEventListener("pointerup", finishPointerInteraction);
+    resolvedCanvasViewport.removeEventListener("pointercancel", finishPointerInteraction);
+    window.removeEventListener("pointermove", handlePointerMove, true);
+    window.removeEventListener("pointerup", finishPointerInteraction, true);
+    window.removeEventListener("pointercancel", finishPointerInteraction, true);
+    activePointerId = null;
+    lastPointerMoveEvent = null;
+  }
 
   function capturePointer(event) {
     try {
@@ -75,12 +115,25 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
     }
   }
 
-  function finishPointerInteraction() {
+  function beginPointerInteraction(event) {
+    bindPointerSession(event);
+    capturePointer(event);
+  }
+
+  function finishPointerInteraction(event) {
+    if (event && !isActivePointerEvent(event)) return;
     if (getCanvasDrawing()) finishCanvasDrawing();
     if (getEraserDrag()) finishEraserDrag();
     if (getSelectionDrag()) finishSelectionBox();
     setIsPanning(false);
     resolvedCanvasViewport.classList.remove("dragging");
+    resolvedCanvasViewport.classList.remove("selecting");
+    try {
+      if (event?.pointerId !== undefined) resolvedCanvasViewport.releasePointerCapture?.(event.pointerId);
+    } catch {
+      // The pointer may already be released if the interaction was cancelled.
+    }
+    unbindPointerSession();
   }
 
   function canStartDrawingOnImage(event) {
@@ -102,7 +155,7 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
     hideImageEditPopover();
     selectNode(null);
     createDrawingPreview(event.clientX, event.clientY, getActiveCanvasTool());
-    capturePointer(event);
+    beginPointerInteraction(event);
   }
 
   resolvedCanvasViewport.addEventListener("pointerdown", (event) => {
@@ -143,7 +196,7 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
       hideCanvasContextMenu();
       hideImageEditPopover();
       startEraserDrag(event);
-      capturePointer(event);
+      beginPointerInteraction(event);
       return;
     }
     if (event.button === 0 && getActiveCanvasTool() && !event.target.closest(".node-card, .canvas-object")) {
@@ -183,17 +236,20 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
       });
       resolvedCanvasViewport.classList.add("selecting");
       updateSelectionBox();
-      capturePointer(event);
+      beginPointerInteraction(event);
       return;
     }
 
     setIsPanning(true);
     resolvedCanvasViewport.classList.add("dragging");
     setPanStart({ x: event.clientX - getPan().x, y: event.clientY - getPan().y });
-    capturePointer(event);
+    beginPointerInteraction(event);
   });
 
-  resolvedCanvasViewport.addEventListener("pointermove", (event) => {
+  function handlePointerMove(event) {
+    if (event === lastPointerMoveEvent) return;
+    lastPointerMoveEvent = event;
+    if (!isActivePointerEvent(event) || !hasActivePointerWork()) return;
     if (getCanvasDrawing()) {
       const rect = resolvedCanvasViewport.getBoundingClientRect();
       const currentDrawing = getCanvasDrawing();
@@ -221,11 +277,7 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
     if (!getIsPanning()) return;
     setPan({ x: event.clientX - getPanStart().x, y: event.clientY - getPanStart().y });
     applyTransform();
-  });
-
-  resolvedCanvasViewport.addEventListener("pointerup", finishPointerInteraction);
-  window.addEventListener("pointerup", finishPointerInteraction);
-  window.addEventListener("pointercancel", finishPointerInteraction);
+  }
 
   resolvedCanvasViewport.addEventListener("contextmenu", (event) => {
     if (event.target.closest(".add-node-menu") || event.target.closest(".image-edit-popover")) return;

@@ -1,3 +1,8 @@
+import {
+  cleanupCanvasInteractionOverlay,
+  ensureCanvasInteractionOverlay
+} from "../canvas-interaction-overlay.js";
+
 export function createEraserWorkflow({
   elements = {},
   services = {}
@@ -30,13 +35,14 @@ export function createEraserWorkflow({
   function createEraserStroke() {
     const rect = canvasViewport?.getBoundingClientRect();
     if (!rect || !canvasViewport) return null;
+    const overlay = ensureCanvasInteractionOverlay(canvasViewport) || canvasViewport;
     const stroke = document.createElement("div");
     stroke.className = "canvas-eraser-stroke";
     stroke.innerHTML = `
       <svg viewBox="0 0 ${rect.width} ${rect.height}" preserveAspectRatio="none"><path /></svg>
       <i class="canvas-eraser-cursor" aria-hidden="true"></i>
     `;
-    canvasViewport.appendChild(stroke);
+    overlay.appendChild(stroke);
     return stroke;
   }
 
@@ -91,7 +97,11 @@ export function createEraserWorkflow({
     const stroke = eraserDrag.stroke;
     if (stroke?.classList) {
       stroke.classList.add("fade-out");
-      window.setTimeout(() => stroke.remove(), 180);
+      window.setTimeout(() => {
+        const overlay = stroke.parentElement;
+        stroke.remove();
+        cleanupCanvasInteractionOverlay(overlay);
+      }, 180);
     }
     eraserDrag = null;
     if (canvasViewport?.classList) {

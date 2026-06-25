@@ -6,6 +6,10 @@ import {
 } from "../shape-tool.js";
 import { buildLinearSvg, buildPointsPath } from "../drawing-tools.js";
 import { renderToolSvg } from "../node-icons.js";
+import {
+  cleanupCanvasInteractionOverlay,
+  ensureCanvasInteractionOverlay
+} from "../canvas-interaction-overlay.js";
 
 const FREEHAND_DRAW_TOOLS = new Set(["pen", "laser"]);
 const LASER_TRAIL_LIFETIME = 1500;
@@ -41,7 +45,7 @@ function stopLaserTrailLoop(drawing) {
 
 function removeLaserTrailPreview(drawing) {
   stopLaserTrailLoop(drawing);
-  drawing?.preview?.remove?.();
+  removeDrawingPreview(drawing?.preview);
 }
 
 function animateLaserTrail(drawing) {
@@ -51,7 +55,13 @@ function animateLaserTrail(drawing) {
     drawing.laserFrameId = window.requestAnimationFrame(() => animateLaserTrail(drawing));
     return;
   }
-  drawing.preview.remove();
+  removeDrawingPreview(drawing.preview);
+}
+
+function removeDrawingPreview(preview) {
+  const overlay = preview?.parentElement;
+  preview?.remove?.();
+  cleanupCanvasInteractionOverlay(overlay);
 }
 
 function appendLaserPoint(drawing, now = performance.now()) {
@@ -271,6 +281,7 @@ export function createCanvasDrawingWorkflow({
 
   function createDrawingPreview(startClientX, startClientY, tool) {
     const rect = canvasViewport.getBoundingClientRect();
+    const overlay = ensureCanvasInteractionOverlay(canvasViewport) || canvasViewport;
     const preview = createDrawingPreviewElement({
       viewportRect: rect,
       tool,
@@ -279,7 +290,7 @@ export function createCanvasDrawingWorkflow({
         ? buildLaserTrailSvg(viewportRect)
         : `<svg viewBox="0 0 ${viewportRect.width} ${viewportRect.height}" preserveAspectRatio="none"><path /></svg>`
     });
-    canvasViewport.appendChild(preview);
+    overlay.appendChild(preview);
     const drawingState = createDrawingState({
       tool,
       preview,
@@ -332,7 +343,7 @@ export function createCanvasDrawingWorkflow({
       renderLaserTrail(drawing);
       return;
     }
-    drawing.preview.remove();
+    removeDrawingPreview(drawing.preview);
     if (!moved) return;
     if (FREEHAND_DRAW_TOOLS.has(tool)) {
       const worldPoints = drawing.points.map((point) => viewportPointToWorld(viewportRect.left + point.x, viewportRect.top + point.y));

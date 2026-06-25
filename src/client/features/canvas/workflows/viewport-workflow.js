@@ -18,7 +18,6 @@ export function createViewportWorkflow({
     getZoom = () => 1,
     setZoom = () => {},
     getDefaultPan = () => ({ x: 0, y: 0 }),
-    getSelectedNode = () => null,
     getCanvasNodeRect = () => [],
     isStackMemberHidden = (node) => node?.classList?.contains("stack-member-hidden") || false,
     isImageEditPopoverOpen = () => false,
@@ -38,6 +37,7 @@ export function createViewportWorkflow({
   } = runtime;
 
   function applyTransform() {
+    resetCanvasViewportScroll();
     const pan = getPan();
     const zoom = getZoom();
     canvasWorld.style.transform = getCanvasTransformStyle(pan, zoom);
@@ -53,6 +53,13 @@ export function createViewportWorkflow({
     positionShapeFormatToolbar();
     positionAgentBubble();
     notifyCanvasViewTransformed("viewport-workflow");
+    resetCanvasViewportScroll();
+  }
+
+  function resetCanvasViewportScroll() {
+    if (!canvasViewport) return;
+    if (canvasViewport.scrollLeft) canvasViewport.scrollLeft = 0;
+    if (canvasViewport.scrollTop) canvasViewport.scrollTop = 0;
   }
 
   function notifyCanvasViewTransformed(source) {
@@ -71,12 +78,6 @@ export function createViewportWorkflow({
   }
 
   function returnViewToContent() {
-    const selectedNode = getSelectedNode();
-    if (selectedNode && !isStackMemberHidden(selectedNode)) {
-      centerViewOnNode(selectedNode, getZoom());
-      return;
-    }
-
     const nodes = getCanvasNodeRect().filter((node) => !isStackMemberHidden(node));
     if (!nodes.length) {
       setPan(getDefaultPan());

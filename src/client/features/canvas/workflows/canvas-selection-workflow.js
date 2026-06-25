@@ -1,5 +1,9 @@
 import { applySelectionBoxRect, getWorldSelectionArea } from "../selection-box.js";
 import { rectsIntersect } from "../canvas-geometry.js";
+import {
+  cleanupCanvasInteractionOverlay,
+  ensureCanvasInteractionOverlay
+} from "../canvas-interaction-overlay.js";
 
 export function createCanvasSelectionWorkflow({
   elements = {},
@@ -22,7 +26,7 @@ export function createCanvasSelectionWorkflow({
   } = services;
 
   function createSelectionBox() {
-    return createSelectionBoxElement(canvasViewport);
+    return createSelectionBoxElement(ensureCanvasInteractionOverlay(canvasViewport) || canvasViewport);
   }
 
   function updateSelectionBox() {
@@ -39,7 +43,9 @@ export function createCanvasSelectionWorkflow({
       ? []
       : getVisibleCanvasNodes().filter((node) => rectsIntersect(getNodeBounds(node), area));
     selectNodes(selected);
+    const overlay = selectionDrag.box.parentElement;
     selectionDrag.box.remove();
+    cleanupCanvasInteractionOverlay(overlay);
     setSelectionDrag(null);
     canvasViewport?.classList.remove("selecting");
   }
