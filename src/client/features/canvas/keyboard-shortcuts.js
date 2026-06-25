@@ -15,6 +15,7 @@ export function bindCanvasKeyboardShortcuts({ root, stateHost, actions }) {
     setAICoreState,
     clearPendingUploadChoice,
     deleteSelectedNode,
+    hideImageEditPopover,
     undoLastCanvasAction,
     redoLastCanvasAction,
     recordUndoAction,
@@ -26,11 +27,17 @@ export function bindCanvasKeyboardShortcuts({ root, stateHost, actions }) {
 
   root.addEventListener("paste", (event) => {
     const target = event.target;
-    if (isEditablePasteTarget(target) || document.body?.dataset?.view !== "canvas") return;
+    if (document.body?.dataset?.view !== "canvas") return;
+    const generatorPasteTarget = target?.closest?.(".node-image-generator") || null;
+    if (isEditablePasteTarget(target) && !generatorPasteTarget) return;
 
     const files = getClipboardImageFiles(event.clipboardData);
     if (files.length) {
       event.preventDefault();
+      if (generatorPasteTarget || getActiveImageGeneratorNode()) {
+        dispatchGeneratorReferenceFiles(files);
+        return;
+      }
       uploadAsReference?.(files, getCanvasPastePoint(viewportPointToWorld));
       return;
     }
@@ -41,6 +48,10 @@ export function bindCanvasKeyboardShortcuts({ root, stateHost, actions }) {
     event.preventDefault();
     importExternalImageUrl(externalImageUrl)
       .then((file) => {
+        if (generatorPasteTarget || getActiveImageGeneratorNode()) {
+          dispatchGeneratorReferenceFiles([file]);
+          return;
+        }
         uploadAsReference?.([file], getCanvasPastePoint(viewportPointToWorld));
       })
       .catch((error) => {
@@ -51,6 +62,12 @@ export function bindCanvasKeyboardShortcuts({ root, stateHost, actions }) {
 
   root.addEventListener("keydown", (event) => {
     const target = event.target;
+    if (event.key === "Delete" && shouldDeleteSelectedImageFromEditPopover(target)) {
+      event.preventDefault();
+      deleteSelectedNode?.();
+      hideImageEditPopover?.({ preserveDraft: false });
+      return;
+    }
     if (isEditablePasteTarget(target)) return;
 
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "z" && !event.shiftKey) {
@@ -97,6 +114,26 @@ export function bindCanvasKeyboardShortcuts({ root, stateHost, actions }) {
       deleteSelectedNode?.();
     }
   }, { capture: true });
+}
+
+function getActiveImageGeneratorNode() {
+  const active = document.activeElement?.closest?.(".node-image-generator");
+  if (active) return active;
+  return document.querySelector(".node-image-generator.selected[data-active-selection='true']")
+    || document.querySelector(".node-image-generator.selected")
+    || null;
+}
+
+function dispatchGeneratorReferenceFiles(files = []) {
+  document.dispatchEvent(new CustomEvent("canvas:image-generator-reference-files", {
+    detail: { files }
+  }));
+}
+
+function shouldDeleteSelectedImageFromEditPopover(target) {
+  const popover = document.querySelector("#imageEditPopover.open");
+  if (!popover?.contains?.(target)) return false;
+  return Boolean(document.querySelector(".node-image.selected"));
 }
 
 function isEditablePasteTarget(target) {

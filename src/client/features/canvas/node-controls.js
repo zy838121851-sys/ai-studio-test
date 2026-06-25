@@ -21,12 +21,19 @@ export function createNodeControlsManager({
   selectImageNode = () => {}
 }) {
   const ensureResizeHandles = (node) => {
-    if (node.querySelector(".resize-handle")) return;
+    const handleRoot = node.classList.contains("node-image-generator")
+      ? node.querySelector(".image-generator-stage") || node
+      : node;
+    if (node.classList.contains("node-image-generator")) {
+      node.querySelectorAll(":scope > .resize-handle, .image-generator-frame > .resize-handle")
+        .forEach((handle) => handle.remove());
+    }
+    if (handleRoot.querySelector(".resize-handle")) return;
     ["nw", "ne", "sw", "se"].forEach((corner) => {
       const handle = document.createElement("span");
       handle.className = `resize-handle resize-${corner}`;
       handle.dataset.resize = corner;
-      node.appendChild(handle);
+      handleRoot.appendChild(handle);
     });
   };
 
@@ -155,6 +162,7 @@ export function createNodeControlsManager({
       ensureImageToolbar(node);
       ensureImageCornerActions(node);
     }
+    if (node.classList.contains("node-image-generator")) return;
     if (node.querySelector(".node-expand")) return;
     const button = document.createElement("button");
     button.type = "button";

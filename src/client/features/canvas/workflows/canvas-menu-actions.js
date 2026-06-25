@@ -2,6 +2,7 @@
 
 const NODE_PRESETS = {
   text: { kind: "2d", title: "Text node", desc: "Script, copy, notes" },
+  "image-generator": { kind: "image-generator", title: "图像生成器", desc: "Text-to-image and image-to-image generator" },
   audio: { kind: "video", title: "Audio node", desc: "Audio, rhythm and visual references" },
   playlist: { kind: "video", title: "Playlist", desc: "Organize shots, images or clips" }
 };
@@ -250,7 +251,7 @@ export function bindCanvasMenuActions({
     }
 
     if (action === "group") {
-      groupSelectedNodes({ targetNode, addNode, selectNode, addChat, recordUndoAction });
+      groupSelectedNodes({ targetNode, addNode, selectNode, addChat });
       return;
     }
 
@@ -396,7 +397,7 @@ function createSelectionActionBar({
       if (selection.mode === "ungroup") {
         ungroupNodes({ targetNode, selectNode, addChat });
       } else {
-        groupSelectedNodes({ targetNode, addNode, selectNode, addChat, recordUndoAction });
+        groupSelectedNodes({ targetNode, addNode, selectNode, addChat });
       }
     } else if (action === "compare") {
       openImageCompareFromSelection({
@@ -1038,7 +1039,7 @@ function areLayoutSnapshotsEqual(a, b) {
 function getNodeLayoutBounds(node) {
   if (node?.classList?.contains("node-image")) {
     const frame = node.querySelector(".image-frame");
-    const width = Math.max(1, node.offsetWidth || parseFloat(node.style.width || "0") || 1);
+    const width = Math.max(1, frame?.offsetWidth || node.offsetWidth || parseFloat(node.style.width || "0") || 1);
     const height = Math.max(
       1,
       frame?.offsetHeight || getImageFrameHeightFromAspect(node, width) || parseFloat(node.style.minHeight || "0") || 1
@@ -1243,8 +1244,7 @@ function groupSelectedNodes({
   targetNode = null,
   addNode = () => null,
   selectNode = null,
-  addChat = () => {},
-  recordUndoAction = null
+  addChat = () => {}
 } = {}) {
   const members = sortNodesByCanvasPosition(getGroupableSelection(targetNode))
     .filter(isCanvasImageNode)
@@ -1253,11 +1253,6 @@ function groupSelectedNodes({
     addChat("assistant", "请先选择至少 2 个模块再打组。");
     return null;
   }
-  layoutNodesInCompactGallery(members, {
-    gap: 8,
-    recordUndoAction,
-    type: "group-arrange-images"
-  });
   const bounds = getNodesUnionBounds(members);
   const padding = 28;
   const groupId = `group-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`;
@@ -1275,12 +1270,13 @@ function groupSelectedNodes({
     width: bounds.width + padding * 2,
     height: bounds.height + padding * 2
   });
-  const firstMember = members[0];
-  if (firstMember?.parentElement && groupNode.parentElement === firstMember.parentElement) {
-    firstMember.parentElement.insertBefore(groupNode, firstMember);
+  const firstDomMember = getEarliestDomNode(members);
+  if (firstDomMember?.parentElement && groupNode.parentElement === firstDomMember.parentElement) {
+    firstDomMember.parentElement.insertBefore(groupNode, firstDomMember);
   }
   members.forEach((node) => {
     node.dataset.groupId = groupId;
+    node.style.zIndex = String(Math.max(2, normalizeLayerZIndex(node.style.zIndex, 2)));
   });
   selectCanvasNodes([groupNode, ...members], selectNode);
   return groupNode;
@@ -1296,6 +1292,7 @@ function configureGroupNode(groupNode, {
   groupNode.dataset.kind = "group";
   groupNode.dataset.groupId = groupId || groupNode.dataset.groupId || "";
   groupNode.dataset.groupBackground = background;
+  groupNode.style.zIndex = "0";
   groupNode.style.width = `${Math.max(120, Math.round(width || groupNode.offsetWidth || 320))}px`;
   groupNode.style.minHeight = `${Math.max(90, Math.round(height || groupNode.offsetHeight || 220))}px`;
   groupNode.style.background = background;
@@ -1303,6 +1300,15 @@ function configureGroupNode(groupNode, {
     <div class="canvas-group-label">Group</div>
     <div class="canvas-group-fill" aria-hidden="true"></div>
   `;
+}
+
+function getEarliestDomNode(nodes = []) {
+  return nodes
+    .filter((node) => node?.parentElement)
+    .sort((a, b) => {
+      if (a === b) return 0;
+      return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_PRECEDING ? 1 : -1;
+    })[0] || null;
 }
 
 function getGroupableSelection(targetNode = null) {

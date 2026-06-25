@@ -35,6 +35,31 @@ export function renderNodeTemplate({
     `;
   }
 
+  if (kind === "image-generator") {
+    return `
+      <div class="image-generator-head">
+        <span class="image-generator-title-icon">▣</span>
+        <strong>${safeTitle || "图像生成器"}</strong>
+        <span class="image-generator-size">1024 × 1024</span>
+      </div>
+      <div class="image-generator-stage">
+        <figure class="image-generator-frame" data-generator-dropzone>
+          <div class="image-generator-placeholder" data-generator-placeholder>
+            <svg viewBox="0 0 96 96" aria-hidden="true">
+              <path d="M18 72l22-32 16 22 9-12 13 22H18z" />
+              <circle cx="67" cy="31" r="8" />
+            </svg>
+          </div>
+          <img class="image-generator-result" alt="生成结果" draggable="false" hidden />
+          <div class="image-generator-loading" hidden>
+            <div class="generation-spinner"></div>
+            <span>正在生成图片</span>
+          </div>
+        </figure>
+      </div>
+    `;
+  }
+
   if (kind === "model") {
     return `
       <div class="model-viewer">

@@ -35,7 +35,12 @@ export function createWorkspaceCanvasGenerationCompositionRuntime({
       setUploadChoiceHover: services.setUploadChoiceHover,
       syncCanvasTransform: services.syncCanvasTransform,
       registerUploadedAsset: services.registerUploadedAsset,
-      registerGeneratedAsset: services.registerGeneratedAsset
+      registerGeneratedAsset: services.registerGeneratedAsset,
+      postJsonRequest: services.postJsonRequest,
+      buildChatImagePayload: services.buildChatImagePayload,
+      readFileAsDataUrl: services.readFileAsDataUrl,
+      readImageSourceAsDataUrl: services.readImageSourceAsDataUrl,
+      saveCurrentProject: services.saveCurrentProject
     },
     defaults
   });

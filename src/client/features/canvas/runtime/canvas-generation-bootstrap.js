@@ -2,6 +2,7 @@ import { createDirectorCardWorkflow } from "../../agent/workflows/director-card-
 import { createPromptGenerationWorkflow } from "../../ai/workflows/prompt-generation-workflow.js";
 import { createGenerationNodeWorkflow } from "../workflows/generation-node-workflow.js";
 import { createGenerationUploadWorkflow } from "../workflows/generation-upload-workflow.js";
+import { createImageGeneratorWorkflow } from "../workflows/image-generator-workflow.js";
 import { createModelViewerWorkflow } from "../workflows/model-viewer-workflow.js";
 
 export function createCanvasGenerationBootstrap({
@@ -84,11 +85,34 @@ export function createCanvasGenerationBootstrap({
     }
   });
 
+  const imageGeneratorWorkflow = createImageGeneratorWorkflow({
+    elements: {
+      canvasWorld: elements.canvasWorld
+    },
+    services: {
+      addNode: services.addNode,
+      addGenerationPreview: generationNodeWorkflow.addGenerationPreview,
+      addChat: services.addChat,
+      buildChatImagePayload: services.buildChatImagePayload,
+      detectGenerationKind: services.detectGenerationKind,
+      getZoom: state.getZoom,
+      postJsonRequest: services.postJsonRequest,
+      readFileAsDataUrl: services.readFileAsDataUrl,
+      readImageSourceAsDataUrl: services.readImageSourceAsDataUrl,
+      recordCanvasEvent: services.recordCanvasEvent,
+      registerGeneratedAsset: services.registerGeneratedAsset,
+      replacePreviewWithImage: generationNodeWorkflow.replacePreviewWithImage,
+      saveCurrentProject: services.saveCurrentProject,
+      selectNode: services.selectNode
+    }
+  });
+
   return {
     ...generationNodeWorkflow,
     ...modelViewerWorkflow,
     ...directorCardWorkflow,
     ...promptGenerationWorkflow,
-    ...generationUploadWorkflow
+    ...generationUploadWorkflow,
+    ...imageGeneratorWorkflow
   };
 }

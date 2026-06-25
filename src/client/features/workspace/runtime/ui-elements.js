@@ -52,6 +52,7 @@ export function collectWorkspaceUiElements(root = document) {
     imageEditPopover: root.querySelector("#imageEditPopover"),
     editImageThumb: root.querySelector("#editImageThumb"),
     editAddRef: root.querySelector("#editAddRef"),
+    editReferenceInput: root.querySelector("#editReferenceInput"),
     imageEditPrompt: root.querySelector("#imageEditPrompt"),
     imageEditModel: root.querySelector("#imageEditModel"),
     imageEditSize: root.querySelector("#imageEditSize"),

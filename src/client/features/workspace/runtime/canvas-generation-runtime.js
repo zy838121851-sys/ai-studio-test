@@ -20,7 +20,8 @@ export function createWorkspaceCanvasGenerationAppRuntime({
       getChatImageFiles: state.getChatImageFiles,
       setChatImageFiles: state.setChatImageFiles,
       setUploadDragDepth: state.setUploadDragDepth,
-      setChatDragDepth: state.setChatDragDepth
+      setChatDragDepth: state.setChatDragDepth,
+      getZoom: state.getZoom
     },
     services: {
       createGenerationPreviewNode: services.createGenerationPreviewNode,
@@ -46,7 +47,12 @@ export function createWorkspaceCanvasGenerationAppRuntime({
       setUploadChoiceHover: services.setUploadChoiceHover,
       syncCanvasTransform: services.syncCanvasTransform,
       registerUploadedAsset: services.registerUploadedAsset,
-      registerGeneratedAsset: services.registerGeneratedAsset
+      registerGeneratedAsset: services.registerGeneratedAsset,
+      postJsonRequest: services.postJsonRequest,
+      buildChatImagePayload: services.buildChatImagePayload,
+      readFileAsDataUrl: services.readFileAsDataUrl,
+      readImageSourceAsDataUrl: services.readImageSourceAsDataUrl,
+      saveCurrentProject: services.saveCurrentProject
     },
     defaults: {
       directorActions: defaults.directorActions,

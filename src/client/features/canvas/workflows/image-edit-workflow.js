@@ -8,6 +8,7 @@ export function createImageEditWorkflow({
     imageEditPopover,
     editImageThumb,
     editAddRef,
+    editReferenceInput,
     imageEditPrompt
   } = elements;
 
@@ -20,6 +21,7 @@ export function createImageEditWorkflow({
     getSelectedNodes = () => new Set(),
     postJsonRequest = async () => ({}),
     runImageEditCommand = () => Promise.resolve(),
+    readFileAsDataUrl = (file) => fileToDataUrl(file),
     buildImageTextEditPrompt = (items = []) => "",
     hideCanvasContextMenu = () => {},
     hideAddNodeMenu = () => {},
@@ -32,10 +34,15 @@ export function createImageEditWorkflow({
     editingImageNode: null,
     textEditingImageNode: null,
     imageEditReferenceNodes: [],
+    imageEditReferenceImages: [],
     imageEditDrafts: new WeakMap(),
     imageEditPromptBound: false,
-    imageEditReferenceBound: false
+    imageEditReferenceBound: false,
+    imageEditReferenceInputBound: false,
+    imageEditPositionFrame: 0
   };
+
+  globalThis.document?.addEventListener?.("canvas:view-transformed", scheduleImageEditPopoverPosition);
 
   function getImageNodeSrc(node) {
     return node?.querySelector?.(".image-frame img")?.src || "";
@@ -89,23 +96,41 @@ export function createImageEditWorkflow({
       });
       editAddRef?.before(thumb);
     });
+    state.imageEditReferenceImages.slice(0, Math.max(0, 3 - refs.length)).forEach((item, index) => {
+      const thumb = document.createElement("img");
+      thumb.className = "edit-reference-thumb";
+      thumb.src = item.dataUrl;
+      thumb.alt = `上传参考图 ${index + 1}`;
+      thumb.title = "点击移除上传参考图";
+      thumb.addEventListener("click", () => {
+        state.imageEditReferenceImages = state.imageEditReferenceImages.filter((reference) => reference !== item);
+        renderImageEditReferences();
+      });
+      editAddRef?.before(thumb);
+    });
     if (editAddRef) {
-      editAddRef.disabled = refs.length >= 3;
-      editAddRef.title = refs.length >= 3 ? "\u6700\u591a\u5f15\u7528 3 \u5f20\u53c2\u8003\u56fe" : "\u4ece\u5f53\u524d\u9009\u4e2d\u56fe\u7247\u6dfb\u52a0\u53c2\u8003";
+      const totalRefs = refs.length + state.imageEditReferenceImages.length;
+      editAddRef.disabled = totalRefs >= 3;
+      editAddRef.title = totalRefs >= 3 ? "\u6700\u591a\u5f15\u7528 3 \u5f20\u53c2\u8003\u56fe" : "\u4e0a\u4f20\u53c2\u8003\u56fe";
       editAddRef.setAttribute("aria-label", editAddRef.title);
     }
   }
 
-  function addSelectedReferences() {
-    const current = state.imageEditReferenceNodes.length
-      ? state.imageEditReferenceNodes
-      : [state.editingImageNode].filter(Boolean);
-    const selected = getSelectedImageNodes();
-    state.imageEditReferenceNodes = normalizeReferenceNodes([
-      current[0],
-      ...current.slice(1),
-      ...selected.filter((node) => node !== current[0])
-    ]);
+  function openReferenceUpload() {
+    if (!editReferenceInput || editAddRef?.disabled) return;
+    editReferenceInput.click();
+  }
+
+  async function addUploadedReferences(files = []) {
+    const imageFiles = Array.from(files || []).filter((file) => file?.type?.startsWith("image/"));
+    if (!imageFiles.length) return;
+    const remainingSlots = Math.max(0, 3 - normalizeReferenceNodes(state.imageEditReferenceNodes).length - state.imageEditReferenceImages.length);
+    if (!remainingSlots) return;
+    const next = await Promise.all(imageFiles.slice(0, remainingSlots).map(async (file) => ({
+      name: file.name || "reference image",
+      dataUrl: await readFileAsDataUrl(file)
+    })));
+    state.imageEditReferenceImages = [...state.imageEditReferenceImages, ...next].slice(0, 3);
     renderImageEditReferences();
   }
 
@@ -137,8 +162,15 @@ export function createImageEditWorkflow({
       state.imageEditPromptBound = true;
     }
     if (!state.imageEditReferenceBound && editAddRef) {
-      editAddRef.addEventListener("click", addSelectedReferences);
+      editAddRef.addEventListener("click", openReferenceUpload);
       state.imageEditReferenceBound = true;
+    }
+    if (!state.imageEditReferenceInputBound && editReferenceInput) {
+      editReferenceInput.addEventListener("change", () => {
+        addUploadedReferences(editReferenceInput.files || []);
+        editReferenceInput.value = "";
+      });
+      state.imageEditReferenceInputBound = true;
     }
   }
 
@@ -147,6 +179,7 @@ export function createImageEditWorkflow({
     imageEditPopover?.classList.remove("open");
     state.editingImageNode = null;
     state.imageEditReferenceNodes = [];
+    state.imageEditReferenceImages = [];
   }
 
   function ensureImageTextPanel() {
@@ -241,7 +274,8 @@ export function createImageEditWorkflow({
     }
     bindImageEditDraftInput();
     state.editingImageNode = node;
-    state.imageEditReferenceNodes = normalizeReferenceNodes([node, ...getSelectedImageNodes().filter((item) => item !== node)]);
+    state.imageEditReferenceNodes = normalizeReferenceNodes([node]);
+    state.imageEditReferenceImages = [];
     renderImageEditReferences();
     const promptValue = presetPrompt || getImageEditDraft(node);
     if (imageEditPrompt) imageEditPrompt.value = promptValue;
@@ -264,18 +298,32 @@ export function createImageEditWorkflow({
     });
   }
 
+  function scheduleImageEditPopoverPosition() {
+    if (!isImageEditPopoverOpen()) return;
+    if (state.imageEditPositionFrame) return;
+    const requestFrame = globalThis.requestAnimationFrame || ((callback) => globalThis.setTimeout?.(callback, 0));
+    state.imageEditPositionFrame = requestFrame(() => {
+      state.imageEditPositionFrame = 0;
+      if (isImageEditPopoverOpen()) positionImageEditPopover();
+    });
+  }
+
   function handleImageEditSubmit() {
     if (!imageEditPrompt) return;
     const sourceNode = state.editingImageNode;
     if (!sourceNode) return;
     saveImageEditDraft(sourceNode);
     return Promise.resolve(runImageEditCommand(sourceNode, imageEditPrompt.value, "AI Image Editing", {
-      referenceNodes: state.imageEditReferenceNodes.slice()
+      referenceNodes: state.imageEditReferenceNodes.slice(),
+      referenceImages: state.imageEditReferenceImages.map((item) => item.dataUrl).filter(Boolean)
     }))
       .then((result) => {
         const results = Array.isArray(result) ? result : [result];
         const hasError = results.some((item) => item?.error);
-        if (!hasError) clearImageEditDraft(sourceNode);
+        if (!hasError) {
+          clearImageEditDraft(sourceNode);
+          state.imageEditReferenceImages = [];
+        }
         return result;
       });
   }
@@ -283,6 +331,7 @@ export function createImageEditWorkflow({
   function handleImageEditCancel() {
     clearImageEditDraft();
     if (imageEditPrompt) imageEditPrompt.value = "";
+    state.imageEditReferenceImages = [];
     hideImageEditPopover({ preserveDraft: false });
   }
 
@@ -320,4 +369,13 @@ export function createImageEditWorkflow({
     isTextEditingImageNode,
     isImageTextPanelOpen
   };
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error || new Error("Unable to read image file"));
+    reader.readAsDataURL(file);
+  });
 }

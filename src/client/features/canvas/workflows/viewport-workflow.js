@@ -24,6 +24,7 @@ export function createViewportWorkflow({
     isImageEditPopoverOpen = () => false,
     isImageTextPanelOpen = () => false,
     positionImageEditPopover = () => {},
+    positionGeneratorPopover = () => {},
     positionTextFormatToolbar = () => {},
     positionShapeFormatToolbar = () => {},
     positionAgentBubble = () => {},
@@ -47,9 +48,18 @@ export function createViewportWorkflow({
     if (isImageTextPanelOpen()) {
       positionTextPanel();
     }
+    positionGeneratorPopover();
     positionTextFormatToolbar();
     positionShapeFormatToolbar();
     positionAgentBubble();
+    notifyCanvasViewTransformed("viewport-workflow");
+  }
+
+  function notifyCanvasViewTransformed(source) {
+    const ownerDocument = canvasWorld?.ownerDocument || globalThis.document;
+    ownerDocument?.dispatchEvent?.(new CustomEvent("canvas:view-transformed", {
+      detail: { source }
+    }));
   }
 
   function centerViewOnNode(node, targetZoom = 1.18) {

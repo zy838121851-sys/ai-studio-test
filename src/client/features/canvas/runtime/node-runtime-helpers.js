@@ -65,17 +65,23 @@ export function createNodeRuntimeHelpers(deps) {
       initModelViewer: getInitModelViewer(),
       onImageLoaded: (node, image) => {
         const frame = node.querySelector(".image-frame");
-        node.dataset.imageNaturalWidth = String(image.naturalWidth || "");
-        node.dataset.imageNaturalHeight = String(image.naturalHeight || "");
-        const naturalAspect = `${image.naturalWidth} / ${Math.max(1, image.naturalHeight)}`;
-        const naturalRatio = image.naturalWidth / Math.max(1, image.naturalHeight);
-        const currentAspect = String(frame?.style?.aspectRatio || "").replace(/\s+/g, "");
-        const shouldRepairLegacyGeneratedSquare = node.dataset.sourceMode === "generated"
-          && node.dataset.manualSize === "true"
-          && currentAspect === "1/1"
-          && Math.abs(naturalRatio - 1) > 0.01
-          && !node.dataset.cropOriginalAspect;
-        if (shouldRepairLegacyGeneratedSquare) {
+        const naturalWidth = Number(image.naturalWidth || 0);
+        const naturalHeight = Number(image.naturalHeight || 0);
+        node.dataset.imageNaturalWidth = String(naturalWidth || "");
+        node.dataset.imageNaturalHeight = String(naturalHeight || "");
+        if (node.dataset.sourceMode === "generated") {
+          if (naturalWidth > 0) node.dataset.outputWidth = String(naturalWidth);
+          if (naturalHeight > 0) node.dataset.outputHeight = String(naturalHeight);
+        }
+        const naturalAspect = `${naturalWidth} / ${Math.max(1, naturalHeight)}`;
+        const naturalRatio = naturalWidth / Math.max(1, naturalHeight);
+        const currentRatio = parseAspectRatio(frame?.style?.aspectRatio || "");
+        const shouldRepairGeneratedAspect = node.dataset.sourceMode === "generated"
+          && naturalWidth > 0
+          && naturalHeight > 0
+          && !node.dataset.cropOriginalAspect
+          && (!currentRatio || Math.abs(currentRatio - naturalRatio) > 0.01);
+        if (shouldRepairGeneratedAspect) {
           frame.style.aspectRatio = naturalAspect;
         }
         if (!node.dataset.manualSize) {
@@ -107,4 +113,15 @@ export function createNodeRuntimeHelpers(deps) {
     getNodeBounds,
     addNode
   };
+}
+
+function parseAspectRatio(value = "") {
+  const text = String(value || "").trim();
+  if (!text) return 0;
+  if (text.includes("/")) {
+    const [width, height] = text.split("/").map((part) => Number.parseFloat(part.trim()));
+    return width > 0 && height > 0 ? width / height : 0;
+  }
+  const numeric = Number.parseFloat(text);
+  return numeric > 0 ? numeric : 0;
 }

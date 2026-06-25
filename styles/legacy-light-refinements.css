@@ -55,6 +55,46 @@ body[data-theme="light"] .canvas-context-menu span {
   background: rgba(24, 34, 48, 0.08) !important;
 }
 
+body[data-theme="light"][data-view="canvas"] .add-node-menu {
+  width: 300px !important;
+  padding: 10px !important;
+  border-radius: 16px !important;
+}
+
+body[data-theme="light"][data-view="canvas"] .add-node-menu.open {
+  gap: 4px !important;
+}
+
+body[data-theme="light"][data-view="canvas"] .add-node-menu .add-menu-title {
+  margin: 4px 12px 8px !important;
+  color: #182230 !important;
+  font-size: 19px !important;
+  font-weight: 850 !important;
+}
+
+body[data-theme="light"][data-view="canvas"] .add-node-menu button,
+body[data-theme="light"][data-view="canvas"] .add-node-menu button:first-of-type {
+  display: flex !important;
+  align-items: center !important;
+  min-height: 50px !important;
+  padding: 0 12px !important;
+  border-radius: 13px !important;
+}
+
+body[data-theme="light"][data-view="canvas"] .add-node-menu span {
+  display: none !important;
+}
+
+body[data-theme="light"][data-view="canvas"] .add-node-menu strong {
+  font-size: 18px !important;
+  font-weight: 850 !important;
+  letter-spacing: 0 !important;
+}
+
+body[data-theme="light"][data-view="canvas"] .add-node-menu small {
+  display: none !important;
+}
+
 /* Compact chrome: collapsible rail, D project menu, simplified zoom bar */
 .top-actions {
   display: none !important;

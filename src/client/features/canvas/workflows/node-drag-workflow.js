@@ -201,6 +201,10 @@ export function createNodeDragWorkflow({
     const isLocked = () => node.dataset.locked === "true" || node.classList.contains("node-locked");
 
     node.addEventListener("pointerdown", (event) => {
+      if (isGeneratorPanelInteraction(node, event.target)) {
+        event.stopPropagation();
+        return;
+      }
       if (getActiveCanvasTool() === "eraser" && event.button === 0) {
         event.preventDefault();
         event.stopPropagation();
@@ -240,10 +244,7 @@ export function createNodeDragWorkflow({
           x: parseFloat(node.style.left || "0"),
           y: parseFloat(node.style.top || "0")
         };
-        originalSize = {
-          width: node.offsetWidth,
-          height: node.offsetHeight
-        };
+        originalSize = getResizableNodeSize(node);
         resizeSnapshot = snapshotNodeStyle(node);
         return;
       }
@@ -289,15 +290,30 @@ export function createNodeDragWorkflow({
         const fromTop = resizeCorner.includes("n");
         const minWidth = node.classList.contains("canvas-object") ? 24 : 160;
         const minHeight = node.classList.contains("canvas-object") ? 24 : 120;
-        const width = Math.max(minWidth, originalSize.width + (fromLeft ? -deltaX : deltaX));
-        const height = Math.max(minHeight, originalSize.height + (fromTop ? -deltaY : deltaY));
+        const rawWidth = Math.max(minWidth, originalSize.width + (fromLeft ? -deltaX : deltaX));
+        const rawHeight = Math.max(minHeight, originalSize.height + (fromTop ? -deltaY : deltaY));
+        const { width, height } = getNextResizableNodeSize(node, {
+          rawWidth,
+          rawHeight,
+          deltaX,
+          deltaY,
+          minWidth,
+          minHeight,
+          originalSize
+        });
         node.dataset.manualSize = "true";
         node.style.width = `${width}px`;
-        if (!node.classList.contains("node-image") && !node.classList.contains("node-model")) {
+        if (isImageFrameResizableNode(node)) {
+          const frame = getResizableFrame(node);
+          if (frame) frame.style.aspectRatio = `${Math.round(width)} / ${Math.max(1, Math.round(height))}`;
+          node.style.minHeight = "";
+          node.style.height = "";
+        } else if (!node.classList.contains("node-model")) {
           node.style.minHeight = `${height}px`;
         }
         if (fromLeft) node.style.left = `${original.x + originalSize.width - width}px`;
         if (fromTop) node.style.top = `${original.y + originalSize.height - height}px`;
+        if (node.classList.contains("node-image")) positionCanvasSuggestionBubble(node);
         if (isEditingImageNode(node) && isImageEditPopoverOpen()) positionImageEditPopover();
         if (isTextEditingImageNode(node) && isImageTextPanelOpen()) positionImageTextPanel();
         return;
@@ -329,8 +345,14 @@ export function createNodeDragWorkflow({
       if (isTextEditingImageNode(node) && isImageTextPanelOpen()) positionImageTextPanel();
     });
 
-    node.addEventListener("pointerup", () => {
+    node.addEventListener("pointerup", (event) => {
+      const wasDragging = dragging;
+      const wasResizing = resizing;
+      const clickDistance = start
+        ? Math.hypot(event.clientX - start.x, event.clientY - start.y)
+        : Infinity;
       if (dragging) {
+        dispatchImageGeneratorDropReference(node, event);
         recordStyleUndo("move-nodes", dragSnapshots);
       }
       if (resizing) {
@@ -350,6 +372,16 @@ export function createNodeDragWorkflow({
       if (shouldRestoreTextToolbar && getSelectedNode()?.classList.contains("canvas-text")) {
         positionTextFormatToolbar();
       }
+      if (
+        node.classList.contains("node-image-generator")
+        && wasDragging
+        && !wasResizing
+        && clickDistance <= 4
+      ) {
+        node.ownerDocument?.dispatchEvent(new CustomEvent("canvas:image-generator-selected", {
+          detail: { node, openPopover: true, reason: "click" }
+        }));
+      }
       dragSnapshots = [];
       resizeSnapshot = null;
     });
@@ -365,10 +397,76 @@ export function createNodeDragWorkflow({
     });
   }
 
+  function getResizableNodeSize(node) {
+    const frame = getResizableFrame(node);
+    return {
+      width: Math.max(1, frame?.offsetWidth || node.offsetWidth || 1),
+      height: Math.max(1, frame?.offsetHeight || node.offsetHeight || 1)
+    };
+  }
+
+  function getNextResizableNodeSize(node, {
+    rawWidth,
+    rawHeight,
+    deltaX,
+    deltaY,
+    minWidth,
+    minHeight,
+    originalSize
+  }) {
+    if (!isImageFrameResizableNode(node)) {
+      return { width: rawWidth, height: rawHeight };
+    }
+    const ratio = originalSize.width / Math.max(1, originalSize.height);
+    const useHeightDelta = Math.abs(deltaY) > Math.abs(deltaX);
+    const width = useHeightDelta
+      ? Math.max(minWidth, rawHeight * ratio)
+      : Math.max(minWidth, rawWidth);
+    const height = Math.max(minHeight, width / Math.max(0.001, ratio));
+    return { width, height };
+  }
+
+  function isImageFrameResizableNode(node) {
+    return Boolean(
+      node?.classList?.contains("node-image")
+      || node?.classList?.contains("node-loading-image")
+      || node?.classList?.contains("node-image-generator")
+    );
+  }
+
+  function getResizableFrame(node) {
+    if (!isImageFrameResizableNode(node)) return null;
+    return node.querySelector(".image-frame, .image-generator-frame");
+  }
+
+  function isGeneratorPanelInteraction(node, target) {
+    if (!node?.classList?.contains("node-image-generator")) return false;
+    return Boolean(target?.closest?.(
+      ".image-generator-panel, .image-generator-reference-thumb, input[data-generator-reference-input], button[data-generator-add-reference], button[data-generator-cancel], button[data-generator-submit], button[data-generator-expand], select[data-generator-model], select[data-generator-ratio], select[data-generator-count], textarea[data-image-generator-prompt], button[data-generator-select-trigger], button[data-generator-select-option]"
+    ));
+  }
+
+  function dispatchImageGeneratorDropReference(node, event) {
+    if (!node?.classList?.contains("node-image")) return;
+    const root = node.ownerDocument || document;
+    const generatorNode = root.elementsFromPoint?.(event.clientX, event.clientY)
+      ?.map((element) => element.closest?.(".node-image-generator"))
+      ?.find((candidate) => candidate && candidate !== node);
+    if (!generatorNode) return;
+    root.dispatchEvent(new CustomEvent("canvas:image-generator-add-image-node", {
+      detail: {
+        generatorNode,
+        sourceNode: node
+      }
+    }));
+  }
+
   function snapshotNodeStyle(node) {
+    const frame = node?.querySelector?.(".image-frame, .image-generator-frame, .model-viewer");
     return {
       node,
-      style: node?.getAttribute("style") || ""
+      style: node?.getAttribute("style") || "",
+      frameAspectRatio: frame?.style?.aspectRatio || ""
     };
   }
 
@@ -402,9 +500,11 @@ export function createNodeDragWorkflow({
   }
 
   function restoreNodeStyles(snapshots = []) {
-    snapshots.forEach(({ node, style }) => {
+    snapshots.forEach(({ node, style, frameAspectRatio }) => {
       if (!node?.isConnected) return;
       node.setAttribute("style", style);
+      const frame = node.querySelector?.(".image-frame, .image-generator-frame, .model-viewer");
+      if (frame && frameAspectRatio !== undefined) frame.style.aspectRatio = frameAspectRatio;
       if (!node.classList.contains("node-director")) positionDirectorCard(node);
       if (node.classList.contains("node-image")) positionCanvasSuggestionBubble(node);
     });
@@ -416,17 +516,34 @@ export function createNodeDragWorkflow({
 
   function recordStyleUndo(type, beforeSnapshots = []) {
     const changed = beforeSnapshots
-      .filter(({ node, style }) => node?.isConnected && node.getAttribute("style") !== style)
-      .map(({ node, style }) => ({
+      .filter(({ node, style, frameAspectRatio }) => {
+        if (!node?.isConnected) return false;
+        const frame = node.querySelector?.(".image-frame, .image-generator-frame, .model-viewer");
+        return node.getAttribute("style") !== style || (frame?.style?.aspectRatio || "") !== frameAspectRatio;
+      })
+      .map(({ node, style, frameAspectRatio }) => {
+        const frame = node.querySelector?.(".image-frame, .image-generator-frame, .model-viewer");
+        return {
         node,
         beforeStyle: style,
-        afterStyle: node.getAttribute("style") || ""
-      }));
+        afterStyle: node.getAttribute("style") || "",
+        beforeFrameAspectRatio: frameAspectRatio,
+        afterFrameAspectRatio: frame?.style?.aspectRatio || ""
+      };
+      });
     if (!changed.length) return;
     recordUndoAction({
       type,
-      undo: () => restoreNodeStyles(changed.map(({ node, beforeStyle }) => ({ node, style: beforeStyle }))),
-      redo: () => restoreNodeStyles(changed.map(({ node, afterStyle }) => ({ node, style: afterStyle })))
+      undo: () => restoreNodeStyles(changed.map(({ node, beforeStyle, beforeFrameAspectRatio }) => ({
+        node,
+        style: beforeStyle,
+        frameAspectRatio: beforeFrameAspectRatio
+      }))),
+      redo: () => restoreNodeStyles(changed.map(({ node, afterStyle, afterFrameAspectRatio }) => ({
+        node,
+        style: afterStyle,
+        frameAspectRatio: afterFrameAspectRatio
+      })))
     });
   }
 

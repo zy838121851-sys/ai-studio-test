@@ -105,6 +105,7 @@ export { createEraserWorkflow } from "./workflows/eraser-workflow.js";
 export { createGenerationNodeWorkflow } from "./workflows/generation-node-workflow.js";
 export { createGenerationUploadWorkflow } from "./workflows/generation-upload-workflow.js";
 export { createImageEditWorkflow } from "./workflows/image-edit-workflow.js";
+export { createImageGeneratorWorkflow } from "./workflows/image-generator-workflow.js";
 export { createModelViewerWorkflow } from "./workflows/model-viewer-workflow.js";
 export { createNodeDragWorkflow } from "./workflows/node-drag-workflow.js";
 export { createSelectionWorkflow } from "./workflows/selection-workflow.js";

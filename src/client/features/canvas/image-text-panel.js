@@ -28,8 +28,10 @@ export function positionImageTextPanel({ panel, node, width = 330, gap = 22 }) {
   if (!panel || !node) return;
   const nodeX = Number.parseFloat(node.style.left || "0");
   const nodeY = Number.parseFloat(node.style.top || "0");
+  const frame = node.querySelector?.(".image-frame");
+  const nodeWidth = frame?.offsetWidth || node.offsetWidth;
   panel.style.width = `${width}px`;
-  panel.style.left = `${nodeX + node.offsetWidth + gap}px`;
+  panel.style.left = `${nodeX + nodeWidth + gap}px`;
   panel.style.top = `${nodeY}px`;
 }
 

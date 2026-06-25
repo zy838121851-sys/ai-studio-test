@@ -337,6 +337,7 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
       markGeneratedNodeContext,
       escapeHtml: libDeps.escapeHtmlText,
       addChat: (...args) => chatRuntime.addChat(...args),
+      saveCurrentProject: (...args) => projectHomeRuntime.saveCurrentProject?.(...args),
       registerUploadedAsset: (...args) => assetRuntime.uploadAssetFile?.(...args),
       registerGeneratedAsset: (...args) => assetRuntime.registerGeneratedAsset?.(...args),
       registerImageAsset: (payload = {}) => assetRuntime.registerGeneratedAsset?.({

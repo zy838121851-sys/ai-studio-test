@@ -394,8 +394,8 @@ body[data-view="canvas"] .node-loading-image.selected {
 body[data-view="canvas"] .node-image.selected .image-frame,
 body[data-view="canvas"] .node-model.selected .model-viewer,
 body[data-view="canvas"] .node-loading-image.selected .image-frame {
-  outline: 1px solid rgba(31, 46, 72, 0.22) !important;
-  outline-offset: 5px !important;
+  outline: 2px solid rgba(31, 46, 72, 0.22) !important;
+  outline-offset: 0 !important;
 }
 
 body[data-view="canvas"] .resize-handle {
@@ -404,6 +404,38 @@ body[data-view="canvas"] .resize-handle {
   border: 2px solid rgba(255, 255, 255, 0.94) !important;
   background: rgba(24, 34, 48, 0.78) !important;
   box-shadow: 0 8px 18px rgba(31, 46, 72, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+}
+
+body[data-view="canvas"] .node-image .resize-nw,
+body[data-view="canvas"] .node-model .resize-nw,
+body[data-view="canvas"] .node-loading-image .resize-nw,
+body[data-view="canvas"] .node-image-generator .resize-nw {
+  left: -6px !important;
+  top: -6px !important;
+}
+
+body[data-view="canvas"] .node-image .resize-ne,
+body[data-view="canvas"] .node-model .resize-ne,
+body[data-view="canvas"] .node-loading-image .resize-ne,
+body[data-view="canvas"] .node-image-generator .resize-ne {
+  right: -6px !important;
+  top: -6px !important;
+}
+
+body[data-view="canvas"] .node-image .resize-sw,
+body[data-view="canvas"] .node-model .resize-sw,
+body[data-view="canvas"] .node-loading-image .resize-sw,
+body[data-view="canvas"] .node-image-generator .resize-sw {
+  left: -6px !important;
+  bottom: -6px !important;
+}
+
+body[data-view="canvas"] .node-image .resize-se,
+body[data-view="canvas"] .node-model .resize-se,
+body[data-view="canvas"] .node-loading-image .resize-se,
+body[data-view="canvas"] .node-image-generator .resize-se {
+  right: -6px !important;
+  bottom: -6px !important;
 }
 
 .ai-core.agent-toggle-pop .ai-core-orb {

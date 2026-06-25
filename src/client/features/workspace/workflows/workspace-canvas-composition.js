@@ -90,10 +90,13 @@ export function createWorkspaceCanvasCompositionBundle({
       restoredNodes.push(node);
     });
     if (restoredNodes.length) canvasSelectionRuntime.selectNodes(restoredNodes);
+    dispatchImageGeneratorSelected(restoredNodes);
+    return restoredNodes;
   }
 
   function detachHistoryNodes(entries = []) {
     canvasSelectionRuntime.clearSelection();
+    dispatchImageGeneratorDeleted(entries.map(({ node }) => node));
     entries.forEach(({ node }) => {
       if (node?.isConnected) node.remove();
     });
@@ -111,6 +114,7 @@ export function createWorkspaceCanvasCompositionBundle({
       undo: () => {
         if (!node.isConnected) return;
         canvasSelectionRuntime.selectNode(null);
+        dispatchImageGeneratorDeleted([node]);
         node.remove();
       },
       redo: () => {
@@ -242,6 +246,7 @@ export function createWorkspaceCanvasCompositionBundle({
       nextSibling: node.nextSibling
     }));
     deleteSelectedNodeBase();
+    dispatchImageGeneratorDeleted(nodes);
     recordUndoAction({
       type: "delete-nodes",
       undo: () => {
@@ -276,4 +281,24 @@ export function createWorkspaceCanvasCompositionBundle({
     undoLastCanvasAction,
     redoLastCanvasAction
   };
+
+  function dispatchImageGeneratorDeleted(nodes = []) {
+    const generatorNodes = getImageGeneratorNodes(nodes);
+    if (!generatorNodes.length) return;
+    document.dispatchEvent(new CustomEvent("canvas:image-generator-deleted", {
+      detail: { nodes: generatorNodes }
+    }));
+  }
+
+  function dispatchImageGeneratorSelected(nodes = []) {
+    const generatorNode = getImageGeneratorNodes(nodes).find((node) => node.isConnected);
+    if (!generatorNode) return;
+    document.dispatchEvent(new CustomEvent("canvas:image-generator-selected", {
+      detail: { node: generatorNode }
+    }));
+  }
+
+  function getImageGeneratorNodes(nodes = []) {
+    return Array.from(nodes || []).filter((node) => node?.matches?.(".node-image-generator"));
+  }
 }

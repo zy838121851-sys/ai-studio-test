@@ -126,6 +126,7 @@ export function createCanvasSurfaceBootstrap({
       isImageEditPopoverOpen: services.isImageEditPopoverOpen,
       isImageTextPanelOpen: services.isImageTextPanelOpen,
       positionImageEditPopover: services.positionImageEditPopover,
+      positionGeneratorPopover: services.positionGeneratorPopover,
       positionTextPanel: services.positionTextPanel,
       positionTextFormatToolbar: services.positionTextFormatToolbar,
       positionShapeFormatToolbar: services.positionShapeFormatToolbar,
@@ -145,7 +146,15 @@ export function createCanvasSurfaceBootstrap({
     getPan: state.getPan,
     setPan: state.setPan,
     getZoom: state.getZoom,
-    setZoom: state.setZoom
+    setZoom: state.setZoom,
+    isImageEditPopoverOpen: services.isImageEditPopoverOpen,
+    isImageTextPanelOpen: services.isImageTextPanelOpen,
+    positionImageEditPopover: services.positionImageEditPopover,
+    positionGeneratorPopover: services.positionGeneratorPopover,
+    positionTextPanel: services.positionTextPanel,
+    positionTextFormatToolbar: services.positionTextFormatToolbar,
+    positionShapeFormatToolbar: services.positionShapeFormatToolbar,
+    positionAgentBubble: services.positionAgentBubble
   });
 
   return {

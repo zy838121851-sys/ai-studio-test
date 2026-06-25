@@ -22,6 +22,7 @@ export function createCanvasInteractionRuntimeInputs({
       renderImageTextInputs: services.renderImageTextInputs,
       positionImageTextPanelElement: services.positionImageTextPanelElement,
       readImageSourceAsDataUrl: services.readImageSourceAsDataUrl,
+      readFileAsDataUrl: services.readFileAsDataUrl,
       postJsonRequest: services.postJsonRequest,
       runImageEditCommand: services.runImageEditCommand,
       buildImageTextEditPrompt: services.buildImageTextEditPrompt,

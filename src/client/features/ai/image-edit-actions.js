@@ -1,4 +1,5 @@
 import { postJson } from "./api-client.js";
+import { getInverseCanvasUiScale } from "../canvas/canvas-viewport.js";
 
 const IMAGE_EDIT_OUTPUT_GAP = 28;
 
@@ -26,8 +27,9 @@ function getNodeWorldRect(node) {
   if (!node) return null;
   const left = readCssNumber(node.style.left, 0);
   const top = readCssNumber(node.style.top, 0);
-  const width = node.offsetWidth || readCssNumber(node.style.width, 0);
-  const height = node.offsetHeight || readCssNumber(node.style.height, 0) || (getNodeAspectRatio(node) ? width / getNodeAspectRatio(node) : 0);
+  const frame = node.querySelector?.(".image-frame");
+  const width = frame?.offsetWidth || node.offsetWidth || readCssNumber(node.style.width, 0);
+  const height = frame?.offsetHeight || node.offsetHeight || readCssNumber(node.style.height, 0) || (getNodeAspectRatio(node) ? width / getNodeAspectRatio(node) : 0);
   if (!width || !height) return null;
   return {
     node,
@@ -80,10 +82,10 @@ export function getImageEditSourceMeta(sourceNode, img, fallbackTitle = "\u56fe\
   const sourceFrame = sourceNode?.querySelector(".image-frame");
   const sourceX = Number.parseFloat(sourceNode?.style.left || "0");
   const sourceY = Number.parseFloat(sourceNode?.style.top || "0");
-  const sourceWidth = sourceNode?.offsetWidth || 360;
+  const sourceWidth = sourceFrame?.offsetWidth || sourceNode?.offsetWidth || 360;
   const sourceAspect = sourceFrame?.style.aspectRatio || `${img?.naturalWidth || 1} / ${img?.naturalHeight || 1}`;
   const sourceRatio = readAspectRatio(sourceAspect);
-  const sourceHeight = sourceNode?.offsetHeight || sourceFrame?.offsetHeight || (sourceRatio ? sourceWidth / sourceRatio : 240);
+  const sourceHeight = sourceFrame?.offsetHeight || sourceNode?.offsetHeight || (sourceRatio ? sourceWidth / sourceRatio : 240);
   const fileName = sourceNode?.querySelector(".image-file-name")?.textContent.trim() || fallbackTitle;
   return { fileName, sourceX, sourceY, sourceWidth, sourceHeight, sourceAspect };
 }
@@ -101,8 +103,9 @@ export function positionImageEditPopover({
   if (!node || !popover) return null;
   const nodeX = Number.parseFloat(node.style.left || "0");
   const nodeY = Number.parseFloat(node.style.top || "0");
-  const nodeWidth = node.offsetWidth;
-  const nodeHeight = node.offsetHeight;
+  const frame = node.querySelector?.(".image-frame");
+  const nodeWidth = frame?.offsetWidth || node.offsetWidth;
+  const nodeHeight = frame?.offsetHeight || node.offsetHeight;
   const safeZoom = Math.max(0.2, Math.min(2.5, zoom || 1));
   const editScreenScale = Math.max(0.76, Math.min(1.22, 1 / safeZoom));
   const screenNodeWidth = nodeWidth * safeZoom;
@@ -115,7 +118,7 @@ export function positionImageEditPopover({
   const targetScreenHeight = Math.max(minScreenHeight, Math.min(maxScreenHeight, targetScreenWidth * 0.42));
   const popoverWidth = Math.round(targetScreenWidth / safeZoom);
   const popoverHeight = Math.round(targetScreenHeight / safeZoom);
-  const editScale = Math.max(0.34, Math.min(3.6, editScreenScale / safeZoom));
+  const editScale = getInverseCanvasUiScale(safeZoom);
   const scaledGap = (gap * editScreenScale) / safeZoom;
 
   popover.style.width = `${popoverWidth}px`;

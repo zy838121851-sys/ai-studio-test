@@ -50,6 +50,7 @@ export function createCanvasSurfaceRuntimeInputs({
       getElementWorldBounds: services.getElementWorldBounds,
       isImageTextPanelOpen: () => canvasInteractionRuntime.isImageTextPanelOpen(),
       positionImageEditPopover: canvasInteractionRuntime.positionImageEditPopover,
+      positionGeneratorPopover: (...args) => getGenerationRuntime().positionGeneratorPopover?.(...args),
       showImageEditPopover: canvasInteractionRuntime.showImageEditPopover,
       positionTextPanel: canvasInteractionRuntime.positionImageTextPanel,
       positionShapeFormatToolbar: canvasInteractionRuntime.positionShapeFormatToolbar,

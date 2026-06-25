@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-store" />
   <title>Fresh Ideas AI Canvas</title>
-  <link rel="stylesheet" href="./styles.css?v=20260624-tool-rail-open-1" />
+  <link rel="stylesheet" href="./styles.css?v=20260625-generator-convert-1" />
 </head>
 
 <body>
@@ -335,17 +335,8 @@
         <div class="asset-list" id="assetList"></div>
       </div>
 
-      <div class="add-node-menu" id="addNodeMenu" aria-label="添加节点">
-        <div class="add-menu-title">添加节点</div>
-        <button data-add-node="text" type="button"><span>☰</span><strong>文本</strong><small>脚本、广告词、品牌文案</small></button>
-        <button data-add-node="image" type="button"><span>▧</span><strong>图片</strong></button>
-        <button data-add-node="video" type="button"><span>▷</span><strong>视频</strong></button>
-        <button data-add-node="audio" type="button"><span>≋</span><strong>音频</strong></button>
-        <button data-add-node="model" type="button"><span>◌</span><strong>3D 世界</strong><em>Beta</em></button>
-        <div class="add-menu-title">辅助工具</div>
-        <button data-add-node="playlist" type="button"><span>▦</span><strong>播放列表</strong><em>Beta</em></button>
-        <div class="add-menu-title">添加资源</div>
-        <button data-add-node="upload" type="button"><span>↥</span><strong>上传</strong></button>
+      <div class="add-node-menu" id="addNodeMenu" aria-label="图像生成器">
+        <button data-add-node="image-generator" type="button"><strong>图像生成器</strong></button>
       </div>
 
       <div class="canvas-context-menu" id="canvasContextMenu" aria-label="画布菜单">
@@ -411,9 +402,10 @@
         <div class="edit-head">
           <img id="editImageThumb" alt="当前图片" />
           <button class="add-ref-btn" id="editAddRef" type="button" title="添加参考">+</button>
+          <input class="visually-hidden" id="editReferenceInput" type="file" accept="image/*" multiple />
           <button class="expand-edit" type="button" title="展开">↗</button>
         </div>
-        <textarea id="imageEditPrompt" rows="3" placeholder="描述任何你想要生成的内容，按 @ 引用素材，/ 呼出指令"></textarea>
+        <textarea id="imageEditPrompt" rows="3" placeholder="描述任何你想要生成的内容"></textarea>
         <div class="edit-actions">
           <select id="imageEditModel" title="图片模型">
             <option value="qwen-image-2.0-pro">Qwen Image 2.0 Pro</option>
@@ -440,6 +432,40 @@
           <button id="imageEditSubmit" class="send" type="button">↑</button>
         </div>
       </div>
+
+      <form class="image-edit-popover" id="imageGeneratorPopover" data-image-generator-form aria-label="图像生成器">
+        <div class="edit-head">
+          <div class="image-generator-reference-list" data-generator-reference-list></div>
+          <button class="add-ref-btn" data-generator-add-reference type="button" title="上传参考图">+</button>
+          <input class="visually-hidden" data-generator-reference-input type="file" accept="image/*" multiple />
+          <button class="expand-edit" data-generator-expand type="button" title="展开">↗</button>
+        </div>
+        <textarea data-image-generator-prompt rows="3" placeholder="描述任何你想要生成的内容"></textarea>
+        <div class="edit-actions">
+          <select data-generator-model title="图片模型">
+            <option value="qwen-image-2.0-pro" selected>Qwen Image 2.0 Pro</option>
+            <option value="qwen-image-2.0">Qwen Image 2.0</option>
+            <option value="qwen-image-edit-max">Qwen Image Edit Max</option>
+            <option value="qwen-image-edit-plus">Qwen Image Edit Plus</option>
+          </select>
+          <select data-generator-ratio title="生成尺寸">
+            <option value="1:1" selected>1:1</option>
+            <option value="16:9">16:9</option>
+            <option value="9:16">9:16</option>
+            <option value="4:3">4:3</option>
+            <option value="3:4">3:4</option>
+          </select>
+          <select data-generator-count title="生成张数">
+            <option value="1" selected>1 张</option>
+            <option value="2">2 张</option>
+            <option value="3">3 张</option>
+            <option value="4">4 张</option>
+          </select>
+          <span></span>
+          <button data-generator-cancel type="button">取消</button>
+          <button data-generator-submit class="send" type="submit">↑</button>
+        </div>
+      </form>
 
       <div class="text-format-toolbar" id="textFormatToolbar" aria-label="文字样式">
         <label class="text-color-picker" title="字体颜色">
@@ -543,7 +569,7 @@
     </aside>
   </main>
 
-  <script type="module" src="./app.js?v=20260624-external-image-paste-1"></script>
+  <script type="module" src="./app.js?v=20260625-generator-convert-1"></script>
 </body>
 
 </html>

@@ -1,4 +1,16 @@
 export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actions }) {
+  const IMAGE_DRAW_START_TOOLS = new Set([
+    "pen",
+    "laser",
+    "rect",
+    "circle",
+    "diamond",
+    "triangle",
+    "star",
+    "line",
+    "arrow"
+  ]);
+
   const {
     getPan,
     getZoom,
@@ -21,6 +33,7 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
     panForZoomAroundWorldPoint,
     viewportPointToWorld,
     applyTransform,
+    showAddNodeMenu,
     showCanvasContextMenu,
     isPointInAICore,
     setAICoreState,
@@ -70,6 +83,39 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
     resolvedCanvasViewport.classList.remove("dragging");
   }
 
+  function canStartDrawingOnImage(event) {
+    if (event.button !== 0) return false;
+    const tool = getActiveCanvasTool();
+    if (!IMAGE_DRAW_START_TOOLS.has(tool)) return false;
+    if (event.target.closest(".resize-handle")) return false;
+    if (event.target.closest("button, input, select, textarea, a, [contenteditable='true']")) return false;
+    if (event.target.closest(".image-node-toolbar, .canvas-asset-savebar, .node-download, .node-expand")) return false;
+    return Boolean(event.target.closest(".node-image .image-frame"));
+  }
+
+  function startCanvasDrawingFromEvent(event) {
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation?.();
+    hideAddNodeMenu();
+    hideCanvasContextMenu();
+    hideImageEditPopover();
+    selectNode(null);
+    createDrawingPreview(event.clientX, event.clientY, getActiveCanvasTool());
+    capturePointer(event);
+  }
+
+  resolvedCanvasViewport.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0) return;
+    if (event.target.closest(".canvas-context-menu")) return;
+    hideCanvasContextMenu();
+  }, { capture: true });
+
+  resolvedCanvasViewport.addEventListener("pointerdown", (event) => {
+    if (!canStartDrawingOnImage(event)) return;
+    startCanvasDrawingFromEvent(event);
+  }, { capture: true });
+
   resolvedCanvasViewport.addEventListener("wheel", (event) => {
     if (event.target.closest(".model-viewer")) return;
     event.preventDefault();
@@ -101,19 +147,18 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
       return;
     }
     if (event.button === 0 && getActiveCanvasTool() && !event.target.closest(".node-card, .canvas-object")) {
-      event.preventDefault();
-      event.stopPropagation();
-      hideAddNodeMenu();
-      hideCanvasContextMenu();
-      hideImageEditPopover();
-      selectNode(null);
       if (getActiveCanvasTool() === "text") {
+        event.preventDefault();
+        event.stopPropagation();
+        hideAddNodeMenu();
+        hideCanvasContextMenu();
+        hideImageEditPopover();
+        selectNode(null);
         const point = viewportPointToWorld(event.clientX, event.clientY);
         addCanvasToolNode("text", { x: point.x, y: point.y, size: { width: 240, height: 86 } });
         return;
       }
-      createDrawingPreview(event.clientX, event.clientY, getActiveCanvasTool());
-      capturePointer(event);
+      startCanvasDrawingFromEvent(event);
       return;
     }
 
@@ -193,6 +238,18 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
       return;
     }
     showCanvasContextMenu(event.clientX, event.clientY);
+  });
+
+  resolvedCanvasViewport.addEventListener("dblclick", (event) => {
+    if (event.button !== 0) return;
+    if (getActiveCanvasTool()) return;
+    if (event.target.closest(".node-card, .canvas-object, .add-node-menu, .canvas-context-menu, .image-edit-popover")) return;
+    event.preventDefault();
+    event.stopPropagation();
+    hideCanvasContextMenu();
+    hideImageEditPopover();
+    selectNode(null);
+    showAddNodeMenu?.(event.clientX, event.clientY);
   });
 
   resolvedCanvasViewport.addEventListener("auxclick", (event) => {

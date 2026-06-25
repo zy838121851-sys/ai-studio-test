@@ -29,6 +29,12 @@ export function createWorkspaceNode({
   });
 
   ensureNodeId(node);
+  if (kind === "image-generator") {
+    node.style.width = `${Number(media?.width) || 560}px`;
+    node.dataset.outputWidth = String(Number(media?.outputWidth) || 1024);
+    node.dataset.outputHeight = String(Number(media?.outputHeight) || 1024);
+    node.dataset.generatorReferenceCount = "0";
+  }
   makeDraggable(node);
 
   if (kind === "image") {
@@ -40,6 +46,13 @@ export function createWorkspaceNode({
   canvasWorld.appendChild(node);
   if (kind === "model" && media?.file) initModelViewer(node, media.file);
   selectNode(node);
+  if (kind === "image-generator") {
+    requestAnimationFrame(() => {
+      node.ownerDocument?.dispatchEvent(new CustomEvent("canvas:image-generator-selected", {
+        detail: { node, openPopover: true, reason: "created", focusPrompt: true }
+      }));
+    });
+  }
   return node;
 }
 

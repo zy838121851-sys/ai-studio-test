@@ -36,6 +36,25 @@ export function writeCanvasViewState(runtime = {}, next = {}) {
     zoomText: runtime.zoomText || document.querySelector("#zoomText"),
     zoomRange: runtime.zoomRange || document.querySelector("#zoomRange")
   });
+
+  if (runtime.isImageEditPopoverOpen?.()) {
+    runtime.positionImageEditPopover?.();
+  }
+  if (runtime.isImageTextPanelOpen?.()) {
+    (runtime.positionTextPanel || runtime.positionImageTextPanel)?.();
+  }
+  runtime.positionGeneratorPopover?.();
+  runtime.positionTextFormatToolbar?.();
+  runtime.positionShapeFormatToolbar?.();
+  runtime.positionAgentBubble?.();
+  notifyCanvasViewTransformed(runtime, "canvas-view-state");
+}
+
+function notifyCanvasViewTransformed(runtime = {}, source) {
+  const ownerDocument = runtime.canvasWorld?.ownerDocument || globalThis.document;
+  ownerDocument?.dispatchEvent?.(new CustomEvent("canvas:view-transformed", {
+    detail: { source }
+  }));
 }
 
 export function syncCanvasViewStateFromRuntime({
