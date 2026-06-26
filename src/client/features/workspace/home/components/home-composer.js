@@ -13,7 +13,7 @@ export function syncHomeModelPicker({ select, button, menu }) {
   if (!select || !button || !menu) return;
   const selected = select.options[select.selectedIndex];
   const label = button.querySelector("span");
-  if (label) label.textContent = selected?.textContent || "智能模型";
+  if (label) label.textContent = selected?.textContent || "Doubao-Seedream-5.0-lite";
   menu.querySelectorAll("[data-model-value]").forEach((item) => {
     item.classList.toggle("active", item.dataset.modelValue === select.value);
   });

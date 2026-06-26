@@ -75,6 +75,7 @@ export function createWorkspaceAICoreWorkspaceAppRuntime({
       runDirectorAction: services.runDirectorAction,
       normalizeAnalysis: services.normalizeAnalysis,
       postJsonRequest: services.postJsonRequest,
+      getChatModel: services.getChatModel,
       getNodeBounds: services.getNodeBounds,
       findCanvasNodeById: services.findCanvasNodeById,
       renderStackTray: services.renderStackTray,

@@ -1,3 +1,7 @@
+import {
+  resolveImageModelId
+} from "../../ai/model-catalog.js";
+
 export function createProjectWorkflow(ctx) {
   const { state, projectRuntime, services = {}, elements = {}, ui = {}, chat = {} } = ctx;
 
@@ -323,6 +327,7 @@ export function createProjectWorkflow(ctx) {
   }
 
   async function generateHomeProject(prompt, model, files = []) {
+    const generationModel = resolveImageModelId(model, "home");
     const project = createProject({ title: makeProjectTitle(prompt), prompt });
     if (elements.body) elements.body.classList.add("home-transitioning");
     await waitFor(260);
@@ -335,12 +340,18 @@ export function createProjectWorkflow(ctx) {
       window.setTimeout(() => elements.body.classList.remove("canvas-entering"), 620);
     }
     setChatCollapsed(false);
-    if (model && chatModelSelect) chatModelSelect.value = model;
+    if (chatModelSelect) {
+      chatModelSelect.value = generationModel;
+      chatModelSelect.dataset.modelUserSelected = "true";
+      chatModelSelect.__compactSelectSync?.();
+      chatModelSelect.dispatchEvent(new Event("change", { bubbles: true }));
+    }
     const imageFiles = getImageFilesFromList(files).slice(0, 3);
     setChatImageFiles(imageFiles);
     renderChatImagePreview();
     promptInput.value = prompt || (imageFiles.length ? "Use uploaded images to generate a high-quality concept" : "");
     promptForm.__pendingHomeGenerationFiles = imageFiles.slice();
+    promptForm.__pendingHomeGenerationModel = generationModel;
     setPendingHomeGenerationFocus(true);
     promptForm.requestSubmit();
     const updatedProject = updateActiveProject({ itemCount: 1 });

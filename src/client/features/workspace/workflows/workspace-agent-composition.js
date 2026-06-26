@@ -95,6 +95,7 @@ export function createWorkspaceAICoreWorkspaceBundle({
       runDirectorAction: actions.runDirectorAction,
       normalizeAnalysis: services.normalizeAnalysis,
       postJsonRequest: services.postJsonRequest,
+      getChatModel: services.getChatModel,
       getNodeBounds: canvas.getNodeBounds,
       findCanvasNodeById: (nodeId) => services.findCanvasNodeById(canvasWorld, nodeId),
       renderStackTray: canvas.renderStackTray,

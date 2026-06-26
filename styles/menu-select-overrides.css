@@ -1,0 +1,48 @@
+body .image-edit-popover .compact-select-menu button.compact-select-option,
+body .composer-actions .compact-select-menu button.compact-select-option {
+  opacity: 1 !important;
+  color: #182230 !important;
+  -webkit-text-fill-color: #182230 !important;
+  text-shadow: none !important;
+  mix-blend-mode: normal !important;
+}
+
+body .image-edit-popover .compact-select-menu button.compact-select-option:hover,
+body .image-edit-popover .compact-select-menu button.compact-select-option:focus-visible,
+body .image-edit-popover .compact-select-menu button.compact-select-option.selected,
+body .composer-actions .compact-select-menu button.compact-select-option:hover,
+body .composer-actions .compact-select-menu button.compact-select-option:focus-visible,
+body .composer-actions .compact-select-menu button.compact-select-option.selected {
+  opacity: 1 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background: linear-gradient(135deg, var(--theme-primary), #5ac8fa) !important;
+  background-color: var(--theme-primary) !important;
+  box-shadow: 0 10px 22px color-mix(in srgb, var(--theme-primary) 24%, transparent) !important;
+  text-shadow: none !important;
+  mix-blend-mode: normal !important;
+}
+
+body #imageGeneratorPopover .generator-select-menu button.generator-select-option,
+body #homeModelMenu button[data-model-value] {
+  opacity: 1 !important;
+  color: #182230 !important;
+  -webkit-text-fill-color: #182230 !important;
+  text-shadow: none !important;
+  mix-blend-mode: normal !important;
+}
+
+body #imageGeneratorPopover .generator-select-menu button.generator-select-option:hover,
+body #imageGeneratorPopover .generator-select-menu button.generator-select-option:focus-visible,
+body #imageGeneratorPopover .generator-select-menu button.generator-select-option.selected,
+body #homeModelMenu button[data-model-value]:hover,
+body #homeModelMenu button[data-model-value]:focus-visible,
+body #homeModelMenu button[data-model-value].active {
+  opacity: 1 !important;
+  color: #182230 !important;
+  -webkit-text-fill-color: #182230 !important;
+  background: rgba(74, 144, 226, 0.15) !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  mix-blend-mode: normal !important;
+}

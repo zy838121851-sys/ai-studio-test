@@ -7,6 +7,7 @@ import { executeAgentAction } from "../features/agent/agent-actions.js";
 import { registerAIProvider, setActiveAIProvider } from "../features/ai/ai-client.js";
 import { mockProvider } from "../features/ai/providers/mock-provider.js";
 import { serverAPIProvider } from "../features/ai/providers/server-api-provider.js";
+import { initModelCatalog } from "../features/ai/model-catalog.js";
 import { initAuthEntry } from "../features/auth/auth-entry.js";
 import { initAssetPanel } from "../features/workspace/asset-library/asset-panel.js";
 import { initAgentPanel } from "../features/agent/agent-panel.js";
@@ -18,6 +19,7 @@ export async function initApp() {
   setActiveAIProvider("server");
 
   const workspaceMount = mountWorkspaceApp(document);
+  const modelCatalog = await initModelCatalog(document);
   const authEntry = initAuthEntry(document);
   const workspaceRuntime = workspaceMount.runtime;
   const canvasController = initCanvasController({ eventBus, root: document });
@@ -42,6 +44,7 @@ export async function initApp() {
     authEntry,
     workspaceMount,
     workspaceRuntime,
+    modelCatalog,
     executeAgentAction: (suggestion) => executeAgentAction(suggestion, {
       eventBus,
       canvasRoot: document

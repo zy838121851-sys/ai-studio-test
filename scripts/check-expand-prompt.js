@@ -1,5 +1,5 @@
 import { buildEnhancedExpandPrompt, expandImage } from "../src/server/services/ai.service.js";
-import { registerAIProvider, setAIProvider } from "../src/server/services/providers/index.js";
+import { registerAIProvider } from "../src/server/services/providers/index.js";
 import {
   buildExpandPrompt,
   createDefaultExpandBox
@@ -64,7 +64,7 @@ assert(enhancedPrompt.includes("Use this outpaint direction"), "Enhanced prompt 
 assert(enhancedPrompt.includes("different camera angle"), "Enhanced prompt should include negative constraints");
 
 const restoreSuccessProvider = registerAIProvider({
-  id: "expand-check-success",
+  id: "qwen",
   async analyzeImage({ image, prompt }) {
     assert(image === "data:image/mock;base64,abc", "Planner should receive the source image");
     assert(prompt.includes("image outpainting planner"), "Planner should receive the planning prompt");
@@ -83,7 +83,8 @@ const restoreSuccessProvider = registerAIProvider({
       })
     };
   },
-  async expandImage({ image, prompt, expand }) {
+  async expandImage({ model, image, prompt, expand }) {
+    assert(model === "wan2.7-image-pro", "Expand should default to wan2.7-image-pro");
     assert(image === "data:image/mock;base64,abc", "Expand should receive the source image");
     assert(expand.leftScale === 1.32, "Expand should receive scale parameters");
     assert(prompt.includes("Automatic expansion plan from the source image"), "Expand prompt should include the auto plan");
@@ -98,7 +99,6 @@ const restoreSuccessProvider = registerAIProvider({
   }
 });
 
-setAIProvider("expand-check-success");
 const successResult = await expandImage({
   image: "data:image/mock;base64,abc",
   prompt: basePrompt,
@@ -106,14 +106,14 @@ const successResult = await expandImage({
 });
 assert(successResult.imageUrl === "mock://expanded-success", "Successful expand should return provider result");
 restoreSuccessProvider();
-setAIProvider("qwen");
 
 const restoreFallbackProvider = registerAIProvider({
-  id: "expand-check-fallback",
+  id: "qwen",
   async analyzeImage() {
     throw new Error("simulated planner failure");
   },
-  async expandImage({ prompt }) {
+  async expandImage({ model, prompt }) {
+    assert(model === "wan2.7-image-pro", "Fallback expand should default to wan2.7-image-pro");
     assert(prompt === basePrompt, "Planner failure should fall back to the original expand prompt");
     return { imageUrl: "mock://expanded-fallback", prompt };
   },
@@ -125,7 +125,6 @@ const restoreFallbackProvider = registerAIProvider({
   }
 });
 
-setAIProvider("expand-check-fallback");
 const originalWarn = console.warn;
 console.warn = () => {};
 let fallbackResult;
@@ -140,6 +139,5 @@ try {
 }
 assert(fallbackResult.imageUrl === "mock://expanded-fallback", "Fallback expand should still return provider result");
 restoreFallbackProvider();
-setAIProvider("qwen");
 
 console.log("Expand prompt checks passed.");

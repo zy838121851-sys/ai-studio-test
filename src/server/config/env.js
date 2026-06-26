@@ -15,6 +15,10 @@ export const env = {
   dashscopeTaskUrl:
     process.env.DASHSCOPE_TASK_URL ||
     "https://dashscope.aliyuncs.com/api/v1/tasks",
+  volcengineApiKey: process.env.VOLCENGINE_API_KEY || "",
+  volcengineImageUrl:
+    process.env.VOLCENGINE_IMAGE_URL ||
+    "https://ark.cn-beijing.volces.com/api/v3/images/generations",
   maxUploadBytes: Number(process.env.MAX_UPLOAD_BYTES || 25 * 1024 * 1024),
   maxProxyImageBytes: Number(process.env.MAX_PROXY_IMAGE_BYTES || 10 * 1024 * 1024),
   uploadDir: process.env.UPLOAD_DIR || join(process.cwd(), "uploads"),

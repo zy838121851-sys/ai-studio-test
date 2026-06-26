@@ -3,11 +3,16 @@ import {
   importExternalImageUrl
 } from "../canvas-viewport-events.js";
 import { getInverseCanvasUiScale } from "../canvas-viewport.js";
+import {
+  formatModelUsage,
+  getImageModelDisplayName,
+  resolveImageModelId
+} from "../../ai/model-catalog.js";
 
 const GENERATOR_SELECTOR = ".node-image-generator";
 const GENERATOR_POPOVER_SELECTOR = "#imageGeneratorPopover";
 const OUTPUT_SIZE = "1024*1024";
-const DEFAULT_GENERATOR_MODEL = "qwen-image-2.0-pro";
+const DEFAULT_GENERATOR_MODEL = "doubao-seedream-5-0-lite-260128";
 const DEFAULT_GENERATOR_RATIO = "1:1";
 const DEFAULT_GENERATOR_COUNT = "1";
 const GENERATOR_FIXED_SIZES = {
@@ -179,6 +184,15 @@ export function createImageGeneratorWorkflow({
     scheduleGeneratorPopoverPosition();
   });
 
+  globalThis.document?.addEventListener?.("ai-studio-models-updated", () => {
+    syncGeneratorFrameToRatio(activeGeneratorNode, getGeneratorRatioValue(activeGeneratorNode));
+    syncGeneratorCustomSelects();
+  });
+
+  globalThis.document?.addEventListener?.("ai-studio-model-selection-changed", () => {
+    syncGeneratorCustomSelects();
+  });
+
   function handlePopoverClick(event) {
     const controls = getGeneratorControls();
     const node = activeGeneratorNode;
@@ -320,7 +334,9 @@ export function createImageGeneratorWorkflow({
   }
 
   async function runGeneratorBatch(node, { prompt = "", references = [] } = {}) {
-    const model = getGeneratorModel();
+    const model = resolveImageModelId(getGeneratorModel(), "generator");
+    let resultModel = model;
+    let modelUsage = `模型：${getImageModelDisplayName(model)}`;
     const count = getGeneratorCount();
     const images = references.map((item) => item.dataUrl).filter(Boolean);
     const size = resolveGeneratorOutputSize(node, references);
@@ -369,6 +385,8 @@ export function createImageGeneratorWorkflow({
           size
         }));
         if (!result?.imageUrl) throw new Error(result?.message || "Model returned without an image URL");
+        resultModel = result.requestedModel || result.model || model;
+        modelUsage = formatModelUsage(result, resultModel);
 
         const createdNode = replacePreviewWithImage(previewNode, {
           title: getGeneratorResultTitle(index, count),
@@ -379,12 +397,12 @@ export function createImageGeneratorWorkflow({
           prompt,
           sourceNode: null,
           actionType,
-          model
+          model: resultModel
         });
         if (!createdNode) throw new Error("Unable to replace generation preview");
         applyGeneratedImageNodeResult(createdNode, result.imageUrl, {
           prompt,
-          model,
+          model: resultModel,
           dimensions,
           sourceNode: null
         });
@@ -399,7 +417,9 @@ export function createImageGeneratorWorkflow({
         selectNode(createdNodes[0]);
       }
       await saveCurrentProject?.();
-      addChat("assistant", count > 1 ? `图像生成器已生成 ${count} 张结果。` : "图像生成器已生成结果。");
+      addChat("assistant", count > 1
+        ? `\u56fe\u50cf\u751f\u6210\u5668\u5df2\u751f\u6210 ${count} \u5f20\u7ed3\u679c\u3002\n${modelUsage}`
+        : `\u56fe\u50cf\u751f\u6210\u5668\u5df2\u751f\u6210\u7ed3\u679c\u3002\n${modelUsage}`);
     } catch (error) {
       console.error("[canvas] Image generator failed", error);
       if (previewNodes.length) {
@@ -1237,7 +1257,7 @@ function getActiveGeneratorNode() {
 function getGeneratorModel() {
   return globalThis.document?.querySelector?.(`${GENERATOR_POPOVER_SELECTOR} [data-generator-model]`)?.value
     || globalThis.document?.querySelector?.("#chatModelSelect")?.value
-    || "qwen-image-2.0-pro";
+    || DEFAULT_GENERATOR_MODEL;
 }
 
 function resolveGeneratorOutputSize(node, references = []) {

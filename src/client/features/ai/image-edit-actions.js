@@ -1,4 +1,7 @@
 import { postJson } from "./api-client.js";
+import {
+  formatModelUsage
+} from "./model-catalog.js";
 import { getInverseCanvasUiScale } from "../canvas/canvas-viewport.js";
 
 const IMAGE_EDIT_OUTPUT_GAP = 28;
@@ -145,6 +148,7 @@ export async function executeImageEditAction({
   outputY,
   actionType = "image_edit",
   targetLongEdge,
+  upscaleFactor,
   expand,
   referenceImages = [],
   createPreview,
@@ -190,6 +194,13 @@ export async function executeImageEditAction({
       "\u8c03\u7528\u6269\u56fe\u6a21\u578b",
       "\u5199\u5165\u753b\u5e03"
     ]
+    : actionType === "upscale"
+      ? [
+        "\u8bfb\u53d6\u539f\u56fe",
+        "\u8ba1\u7b97\u8d85\u5206\u500d\u7387",
+        "\u8c03\u7528\u4fdd\u771f\u8d85\u5206\u6a21\u578b",
+        "\u5199\u5165\u753b\u5e03"
+      ]
     : [
       "\u8bfb\u53d6\u539f\u56fe",
       "\u6574\u7406\u7f16\u8f91\u6307\u4ee4",
@@ -215,6 +226,7 @@ export async function executeImageEditAction({
       images,
       size: requestSize,
       actionType,
+      upscaleFactor,
       expand
     });
     let outputUrl = result.imageUrl || (result.imageBase64 ? `data:image/png;base64,${result.imageBase64}` : "");
@@ -222,6 +234,8 @@ export async function executeImageEditAction({
       outputUrl = await makeBackgroundTransparent(outputUrl);
     }
     updateThinking?.(thinking, 3);
+    const resultModel = result.requestedModel || result.model || model || "";
+    const modelUsage = formatModelUsage(result, resultModel);
     if (outputUrl) {
       const imageNode = replacePreview(previewNode, {
         title: `${label}\u7ed3\u679c.png`,
@@ -232,13 +246,13 @@ export async function executeImageEditAction({
         prompt,
         sourceNode,
         actionType,
-        model
+        model: resultModel
       });
       addSourceBadge?.(imageNode, sourceNode);
-      addChatImage?.("assistant", outputUrl, `${label}\u5df2\u5b8c\u6210\uff0c\u5e76\u653e\u5728\u539f\u56fe\u53f3\u4fa7`);
+      addChatImage?.("assistant", outputUrl, `${label}\u5df2\u5b8c\u6210\uff0c\u5e76\u653e\u5728\u539f\u56fe\u53f3\u4fa7\n${modelUsage}`);
     }
     updateThinking?.(thinking, 4, true);
-    updateChat?.(progress, result.message || `${label}\u5df2\u5b8c\u6210\u3002`);
+    updateChat?.(progress, `${result.message || `${label}\u5df2\u5b8c\u6210\u3002`}\n${modelUsage}`);
     return { ...result, imageUrl: outputUrl };
   } catch (error) {
     previewNode?.classList.add("generation-failed");

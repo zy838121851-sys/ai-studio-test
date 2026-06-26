@@ -11,7 +11,10 @@ export const serverAPIProvider = {
 
   async generateSuggestions(context = {}) {
     const canvasState = context.canvasState || context;
-    return postJson("/api/canvas-agent", { canvasState });
+    return postJson("/api/canvas-agent", {
+      canvasState,
+      model: context.model
+    });
   },
 
   async extractPrompt(input = {}) {

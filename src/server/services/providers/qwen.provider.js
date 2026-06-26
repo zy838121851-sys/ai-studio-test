@@ -107,25 +107,127 @@ export async function callWanImageExpand({ image, prompt, expand = {} } = {}) {
     requestedModel: "wanx2.1-imageedit",
     referenceCount: 1,
     taskId,
+    providerCalls: [
+      {
+        provider: "qwen",
+        model: "wanx2.1-imageedit",
+        operation: "expandImage",
+        endpoint: env.dashscopeImageEditUrl
+      },
+      {
+        provider: "qwen",
+        model: "wanx2.1-imageedit",
+        operation: "pollTask",
+        endpoint: env.dashscopeTaskUrl
+      }
+    ],
+    raw: taskResult
+  };
+}
+
+export async function callWan27ImageExpand({ model = "wan2.7-image-pro", image, prompt } = {}) {
+  if (!image) throw new Error("Missing image");
+  const resolvedModel = String(model || "").trim() || "wan2.7-image-pro";
+  const data = await callQwen({
+    model: resolvedModel,
+    content: [
+      { image },
+      { text: buildWan27ExpandPrompt(prompt) }
+    ],
+    parameters: {
+      size: "2K",
+      n: 1,
+      watermark: false
+    }
+  });
+  return {
+    imageUrl: pickImageUrl(data),
+    model: resolvedModel,
+    requestedModel: model,
+    referenceCount: 1,
+    providerCalls: [
+      {
+        provider: "qwen",
+        model: resolvedModel,
+        operation: "expandImage",
+        endpoint: env.dashscopeUrl
+      }
+    ],
+    raw: data
+  };
+}
+
+export async function callWanImageSuperResolution({ image, prompt, upscaleFactor } = {}) {
+  if (!image) throw new Error("Missing image");
+  assertApiKey();
+  const parameters = normalizeWanSuperResolutionParameters({ upscaleFactor });
+  const response = await fetch(env.dashscopeImageEditUrl, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${env.dashscopeApiKey}`,
+      "X-DashScope-Async": "enable"
+    },
+    body: JSON.stringify({
+      model: "wanx2.1-imageedit",
+      input: {
+        function: "super_resolution",
+        prompt: buildWanSuperResolutionPrompt(prompt),
+        base_image_url: image
+      },
+      parameters
+    })
+  });
+
+  const data = await response.json();
+  if (!response.ok || data.code) {
+    throw new Error(data.message || `DashScope Wan super resolution request failed: ${response.status}`);
+  }
+
+  const taskId = pickWanTaskId(data);
+  if (!taskId) throw new Error("DashScope Wan super resolution request did not return a task ID");
+  const taskResult = await pollWanImageTask(taskId);
+  const imageUrl = pickWanImageUrl(taskResult);
+  if (!imageUrl) throw new Error("DashScope Wan super resolution task succeeded without an image URL");
+  return {
+    imageUrl,
+    model: "wanx2.1-imageedit",
+    requestedModel: "wanx2.1-imageedit",
+    referenceCount: 1,
+    taskId,
+    upscaleFactor: parameters.upscale_factor,
+    providerCalls: [
+      {
+        provider: "qwen",
+        model: "wanx2.1-imageedit",
+        operation: "superResolutionImage",
+        endpoint: env.dashscopeImageEditUrl
+      },
+      {
+        provider: "qwen",
+        model: "wanx2.1-imageedit",
+        operation: "pollTask",
+        endpoint: env.dashscopeTaskUrl
+      }
+    ],
     raw: taskResult
   };
 }
 
 export async function callQwenImage({ model, prompt, images = [], size } = {}) {
-  const referenceImages = Array.from(images || []).filter(Boolean).slice(0, 3);
+  const requestedModel = String(model || "").trim() || "qwen-image-2.0-pro";
+  if (/^doubao-/i.test(requestedModel)) {
+    throw new Error(`Doubao model ${requestedModel} cannot be handled by Qwen provider`);
+  }
+  const referenceLimit = getReferenceLimit(requestedModel);
+  const referenceImages = Array.from(images || []).filter(Boolean).slice(0, referenceLimit);
   const resolvedModel = resolveImageModel({ model, hasReferences: referenceImages.length > 0 });
   const finalPrompt = buildImageGenerationPrompt({
     prompt,
     hasReferences: referenceImages.length > 0,
     referenceCount: referenceImages.length
   });
-  const parameters = {
-    n: 1,
-    prompt_extend: true,
-    watermark: false,
-    negative_prompt: "low quality, blurry, distorted, wrong text, over-sharpened, dirty image"
-  };
-  if (size) parameters.size = size;
+  const parameters = buildDashScopeImageParameters({ model: resolvedModel, size });
 
   const data = await callQwen({
     model: resolvedModel,
@@ -141,6 +243,14 @@ export async function callQwenImage({ model, prompt, images = [], size } = {}) {
     model: resolvedModel,
     requestedModel: model,
     referenceCount: referenceImages.length,
+    providerCalls: [
+      {
+        provider: "qwen",
+        model: resolvedModel,
+        operation: "generateImage",
+        endpoint: env.dashscopeUrl
+      }
+    ],
     raw: data
   };
 }
@@ -186,6 +296,20 @@ function normalizeWanScale(value) {
   return Math.max(1, Math.min(2, Number(parsed.toFixed(3))));
 }
 
+function normalizeWanSuperResolutionParameters({ upscaleFactor } = {}) {
+  return {
+    n: 1,
+    watermark: false,
+    upscale_factor: normalizeWanUpscaleFactor(upscaleFactor)
+  };
+}
+
+function normalizeWanUpscaleFactor(value) {
+  const parsed = Number(value);
+  if (!Number.isFinite(parsed)) return 1;
+  return Math.max(1, Math.min(4, Math.round(parsed)));
+}
+
 function buildWanExpandPrompt(prompt = "") {
   const userPrompt = String(prompt || "").trim();
   return [
@@ -199,14 +323,85 @@ function buildWanExpandPrompt(prompt = "") {
   ].filter(Boolean).join("\n");
 }
 
+function buildWan27ExpandPrompt(prompt = "") {
+  const userPrompt = String(prompt || "").trim();
+  return [
+    "Outpaint and expand the input image.",
+    "Keep the original image region unchanged. Do not repaint, stretch, crop, stylize, recolor, or alter any existing pixels, subjects, text, face, pose, texture direction, or composition inside the source image.",
+    "Use the expansion plan to imagine and generate only the new area outside the original borders.",
+    "The added area must continue the source image naturally with matching perspective, lighting, texture, materials, atmosphere, and visual style.",
+    "Blend the boundary seamlessly so the result looks like a larger original image.",
+    userPrompt ? `Expansion plan and user request: ${userPrompt}` : ""
+  ].filter(Boolean).join("\n");
+}
+
+function buildWanSuperResolutionPrompt(prompt = "") {
+  const userPrompt = String(prompt || "").trim();
+  return [
+    "Image super resolution.",
+    "Preserve the original image content exactly.",
+    "Improve clarity and resolution without changing composition, subject identity, colors, lighting, pose, texture direction, background, or readable text.",
+    userPrompt ? `User request: ${userPrompt}` : ""
+  ].filter(Boolean).join("\n");
+}
+
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function resolveImageModel({ model = "qwen-image-2.0-pro", hasReferences = false } = {}) {
   const requested = String(model || "").trim() || "qwen-image-2.0-pro";
-  if (!hasReferences || requested.includes("edit")) return requested;
+  if (!hasReferences || requested.includes("edit") || isWan27ImageModel(requested) || isZImageModel(requested) || requested.startsWith("qwen-image-2.0")) {
+    return requested;
+  }
   return "qwen-image-edit-plus";
+}
+
+function getReferenceLimit(model) {
+  if (isWan27ImageModel(model)) return 9;
+  if (model.startsWith("qwen-image-2.0")) return 10;
+  return 3;
+}
+
+function buildDashScopeImageParameters({ model, size } = {}) {
+  if (isWan27ImageModel(model)) {
+    return {
+      size: normalizeDashScopeImageSize(size, "2K"),
+      n: 1,
+      watermark: false
+    };
+  }
+  if (isZImageModel(model)) {
+    return {
+      size: normalizeDashScopeImageSize(size, "1024*1024"),
+      n: 1,
+      prompt_extend: false,
+      watermark: false
+    };
+  }
+  const parameters = {
+    n: 1,
+    prompt_extend: true,
+    watermark: false,
+    negative_prompt: "low quality, blurry, distorted, wrong text, over-sharpened, dirty image"
+  };
+  if (size) parameters.size = normalizeDashScopeImageSize(size, size);
+  return parameters;
+}
+
+function normalizeDashScopeImageSize(size, fallback) {
+  const value = String(size || "").trim();
+  if (!value || value === "auto") return fallback;
+  if (/^[1-4]K$/i.test(value)) return value.toUpperCase();
+  return value;
+}
+
+function isWan27ImageModel(model = "") {
+  return String(model || "").startsWith("wan2.7-image");
+}
+
+function isZImageModel(model = "") {
+  return String(model || "").startsWith("z-image-");
 }
 
 function buildImageGenerationPrompt({ prompt = "", hasReferences = false, referenceCount = 0 } = {}) {
@@ -235,6 +430,14 @@ export async function callQwenVision({ image, prompt } = {}) {
   });
   return {
     text: pickText(data),
+    providerCalls: [
+      {
+        provider: "qwen",
+        model: env.dashscopeVisionModel,
+        operation: "analyzeImage",
+        endpoint: env.dashscopeUrl
+      }
+    ],
     raw: data
   };
 }
@@ -247,6 +450,14 @@ export async function callQwenText({ prompt } = {}) {
   });
   return {
     text: pickText(data),
+    providerCalls: [
+      {
+        provider: "qwen",
+        model: env.dashscopeVisionModel,
+        operation: "generateText",
+        endpoint: env.dashscopeUrl
+      }
+    ],
     raw: data
   };
 }

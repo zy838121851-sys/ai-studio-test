@@ -39,6 +39,7 @@ export function createWorkspaceCanvasInteractionAppRuntime({
       readFileAsDataUrl: services.readFileAsDataUrl,
       postJsonRequest: services.postJsonRequest,
       runImageEditCommand: services.runImageEditCommand,
+      getImageEditModel: services.getImageEditModel,
       buildImageTextEditPrompt: services.buildImageTextEditPrompt,
       hideCanvasContextMenu: services.hideCanvasContextMenu,
       hideAddNodeMenu: services.hideAddNodeMenu,

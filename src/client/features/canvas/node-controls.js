@@ -205,28 +205,32 @@ function runImageUpscale({ node, img, targetLongEdge, runImageEditCommand }) {
   const target = targetLongEdge === 4096 ? "4K" : "2K";
   runImageEditCommand(
     node,
-    buildImageUpscalePrompt(targetLongEdge),
+    buildImageUpscalePrompt(),
     `\u9ad8\u6e05\u5316 ${target}`,
     {
       actionType: "upscale",
       count: 1,
-      outputSize: getQwenImageSizeForElement(img, { maxSize: targetLongEdge }),
-      targetLongEdge
+      targetLongEdge,
+      upscaleFactor: getImageUpscaleFactor(img, targetLongEdge)
     }
   );
 }
 
-export function buildImageUpscalePrompt(targetLongEdge = 2048) {
-  const target = Math.round(Number(targetLongEdge) || 0) === 4096 ? "4K" : "2K";
+export function buildImageUpscalePrompt() {
   return [
-    `Create a genuinely sharper ${target} super-resolution version of the reference image.`,
-    "Do not merely resize or interpolate pixels. Reconstruct real-looking fine detail from the source image.",
-    "Remove blur, softness, compression artifacts, scaling artifacts, pixelation, and muddy texture.",
-    "Restore crisp edges, local contrast, micro-texture, hair/fur/fabric/material grain, natural detail separation, and clean high-frequency detail.",
-    "Keep the original composition, subject identity, silhouette, pose, layout, colors, lighting direction, camera angle, background structure, and style consistent.",
-    "If the source is heavily blurred, infer plausible fine texture that matches the original image content without changing the subject or adding new objects.",
-    "Do not crop, extend, replace, recolor, relight, stylize, beautify, or change any readable text."
+    "Image super resolution.",
+    "Preserve the original image content exactly."
   ].join("\n");
+}
+
+export function getImageUpscaleFactor(img, targetLongEdge = 2048) {
+  const fallback = Math.round(Number(targetLongEdge) || 0) === 4096 ? 4 : 2;
+  const width = Number(img?.naturalWidth || img?.width || 0);
+  const height = Number(img?.naturalHeight || img?.height || 0);
+  const longEdge = Math.max(width, height);
+  if (!Number.isFinite(longEdge) || longEdge <= 0) return fallback;
+  const factor = Math.ceil((Number(targetLongEdge) || 2048) / longEdge);
+  return Math.max(1, Math.min(4, factor));
 }
 
 function ensureAssetSaveBar(node, {

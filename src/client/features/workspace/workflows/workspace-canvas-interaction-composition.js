@@ -17,6 +17,7 @@ export function createWorkspaceCanvasInteractionCompositionRuntime({
       readImageSourceAsDataUrl: services.readImageSourceAsDataUrl,
       postJsonRequest: services.postJsonRequest,
       runImageEditCommand: services.runImageEditCommand,
+      getImageEditModel: services.getImageEditModel,
       buildImageTextEditPrompt: services.buildImageTextEditPrompt,
       hideCanvasContextMenu: (...args) => services.hideCanvasContextMenu(...args),
       hideAddNodeMenu: (...args) => services.hideAddNodeMenu(...args),

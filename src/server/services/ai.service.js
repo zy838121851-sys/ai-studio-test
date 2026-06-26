@@ -1,4 +1,10 @@
-import { getAIProvider } from "./providers/index.js";
+import { getAIProvider, resolveImageGenerationRoute } from "./providers/index.js";
+import {
+  DEFAULT_EXPAND_MODEL,
+  DEFAULT_IMAGE_MODEL,
+  DEFAULT_UPSCALE_MODEL,
+  getModelConfig
+} from "./model-catalog.service.js";
 import {
   buildAnalyzeImagePrompt,
   buildCanvasAgentPrompt,
@@ -59,75 +65,158 @@ function normalizeExtractedTexts(value, rawText = "") {
     .map((text) => ({ text, role: "other", x: 0, y: 0, width: 0, height: 0 }));
 }
 
-export async function generateImage({ model = "qwen-image-2.0-pro", prompt, images = [], size } = {}) {
-  return getAIProvider().generateImage({ model, prompt, images, size });
+export async function generateImage({ model = DEFAULT_IMAGE_MODEL, prompt, images = [], size } = {}) {
+  const requestedModel = String(model || "").trim() || DEFAULT_IMAGE_MODEL;
+  const route = resolveImageGenerationRoute(requestedModel, "generateImage");
+  const result = await route.provider.generateImage({
+    model: route.providerModel,
+    prompt,
+    images,
+    size
+  });
+  return {
+    ...result,
+    model: result.model || route.providerModel,
+    requestedModel: route.requestedModel,
+    resolvedModel: route.resolvedModel,
+    provider: route.providerId,
+    providerModel: route.providerModel,
+    providerCalls: normalizeProviderCalls(result.providerCalls, {
+      provider: route.providerId,
+      model: route.providerModel,
+      operation: "generateImage"
+    })
+  };
 }
 
 export async function expandImage({ image, prompt, expand } = {}) {
   if (!image) throw new Error("Missing image");
-  const enhancedPrompt = await buildAutoExpandPrompt({ image, prompt, expand });
-  return getAIProvider().expandImage({ image, prompt: enhancedPrompt, expand });
+  const requestedModel = String(DEFAULT_EXPAND_MODEL).trim() || DEFAULT_IMAGE_MODEL;
+  const plan = await buildAutoExpandPrompt({ image, prompt, expand });
+  const enhancedPrompt = plan.prompt;
+  const route = resolveImageGenerationRoute(DEFAULT_EXPAND_MODEL, "expandImage");
+  const result = await route.provider.expandImage({
+    model: route.providerModel,
+    image,
+    prompt: enhancedPrompt,
+    expand
+  });
+  return {
+    ...result,
+    model: result.model || route.providerModel,
+    provider: route.providerId,
+    requestedModel,
+    resolvedModel: route.resolvedModel,
+    providerModel: route.providerModel,
+    providerCalls: [
+      ...normalizeProviderCalls(plan.providerCalls),
+      ...normalizeProviderCalls(result.providerCalls, {
+        provider: route.providerId,
+        model: route.providerModel,
+        operation: "expandImage"
+      })
+    ]
+  };
 }
 
-export async function analyzeImage({ image, title = "Current asset", refreshCount = 0 } = {}) {
+export async function superResolutionImage({ image, prompt, upscaleFactor } = {}) {
+  if (!image) throw new Error("Missing image");
+  const requestedModel = String(DEFAULT_UPSCALE_MODEL).trim() || "wanx2.1-imageedit";
+  const result = await getAIProvider("qwen").superResolutionImage({
+    image,
+    prompt,
+    upscaleFactor
+  });
+  return {
+    ...result,
+    provider: "qwen",
+    requestedModel,
+    resolvedModel: DEFAULT_UPSCALE_MODEL,
+    providerModel: DEFAULT_UPSCALE_MODEL,
+    providerCalls: normalizeProviderCalls(result.providerCalls, {
+      provider: "qwen",
+      model: DEFAULT_UPSCALE_MODEL,
+      operation: "superResolutionImage"
+    })
+  };
+}
+
+export async function analyzeImage({ image, title = "Current asset", refreshCount = 0, model } = {}) {
   if (!image) throw new Error("Missing image");
   {
+    assertAuxiliaryProviderAllowed({ model, operation: "图片分析" });
     const prompt = buildAnalyzeImagePrompt({ title, refreshCount });
-    const result = await getAIProvider().analyzeImage({ image, prompt });
+    const result = await getAIProvider("qwen").analyzeImage({ image, prompt });
     const text = result.text;
     return {
       text,
       analysis: parseJsonValue(text),
+      provider: "qwen",
+      providerModel: "qwen-vision",
+      providerCalls: normalizeProviderCalls(result.providerCalls),
       raw: result.raw
     };
   }
 }
 
-export async function extractImageText({ image } = {}) {
+export async function extractImageText({ image, model } = {}) {
   if (!image) throw new Error("Missing image");
   {
+    assertAuxiliaryProviderAllowed({ model, operation: "图片文字识别" });
     const prompt = buildExtractImageTextPrompt();
-    const result = await getAIProvider().analyzeImage({ image, prompt });
+    const result = await getAIProvider("qwen").analyzeImage({ image, prompt });
     const text = result.text;
     const parsed = parseJsonValue(text);
     return {
       text,
       texts: normalizeExtractedTexts(parsed, text),
+      provider: "qwen",
+      providerModel: "qwen-vision",
+      providerCalls: normalizeProviderCalls(result.providerCalls),
       raw: result.raw
     };
   }
 }
 
-export async function prepareAction({ analysis, action } = {}) {
+export async function prepareAction({ analysis, action, model } = {}) {
   if (!analysis) throw new Error("Missing analysis");
   if (!action?.type) throw new Error("Missing action");
   {
+    assertAuxiliaryProviderAllowed({ model, operation: "动作提示词准备" });
     const prompt = buildPrepareActionPrompt({ analysis, action });
-    const result = await generateSuggestions({ prompt });
+    const result = await generateSuggestions({ prompt, model });
     return {
       action: result.analysis,
-      text: result.text
+      text: result.text,
+      providerCalls: result.providerCalls
     };
   }
 }
 
-export async function generateSuggestions({ prompt, canvasState } = {}) {
+export async function generateSuggestions({ prompt, canvasState, model } = {}) {
+  assertAuxiliaryProviderAllowed({ model, operation: "智能建议" });
   if (!prompt) {
-    const result = await getAIProvider().generateText({ prompt: buildCanvasAgentPrompt({ canvasState }) });
+    const result = await getAIProvider("qwen").generateText({ prompt: buildCanvasAgentPrompt({ canvasState }) });
     const text = result.text;
     return {
       text,
       analysis: parseJsonValue(text),
+      provider: "qwen",
+      providerModel: "qwen-vision",
+      providerCalls: normalizeProviderCalls(result.providerCalls),
       raw: result.raw
     };
   }
   const textPrompt = prompt;
 
-  const result = await getAIProvider().generateText({ prompt: textPrompt });
+  const result = await getAIProvider("qwen").generateText({ prompt: textPrompt });
   const text = result.text;
   return {
     text,
     analysis: parseJsonValue(text),
+    provider: "qwen",
+    providerModel: "qwen-vision",
+    providerCalls: normalizeProviderCalls(result.providerCalls),
     raw: result.raw
   };
 }
@@ -140,16 +229,58 @@ export async function extractPrompt(input = {}) {
 
 async function buildAutoExpandPrompt({ image, prompt = "", expand = {} } = {}) {
   const basePrompt = String(prompt || "").trim();
+  const plannerCall = {
+    provider: "qwen",
+    model: "qwen-vision",
+    operation: "expandPlanning",
+    endpoint: "dashscope-multimodal-generation"
+  };
   try {
-    const result = await getAIProvider().analyzeImage({
+    const result = await getAIProvider("qwen").analyzeImage({
       image,
       prompt: buildExpandImagePlanPrompt({ prompt: basePrompt, expand })
     });
     const plan = normalizeExpandPlan(parseJsonValue(result.text), result.text);
-    return buildEnhancedExpandPrompt(basePrompt, plan);
+    return {
+      prompt: buildEnhancedExpandPrompt(basePrompt, plan),
+      providerCalls: normalizeProviderCalls(result.providerCalls, plannerCall)
+    };
   } catch (error) {
     console.warn("[image-expand] Failed to build automatic expansion plan", error);
-    return basePrompt;
+    return {
+      prompt: basePrompt,
+      providerCalls: [plannerCall]
+    };
+  }
+}
+
+function normalizeProviderCalls(calls, fallback = null) {
+  const normalized = Array.isArray(calls)
+    ? calls
+      .map((call) => ({
+        provider: String(call?.provider || "").trim(),
+        model: String(call?.model || "").trim(),
+        operation: String(call?.operation || "").trim(),
+        endpoint: String(call?.endpoint || "").trim()
+      }))
+      .filter((call) => call.provider || call.model || call.operation || call.endpoint)
+    : [];
+  if (normalized.length) return normalized;
+  return fallback ? [fallback] : [];
+}
+
+function assertAuxiliaryProviderAllowed({ model, operation = "辅助能力" } = {}) {
+  const requestedModel = String(model || DEFAULT_IMAGE_MODEL).trim() || DEFAULT_IMAGE_MODEL;
+  const config = getModelConfig(requestedModel);
+  if (!config) {
+    const error = new Error(`Unsupported image model: ${requestedModel}`);
+    error.status = 400;
+    throw error;
+  }
+  if (config.providerId === "volcengine") {
+    const error = new Error(`${operation}当前只支持阿里/Qwen 辅助模型。已选择 ${config.label || config.id}，为避免隐藏调用千问，请切换到 Wan/Qwen 模型后再使用该功能。`);
+    error.status = 400;
+    throw error;
   }
 }
 

@@ -6,6 +6,10 @@ import {
   getQwenImageSizeForDimensions,
   getQwenImageSizeForElement
 } from "../../ai/image-generator.js";
+import {
+  formatModelUsage,
+  resolveImageModelId
+} from "../../ai/model-catalog.js";
 import { getImageNodePreviewMetrics } from "../../canvas/upload-nodes.js";
 
 export function createDirectorActionWorkflow({
@@ -113,13 +117,16 @@ export function createDirectorActionWorkflow({
         ? getQwenImageSizeForDimensions(sourceMetrics.naturalWidth, sourceMetrics.naturalHeight)
         : (productImage ? getQwenImageSizeForElement(productImage) : "");
       const modelPrompt = buildDirectorPrompt(productNode, action);
+      const model = resolveImageModelId(getChatModel(), "chat");
       const result = await postJsonRequest("/api/chat", buildChatImagePayload({
-        model: getChatModel(),
+        model,
         prompt: modelPrompt,
         images,
         size: outputSize
       }));
       if (result.imageUrl) {
+        const resultModel = result.requestedModel || result.model || model;
+        const modelUsage = formatModelUsage(result, resultModel);
         const imageNode = replacePreviewWithImage(previewNode, {
           title: `${action.title}.png`,
           desc: `${productNode.dataset.productName || "Product"} generated`,
@@ -129,7 +136,7 @@ export function createDirectorActionWorkflow({
           prompt: modelPrompt,
           sourceNode: productNode,
           actionType: action.type,
-          model: getChatModel()
+          model: resultModel
         });
         addSourceBadge(imageNode, productNode);
         stackNode(productNode, imageNode);
@@ -137,7 +144,7 @@ export function createDirectorActionWorkflow({
         updateCorePreviewCard(options.coreWorkspace, options.coreIndex || 0, action, "done", result.imageUrl);
         productNode.classList.add("stack-expanded");
         renderStackTray(productNode);
-        addChatImage("assistant", result.imageUrl, action.title);
+        addChatImage("assistant", result.imageUrl, `${action.title}\n${modelUsage}`);
         return imageNode;
       } else {
         previewNode.classList.add("generation-failed");

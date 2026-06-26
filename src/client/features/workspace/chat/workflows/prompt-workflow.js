@@ -7,6 +7,10 @@ import {
   getQwenImageSizeForDimensions,
   getQwenImageSizeForElement
 } from "../../../ai/image-generator.js";
+import {
+  formatModelUsage,
+  resolveImageModelId
+} from "../../../ai/model-catalog.js";
 
 function findActiveImageNode(root = globalThis.document) {
   return root?.querySelector?.("#canvasWorld .node-image.selected[data-active-selection='true']")
@@ -107,20 +111,30 @@ export function bindPromptSubmit({
     const pendingHomeFiles = Array.isArray(resolvedPromptForm.__pendingHomeGenerationFiles)
       ? resolvedPromptForm.__pendingHomeGenerationFiles
       : [];
+    const pendingHomeModel = String(resolvedPromptForm.__pendingHomeGenerationModel || "").trim();
     const currentFiles = chatImageFilesRef();
     const referenceFiles = currentFiles.length ? currentFiles : pendingHomeFiles;
 
-    if (!prompt && !referenceFiles.length) return;
+    if (!prompt && !referenceFiles.length) {
+      resolvedPromptForm.__pendingHomeGenerationModel = "";
+      return;
+    }
+
+    const model = resolveImageModelId(pendingHomeModel || resolvedChatModelSelect.value, "chat");
+    if (resolvedChatModelSelect.value !== model) {
+      resolvedChatModelSelect.value = model;
+      resolvedChatModelSelect.dataset.modelUserSelected = "true";
+      resolvedChatModelSelect.__compactSelectSync?.();
+    }
 
     recordCanvasEvent("prompt_submitted", {
       source: "chat-panel",
       hasPrompt: Boolean(prompt),
       imageCount: referenceFiles.length,
-      model: resolvedChatModelSelect.value
+      model
     });
 
     setChatCollapsed(false);
-    const model = resolvedChatModelSelect.value;
     const attachmentText = referenceFiles.length ? ` Attached ${referenceFiles.length} reference image(s)` : "";
     addChat("user", `${prompt || "[image reference]"} ${attachmentText}`);
     promptInput.value = "";
@@ -128,6 +142,7 @@ export function bindPromptSubmit({
     const files = referenceFiles.slice();
     const generationMetrics = await resolveGenerationMetrics(files);
     resolvedPromptForm.__pendingHomeGenerationFiles = [];
+    resolvedPromptForm.__pendingHomeGenerationModel = "";
     setChatImageFiles([]);
     renderChatImagePreview();
 
@@ -148,7 +163,7 @@ export function bindPromptSubmit({
     );
     const placement = getGenerationPlacement(generationMetrics, target);
     const previewNode = addGenerationPreview({
-      title: "Qwen Generated Image.png",
+      title: "Generated Image.png",
       desc: generationMetrics.sourceNode
         ? "正在根据当前图片生成结果"
         : (files.length ? "正在根据参考图生成结果" : "正在根据提示词生成结果"),
@@ -170,18 +185,20 @@ export function bindPromptSubmit({
         images,
         size: generationMetrics.outputSize
       }));
-      updateChat(progress, result.text || result.message || "Generation finished.");
+      const resultModel = result.requestedModel || result.model || model;
+      const modelUsage = formatModelUsage(result, resultModel);
+      updateChat(progress, `${result.text || result.message || "Generation finished."}\n${modelUsage}`);
 
       if (result.imageUrl) {
         const imageNode = replacePreviewWithImage(previewNode, {
-          title: "Qwen Generated Image.png",
+          title: "Generated Image.png",
           desc: "Generated image from your prompt.",
           url: result.imageUrl,
           width: previewNode.offsetWidth,
           aspectRatio: generationMetrics.aspectRatio || "",
           prompt,
           actionType: detectGenerationKind(prompt),
-          model
+          model: resultModel
         });
         if (getPendingHomeGenerationFocus()) {
           setPendingHomeGenerationFocus(false);
@@ -195,7 +212,7 @@ export function bindPromptSubmit({
         });
         await saveCurrentProject?.();
         onProjectTitleRefresh();
-        addChatImage("assistant", result.imageUrl, "Qwen Generated Image");
+        addChatImage("assistant", result.imageUrl, `\u751f\u6210\u56fe\u7247 \u00b7 ${modelUsage}`);
       }
 
       updateThinking(thinking, 4, true);

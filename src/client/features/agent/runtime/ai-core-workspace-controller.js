@@ -1,4 +1,5 @@
 import { renderCoreActionButtons, updateCoreWorkspaceCards, getAllDecisionStyles, normalizeDecisionStyles, buildAlternativeCoreSuggestions, normalizeCoreAnalysis as normalizeCoreAnalysisFromModule } from "../../../features/agent/ai-core-workspace.js";
+import { resolveImageModelId } from "../../ai/model-catalog.js";
 
 function normalizeAnalysisWithDirector(analysis, fallback, { normalizeCoreAnalysis, directorActions }) {
   if (typeof normalizeCoreAnalysis === "function") {
@@ -19,6 +20,7 @@ export function createAICoreWorkspaceController(deps = {}) {
     inferDirectorProductProfile,
     getNodeTitle,
     postJsonRequest,
+    getChatModel = () => "",
     getNodeBounds,
     findCanvasNodeById,
     renderStackTray,
@@ -71,6 +73,10 @@ export function createAICoreWorkspaceController(deps = {}) {
   }
 
   let workspaceElement = null;
+
+  function getSelectedModel() {
+    return resolveImageModelId(getChatModel?.(), "chat");
+  }
 
   function bindAICoreWorkspaceEvents(workspace) {
     if (!workspace || typeof bindAICoreWorkspaceElement !== "function") return;
@@ -168,7 +174,8 @@ export function createAICoreWorkspaceController(deps = {}) {
       }
       const result = await postJsonRequest(".api.analyze-image", {
         image,
-        title: getNodeTitle?.(node)
+        title: getNodeTitle?.(node),
+        model: getSelectedModel()
       });
       const analysis = normalizeAnalysis(result.analysis, fallback);
       node.dataset.productName = analysis.productName;
@@ -189,6 +196,7 @@ export function createAICoreWorkspaceController(deps = {}) {
       try {
         const result = await postJsonRequest(".api.prepare-action", {
           analysis,
+          model: getSelectedModel(),
           action: {
             type: action.type,
             title: action.title,
@@ -219,6 +227,7 @@ export function createAICoreWorkspaceController(deps = {}) {
     try {
       const result = await postJsonRequest(".api.prepare-action", {
         analysis: workspace._coreAnalysis,
+        model: getSelectedModel(),
         action: {
           type: action.type,
           title: action.title,
@@ -394,7 +403,8 @@ export function createAICoreWorkspaceController(deps = {}) {
       const result = await postJsonRequest(".api.analyze-image", {
         image,
         title: getNodeTitle?.(productNode),
-        refreshCount: Number(workspace.dataset.refreshCount || "0") || 0
+        refreshCount: Number(workspace.dataset.refreshCount || "0") || 0,
+        model: getSelectedModel()
       });
       const analysis = normalizeAnalysis(result.analysis, profile);
       workspace._coreAnalysis = analysis;

@@ -112,6 +112,7 @@ function createCompactSelect(select) {
   });
   select.addEventListener("change", sync);
   select.__compactSelectSync = sync;
+  select.__compactSelectRebuild = rebuildMenu;
   rebuildMenu();
 }
 

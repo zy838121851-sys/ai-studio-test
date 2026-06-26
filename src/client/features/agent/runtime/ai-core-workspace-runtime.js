@@ -31,6 +31,7 @@ export function createAICoreWorkspaceRuntime({
     inferDirectorProductProfile: services.inferDirectorProductProfile,
     getNodeTitle: services.getNodeTitle,
     postJsonRequest: services.postJsonRequest,
+    getChatModel: services.getChatModel,
     getNodeBounds: services.getNodeBounds,
     findCanvasNodeById: services.findCanvasNodeById,
     findCanvasNodeByIdUnsafe: services.findCanvasNodeByIdUnsafe,

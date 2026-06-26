@@ -48,6 +48,7 @@ export function createCanvasInteractionBootstrap({
       getSelectedNodes: state.getSelectedNodes,
       postJsonRequest: services.postJsonRequest,
       runImageEditCommand: services.runImageEditCommand,
+      getImageEditModel: services.getImageEditModel,
       buildImageTextEditPrompt: services.buildImageTextEditPrompt,
       hideCanvasContextMenu: services.hideCanvasContextMenu,
       hideAddNodeMenu: services.hideAddNodeMenu,

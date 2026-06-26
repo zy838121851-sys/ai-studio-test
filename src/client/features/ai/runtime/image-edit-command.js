@@ -39,6 +39,7 @@ export function createImageEditCommand({
       outputY: options.outputY,
       actionType: options.actionType,
       targetLongEdge: options.targetLongEdge,
+      upscaleFactor: options.upscaleFactor,
       expand: options.expand,
       referenceImages: options.referenceImages,
       createPreview: addGenerationPreview,

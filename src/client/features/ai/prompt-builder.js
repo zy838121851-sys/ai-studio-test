@@ -1,3 +1,5 @@
+import { DEFAULT_IMAGE_MODEL } from "./model-catalog.js";
+
 export function buildImagePrompt({ userPrompt = "", references = [], intent = "" } = {}) {
   return {
     prompt: [intent, userPrompt].filter(Boolean).join("\n"),
@@ -26,7 +28,7 @@ export function getDefaultReferencePrompt(imageCount = 0) {
 
 export function buildChatImagePayload({ model, prompt, images = [], size } = {}) {
   const payload = {
-    model,
+    model: String(model || "").trim() || DEFAULT_IMAGE_MODEL,
     prompt,
     images
   };

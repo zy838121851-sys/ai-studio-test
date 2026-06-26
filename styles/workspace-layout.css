@@ -661,6 +661,8 @@ body:not([data-view="canvas"]) .app {
   grid-template-columns: 38px minmax(0, 1fr) 168px 52px;
   grid-template-rows: 52px;
   align-items: center;
+  position: relative;
+  z-index: 1200;
   gap: 10px;
   width: min(900px, calc(100vw - 96px));
   min-height: 70px;
@@ -864,8 +866,9 @@ body[data-view="canvas"] .home-prompt {
 .home-model-menu {
   position: absolute;
   right: 0;
-  bottom: calc(100% + 10px);
-  z-index: 20;
+  top: calc(100% + 10px);
+  bottom: auto;
+  z-index: 2000;
   display: grid;
   width: 184px;
   padding: 8px;
@@ -878,7 +881,7 @@ body[data-view="canvas"] .home-prompt {
   opacity: 0;
   pointer-events: none;
   transform: translateY(8px) scale(0.98);
-  transform-origin: bottom right;
+  transform-origin: top right;
   transition: opacity 0.18s ease, transform 0.18s ease;
 }
 

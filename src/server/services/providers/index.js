@@ -2,19 +2,29 @@ import {
   callQwenImage,
   callQwenText,
   callQwenVision,
-  callWanImageExpand
+  callWan27ImageExpand,
+  callWanImageSuperResolution
 } from "./qwen.provider.js";
+import { callVolcengineSeedreamImage } from "./volcengine.provider.js";
+import { getModelConfig } from "../model-catalog.service.js";
 
 const qwenProvider = {
   id: "qwen",
   generateImage: callQwenImage,
-  expandImage: callWanImageExpand,
+  expandImage: callWan27ImageExpand,
+  superResolutionImage: callWanImageSuperResolution,
   analyzeImage: callQwenVision,
   generateText: callQwenText
 };
 
+const volcengineProvider = {
+  id: "volcengine",
+  generateImage: callVolcengineSeedreamImage
+};
+
 const providers = new Map([
-  [qwenProvider.id, qwenProvider]
+  [qwenProvider.id, qwenProvider],
+  [volcengineProvider.id, volcengineProvider]
 ]);
 
 let activeProviderId = "qwen";
@@ -29,6 +39,35 @@ export function setAIProvider(providerId) {
   if (!providers.has(providerId)) throw new Error(`Unknown AI provider: ${providerId}`);
   activeProviderId = providerId;
   return getAIProvider();
+}
+
+export function getAIProviderForModel(modelId) {
+  return resolveImageGenerationRoute(modelId).provider;
+}
+
+export function resolveImageGenerationRoute(modelId, operation = "generateImage") {
+  const requestedModel = String(modelId || "").trim();
+  const config = getModelConfig(requestedModel);
+  if (!config) {
+    throw new Error(`Unsupported image model: ${requestedModel || "(empty)"}`);
+  }
+  const providerId = config.providerId;
+  if (!providerId) {
+    throw new Error(`Image model is missing a provider: ${config.id}`);
+  }
+  const provider = getAIProvider(providerId);
+  if (typeof provider?.[operation] !== "function") {
+    throw new Error(`AI provider ${providerId} does not support ${operation} for model ${config.id}`);
+  }
+  const providerModel = config.providerModel || config.id;
+  return {
+    requestedModel: config.id,
+    resolvedModel: providerModel,
+    providerModel,
+    providerId,
+    provider,
+    config
+  };
 }
 
 export function registerAIProvider(provider) {

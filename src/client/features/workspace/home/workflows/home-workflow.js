@@ -3,6 +3,10 @@ import {
   renderHomeFilePreview as renderHomeFilePreviewList,
   syncHomeModelPicker as syncHomeModelPickerView
 } from "../components/home-composer.js";
+import {
+  DEFAULT_IMAGE_MODEL,
+  resolveImageModelId
+} from "../../../ai/model-catalog.js";
 
 export function createHomeWorkflow({
   elements = {},
@@ -108,10 +112,28 @@ export function createHomeWorkflow({
   function chooseModel(button) {
     if (!button || !homeModelSelect) return;
     homeModelSelect.value = button.dataset.modelValue;
+    homeModelSelect.dataset.modelUserSelected = "true";
+    homeModelSelect.dispatchEvent(new Event("change", { bubbles: true }));
     syncHomeModelPicker();
     homeModelPicker?.classList.remove("open");
     homeModelButton?.setAttribute("aria-expanded", "false");
     homePromptInput?.focus();
+  }
+
+  function getSelectedHomeModel() {
+    if (!homeModelSelect) return DEFAULT_IMAGE_MODEL;
+    const isImplicitSmartModel = homeModelSelect.dataset.modelUserSelected !== "true" && homeModelSelect.selectedIndex === 0;
+    const selectedOption = homeModelSelect.options?.[homeModelSelect.selectedIndex];
+    const selectedLabel = selectedOption?.textContent?.trim() || "";
+    const isSmartModelLabel = selectedLabel === "\u667a\u80fd\u6a21\u578b";
+    const model = isImplicitSmartModel || isSmartModelLabel
+      ? DEFAULT_IMAGE_MODEL
+      : resolveImageModelId(homeModelSelect.value, "home");
+    if (homeModelSelect.value !== model) {
+      homeModelSelect.value = model;
+      syncHomeModelPicker();
+    }
+    return model;
   }
 
   async function submitHomePrompt(event) {
@@ -120,7 +142,7 @@ export function createHomeWorkflow({
     const files = getSelectedHomeFiles().slice();
     if (!prompt && !files.length) return;
 
-    const model = homeModelSelect?.value;
+    const model = getSelectedHomeModel();
     recordCanvasEvent("prompt_submitted", {
       source: "home",
       hasPrompt: Boolean(prompt),
@@ -146,6 +168,9 @@ export function createHomeWorkflow({
       if (!button) return;
       chooseModel(button);
     });
+    homeModelMenu?.addEventListener("wheel", (event) => {
+      event.stopPropagation();
+    }, { passive: true });
     homePromptForm?.addEventListener("submit", submitHomePrompt);
   }
 

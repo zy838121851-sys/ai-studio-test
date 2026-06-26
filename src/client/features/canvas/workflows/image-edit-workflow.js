@@ -21,6 +21,7 @@ export function createImageEditWorkflow({
     getSelectedNodes = () => new Set(),
     postJsonRequest = async () => ({}),
     runImageEditCommand = () => Promise.resolve(),
+    getImageEditModel = () => "",
     readFileAsDataUrl = (file) => fileToDataUrl(file),
     buildImageTextEditPrompt = (items = []) => "",
     hideCanvasContextMenu = () => {},
@@ -237,7 +238,10 @@ export function createImageEditWorkflow({
     positionImageTextPanel();
     try {
       const image = await readImageSourceAsDataUrl(img.src);
-      const result = await postJsonRequest("/api/extract-image-text", { image });
+      const result = await postJsonRequest("/api/extract-image-text", {
+        image,
+        model: getImageEditModel()
+      });
       renderImageTextInputs(panel, result.texts || result.analysis?.texts || []);
     } catch (error) {
       panel.querySelector("[data-text-edit-status]").textContent = "\u6587\u5b57\u8bc6\u522b\u5931\u8d25\uff1a" + error.message;

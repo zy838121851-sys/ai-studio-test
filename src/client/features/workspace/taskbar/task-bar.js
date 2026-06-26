@@ -7,6 +7,10 @@ import {
   getQwenImageSizeForDimensions,
   getQwenImageSizeForElement
 } from "../../ai/image-generator.js";
+import {
+  formatModelUsage,
+  resolveImageModelId
+} from "../../ai/model-catalog.js";
 import { enhanceCompactSelects } from "../../../lib/compact-select.js";
 
 function findActiveTaskbarImageNode(root = globalThis.document) {
@@ -280,11 +284,17 @@ export function initTaskBar({
     const currentFiles = getChatImageFiles();
     if (!prompt && !(currentFiles?.length > 0)) return;
 
+    const selectedModel = resolveImageModelId(chatModelSelect?.value, "chat");
+    if (chatModelSelect && chatModelSelect.value !== selectedModel) {
+      chatModelSelect.value = selectedModel;
+      chatModelSelect.__compactSelectSync?.();
+    }
+
     recordCanvasEvent("prompt_submitted", {
       source: "chat-panel",
       hasPrompt: Boolean(prompt),
       imageCount: currentFiles.length,
-      model: chatModelSelect?.value
+      model: selectedModel
     });
 
     setChatCollapsed(false);
@@ -311,7 +321,7 @@ export function initTaskBar({
       : viewportPointToWorld(window.innerWidth / 2, window.innerHeight / 2);
     const placement = getTaskbarGenerationPlacement(generationMetrics, target);
     const previewNode = addGenerationPreview({
-      title: "Qwen generated asset.png",
+      title: "Generated asset.png",
       desc: generationMetrics.sourceNode
         ? "正在根据当前图片生成结果"
         : (files.length ? "正在根据参考图生成结果" : "正在根据提示词生成结果"),
@@ -327,22 +337,24 @@ export function initTaskBar({
       const images = await Promise.all(files.map(applyFileToDataUrl));
       updateThinking(thinking, 3);
       const result = await postJson("/api/chat", buildChatImagePayload({
-        model: chatModelSelect?.value,
+        model: selectedModel,
         prompt,
         images,
         size: generationMetrics.outputSize
       }));
-      updateChat(progress, result.text || result.message || "Generation complete.");
+      const resultModel = result.requestedModel || result.model || selectedModel;
+      const modelUsage = formatModelUsage(result, resultModel);
+      updateChat(progress, `${result.text || result.message || "Generation complete."}\n${modelUsage}`);
       if (result.imageUrl) {
         replacePreviewWithImage(previewNode, {
-          title: "Qwen generated image.png",
+          title: "Generated image.png",
           desc: "AI generation result",
           url: result.imageUrl,
           width: previewNode.offsetWidth,
           aspectRatio: generationMetrics.aspectRatio || "",
           prompt,
           actionType: detectKind(prompt),
-          model: chatModelSelect?.value
+          model: resultModel
         });
         updateActiveProject({
           title: getActiveProject()?.title || makeProjectTitle(prompt),
@@ -350,7 +362,7 @@ export function initTaskBar({
           thumbnail: result.imageUrl,
           itemCount: (getActiveProject()?.itemCount || 0) + 1
         });
-        addChatImage("assistant", result.imageUrl, "Qwen generated image");
+        addChatImage("assistant", result.imageUrl, `\u751f\u6210\u56fe\u7247 \u00b7 ${modelUsage}`);
       }
       updateThinking(thinking, 4, true);
     } catch (error) {
