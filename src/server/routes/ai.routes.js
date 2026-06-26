@@ -3,21 +3,37 @@ import {
   analyzeImage,
   extractImageText,
   expandImage,
+  generateFixedQwenImageEdit,
   generateImage,
   generateSuggestions,
+  generateVideo,
   prepareAction,
   superResolutionImage
 } from "../services/ai.service.js";
 import { env } from "../config/env.js";
-import { logError } from "../lib/logger.js";
+import { logError, logInfo } from "../lib/logger.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import { assertPublicHttpUrl } from "../security/network.js";
+import { billFixedTask } from "../services/credits/billing.service.js";
+import {
+  releaseReservedCredits,
+  reserveCredits
+} from "../services/credits/credit.service.js";
+import { quoteFixedCredits } from "../services/credits/pricing.service.js";
+import {
+  completeAIJob,
+  createAIJob,
+  refreshAIJob
+} from "../services/ai-job.service.js";
+import { getAsset } from "../services/asset.service.js";
 import {
   DEFAULT_IMAGE_MODEL,
   getModelConfig,
+  isApimartModel,
   listImageModels
 } from "../services/model-catalog.service.js";
+import { randomUUID } from "node:crypto";
 
 const aiLimiter = createRateLimiter({
   namespace: "ai",
@@ -33,6 +49,13 @@ const imageProxyLimiter = createRateLimiter({
   message: "Too many image proxy requests"
 });
 
+const jobPollLimiter = createRateLimiter({
+  namespace: "ai-job-poll",
+  windowMs: 60 * 1000,
+  max: 120,
+  message: "Too many job status requests"
+});
+
 export function createAIRouter() {
   const router = Router();
 
@@ -46,15 +69,218 @@ export function createAIRouter() {
 
   router.use(requireAuth);
 
+  router.post("/ai/generate", aiLimiter, asyncHandler(async (req, res) => {
+    const modelId = String(req.body?.modelId || req.body?.model || DEFAULT_IMAGE_MODEL).trim() || DEFAULT_IMAGE_MODEL;
+    const modelConfig = getModelConfig(modelId);
+    if (!modelConfig) {
+      const error = new Error(`Unsupported model: ${modelId}`);
+      error.status = 400;
+      throw error;
+    }
+    if (!isApimartModel(modelId)) {
+      const result = await billFixedTask({
+        userId: req.auth.user.id,
+        provider: modelConfig.providerId,
+        model: modelId,
+        task: "image_generation",
+        count: req.body?.count,
+        reason: "image_generation",
+        callProvider: () => generateImage({
+          model: modelId,
+          prompt: req.body?.prompt,
+          images: normalizeImages(req.body?.images),
+          size: req.body?.size
+        })
+      });
+      res.json(sanitizeGenerationResult(result, modelConfig));
+      return;
+    }
+
+    const prompt = String(req.body?.prompt || "").trim();
+    if (!prompt && !normalizeImages(req.body?.images).length) {
+      const error = new Error("Missing prompt or reference image");
+      error.status = 400;
+      throw error;
+    }
+    const type = modelConfig.type === "video" ? "video" : "image";
+    const task = type === "video" ? "video_generation" : "image_generation";
+    const requestId = randomUUID();
+    const quote = quoteFixedCredits({
+      provider: modelConfig.providerId,
+      model: modelConfig.id,
+      task,
+      count: 1
+    });
+    const reservation = reserveCredits({
+      userId: req.auth.user.id,
+      amount: quote.totalCredits,
+      provider: modelConfig.providerId,
+      model: modelConfig.id,
+      task,
+      billingType: "fixed",
+      reason: task,
+      requestId
+    });
+
+    try {
+      const images = normalizeImages(req.body?.images);
+      const videoOptions = type === "video"
+        ? validateVideoOptions(modelConfig, req.body?.videoOptions || {})
+        : {};
+      const result = type === "video"
+        ? await generateVideo({
+          model: modelConfig.id,
+          prompt,
+          images,
+          videoOptions,
+          requestId
+        })
+        : await generateImage({
+          model: modelConfig.id,
+          prompt,
+          images,
+          size: req.body?.size,
+          requestId
+        });
+      logAIModelRoute({
+        route: "/api/ai/generate",
+        requestedModel: modelConfig.id,
+        providerModel: result.providerModel || result.resolvedModel || result.model || modelConfig.providerModel,
+        remoteTaskId: result.remoteTaskId || result.taskId || "",
+        type,
+        referenceCount: images.length
+      });
+      const job = createAIJob({
+        id: requestId,
+        userId: req.auth.user.id,
+        provider: modelConfig.providerId,
+        vendor: modelConfig.vendor || "",
+        modelId: modelConfig.id,
+        providerModel: modelConfig.providerModel || modelConfig.id,
+        remoteTaskId: result.remoteTaskId || result.taskId || requestId,
+        type,
+        status: result.imageUrl ? "running" : (result.status || "queued"),
+        progress: result.imageUrl ? 90 : 5,
+        prompt,
+        inputAssetIds: req.body?.inputAssetIds || [],
+        creditsReserved: reservation.amountCredits
+      });
+      if (result.imageUrl) {
+        const completed = await completeAIJob(req.auth.user.id, job.id, {
+          outputs: [{ url: result.imageUrl, mimeType: type === "video" ? "video/mp4" : "image/png" }]
+        });
+        if (completed?.status !== "succeeded") {
+          res.status(500).json({
+            message: completed?.errorMessage || "Generated output could not be saved locally",
+            job: toClientJob(completed),
+            jobId: completed?.id,
+            model: modelConfig.id
+          });
+          return;
+        }
+        const firstAsset = completed?.outputAssetIds?.[0]
+          ? getAsset(req.auth.user.id, completed.outputAssetIds[0])
+          : null;
+        res.json({
+          message: type === "video" ? "Video generated" : "Image generated",
+          job: toClientJob(completed),
+          jobId: completed?.id,
+          imageUrl: firstAsset?.url || "",
+          asset: toClientAsset(firstAsset),
+          model: modelConfig.id,
+          requestedModel: modelConfig.id,
+          billing: {
+            creditsReserved: reservation.amountCredits,
+            creditsCharged: completed?.creditsCharged || 0,
+            status: completed?.status === "succeeded" ? "charged" : completed?.status
+          }
+        });
+        return;
+      }
+      if (result.status === "succeeded") {
+        const completed = await refreshAIJob(req.auth.user.id, job.id);
+        res.json({
+          message: "Generation completed",
+          job: toClientJob(completed),
+          jobId: completed?.id,
+          model: modelConfig.id
+        });
+        return;
+      }
+      res.json({
+        message: "Generation job created",
+        job: toClientJob(job),
+        jobId: job.id,
+        model: modelConfig.id,
+        billing: {
+          creditsReserved: reservation.amountCredits,
+          creditsCharged: 0,
+          status: "reserved"
+        }
+      });
+    } catch (error) {
+      releaseReservedCredits({
+        userId: req.auth.user.id,
+        amount: reservation.amountCredits,
+        provider: modelConfig.providerId,
+        model: modelConfig.id,
+        task,
+        billingType: "fixed",
+        reason: error?.message || "provider_failed",
+        requestId,
+        status: "failed"
+      });
+      throw error;
+    }
+  }));
+
+  router.get("/ai/jobs/:jobId", jobPollLimiter, asyncHandler(async (req, res) => {
+    const job = await refreshAIJob(req.auth.user.id, req.params.jobId);
+    if (!job) {
+      res.status(404).json({ message: "Job not found" });
+      return;
+    }
+    const assets = getJobOutputAssets(req.auth.user.id, job);
+    const firstAsset = assets[0] || null;
+    res.json({
+      job: toClientJob(job),
+      jobId: job.id,
+      status: job.status,
+      progress: job.progress,
+      outputs: assets.map(toClientAsset),
+      imageUrls: assets.filter((asset) => asset.type === "image").map((asset) => asset.url),
+      videoUrls: assets.filter((asset) => asset.type === "video").map((asset) => asset.url),
+      imageUrl: firstAsset?.type === "image" ? firstAsset.url : "",
+      videoUrl: firstAsset?.type === "video" ? firstAsset.url : "",
+      error: job.errorMessage || ""
+    });
+  }));
+
   router.post("/chat", aiLimiter, asyncHandler(async (req, res) => {
     const requestedModel = String(req.body?.model || DEFAULT_IMAGE_MODEL).trim() || DEFAULT_IMAGE_MODEL;
     const modelConfig = getModelConfig(requestedModel);
     if (!modelConfig) {
       throw new Error(`Unsupported image model: ${requestedModel}`);
     }
-    const result = await generateImage({
-      ...req.body,
-      model: requestedModel
+    const result = await billFixedTask({
+      userId: req.auth.user.id,
+      provider: modelConfig.providerId,
+      model: requestedModel,
+      task: "image_generation",
+      count: req.body?.count,
+      reason: "image_generation",
+      callProvider: () => generateImage({
+        ...req.body,
+        model: requestedModel
+      })
+    });
+    logAIModelRoute({
+      route: "/api/chat",
+      requestedModel,
+      providerModel: result.providerModel || result.resolvedModel || result.model || modelConfig.providerModel,
+      remoteTaskId: result.remoteTaskId || result.taskId || "",
+      type: "image",
+      referenceCount: Array.isArray(req.body?.images) ? req.body.images.length : 0
     });
     assertResolvedProviderMatchesModel({ modelConfig, result });
     logAIProviderRoute({
@@ -69,10 +295,11 @@ export function createAIRouter() {
       model: result.model,
       requestedModel: result.requestedModel || requestedModel,
       resolvedModel: result.resolvedModel || result.model,
-      provider: result.provider || modelConfig.providerId,
+      provider: isApimartModel(requestedModel) ? undefined : (result.provider || modelConfig.providerId),
       providerModel: result.providerModel || result.resolvedModel || result.model,
-      providerCalls: result.providerCalls || [],
-      referenceCount: result.referenceCount
+      providerCalls: isApimartModel(requestedModel) ? [] : (result.providerCalls || []),
+      referenceCount: result.referenceCount,
+      billing: toClientBilling(result.billing)
     });
   }));
 
@@ -89,15 +316,16 @@ export function createAIRouter() {
     const requestedProviderId = getModelConfig(model)?.providerId;
     if (actionType === "expand_image") {
       const result = await expandImage({ image: referenceImages[0], prompt, expand, model });
+      const apimartResult = result.provider === "apimart";
       res.json({
         message: result.imageUrl ? "Image expanded" : "Model returned without an image URL",
         imageUrl: result.imageUrl,
         model: result.model,
         requestedModel: result.requestedModel || model,
         resolvedModel: result.resolvedModel || result.model,
-        provider: result.provider || requestedProviderId,
+        provider: apimartResult ? undefined : (result.provider || requestedProviderId),
         providerModel: result.providerModel || result.resolvedModel || result.model,
-        providerCalls: result.providerCalls || [],
+        providerCalls: apimartResult ? [] : (result.providerCalls || []),
         referenceCount: result.referenceCount,
         taskId: result.taskId
       });
@@ -105,32 +333,117 @@ export function createAIRouter() {
     }
     if (actionType === "upscale") {
       const result = await superResolutionImage({ image: referenceImages[0], prompt, upscaleFactor, model });
+      const apimartResult = result.provider === "apimart";
       res.json({
         message: result.imageUrl ? "Image upscaled" : "Model returned without an image URL",
         imageUrl: result.imageUrl,
         model: result.model,
         requestedModel: result.requestedModel || model,
         resolvedModel: result.resolvedModel || result.model,
-        provider: result.provider || requestedProviderId,
+        provider: apimartResult ? undefined : (result.provider || requestedProviderId),
         providerModel: result.providerModel || result.resolvedModel || result.model,
-        providerCalls: result.providerCalls || [],
+        providerCalls: apimartResult ? [] : (result.providerCalls || []),
         referenceCount: result.referenceCount,
         taskId: result.taskId,
         upscaleFactor: result.upscaleFactor
       });
       return;
     }
-    const result = await generateImage({ model, prompt, images: referenceImages, size });
+    if (isFixedQwenImageEditAction(actionType)) {
+      const result = await billFixedTask({
+        userId: req.auth.user.id,
+        provider: "qwen",
+        model: "qwen-image-edit-plus",
+        task: "image_editing",
+        count: 1,
+        reason: actionType || "image_editing",
+        callProvider: async ({ reservation, requestId }) => {
+          const editResult = await generateFixedQwenImageEdit({
+            prompt,
+            images: referenceImages,
+            size,
+            requestId
+          });
+          const remoteTaskId = editResult.remoteTaskId || editResult.taskId;
+          if (!remoteTaskId) return editResult;
+          const job = createAIJob({
+            userId: req.auth.user.id,
+            provider: "qwen",
+            vendor: "qwen",
+            modelId: "qwen-image-edit-plus",
+            providerModel: editResult.providerModel || editResult.resolvedModel || editResult.model || "qwen-image-edit-plus",
+            remoteTaskId,
+            type: "image",
+            status: editResult.imageUrl ? "running" : (editResult.status || "queued"),
+            progress: editResult.imageUrl ? 90 : (editResult.status === "running" ? 50 : 5),
+            prompt,
+            creditsReserved: reservation.amountCredits
+          });
+          if (editResult.imageUrl) {
+            const completed = await completeAIJob(req.auth.user.id, job.id, {
+              outputs: [{ url: editResult.imageUrl, mimeType: "image/png" }]
+            });
+            const firstAsset = completed?.outputAssetIds?.[0]
+              ? getAsset(req.auth.user.id, completed.outputAssetIds[0])
+              : null;
+            return {
+              ...editResult,
+              imageUrl: firstAsset?.url || "",
+              asset: toClientAsset(firstAsset),
+              job: toClientJob(completed),
+              jobId: completed?.id || job.id,
+              deferCharge: true,
+              billing: {
+                creditsReserved: reservation.amountCredits,
+                creditsCharged: completed?.creditsCharged || 0,
+                status: completed?.status === "succeeded" ? "charged" : completed?.status
+              }
+            };
+          }
+          return {
+            ...editResult,
+            job: toClientJob(job),
+            jobId: job.id,
+            deferCharge: true
+          };
+        }
+      });
+      res.json({
+        message: result.imageUrl ? "Image updated" : "Model returned without an image URL",
+        imageUrl: result.imageUrl,
+        model: result.model,
+        requestedModel: result.requestedModel,
+        resolvedModel: result.resolvedModel || result.model,
+        provider: result.provider || "qwen",
+        providerModel: result.providerModel || result.resolvedModel || result.model,
+        providerCalls: result.providerCalls || [],
+        referenceCount: result.referenceCount,
+        job: result.job,
+        jobId: result.jobId,
+        billing: toClientBilling(result.billing)
+      });
+      return;
+    }
+    const result = await billFixedTask({
+      userId: req.auth.user.id,
+      provider: getModelConfig(model)?.providerId,
+      model,
+      task: "image_editing",
+      count: 1,
+      reason: "image_editing",
+      callProvider: () => generateImage({ model, prompt, images: referenceImages, size })
+    });
     res.json({
       message: result.imageUrl ? "Image updated" : "Model returned without an image URL",
       imageUrl: result.imageUrl,
       model: result.model,
       requestedModel: result.requestedModel,
       resolvedModel: result.resolvedModel || result.model,
-      provider: result.provider || getModelConfig(model)?.providerId,
+      provider: isApimartModel(model) ? undefined : (result.provider || getModelConfig(model)?.providerId),
       providerModel: result.providerModel || result.resolvedModel || result.model,
-      providerCalls: result.providerCalls || [],
-      referenceCount: result.referenceCount
+      providerCalls: isApimartModel(model) ? [] : (result.providerCalls || []),
+      referenceCount: result.referenceCount,
+      billing: toClientBilling(result.billing)
     });
   }));
 
@@ -148,13 +461,22 @@ export function createAIRouter() {
   }));
 
   router.post("/analyze-image", aiLimiter, asyncHandler(async (req, res) => {
-    const result = await analyzeImage(req.body);
+    const result = await billFixedTask({
+      userId: req.auth.user.id,
+      provider: "qwen",
+      model: env.dashscopeVisionModel,
+      task: "vision_analysis",
+      count: 1,
+      reason: "vision_analysis",
+      callProvider: () => analyzeImage(req.body)
+    });
     res.json({
       message: "Image analyzed",
       model: env.dashscopeVisionModel,
       provider: result.provider || "qwen",
       providerModel: result.providerModel || env.dashscopeVisionModel,
       providerCalls: result.providerCalls || [],
+      billing: toClientBilling(result.billing),
       analysis: result.analysis,
       text: result.text
     });
@@ -215,6 +537,10 @@ export function createAIRouter() {
   return router;
 }
 
+function isFixedQwenImageEditAction(actionType = "") {
+  return new Set(["remove_background", "text_edit"]).has(String(actionType || "").trim());
+}
+
 function assertResolvedProviderMatchesModel({ modelConfig, result } = {}) {
   if (modelConfig?.providerId !== "volcengine") return;
   const provider = String(result?.provider || "").trim();
@@ -231,13 +557,129 @@ function assertResolvedProviderMatchesModel({ modelConfig, result } = {}) {
 }
 
 function logAIProviderRoute({ requestedModel, provider, providerModel, referenceCount } = {}) {
+  logAIModelRoute({
+    route: "/api/chat",
+    requestedModel,
+    providerModel,
+    provider,
+    type: "image",
+    referenceCount
+  });
+}
+
+function logAIModelRoute({
+  route = "",
+  requestedModel = "",
+  provider = "apimart",
+  providerModel = "",
+  remoteTaskId = "",
+  type = "image",
+  referenceCount = 0
+} = {}) {
   if (env.nodeEnv !== "development") return;
-  console.info("[ai-route]", {
+  logInfo("AI model route", {
+    route,
     requestedModel,
     provider,
     providerModel,
+    remoteTaskId,
+    type,
     referenceCount: Number(referenceCount || 0)
   });
+}
+
+function normalizeImages(images) {
+  return Array.isArray(images) ? images.filter(Boolean) : [];
+}
+
+function validateVideoOptions(modelConfig = {}, input = {}) {
+  const allowed = modelConfig.allowedOptions || {};
+  const output = {};
+  for (const [key, value] of Object.entries(input || {})) {
+    if (!(key in allowed)) {
+      const error = new Error(`Unsupported video option: ${key}`);
+      error.status = 400;
+      throw error;
+    }
+    const allowedValues = allowed[key] || [];
+    if (allowedValues.length && !allowedValues.includes(value)) {
+      const error = new Error(`Unsupported ${key} for ${modelConfig.label || modelConfig.id}`);
+      error.status = 400;
+      throw error;
+    }
+    output[key] = value;
+  }
+  return output;
+}
+
+function sanitizeGenerationResult(result = {}, modelConfig = {}) {
+  return {
+    message: result.imageUrl ? "Image generated" : "Model returned without an image URL",
+    imageUrl: result.imageUrl,
+    model: result.requestedModel || modelConfig.id || result.model,
+    requestedModel: result.requestedModel || modelConfig.id || result.model,
+    resolvedModel: result.resolvedModel || result.model,
+    referenceCount: result.referenceCount,
+    billing: toClientBilling(result.billing)
+  };
+}
+
+function toClientJob(job = {}) {
+  if (!job) return null;
+  return {
+    id: job.id,
+    modelId: job.modelId,
+    vendor: job.vendor,
+    type: job.type,
+    status: job.status,
+    progress: job.progress,
+    promptPreview: job.promptPreview,
+    inputAssetIds: job.inputAssetIds || [],
+    outputAssetIds: job.outputAssetIds || [],
+    errorCode: job.errorCode || "",
+    errorMessage: job.errorMessage || "",
+    creditsReserved: job.creditsReserved || 0,
+    creditsCharged: job.creditsCharged || 0,
+    createdAt: job.createdAt,
+    updatedAt: job.updatedAt,
+    completedAt: job.completedAt
+  };
+}
+
+function getJobOutputAssets(userId, job = {}) {
+  return Array.from(job.outputAssetIds || [])
+    .map((assetId) => getAsset(userId, assetId))
+    .filter(Boolean);
+}
+
+function toClientAsset(asset = {}) {
+  if (!asset) return null;
+  return {
+    assetId: asset.id,
+    url: asset.url,
+    mimeType: asset.mimeType,
+    type: asset.type,
+    width: asset.width,
+    height: asset.height,
+    duration: asset.duration,
+    modelId: asset.modelName,
+    prompt: asset.prompt,
+    createdAt: asset.createdAt
+  };
+}
+
+function toClientBilling(billing = null) {
+  if (!billing) return undefined;
+  return {
+    requestId: billing.requestId,
+    task: billing.task,
+    billingType: billing.billingType,
+    creditsReserved: billing.creditsReserved || 0,
+    creditsCharged: billing.creditsCharged || 0,
+    unitCredits: billing.unitCredits,
+    count: billing.count,
+    status: billing.status
+  };
 }
 
 function asyncHandler(handler) {

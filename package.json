@@ -9,6 +9,12 @@
     "db:check": "node scripts/check-db.js",
     "db:cleanup-sessions": "node scripts/cleanup-orphan-sessions.js",
     "db:init": "node scripts/init-db.js",
+    "credits:migrate": "node scripts/credits-migrate.js",
+    "credits:add": "node scripts/credits-add.js",
+    "credits:check": "node scripts/credits-check.js",
+    "credits:quote-check": "node scripts/check-credit-quote.js",
+    "apimart:catalog-check": "node scripts/check-apimart-catalog.js && node scripts/check-apimart-public-copy.js",
+    "apimart:mock-check": "node scripts/check-apimart-mock.js",
     "dev": "node server.js"
   },
   "dependencies": {

@@ -1,3 +1,5 @@
+import { renderModelPreferenceMenu } from "../features/ai/model-preference-menu.js";
+
 const COMPACT_SELECT_IDS = new Set([
   "chatModelSelect",
   "imageEditModel",
@@ -45,7 +47,7 @@ function createCompactSelect(select) {
 
   function sync() {
     const selected = getSelectedOption(select);
-    label.textContent = selected?.textContent?.trim() || "";
+    label.textContent = selected?.dataset?.modelLabel || selected?.textContent?.trim() || "";
     Array.from(menu.querySelectorAll(".compact-select-option")).forEach((option) => {
       const active = option.dataset.value === select.value;
       option.classList.toggle("selected", active);
@@ -55,6 +57,22 @@ function createCompactSelect(select) {
 
   function rebuildMenu() {
     menu.innerHTML = "";
+    menu.classList.remove("model-preference-menu");
+    delete menu.dataset.modelPreferenceSurface;
+    delete menu.dataset.modelPreferenceType;
+    if (wrapper.dataset.compactKind === "model") {
+      renderModelPreferenceMenu({
+        menu,
+        select,
+        surface: select.__modelPreferenceSurface || getModelSurface(select),
+        models: select.__modelPreferenceModels || [],
+        allowVideo: select.__modelPreferenceAllowVideo !== false,
+        onChoose: () => sync(),
+        onClose: () => closeMenu(wrapper)
+      });
+      sync();
+      return;
+    }
     Array.from(select.options).forEach((item) => {
       const option = document.createElement("button");
       option.type = "button";
@@ -122,6 +140,11 @@ function getCompactKind(select) {
   return "model";
 }
 
+function getModelSurface(select) {
+  if (select.id === "imageEditModel") return "imageEdit";
+  return "chat";
+}
+
 function getSelectedOption(select) {
   return select.options[select.selectedIndex] || select.options[0] || null;
 }
@@ -142,7 +165,7 @@ function closeMenu(wrapper) {
   if (menu) menu.hidden = true;
 }
 
-function closeAllCompactSelects() {
+export function closeAllCompactSelects() {
   document.querySelectorAll(".compact-select.open").forEach(closeMenu);
 }
 
@@ -154,3 +177,5 @@ document.addEventListener("pointerdown", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.key === "Escape") closeAllCompactSelects();
 });
+
+document.addEventListener("canvas:view-transformed", closeAllCompactSelects);

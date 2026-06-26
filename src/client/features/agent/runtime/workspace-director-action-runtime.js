@@ -6,7 +6,8 @@ export function createWorkspaceDirectorActionRuntime({
 } = {}) {
   return createDirectorActionRuntime({
     state: {
-      getChatModel: () => elements.chatModelSelect?.value
+      getChatModel: () => elements.chatModelSelect?.dataset?.selectedModelId
+        || elements.chatModelSelect?.value
     },
     services
   });

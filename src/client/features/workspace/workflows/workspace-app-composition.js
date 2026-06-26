@@ -331,7 +331,8 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
       renderImageTextInputs: canvasDeps.renderImageTextInputList,
       readImageSourceAsDataUrl: aiDeps.readImageSourceAsDataUrl,
       runImageEditCommand: (...args) => runImageEditCommand(...args),
-      getImageEditModel: () => workspaceElements.imageEditModel?.value,
+      getImageEditModel: () => workspaceElements.imageEditModel?.dataset?.selectedModelId
+        || workspaceElements.imageEditModel?.value,
       centerViewOnNode: (...args) => centerViewOnNode(...args),
       ensureImageLightbox: canvasDeps.ensureImageLightboxElement,
       getShapeTextTools: () => canvasDeps.SHAPE_TEXT_TOOLS,
@@ -344,7 +345,8 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
       registerImageAsset: (payload = {}) => assetRuntime.registerGeneratedAsset?.({
         ...payload,
         source: payload.source || "favorite",
-        type: payload.type || "image"
+        type: payload.type || "image",
+        libraryVisible: true
       }),
       removeImageAsset: (assetId) => assetRuntime.removeAsset?.(assetId),
       getAssetCollections: () => assetRuntime.getCollections?.() || [],
@@ -385,7 +387,8 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
       readFileAsDataUrl: aiDeps.readFileAsDataUrl,
       normalizeAnalysis: aiDeps.normalizeCoreAnalysis,
       postJsonRequest: libDeps.postJsonRequest,
-      getChatModel: () => workspaceElements.chatModelSelect?.value,
+      getChatModel: () => workspaceElements.chatModelSelect?.dataset?.selectedModelId
+        || workspaceElements.chatModelSelect?.value,
       findCanvasNodeById: canvasDeps.findCanvasNodeById,
       escapeHtml: libDeps.escapeHtmlText,
       ensureCanvasNodeId: canvasDeps.ensureCanvasNodeId,

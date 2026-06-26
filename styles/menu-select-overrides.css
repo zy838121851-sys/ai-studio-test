@@ -46,3 +46,42 @@ body #homeModelMenu button[data-model-value].active {
   text-shadow: none !important;
   mix-blend-mode: normal !important;
 }
+
+body .model-preference-menu button.model-preference-option,
+body .model-preference-menu button.model-preference-option:hover,
+body .model-preference-menu button.model-preference-option:focus-visible,
+body .model-preference-menu button.model-preference-option.selected,
+body .model-preference-menu button.model-preference-option.active,
+body #homeModelMenu.model-preference-menu button.model-preference-option,
+body #homeModelMenu.model-preference-menu button.model-preference-option:hover,
+body #homeModelMenu.model-preference-menu button.model-preference-option:focus-visible,
+body #homeModelMenu.model-preference-menu button.model-preference-option.selected,
+body #homeModelMenu.model-preference-menu button.model-preference-option.active,
+body #imageGeneratorPopover .generator-select-menu.model-preference-menu button.model-preference-option,
+body #imageGeneratorPopover .generator-select-menu.model-preference-menu button.model-preference-option:hover,
+body #imageGeneratorPopover .generator-select-menu.model-preference-menu button.model-preference-option:focus-visible,
+body #imageGeneratorPopover .generator-select-menu.model-preference-menu button.model-preference-option.selected,
+body #imageGeneratorPopover .generator-select-menu.model-preference-menu button.model-preference-option.active {
+  opacity: 1 !important;
+  color: #17202c !important;
+  -webkit-text-fill-color: #17202c !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  mix-blend-mode: normal !important;
+}
+
+body .model-preference-menu button.model-preference-option:hover,
+body .model-preference-menu button.model-preference-option:focus-visible,
+body .model-preference-menu button.model-preference-option.selected,
+body .model-preference-menu button.model-preference-option.active,
+body #homeModelMenu.model-preference-menu button.model-preference-option:hover,
+body #homeModelMenu.model-preference-menu button.model-preference-option:focus-visible,
+body #homeModelMenu.model-preference-menu button.model-preference-option.selected,
+body #homeModelMenu.model-preference-menu button.model-preference-option.active,
+body #imageGeneratorPopover .generator-select-menu.model-preference-menu button.model-preference-option:hover,
+body #imageGeneratorPopover .generator-select-menu.model-preference-menu button.model-preference-option:focus-visible,
+body #imageGeneratorPopover .generator-select-menu.model-preference-menu button.model-preference-option.selected,
+body #imageGeneratorPopover .generator-select-menu.model-preference-menu button.model-preference-option.active {
+  background: rgba(242, 246, 252, 0.92) !important;
+}

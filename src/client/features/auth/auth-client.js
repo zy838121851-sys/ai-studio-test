@@ -79,6 +79,18 @@ export function getOAuthStatus(provider, state) {
   return requestJson(`/api/auth/oauth/${provider}/status/${encodeURIComponent(state)}`);
 }
 
+export function getCreditBalance() {
+  return requestJson("/api/credits/balance");
+}
+
+export function getCreditTransactions({ limit = 50, offset = 0 } = {}) {
+  const params = new URLSearchParams({
+    limit: String(limit),
+    offset: String(offset)
+  });
+  return requestJson(`/api/credits/transactions?${params.toString()}`);
+}
+
 export function startOAuth(provider) {
   window.location.href = `/api/auth/oauth/${provider}/start`;
 }

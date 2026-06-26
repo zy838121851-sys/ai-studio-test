@@ -441,7 +441,8 @@ async function saveCanvasImageToAsset({
       collection,
       collectionId,
       prompt: imageNode.dataset.generationPrompt || imageNode.dataset.editPrompt || "",
-      modelName: imageNode.dataset.generationModel || imageNode.dataset.editModel || ""
+      modelName: imageNode.dataset.generationModel || imageNode.dataset.editModel || "",
+      libraryVisible: true
     });
     if (asset?.id) imageNode.dataset.assetId = asset.id;
     imageNode.dataset.assetSaved = "true";

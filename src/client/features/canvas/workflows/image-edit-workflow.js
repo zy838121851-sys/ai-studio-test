@@ -3,6 +3,7 @@ export function createImageEditWorkflow({
   services = {}
 } = {}) {
   const {
+    canvasViewport,
     canvasWorld,
     createImageTextPanel,
     imageEditPopover,
@@ -43,7 +44,10 @@ export function createImageEditWorkflow({
     imageEditPositionFrame: 0
   };
 
-  globalThis.document?.addEventListener?.("canvas:view-transformed", scheduleImageEditPopoverPosition);
+  globalThis.document?.addEventListener?.("canvas:view-transformed", () => {
+    closeImageEditSelects();
+    scheduleImageEditPopoverPosition();
+  });
 
   function getImageNodeSrc(node) {
     return node?.querySelector?.(".image-frame img")?.src || "";
@@ -177,10 +181,21 @@ export function createImageEditWorkflow({
 
   function hideImageEditPopover({ preserveDraft = true } = {}) {
     if (preserveDraft) saveImageEditDraft();
+    closeImageEditSelects();
     imageEditPopover?.classList.remove("open");
     state.editingImageNode = null;
     state.imageEditReferenceNodes = [];
     state.imageEditReferenceImages = [];
+  }
+
+  function closeImageEditSelects() {
+    imageEditPopover?.querySelectorAll?.(".compact-select.open")
+      .forEach((select) => {
+        select.classList.remove("open");
+        select.querySelector(".compact-select-trigger")?.setAttribute("aria-expanded", "false");
+        const menu = select.querySelector(".compact-select-menu");
+        if (menu) menu.hidden = true;
+      });
   }
 
   function ensureImageTextPanel() {
@@ -283,9 +298,11 @@ export function createImageEditWorkflow({
     renderImageEditReferences();
     const promptValue = presetPrompt || getImageEditDraft(node);
     if (imageEditPrompt) imageEditPrompt.value = promptValue;
-    if (imageEditPopover && canvasWorld && imageEditPopover.parentElement !== canvasWorld) {
-      canvasWorld.appendChild(imageEditPopover);
+    const popoverHost = globalThis.document?.body || canvasViewport || canvasWorld;
+    if (imageEditPopover && popoverHost && imageEditPopover.parentElement !== popoverHost) {
+      popoverHost.appendChild(imageEditPopover);
     }
+    closeImageEditSelects();
     positionImageEditPopover();
     imageEditPopover?.classList.add("open");
     imageEditPrompt?.focus();
@@ -298,6 +315,8 @@ export function createImageEditWorkflow({
       node: state.editingImageNode,
       popover: imageEditPopover,
       zoom: getZoom(),
+      canvasViewport,
+      canvasWorld,
       ...buildOutputDefaults
     });
   }

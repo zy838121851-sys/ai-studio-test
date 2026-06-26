@@ -170,7 +170,8 @@ async function persistGeneratedImageAsset({
       type: "image",
       source: "generated",
       prompt,
-      modelName: model
+      modelName: model,
+      libraryVisible: false
     });
     const asset = result?.asset || result;
     applyPersistentGeneratedAsset(node, asset);

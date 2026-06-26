@@ -1,6 +1,8 @@
 import {
   createOAuthQr,
   getAuthProviders,
+  getCreditBalance,
+  getCreditTransactions,
   getCurrentUser,
   getOAuthStatus,
   login,
@@ -18,6 +20,21 @@ export function initAuthEntry(root = document) {
   const accountAvatar = root.querySelector("#authAccountAvatar");
   const accountName = root.querySelector("#authAccountName");
   const accountEmail = root.querySelector("#authAccountEmail");
+  const pointsRow = root.querySelector("[data-auth-credits-open]");
+  const pointsValue = root.querySelector("[data-auth-points-value]");
+  const creditDialog = root.querySelector("#creditDetailDialog");
+  const creditTabButtons = Array.from(root.querySelectorAll("[data-credit-tab]"));
+  const creditPanels = Array.from(root.querySelectorAll("[data-credit-panel]"));
+  const creditAvatar = root.querySelector("[data-credit-avatar]");
+  const creditName = root.querySelector("[data-credit-name]");
+  const creditEmail = root.querySelector("[data-credit-email]");
+  const creditShortId = root.querySelector("[data-credit-short-id]");
+  const creditCopyId = root.querySelector("[data-credit-copy-id]");
+  const creditAvailable = root.querySelector("[data-credit-available]");
+  const creditReserved = root.querySelector("[data-credit-reserved]");
+  const creditBalanceStatus = root.querySelector("[data-credit-balance-status]");
+  const creditTransactions = root.querySelector("[data-credit-transactions]");
+  const creditTransactionsStatus = root.querySelector("[data-credit-transactions-status]");
   const dialog = root.querySelector("#authDialog");
   const form = root.querySelector("#authForm");
   const title = root.querySelector("#authDialogTitle");
@@ -50,6 +67,10 @@ export function initAuthEntry(root = document) {
   let oauthPollTimer = 0;
   let oauthState = "";
   let oauthQrRequestId = 0;
+  let creditBalanceRequestId = 0;
+  let creditTransactionsRequestId = 0;
+  let creditTransactionsLoaded = false;
+  let lastCreditUserId = "";
 
   const setMessage = (text = "", kind = "") => {
     if (!message) return;
@@ -64,9 +85,177 @@ export function initAuthEntry(root = document) {
     entryButton.setAttribute("aria-expanded", "false");
   };
 
+  const formatCredits = (value) => {
+    const number = Number(value);
+    return Number.isFinite(number) ? String(Math.trunc(number)) : "--";
+  };
+
+  const getDisplayName = () => (
+    user ? user.name || user.email?.split("@")[0] || user.phone || "User" : ""
+  );
+
+  const getUserInitial = () => getDisplayName().trim().charAt(0).toUpperCase() || "D";
+
+  const getShortUserId = () => {
+    const id = String(user?.id || "");
+    if (!id) return "--";
+    if (id.length <= 12) return id;
+    return `${id.slice(0, 6)}...${id.slice(-4)}`;
+  };
+
+  const renderCreditProfile = () => {
+    const displayName = getDisplayName();
+    const initial = getUserInitial();
+    if (creditAvatar) creditAvatar.textContent = initial;
+    if (creditName) creditName.textContent = displayName;
+    if (creditEmail) creditEmail.textContent = user?.email || user?.phone || "";
+    if (creditShortId) creditShortId.textContent = getShortUserId();
+  };
+
+  const renderCreditBalance = (balance) => {
+    const available = formatCredits(balance?.availableCredits);
+    const reserved = formatCredits(balance?.reservedCredits);
+    if (pointsValue) pointsValue.textContent = available;
+    if (creditAvailable) creditAvailable.textContent = available;
+    if (creditReserved) creditReserved.textContent = reserved;
+    if (creditBalanceStatus) creditBalanceStatus.textContent = "";
+  };
+
+  const renderCreditBalanceError = () => {
+    if (pointsValue) pointsValue.textContent = "获取失败";
+    if (creditAvailable) creditAvailable.textContent = "--";
+    if (creditReserved) creditReserved.textContent = "--";
+    if (creditBalanceStatus) creditBalanceStatus.textContent = "积分获取失败";
+  };
+
+  const refreshCreditBalance = async ({ force = false } = {}) => {
+    if (!user) return;
+    if (!force && pointsValue?.textContent && pointsValue.textContent !== "--") return;
+    const requestId = ++creditBalanceRequestId;
+    try {
+      const result = await getCreditBalance();
+      if (requestId !== creditBalanceRequestId) return;
+      renderCreditBalance(result.balance);
+    } catch {
+      if (requestId !== creditBalanceRequestId) return;
+      renderCreditBalanceError();
+    }
+  };
+
+  const transactionTitle = (transaction) => {
+    const task = transaction.task || transaction.billingType || transaction.type || "积分变动";
+    const model = transaction.model ? ` · ${transaction.model}` : "";
+    return `${task}${model}`;
+  };
+
+  const transactionMeta = (transaction) => {
+    const pieces = [
+      transaction.provider,
+      transaction.status,
+      transaction.reason,
+      transaction.createdAt ? new Date(transaction.createdAt).toLocaleString() : ""
+    ].filter(Boolean);
+    return pieces.join(" · ");
+  };
+
+  const signedCreditAmount = (transaction) => {
+    const amount = Math.abs(Number(transaction.amountCredits || transaction.creditsCharged || 0));
+    const positiveTypes = new Set(["grant", "release", "refund", "admin_adjust"]);
+    const sign = positiveTypes.has(transaction.type) ? "+" : "-";
+    return {
+      sign,
+      label: `${sign}${formatCredits(amount)}`,
+      className: sign === "+" ? "is-positive" : "is-negative"
+    };
+  };
+
+  const renderCreditTransactions = (transactions = []) => {
+    if (!creditTransactions) return;
+    creditTransactions.replaceChildren();
+    const items = transactions.slice(0, 50);
+    if (!items.length) {
+      if (creditTransactionsStatus) creditTransactionsStatus.textContent = "暂无积分流水";
+      return;
+    }
+    if (creditTransactionsStatus) creditTransactionsStatus.textContent = "";
+    const fragment = document.createDocumentFragment();
+    items.forEach((transaction) => {
+      const item = document.createElement("div");
+      item.className = "credit-transaction-item";
+      const main = document.createElement("div");
+      main.className = "credit-transaction-main";
+      const titleEl = document.createElement("div");
+      titleEl.className = "credit-transaction-title";
+      titleEl.textContent = transactionTitle(transaction);
+      const metaEl = document.createElement("div");
+      metaEl.className = "credit-transaction-meta";
+      metaEl.textContent = transactionMeta(transaction);
+      const amount = signedCreditAmount(transaction);
+      const amountEl = document.createElement("strong");
+      amountEl.className = `credit-transaction-amount ${amount.className}`;
+      amountEl.textContent = amount.label;
+      main.append(titleEl, metaEl);
+      item.append(main, amountEl);
+      fragment.appendChild(item);
+    });
+    creditTransactions.appendChild(fragment);
+  };
+
+  const loadCreditTransactions = async ({ force = false } = {}) => {
+    if (!user || !creditTransactions) return;
+    if (creditTransactionsLoaded && !force) return;
+    const requestId = ++creditTransactionsRequestId;
+    if (creditTransactionsStatus) creditTransactionsStatus.textContent = "正在加载积分流水...";
+    try {
+      const result = await getCreditTransactions({ limit: 50 });
+      if (requestId !== creditTransactionsRequestId) return;
+      creditTransactionsLoaded = true;
+      renderCreditTransactions(result.transactions || []);
+    } catch {
+      if (requestId !== creditTransactionsRequestId) return;
+      creditTransactions.replaceChildren();
+      if (creditTransactionsStatus) creditTransactionsStatus.textContent = "积分流水获取失败";
+    }
+  };
+
+  const setCreditTab = (name) => {
+    creditTabButtons.forEach((button) => {
+      button.classList.toggle("active", button.dataset.creditTab === name);
+    });
+    creditPanels.forEach((panel) => {
+      panel.classList.toggle("active", panel.dataset.creditPanel === name);
+    });
+    if (name === "transactions") loadCreditTransactions();
+  };
+
+  const openCreditDialog = () => {
+    if (!user || !creditDialog) return;
+    window.clearTimeout(closeMenuTimer);
+    closeAccountMenu();
+    renderCreditProfile();
+    setCreditTab("account");
+    creditDialog.classList.remove("hidden");
+    creditDialog.setAttribute("aria-hidden", "false");
+    refreshCreditBalance({ force: true });
+  };
+
+  const closeCreditDialog = () => {
+    if (!creditDialog) return;
+    creditDialog.classList.add("hidden");
+    creditDialog.setAttribute("aria-hidden", "true");
+  };
+
   const renderEntry = () => {
-    const displayName = user ? user.name || user.email?.split("@")[0] || user.phone || "User" : "";
-    const initial = displayName.trim().charAt(0).toUpperCase() || "D";
+    const displayName = getDisplayName();
+    const initial = getUserInitial();
+    const currentUserId = user?.id || "";
+    if (currentUserId !== lastCreditUserId) {
+      lastCreditUserId = currentUserId;
+      creditTransactionsLoaded = false;
+      if (creditTransactions) creditTransactions.replaceChildren();
+      if (creditTransactionsStatus) creditTransactionsStatus.textContent = "";
+      if (pointsValue) pointsValue.textContent = "--";
+    }
     entry.classList.toggle("is-authenticated", Boolean(user));
     entryButton.textContent = user ? initial : "登录";
     entryButton.title = user ? "账户菜单" : "登录";
@@ -78,7 +267,14 @@ export function initAuthEntry(root = document) {
     if (accountAvatar) accountAvatar.textContent = initial;
     if (accountName) accountName.textContent = displayName;
     if (accountEmail) accountEmail.textContent = user?.email || user?.phone || "";
-    if (!user) closeAccountMenu();
+    if (user) {
+      renderCreditProfile();
+      refreshCreditBalance();
+    } else {
+      if (pointsValue) pointsValue.textContent = "--";
+      closeAccountMenu();
+      closeCreditDialog();
+    }
   };
 
   const emitAuthChanged = () => {
@@ -287,6 +483,13 @@ export function initAuthEntry(root = document) {
   entry.addEventListener("focusout", scheduleCloseAccountMenu);
 
   accountPopover?.addEventListener("click", async (event) => {
+    const creditsButton = event.target.closest("[data-auth-credits-open]");
+    if (creditsButton) {
+      event.preventDefault();
+      event.stopPropagation();
+      openCreditDialog();
+      return;
+    }
     const logoutButton = event.target.closest("[data-auth-logout]");
     if (!logoutButton) return;
     logoutButton.disabled = true;
@@ -302,13 +505,37 @@ export function initAuthEntry(root = document) {
     logoutButton.disabled = false;
   });
 
+  creditDialog?.addEventListener("click", (event) => {
+    if (event.target.closest("[data-credit-detail-close]")) closeCreditDialog();
+  });
+
+  creditTabButtons.forEach((button) => {
+    button.addEventListener("click", () => setCreditTab(button.dataset.creditTab || "account"));
+  });
+
+  creditCopyId?.addEventListener("click", async () => {
+    const id = String(user?.id || "");
+    if (!id) return;
+    try {
+      await navigator.clipboard?.writeText(id);
+      creditCopyId.title = "已复制完整 ID";
+    } catch {
+      creditCopyId.title = "复制失败";
+    }
+  });
+
   dialog.addEventListener("click", (event) => {
     if (event.target.closest("[data-auth-close]")) closeDialog();
   });
 
   root.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !dialog.classList.contains("hidden")) closeDialog();
+    if (event.key === "Escape" && !creditDialog?.classList.contains("hidden")) closeCreditDialog();
     if (event.key === "Escape") closeAccountMenu();
+  });
+
+  window.addEventListener("ai-studio-credits-refresh", () => {
+    refreshCreditBalance({ force: true });
   });
 
   methodButtons.forEach((button) => {

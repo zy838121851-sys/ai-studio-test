@@ -277,10 +277,30 @@ body:not([data-view="canvas"]) .app {
   grid-template-columns: 1fr auto auto;
   align-items: center;
   gap: 8px;
-  padding-top: 12px;
+  width: calc(100% - 28px);
+  padding: 10px 8px 0;
   border-top: 1px solid rgba(17, 24, 39, 0.08);
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  border-radius: 10px;
   color: rgba(23, 32, 44, 0.76);
+  background: transparent;
   font-size: 14px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.auth-points-row:hover {
+  color: #17202c;
+  background: rgba(79, 140, 255, 0.08);
+}
+
+.auth-points-row:focus-visible {
+  outline: 2px solid rgba(79, 140, 255, 0.55);
+  outline-offset: 2px;
 }
 
 .auth-points-row strong {
@@ -318,6 +338,316 @@ body:not([data-view="canvas"]) .app {
 
 .auth-menu-list button:hover {
   background: rgba(241, 245, 249, 0.9);
+}
+
+.credit-detail-dialog.hidden {
+  display: none;
+}
+
+.credit-detail-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 180;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+}
+
+.credit-detail-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.28);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.credit-detail-panel {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  width: min(1280px, calc(100vw - 96px));
+  min-height: min(720px, calc(100vh - 96px));
+  max-height: calc(100vh - 56px);
+  padding: 48px 72px;
+  overflow: auto;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 22px;
+  color: #17202c;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 30px 90px rgba(17, 24, 39, 0.22);
+}
+
+.credit-detail-close {
+  position: absolute;
+  top: 22px;
+  right: 24px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 10px;
+  color: rgba(23, 32, 44, 0.72);
+  background: transparent;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.credit-detail-close:hover {
+  background: rgba(241, 245, 249, 0.95);
+}
+
+.credit-detail-tabs {
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  width: min(860px, 100%);
+  margin: 0 auto 30px;
+}
+
+.credit-detail-tabs button {
+  border: 0;
+  color: rgba(23, 32, 44, 0.52);
+  background: transparent;
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.credit-detail-tabs button.active {
+  color: #17202c;
+}
+
+.credit-detail-content {
+  width: min(860px, 100%);
+  margin: 0 auto;
+}
+
+.credit-detail-tab {
+  display: none;
+}
+
+.credit-detail-tab.active {
+  display: grid;
+  gap: 28px;
+}
+
+.credit-profile-card,
+.credit-info-card {
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.credit-profile-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  min-height: 116px;
+  padding: 22px 26px;
+}
+
+.credit-profile-avatar {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(135deg, #5a9cff, #3f7df1);
+  font-size: 22px;
+  font-weight: 850;
+}
+
+.credit-profile-main {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.credit-profile-main strong {
+  overflow: hidden;
+  color: #17202c;
+  font-size: 18px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.credit-profile-main > span {
+  overflow: hidden;
+  color: rgba(23, 32, 44, 0.5);
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.credit-copy-id {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  color: rgba(23, 32, 44, 0.46);
+  background: transparent;
+  font-size: 13px;
+  text-align: left;
+}
+
+.credit-copy-id:hover {
+  color: #3f7df1;
+}
+
+.credit-edit-profile {
+  min-height: 36px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: #202736;
+  font-size: 14px;
+  font-weight: 780;
+}
+
+.credit-info-card {
+  min-height: 290px;
+  padding: 26px;
+}
+
+.credit-info-card h2 {
+  margin: 0 0 24px;
+  color: #17202c;
+  font-size: 18px;
+  font-weight: 850;
+}
+
+.credit-info-list {
+  display: grid;
+  gap: 17px;
+  margin: 0;
+}
+
+.credit-info-list div {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 24px;
+}
+
+.credit-info-list dt {
+  color: rgba(23, 32, 44, 0.72);
+  font-size: 14px;
+}
+
+.credit-info-list dd {
+  margin: 0;
+  color: #17202c;
+  font-size: 14px;
+  font-weight: 680;
+}
+
+.credit-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.credit-card-head h2 {
+  margin: 0;
+}
+
+.credit-card-head span {
+  color: rgba(23, 32, 44, 0.48);
+  font-size: 13px;
+}
+
+.credit-transaction-list {
+  display: grid;
+  gap: 10px;
+}
+
+.credit-transaction-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.06);
+}
+
+.credit-transaction-main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.credit-transaction-title {
+  overflow: hidden;
+  color: #17202c;
+  font-size: 14px;
+  font-weight: 760;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.credit-transaction-meta {
+  overflow: hidden;
+  color: rgba(23, 32, 44, 0.46);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.credit-transaction-amount {
+  align-self: center;
+  color: #17202c;
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.credit-transaction-amount.is-positive {
+  color: #168a4a;
+}
+
+.credit-transaction-amount.is-negative {
+  color: #d04444;
+}
+
+.credit-detail-status,
+.credit-empty-card p {
+  margin: 18px 0 0;
+  color: rgba(23, 32, 44, 0.48);
+  font-size: 14px;
+}
+
+@media (max-width: 760px) {
+  .credit-detail-dialog {
+    padding: 14px;
+  }
+
+  .credit-detail-panel {
+    width: 100%;
+    min-height: calc(100vh - 28px);
+    padding: 42px 22px 28px;
+  }
+
+  .credit-detail-tabs {
+    gap: 18px;
+    overflow-x: auto;
+  }
+
+  .credit-profile-card {
+    grid-template-columns: auto 1fr;
+  }
+
+  .credit-edit-profile {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .credit-info-list div {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
 }
 
 .auth-menu-list button:disabled {
@@ -658,7 +988,7 @@ body:not([data-view="canvas"]) .app {
 .home-prompt {
   display: grid;
   grid-template-areas: "plus input model send";
-  grid-template-columns: 38px minmax(0, 1fr) 168px 52px;
+  grid-template-columns: 38px minmax(0, 1fr) 168px 64px;
   grid-template-rows: 52px;
   align-items: center;
   position: relative;
@@ -870,7 +1200,7 @@ body[data-view="canvas"] .home-prompt {
   bottom: auto;
   z-index: 2000;
   display: grid;
-  width: 184px;
+  width: 228px;
   padding: 8px;
   border: 1px solid rgba(17, 24, 39, 0.08);
   border-radius: 18px;
@@ -894,14 +1224,43 @@ body[data-view="canvas"] .home-prompt {
 .home-model-menu button {
   display: flex !important;
   justify-content: flex-start;
+  align-items: center;
   width: 100%;
-  height: 40px;
-  padding: 0 12px;
+  min-height: 48px;
+  height: auto;
+  padding: 8px 12px;
   border-radius: 12px !important;
   color: rgba(23, 32, 44, 0.68);
   background: transparent;
   font-size: 13px !important;
   font-weight: 800;
+}
+
+.home-model-group {
+  padding: 8px 10px 5px;
+  color: rgba(23, 32, 44, 0.42);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.home-model-option-content {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  text-align: left;
+}
+
+.home-model-option-content strong,
+.home-model-option-content small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-model-option-content small {
+  color: rgba(23, 32, 44, 0.48);
+  font-size: 11px;
+  font-weight: 700;
 }
 
 .home-model-menu button:hover,
@@ -1313,6 +1672,7 @@ body.canvas-entering .chat-panel {
 }
 
 .home-history-thumb {
+  position: relative;
   display: grid;
   aspect-ratio: 16 / 9.2;
   overflow: hidden;
@@ -1327,10 +1687,32 @@ body.canvas-entering .chat-panel {
   object-fit: cover;
 }
 
-.home-history-thumb b {
+.home-history-thumb b,
+.project-preview-fallback {
   color: #4f8cff;
   font-size: 24px;
   font-weight: 900;
+}
+
+.project-preview-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: grid;
+  place-items: center;
+  background: #f1f1f2;
+  pointer-events: none;
+}
+
+.project-preview-image {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+}
+
+.project-preview-image[hidden] {
+  display: none !important;
 }
 
 .home-history-card.is-create .home-history-thumb {
@@ -2487,6 +2869,7 @@ body.canvas-entering .chat-panel {
 }
 
 .library-small-card div {
+  position: relative;
   display: grid;
   place-items: center;
   width: 100%;
@@ -2502,7 +2885,7 @@ body.canvas-entering .chat-panel {
   object-fit: cover;
 }
 
-.library-small-card div span {
+.library-small-card div span:not(.project-preview-fallback) {
   color: #4d9cff;
   font-size: 28px;
 }

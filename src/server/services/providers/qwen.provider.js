@@ -14,6 +14,15 @@ export function pickText(data) {
   return content.map((item) => item.text).filter(Boolean).join("\n").trim();
 }
 
+function pickUsage(data) {
+  const usage = data?.usage || data?.output?.usage || data?.output?.choices?.[0]?.usage || {};
+  return {
+    inputTokens: usage.input_tokens ?? usage.inputTokens ?? usage.prompt_tokens ?? usage.promptTokens,
+    outputTokens: usage.output_tokens ?? usage.outputTokens ?? usage.completion_tokens ?? usage.completionTokens,
+    totalTokens: usage.total_tokens ?? usage.totalTokens
+  };
+}
+
 function pickWanTaskId(data) {
   return data?.output?.task_id || data?.output?.taskId || data?.task_id || data?.taskId || null;
 }
@@ -430,6 +439,7 @@ export async function callQwenVision({ image, prompt } = {}) {
   });
   return {
     text: pickText(data),
+    usage: pickUsage(data),
     providerCalls: [
       {
         provider: "qwen",
@@ -450,6 +460,7 @@ export async function callQwenText({ prompt } = {}) {
   });
   return {
     text: pickText(data),
+    usage: pickUsage(data),
     providerCalls: [
       {
         provider: "qwen",

@@ -1,4 +1,4 @@
-import { createProjectWorkflow } from "./workflows/project-workflow.js";
+import { createProjectWorkflow } from "./workflows/project-workflow.js?v=20260626-midjourney-4up-1";
 
 export function createProjectWorkflowRuntime({
   state,

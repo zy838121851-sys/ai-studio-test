@@ -6,6 +6,13 @@ import {
   callWanImageSuperResolution
 } from "./qwen.provider.js";
 import { callVolcengineSeedreamImage } from "./volcengine.provider.js";
+import {
+  callApimartImage,
+  callApimartImageEdit,
+  callApimartImageExpand,
+  callApimartSuperResolution
+} from "./apimart/apimart-image.service.js";
+import { callApimartVideo } from "./apimart/apimart-video.service.js";
 import { getModelConfig } from "../model-catalog.service.js";
 
 const qwenProvider = {
@@ -22,9 +29,19 @@ const volcengineProvider = {
   generateImage: callVolcengineSeedreamImage
 };
 
+const apimartProvider = {
+  id: "apimart",
+  generateImage: callApimartImage,
+  generateVideo: callApimartVideo,
+  editImage: callApimartImageEdit,
+  expandImage: callApimartImageExpand,
+  superResolutionImage: callApimartSuperResolution
+};
+
 const providers = new Map([
   [qwenProvider.id, qwenProvider],
-  [volcengineProvider.id, volcengineProvider]
+  [volcengineProvider.id, volcengineProvider],
+  [apimartProvider.id, apimartProvider]
 ]);
 
 let activeProviderId = "qwen";

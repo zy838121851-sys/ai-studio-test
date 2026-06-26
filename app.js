@@ -1,1 +1,1 @@
-import "./src/main.js?v=20260625-generator-convert-1";
+﻿import "./src/main.js?v=20260626-job-poll-1";

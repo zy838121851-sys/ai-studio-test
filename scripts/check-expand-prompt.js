@@ -83,13 +83,8 @@ const restoreSuccessProvider = registerAIProvider({
       })
     };
   },
-  async expandImage({ model, image, prompt, expand }) {
-    assert(model === "wan2.7-image-pro", "Expand should default to wan2.7-image-pro");
-    assert(image === "data:image/mock;base64,abc", "Expand should receive the source image");
-    assert(expand.leftScale === 1.32, "Expand should receive scale parameters");
-    assert(prompt.includes("Automatic expansion plan from the source image"), "Expand prompt should include the auto plan");
-    assert(prompt.includes("left: continue tabletop grain"), "Expand prompt should include side-specific plan details");
-    return { imageUrl: "mock://expanded-success", prompt };
+  async expandImage() {
+    throw new Error("Qwen expandImage should not be called for expand checks");
   },
   async generateImage() {
     throw new Error("generateImage should not be called for expand checks");
@@ -99,29 +94,58 @@ const restoreSuccessProvider = registerAIProvider({
   }
 });
 
+const restoreSuccessApimartProvider = registerAIProvider({
+  id: "apimart",
+  async expandImage({ model, image, prompt, expand }) {
+    assert(model === "wan2.7-image-pro", "Expand should default to wan2.7-image-pro");
+    assert(image === "data:image/mock;base64,abc", "Expand should receive the source image");
+    assert(expand.leftScale === 1.32, "Expand should receive scale parameters");
+    assert(prompt.includes("Automatic expansion plan from the source image"), "Expand prompt should include the auto plan");
+    assert(prompt.includes("left: continue tabletop grain"), "Expand prompt should include side-specific plan details");
+    return {
+      imageUrl: "mock://expanded-success",
+      prompt,
+      providerCalls: [{ provider: "apimart", model, operation: "expandImage", endpoint: "mock://apimart" }]
+    };
+  }
+});
+
 const successResult = await expandImage({
   image: "data:image/mock;base64,abc",
   prompt: basePrompt,
   expand: { leftScale: 1.32, rightScale: 1.32, topScale: 1.32, bottomScale: 1.32 }
 });
 assert(successResult.imageUrl === "mock://expanded-success", "Successful expand should return provider result");
+assert(successResult.provider === "apimart", "Successful expand should use APIMart for the output model");
 restoreSuccessProvider();
+restoreSuccessApimartProvider();
 
 const restoreFallbackProvider = registerAIProvider({
   id: "qwen",
   async analyzeImage() {
     throw new Error("simulated planner failure");
   },
-  async expandImage({ model, prompt }) {
-    assert(model === "wan2.7-image-pro", "Fallback expand should default to wan2.7-image-pro");
-    assert(prompt === basePrompt, "Planner failure should fall back to the original expand prompt");
-    return { imageUrl: "mock://expanded-fallback", prompt };
+  async expandImage() {
+    throw new Error("Qwen expandImage should not be called for fallback expand checks");
   },
   async generateImage() {
     throw new Error("generateImage should not be called for expand checks");
   },
   async generateText() {
     throw new Error("generateText should not be called for expand checks");
+  }
+});
+
+const restoreFallbackApimartProvider = registerAIProvider({
+  id: "apimart",
+  async expandImage({ model, prompt }) {
+    assert(model === "wan2.7-image-pro", "Fallback expand should default to wan2.7-image-pro");
+    assert(prompt === basePrompt, "Planner failure should fall back to the original expand prompt");
+    return {
+      imageUrl: "mock://expanded-fallback",
+      prompt,
+      providerCalls: [{ provider: "apimart", model, operation: "expandImage", endpoint: "mock://apimart" }]
+    };
   }
 });
 
@@ -138,6 +162,8 @@ try {
   console.warn = originalWarn;
 }
 assert(fallbackResult.imageUrl === "mock://expanded-fallback", "Fallback expand should still return provider result");
+assert(fallbackResult.provider === "apimart", "Fallback expand should use APIMart for the output model");
 restoreFallbackProvider();
+restoreFallbackApimartProvider();
 
 console.log("Expand prompt checks passed.");

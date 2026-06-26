@@ -1,17 +1,25 @@
-export const DEFAULT_IMAGE_MODEL = "doubao-seedream-5-0-lite-260128";
+﻿import {
+  getModelMenuLabel,
+  getModelOptionTitle,
+  renderModelPreferenceMenu
+} from "./model-preference-menu.js?v=20260626-midjourney-4up-1";
+
+export const DEFAULT_IMAGE_MODEL = "gpt-image-2";
+
 const FALLBACK_MODELS = [
-  { id: DEFAULT_IMAGE_MODEL, label: "Doubao-Seedream-5.0-lite", surfaces: ["home", "chat", "generator", "imageEdit"], priority: 10, isDefault: true },
-  { id: "doubao-seedream-4-5-251128", label: "Doubao-Seedream-4.5", surfaces: ["home", "chat", "generator", "imageEdit"], priority: 20 },
-  { id: "doubao-seedream-4-0-250828", label: "Doubao-Seedream-4.0", surfaces: ["home", "chat", "generator", "imageEdit"], priority: 30 },
-  { id: "wan2.7-image-pro", label: "Wan 2.7 Image Pro", surfaces: ["home", "chat", "generator", "imageEdit"], priority: 40 },
-  { id: "wan2.7-image", label: "Wan 2.7 Image", surfaces: ["home", "chat", "generator", "imageEdit"], priority: 50 },
-  { id: "z-image-turbo", label: "Z-Image Turbo", surfaces: ["home", "chat", "generator"], priority: 60 },
-  { id: "qwen-image-2.0-pro", label: "Qwen Image 2.0 Pro", surfaces: ["home", "chat", "generator", "imageEdit"], priority: 70 },
-  { id: "qwen-image-2.0", label: "Qwen Image 2.0", surfaces: ["home", "chat", "generator", "imageEdit"], priority: 80 },
-  { id: "qwen-image-max", label: "Qwen Image Max", surfaces: ["home", "chat", "generator"], priority: 90 },
-  { id: "qwen-image-plus", label: "Qwen Image Plus", surfaces: ["home", "chat", "generator"], priority: 100 },
-  { id: "qwen-image-edit-max", label: "Qwen Image Edit Max", surfaces: ["imageEdit"], priority: 110 },
-  { id: "qwen-image-edit-plus", label: "Qwen Image Edit Plus", surfaces: ["imageEdit"], priority: 120 }
+  {
+    id: DEFAULT_IMAGE_MODEL,
+    label: "GPT Image 2",
+    type: "image",
+    displayGroup: "图像模型",
+    supports: ["文生图", "图生图", "图片编辑"],
+    description: "高质量图像模型，适合复杂指令、参考图生成和图片编辑",
+    surfaces: ["home", "chat", "generator", "imageEdit"],
+    priority: 10,
+    credits: 8,
+    estimatedSeconds: 45,
+    isDefault: true
+  }
 ];
 
 const MODEL_SELECT_TARGETS = [
@@ -21,34 +29,71 @@ const MODEL_SELECT_TARGETS = [
   { selector: "[data-generator-model]", surface: "generator" }
 ];
 
-let cachedModels = FALLBACK_MODELS;
+const MODEL_STATE_KEY = "__AI_STUDIO_MODEL_CATALOG_STATE__";
+
+function getSharedModelState() {
+  const root = globalThis || window;
+  if (!root[MODEL_STATE_KEY]) {
+    root[MODEL_STATE_KEY] = {
+      models: FALLBACK_MODELS,
+      selectedBySurface: Object.create(null)
+    };
+  }
+  return root[MODEL_STATE_KEY];
+}
+
+function getCatalogModels() {
+  const models = getSharedModelState().models;
+  return Array.isArray(models) && models.length ? models : FALLBACK_MODELS;
+}
+
+function setCatalogModels(models) {
+  getSharedModelState().models = Array.isArray(models) && models.length ? models : FALLBACK_MODELS;
+}
+
+function setSelectedModel(surface, modelId) {
+  const id = String(modelId || "").trim();
+  if (!id) return;
+  const state = getSharedModelState();
+  state.selectedBySurface.global = id;
+  if (surface) state.selectedBySurface[surface] = id;
+}
+
+function getSelectedModel(surface) {
+  const state = getSharedModelState();
+  return state.selectedBySurface?.[surface] || state.selectedBySurface?.global || "";
+}
 
 export async function initModelCatalog(root = document) {
-  cachedModels = await fetchModelCatalog();
+  setCatalogModels(await fetchModelCatalog());
   hydrateModelSelects(root);
   root.dispatchEvent?.(new CustomEvent("ai-studio-models-updated", {
     detail: {
       defaultModel: DEFAULT_IMAGE_MODEL,
-      models: cachedModels
+      models: getCatalogModels()
     }
   }));
-  return cachedModels;
+  return getCatalogModels();
 }
 
 export function getCachedImageModels(surface) {
-  return filterModelsForSurface(cachedModels, surface);
+  return filterModelsForSurface(getCatalogModels(), surface);
+}
+
+export function getModelType(modelId) {
+  return getModelById(modelId)?.type || "image";
 }
 
 export function resolveImageModelId(modelId, surface) {
   const id = String(modelId || "").trim();
-  const models = filterModelsForSurface(cachedModels, surface);
+  const models = filterModelsForSurface(getCatalogModels(), surface);
   return models.some((model) => model.id === id) ? id : DEFAULT_IMAGE_MODEL;
 }
 
 export function getImageModelDisplayName(modelId) {
   const id = String(modelId || "").trim() || DEFAULT_IMAGE_MODEL;
   if (id === "wanx2.1-imageedit") return "Wanx 2.1 ImageEdit";
-  const model = [...cachedModels, ...FALLBACK_MODELS].find((item) => item.id === id);
+  const model = [...getCatalogModels(), ...FALLBACK_MODELS].find((item) => item.id === id);
   return model?.label || id;
 }
 
@@ -58,11 +103,12 @@ export function formatModelUsage(result = {}, fallbackModel = "") {
     .map((call) => formatProviderCall(call))
     .filter(Boolean);
   if (actualCalls.length) {
-    return `\u5b9e\u9645\u8c03\u7528\uff1a${dedupeStrings(actualCalls).join("\uff1b")}`;
+    return `实际调用：${dedupeStrings(actualCalls).join("；")}`;
   }
   const model = result?.requestedModel || result?.model || fallbackModel;
-  return `\u6a21\u578b\uff1a${getImageModelDisplayName(model)}`;
+  return `模型：${getImageModelDisplayName(model)}`;
 }
+
 function formatProviderCall(call = {}) {
   const provider = formatProviderName(call.provider);
   const model = getImageModelDisplayName(call.model);
@@ -74,6 +120,7 @@ function formatProviderCall(call = {}) {
 
 function formatProviderName(provider = "") {
   const id = String(provider || "").trim().toLowerCase();
+  if (id === "apimart") return "";
   if (id === "volcengine") return "Volcengine";
   if (id === "qwen") return "Alibaba";
   return provider;
@@ -115,53 +162,83 @@ function hydrateHomeModelPicker(root) {
   const button = root.querySelector("#homeModelButton");
   if (!select || !menu) return;
   hydrateNativeSelect(select, "home");
-  menu.innerHTML = "";
-  filterModelsForSurface(cachedModels, "home").forEach((model) => {
-    const item = document.createElement("button");
-    item.type = "button";
-    item.dataset.modelValue = model.id;
-    item.textContent = model.label || model.id;
-    item.classList.toggle("active", model.id === select.value);
-    menu.append(item);
+  renderModelPreferenceMenu({
+    menu,
+    select,
+    surface: "home",
+    models: filterModelsForSurface(getCatalogModels(), "home"),
+    allowVideo: true,
+    onChoose: () => {
+      syncHomeButtonLabel(select, button, menu);
+    },
+    onClose: () => {
+      root.querySelector("#homeModelPicker")?.classList.remove("open");
+      button?.setAttribute("aria-expanded", "false");
+    }
   });
   syncHomeButtonLabel(select, button, menu);
 }
 
 function hydrateNativeSelect(select, surface) {
   if (!select) return;
-  const models = filterModelsForSurface(cachedModels, surface);
-  const current = select.dataset.modelUserSelected === "true" ? select.value : DEFAULT_IMAGE_MODEL;
+  const models = filterModelsForSurface(getCatalogModels(), surface);
+  const current = select.dataset.modelUserSelected === "true"
+    ? (select.dataset.selectedModelId || select.value)
+    : (getSelectedModel(surface) || DEFAULT_IMAGE_MODEL);
   select.innerHTML = "";
-  models.forEach((model) => {
-    const option = document.createElement("option");
-    option.value = model.id;
-    option.textContent = getModelLabel(model, surface);
-    select.append(option);
+  groupModels(models).forEach(({ group, models: groupItems }) => {
+    const container = document.createElement("optgroup");
+    container.label = group;
+    groupItems.forEach((model) => {
+      const option = document.createElement("option");
+      option.value = model.id;
+      option.textContent = getModelLabel(model, surface);
+      option.title = getModelOptionTitle(model);
+      option.dataset.modelLabel = model.label || model.id;
+      option.dataset.modelType = model.type || "image";
+      container.append(option);
+    });
+    select.append(container);
   });
   select.value = models.some((model) => model.id === current) ? current : DEFAULT_IMAGE_MODEL;
+  select.dataset.selectedModelId = select.value;
+  setSelectedModel(surface, select.value);
   if (!select.value && select.options.length) select.selectedIndex = 0;
+  select.__modelPreferenceModels = models;
+  select.__modelPreferenceSurface = surface;
+  select.__modelPreferenceAllowVideo = surface === "home" || surface === "chat";
   if (select.dataset.modelCatalogBound !== "true") {
     select.addEventListener("change", () => {
       select.dataset.modelUserSelected = "true";
+      select.dataset.modelAuto = "false";
+      select.dataset.selectedModelId = select.value;
+      setSelectedModel(surface, select.value);
       syncModelSelectionAcrossSurfaces(select.value, select);
     });
     select.dataset.modelCatalogBound = "true";
   }
   select.__compactSelectRebuild?.();
   select.__compactSelectSync?.();
+  select.__generatorSelectRebuild?.();
 }
 
 function syncModelSelectionAcrossSurfaces(modelId, sourceSelect) {
   const id = String(modelId || "").trim();
   if (!id) return;
+  const sourceSurface = sourceSelect?.__modelPreferenceSurface || "";
+  setSelectedModel(sourceSurface, id);
   MODEL_SELECT_TARGETS.forEach(({ selector, surface }) => {
     document.querySelectorAll(selector).forEach((select) => {
       if (select === sourceSelect) return;
-      const models = filterModelsForSurface(cachedModels, surface);
+      const models = filterModelsForSurface(getCatalogModels(), surface);
       if (!models.some((model) => model.id === id)) return;
       select.value = id;
       select.dataset.modelUserSelected = "true";
+      select.dataset.modelAuto = "false";
+      select.dataset.selectedModelId = id;
+      setSelectedModel(surface, id);
       select.__compactSelectSync?.();
+      select.__generatorSelectRebuild?.();
     });
   });
   hydrateHomeModelPicker(document);
@@ -176,15 +253,35 @@ function filterModelsForSurface(models, surface) {
     .sort((a, b) => Number(a.priority || 999) - Number(b.priority || 999));
 }
 
+function groupModels(models = []) {
+  const groups = new Map();
+  models.forEach((model) => {
+    const key = model.displayGroup || (model.type === "video" ? "视频模型" : "图像模型");
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(model);
+  });
+  return Array.from(groups.entries()).map(([group, items]) => ({ group, models: items }));
+}
+
 function getModelLabel(model, surface) {
-  return model.label || model.id;
+  if (!model) return "";
+  if (surface === "home") return model.label || model.id;
+  const typeLabel = model.type === "video" ? "视频" : "图像";
+  return `${model.label || model.id} · ${typeLabel}`;
 }
 
 function syncHomeButtonLabel(select, button, menu) {
   if (!select || !button) return;
   const selected = select.options[select.selectedIndex];
-  button.querySelector("span")?.replaceChildren(document.createTextNode(selected?.textContent || getImageModelDisplayName(DEFAULT_IMAGE_MODEL)));
+  const label = selected?.dataset?.modelLabel || selected?.textContent || getImageModelDisplayName(DEFAULT_IMAGE_MODEL);
+  button.querySelector("span")?.replaceChildren(document.createTextNode(label));
   menu?.querySelectorAll?.("[data-model-value]").forEach((item) => {
     item.classList.toggle("active", item.dataset.modelValue === select.value);
+    item.classList.toggle("selected", item.dataset.modelValue === select.value);
   });
+}
+
+function getModelById(modelId) {
+  const id = String(modelId || "").trim();
+  return getCatalogModels().find((model) => model.id === id) || FALLBACK_MODELS.find((model) => model.id === id) || null;
 }

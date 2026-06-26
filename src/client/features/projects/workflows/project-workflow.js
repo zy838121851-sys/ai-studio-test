@@ -1,6 +1,6 @@
 import {
   resolveImageModelId
-} from "../../ai/model-catalog.js";
+} from "../../ai/model-catalog.js?v=20260626-midjourney-4up-1";
 
 export function createProjectWorkflow(ctx) {
   const { state, projectRuntime, services = {}, elements = {}, ui = {}, chat = {} } = ctx;
@@ -343,6 +343,7 @@ export function createProjectWorkflow(ctx) {
     if (chatModelSelect) {
       chatModelSelect.value = generationModel;
       chatModelSelect.dataset.modelUserSelected = "true";
+      chatModelSelect.dataset.selectedModelId = generationModel;
       chatModelSelect.__compactSelectSync?.();
       chatModelSelect.dispatchEvent(new Event("change", { bubbles: true }));
     }

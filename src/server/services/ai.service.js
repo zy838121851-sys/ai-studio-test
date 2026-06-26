@@ -13,6 +13,7 @@ import {
   buildExtractPromptPrompt,
   buildPrepareActionPrompt
 } from "./prompt-builder.service.js";
+import { getApimartTaskStatus } from "./providers/apimart/apimart-task.service.js";
 
 function parseJsonValue(text) {
   if (!text) return null;
@@ -65,14 +66,15 @@ function normalizeExtractedTexts(value, rawText = "") {
     .map((text) => ({ text, role: "other", x: 0, y: 0, width: 0, height: 0 }));
 }
 
-export async function generateImage({ model = DEFAULT_IMAGE_MODEL, prompt, images = [], size } = {}) {
+export async function generateImage({ model = DEFAULT_IMAGE_MODEL, prompt, images = [], size, requestId } = {}) {
   const requestedModel = String(model || "").trim() || DEFAULT_IMAGE_MODEL;
   const route = resolveImageGenerationRoute(requestedModel, "generateImage");
   const result = await route.provider.generateImage({
     model: route.providerModel,
     prompt,
     images,
-    size
+    size,
+    requestId
   });
   return {
     ...result,
@@ -89,30 +91,87 @@ export async function generateImage({ model = DEFAULT_IMAGE_MODEL, prompt, image
   };
 }
 
+export async function generateVideo({ model, prompt, images = [], videoOptions = {}, requestId } = {}) {
+  const requestedModel = String(model || "").trim();
+  const route = resolveImageGenerationRoute(requestedModel, "generateVideo");
+  const result = await route.provider.generateVideo({
+    model: route.providerModel,
+    prompt,
+    images,
+    videoOptions,
+    requestId
+  });
+  return {
+    ...result,
+    model: result.model || route.providerModel,
+    requestedModel: route.requestedModel,
+    resolvedModel: route.resolvedModel,
+    provider: route.providerId,
+    providerModel: route.providerModel,
+    providerCalls: normalizeProviderCalls(result.providerCalls, {
+      provider: route.providerId,
+      model: route.providerModel,
+      operation: "generateVideo"
+    })
+  };
+}
+
+export async function generateFixedQwenImageEdit({
+  prompt,
+  images = [],
+  size,
+  requestId
+} = {}) {
+  const requestedModel = "qwen-image-edit-plus";
+  const result = await getAIProvider("qwen").generateImage({
+    model: requestedModel,
+    prompt,
+    images,
+    size,
+    requestId
+  });
+  return {
+    ...result,
+    model: result.model || requestedModel,
+    requestedModel,
+    resolvedModel: result.resolvedModel || result.model || requestedModel,
+    provider: "qwen",
+    providerModel: result.providerModel || result.resolvedModel || result.model || requestedModel,
+    providerCalls: normalizeProviderCalls(result.providerCalls, {
+      provider: "qwen",
+      model: requestedModel,
+      operation: "generateImage"
+    })
+  };
+}
+
 export async function expandImage({ image, prompt, expand } = {}) {
   if (!image) throw new Error("Missing image");
   const requestedModel = String(DEFAULT_EXPAND_MODEL).trim() || DEFAULT_IMAGE_MODEL;
   const plan = await buildAutoExpandPrompt({ image, prompt, expand });
   const enhancedPrompt = plan.prompt;
-  const route = resolveImageGenerationRoute(DEFAULT_EXPAND_MODEL, "expandImage");
-  const result = await route.provider.expandImage({
-    model: route.providerModel,
+  const rawResult = await getAIProvider("apimart").expandImage({
+    model: DEFAULT_EXPAND_MODEL,
     image,
     prompt: enhancedPrompt,
     expand
   });
+  const result = await resolveImmediateApimartImageResult(rawResult, {
+    model: DEFAULT_EXPAND_MODEL,
+    operation: "expandImage"
+  });
   return {
     ...result,
-    model: result.model || route.providerModel,
-    provider: route.providerId,
+    model: result.model || DEFAULT_EXPAND_MODEL,
+    provider: "apimart",
     requestedModel,
-    resolvedModel: route.resolvedModel,
-    providerModel: route.providerModel,
+    resolvedModel: DEFAULT_EXPAND_MODEL,
+    providerModel: DEFAULT_EXPAND_MODEL,
     providerCalls: [
       ...normalizeProviderCalls(plan.providerCalls),
       ...normalizeProviderCalls(result.providerCalls, {
-        provider: route.providerId,
-        model: route.providerModel,
+        provider: "apimart",
+        model: DEFAULT_EXPAND_MODEL,
         operation: "expandImage"
       })
     ]
@@ -133,6 +192,7 @@ export async function superResolutionImage({ image, prompt, upscaleFactor } = {}
     requestedModel,
     resolvedModel: DEFAULT_UPSCALE_MODEL,
     providerModel: DEFAULT_UPSCALE_MODEL,
+    upscaleFactor: result.upscaleFactor || upscaleFactor,
     providerCalls: normalizeProviderCalls(result.providerCalls, {
       provider: "qwen",
       model: DEFAULT_UPSCALE_MODEL,
@@ -154,6 +214,7 @@ export async function analyzeImage({ image, title = "Current asset", refreshCoun
       provider: "qwen",
       providerModel: "qwen-vision",
       providerCalls: normalizeProviderCalls(result.providerCalls),
+      usage: result.usage,
       raw: result.raw
     };
   }
@@ -252,6 +313,57 @@ async function buildAutoExpandPrompt({ image, prompt = "", expand = {} } = {}) {
       providerCalls: [plannerCall]
     };
   }
+}
+
+async function resolveImmediateApimartImageResult(result = {}, {
+  model = "",
+  operation = "generateImage",
+  attempts = 90,
+  delayMs = 2000,
+  returnPending = false
+} = {}) {
+  if (result?.imageUrl || !result?.taskId && !result?.remoteTaskId) return result;
+  const remoteTaskId = result.remoteTaskId || result.taskId;
+  let lastStatus = result.status || "queued";
+  for (let index = 0; index < attempts; index += 1) {
+    await delay(delayMs);
+    const remote = await getApimartTaskStatus(remoteTaskId, {
+      type: "image",
+      model: result.model || model
+    });
+    lastStatus = remote.status || lastStatus;
+    if (remote.status === "succeeded") {
+      const first = remote.outputs?.[0];
+      if (!first?.url) {
+        throw new Error(`${operation} completed without an output image`);
+      }
+      return {
+        ...result,
+        imageUrl: first.url,
+        model: result.model || model,
+        remoteTaskId,
+        taskId: remoteTaskId,
+        status: "succeeded"
+      };
+    }
+    if (["failed", "cancelled", "timeout"].includes(remote.status)) {
+      throw new Error(remote.errorMessage || `${operation} ${remote.status}`);
+    }
+  }
+  if (returnPending) {
+    return {
+      ...result,
+      model: result.model || model,
+      remoteTaskId,
+      taskId: remoteTaskId,
+      status: lastStatus || "running"
+    };
+  }
+  throw new Error(`${operation} is still running (${lastStatus}). Please try again later.`);
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function normalizeProviderCalls(calls, fallback = null) {

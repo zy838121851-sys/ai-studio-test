@@ -7,6 +7,15 @@ function escapeHtml(value) {
     .replaceAll("'", "&#039;");
 }
 
+function renderProjectPreviewImage({ preview = "", title = "", fallback = "D" } = {}) {
+  const fallbackMarkup = `<span class="project-preview-fallback" aria-hidden="true">${escapeHtml(fallback)}</span>`;
+  if (!preview) return fallbackMarkup;
+  return `
+    ${fallbackMarkup}
+    <img class="project-preview-image" src="${escapeHtml(preview)}" alt="${escapeHtml(title)}" onerror="this.hidden=true" />
+  `;
+}
+
 export function showProjectSaveStatus(element, {
   text = "Saved to cloud",
   duration = 1600,
@@ -137,7 +146,7 @@ export function renderHomeHistoryContent({
       <article class="home-history-card" style="--history-index:${index}">
         <button type="button" data-open-project="${escapeHtml(project.id)}">
           <div class="home-history-thumb">
-            ${preview ? `<img src="${escapeHtml(preview)}" alt="${escapeHtml(title)}" />` : ""}
+            ${renderProjectPreviewImage({ preview, title })}
           </div>
           <strong>${escapeHtml(title)}</strong>
           <small>${escapeHtml(updated)}</small>
@@ -186,7 +195,7 @@ function renderHomeHistoryContentLegacy({ projects = [], getProjectPreview } = {
       <article class="home-history-card" style="--history-index:${index}">
         <button type="button" ${project.id ? `data-open-project="${escapeHtml(project.id)}"` : "data-nav-view=\"library\""}>
           <div class="home-history-thumb">
-            ${preview ? `<img src="${escapeHtml(preview)}" alt="${escapeHtml(title)}" />` : `<b>D</b>`}
+            ${renderProjectPreviewImage({ preview, title })}
           </div>
           <strong>${escapeHtml(title)}</strong>
           <small>${escapeHtml(prompt)}</small>
@@ -232,7 +241,7 @@ function renderSmallProjectCard({
     <article class="library-small-card" data-project-id="${escapeHtml(project.id)}">
       <button type="button" data-open-project="${escapeHtml(project.id)}">
         <div>
-          ${preview ? `<img src="${escapeHtml(preview)}" alt="${escapeHtml(title)}" />` : `<span>D</span>`}
+          ${renderProjectPreviewImage({ preview, title })}
         </div>
         <strong>${escapeHtml(title)}</strong>
         <small>Updated at ${formatProjectDate(project.updatedAt)}</small>
@@ -270,7 +279,7 @@ function renderProjectStack({
     return `
       <article class="project-stack-card${index === activeIndex ? " active" : ""}${rawDepth > 3 ? " distant" : ""}" style="--stack-index:${index}; --stack-depth:${depth}" data-project-id="${escapeHtml(project.id)}">
         <button class="project-board-preview" type="button" data-open-project="${escapeHtml(project.id)}">
-          ${preview ? `<img src="${escapeHtml(preview)}" alt="${escapeHtml(title)}" />` : `<span>D</span>`}
+          ${renderProjectPreviewImage({ preview, title })}
         </button>
         <div class="project-board-meta">
           <span>${index + 1} / ${projects.length}</span>

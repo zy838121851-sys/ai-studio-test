@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { execute, queryOne, sqlValue } from "../db/sqlite.js";
+import { ensureCreditAccount } from "../services/credits/credit.service.js";
 
 export const IDENTITY_PROVIDERS = new Set(["email", "phone", "wechat", "qq"]);
 const INTERNAL_EMAIL_DOMAIN = "identity.local";
@@ -120,6 +121,7 @@ export function createUserWithIdentity({
       ${now}
     );
   `);
+  grantInitialCreditsIfAvailable(userId);
 
   return {
     id: userId,
@@ -128,6 +130,14 @@ export function createUserWithIdentity({
     name: fallbackName,
     createdAt: now
   };
+}
+
+function grantInitialCreditsIfAvailable(userId) {
+  try {
+    ensureCreditAccount(userId);
+  } catch (error) {
+    if (!/no such table: credit_accounts/i.test(error?.message || "")) throw error;
+  }
 }
 
 export function findOrCreateIdentityUser(input = {}) {

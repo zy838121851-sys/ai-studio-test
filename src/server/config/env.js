@@ -19,6 +19,21 @@ export const env = {
   volcengineImageUrl:
     process.env.VOLCENGINE_IMAGE_URL ||
     "https://ark.cn-beijing.volces.com/api/v3/images/generations",
+  apimartApiKey: process.env.APIMART_API_KEY || "",
+  apimartBaseUrl: process.env.APIMART_BASE_URL || "https://api.apimart.ai/v1",
+  apimartMock: envFlag("APIMART_MOCK", true),
+  enableApimart: envFlag("ENABLE_APIMART", true),
+  enableApimartImage: envFlag("ENABLE_APIMART_IMAGE", true),
+  enableApimartVideo: envFlag("ENABLE_APIMART_VIDEO", true),
+  enableApimartQwen: envFlag("ENABLE_APIMART_QWEN", true),
+  enableApimartDoubao: envFlag("ENABLE_APIMART_DOUBAO", true),
+  enableApimartNano: envFlag("ENABLE_APIMART_NANO", true),
+  enableApimartGptImage: envFlag("ENABLE_APIMART_GPT_IMAGE", true),
+  enableApimartMj: envFlag("ENABLE_APIMART_MJ", true),
+  enableApimartSeedance: envFlag("ENABLE_APIMART_SEEDANCE", true),
+  enableApimartKling: envFlag("ENABLE_APIMART_KLING", true),
+  showOfficialModels: envFlag("SHOW_OFFICIAL_MODELS", false),
+  showApimartBrand: envFlag("SHOW_APIMART_BRAND", false),
   maxUploadBytes: Number(process.env.MAX_UPLOAD_BYTES || 25 * 1024 * 1024),
   maxProxyImageBytes: Number(process.env.MAX_PROXY_IMAGE_BYTES || 10 * 1024 * 1024),
   uploadDir: process.env.UPLOAD_DIR || join(process.cwd(), "uploads"),
@@ -40,3 +55,9 @@ export const env = {
   qqOAuthClientSecret: process.env.QQ_OAUTH_CLIENT_SECRET || "",
   qqOAuthRedirectUri: process.env.QQ_OAUTH_REDIRECT_URI || ""
 };
+
+function envFlag(name, fallback = false) {
+  const value = process.env[name];
+  if (value === undefined || value === null || value === "") return Boolean(fallback);
+  return ["1", "true", "yes", "on"].includes(String(value).trim().toLowerCase());
+}

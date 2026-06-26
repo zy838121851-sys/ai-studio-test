@@ -1,4 +1,4 @@
-import { DEFAULT_IMAGE_MODEL } from "./model-catalog.js";
+import { DEFAULT_IMAGE_MODEL } from "./model-catalog.js?v=20260626-midjourney-4up-1";
 
 export function buildImagePrompt({ userPrompt = "", references = [], intent = "" } = {}) {
   return {

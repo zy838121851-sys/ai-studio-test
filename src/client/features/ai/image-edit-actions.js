@@ -1,8 +1,7 @@
 import { postJson } from "./api-client.js";
 import {
   formatModelUsage
-} from "./model-catalog.js";
-import { getInverseCanvasUiScale } from "../canvas/canvas-viewport.js";
+} from "./model-catalog.js?v=20260626-midjourney-4up-1";
 
 const IMAGE_EDIT_OUTPUT_GAP = 28;
 
@@ -97,6 +96,8 @@ export function positionImageEditPopover({
   node,
   popover,
   zoom,
+  canvasViewport,
+  canvasWorld,
   minWidth = 430,
   maxWidth = 600,
   minHeight = 168,
@@ -104,33 +105,58 @@ export function positionImageEditPopover({
   gap = 22
 }) {
   if (!node || !popover) return null;
-  const nodeX = Number.parseFloat(node.style.left || "0");
-  const nodeY = Number.parseFloat(node.style.top || "0");
   const frame = node.querySelector?.(".image-frame");
   const nodeWidth = frame?.offsetWidth || node.offsetWidth;
   const nodeHeight = frame?.offsetHeight || node.offsetHeight;
   const safeZoom = Math.max(0.2, Math.min(2.5, zoom || 1));
-  const editScreenScale = Math.max(0.76, Math.min(1.22, 1 / safeZoom));
-  const screenNodeWidth = nodeWidth * safeZoom;
-  const minScreenWidth = Math.max(330, minWidth * editScreenScale);
-  const maxScreenWidth = Math.min(680, maxWidth * editScreenScale);
-  const preferredScreenWidth = screenNodeWidth + 132 * editScreenScale;
+  const resolvedWorld = canvasWorld || node.closest?.(".canvas-world") || node.parentElement;
+  const resolvedViewport = canvasViewport
+    || resolvedWorld?.closest?.(".canvas-viewport")
+    || globalThis.document?.querySelector?.("#canvasViewport");
+  const nodeRect = node.getBoundingClientRect?.();
+  const frameRect = frame?.getBoundingClientRect?.();
+  const anchorRect = frameRect || nodeRect;
+  const screenNodeWidth = anchorRect?.width || nodeWidth * safeZoom;
+  const minScreenWidth = minWidth;
+  const maxScreenWidth = Math.min(680, maxWidth);
+  const preferredScreenWidth = screenNodeWidth + 132;
   const targetScreenWidth = Math.max(minScreenWidth, Math.min(maxScreenWidth, preferredScreenWidth));
-  const minScreenHeight = Math.max(150, minHeight * editScreenScale);
-  const maxScreenHeight = Math.min(292, maxHeight * editScreenScale);
+  const minScreenHeight = minHeight;
+  const maxScreenHeight = Math.min(292, maxHeight);
   const targetScreenHeight = Math.max(minScreenHeight, Math.min(maxScreenHeight, targetScreenWidth * 0.42));
-  const popoverWidth = Math.round(targetScreenWidth / safeZoom);
-  const popoverHeight = Math.round(targetScreenHeight / safeZoom);
-  const editScale = getInverseCanvasUiScale(safeZoom);
-  const scaledGap = (gap * editScreenScale) / safeZoom;
+  const popoverWidth = Math.round(targetScreenWidth);
+  const popoverHeight = Math.round(targetScreenHeight);
+  const scaledGap = gap;
+  const viewportRect = resolvedViewport?.getBoundingClientRect?.();
 
   popover.style.width = `${popoverWidth}px`;
   popover.style.height = `${popoverHeight}px`;
   popover.style.minHeight = `${popoverHeight}px`;
-  popover.style.setProperty("--edit-scale", editScale.toFixed(3));
-  popover.style.left = `${nodeX + nodeWidth / 2 - popoverWidth / 2}px`;
-  popover.style.top = `${nodeY + nodeHeight + scaledGap}px`;
-  return { popoverWidth, popoverHeight, editScale };
+  popover.style.setProperty("--edit-scale", "1");
+  popover.style.position = "fixed";
+  popover.style.zIndex = "12080";
+
+  if (!viewportRect || !anchorRect) {
+    const fallbackX = Number.parseFloat(node.style.left || "0");
+    const fallbackY = Number.parseFloat(node.style.top || "0");
+    popover.style.left = `${fallbackX + nodeWidth / 2 - popoverWidth / 2}px`;
+    popover.style.top = `${fallbackY + nodeHeight + scaledGap}px`;
+    return { popoverWidth, popoverHeight, editScale: 1 };
+  }
+
+  const margin = 16;
+  const nodeScreenLeft = anchorRect.left;
+  const nodeScreenTop = anchorRect.top;
+  const nodeScreenWidth = anchorRect.width;
+  const nodeScreenHeight = anchorRect.height;
+  const screenLeft = nodeScreenLeft + nodeScreenWidth / 2 - popoverWidth / 2;
+  const belowTop = nodeScreenTop + nodeScreenHeight + scaledGap;
+  const maxLeft = viewportRect.right - popoverWidth - margin;
+  const clampedLeft = Math.min(Math.max(screenLeft, viewportRect.left + margin), Math.max(viewportRect.left + margin, maxLeft));
+
+  popover.style.left = `${clampedLeft}px`;
+  popover.style.top = `${belowTop}px`;
+  return { popoverWidth, popoverHeight, editScale: 1 };
 }
 
 export async function executeImageEditAction({
@@ -219,7 +245,7 @@ export async function executeImageEditAction({
     const images = await Promise.all(imageSources.map((src) => readImageSourceAsDataUrl(src)));
     updateThinking?.(thinking, 2);
     const requestSize = outputSize || getOutputSize?.(img);
-    const result = await postJson("/api/image-edit", {
+    let result = await postJson("/api/image-edit", {
       prompt,
       model,
       image: images[0],
@@ -229,6 +255,18 @@ export async function executeImageEditAction({
       upscaleFactor,
       expand
     });
+    if (!result?.imageUrl && result?.jobId) {
+      updateChat?.(progress, `${label}仍在生成，正在等待结果...`);
+      result = await waitForImageEditJob(result.jobId, {
+        fallback: result,
+        onProgress: (payload) => {
+          const percent = Number(payload?.progress || 0);
+          updateChat?.(progress, percent > 0
+            ? `${label}仍在生成（${percent}%）...`
+            : `${label}仍在生成，正在等待结果...`);
+        }
+      });
+    }
     let outputUrl = result.imageUrl || (result.imageBase64 ? `data:image/png;base64,${result.imageBase64}` : "");
     if (outputUrl && actionType === "remove_background") {
       outputUrl = await makeBackgroundTransparent(outputUrl);
@@ -250,6 +288,7 @@ export async function executeImageEditAction({
       });
       addSourceBadge?.(imageNode, sourceNode);
       addChatImage?.("assistant", outputUrl, `${label}\u5df2\u5b8c\u6210\uff0c\u5e76\u653e\u5728\u539f\u56fe\u53f3\u4fa7\n${modelUsage}`);
+      window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
     }
     updateThinking?.(thinking, 4, true);
     updateChat?.(progress, `${result.message || `${label}\u5df2\u5b8c\u6210\u3002`}\n${modelUsage}`);
@@ -262,6 +301,46 @@ export async function executeImageEditAction({
     updateChat?.(progress, `${label}\u5931\u8d25\uff1a${error.message}`);
     return { error };
   }
+}
+
+async function waitForImageEditJob(jobId, { attempts = 180, delayMs = 2000, fallback = {}, onProgress = null } = {}) {
+  let lastPayload = { jobId, ...fallback };
+  for (let index = 0; index < attempts; index += 1) {
+    await delay(delayMs);
+    const response = await fetch(`/api/ai/jobs/${encodeURIComponent(jobId)}`, {
+      credentials: "include"
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (response.status === 429) {
+      const retryDelay = getRetryAfterDelayMs(response, delayMs * 2);
+      onProgress?.({
+        ...lastPayload,
+        status: "running",
+        rateLimited: true,
+        message: payload?.message || "Waiting for job status"
+      });
+      await delay(retryDelay);
+      continue;
+    }
+    if (!response.ok) throw new Error(payload?.message || `Job request failed: ${response.status}`);
+    lastPayload = { ...fallback, ...payload };
+    if (["succeeded", "failed", "cancelled", "timeout", "save_failed"].includes(payload?.status)) {
+      if (payload.status !== "succeeded") throw new Error(payload.error || payload.status);
+      return lastPayload;
+    }
+    onProgress?.(payload);
+  }
+  throw new Error(`Generation is still running. Job ID: ${lastPayload.jobId || jobId}`);
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getRetryAfterDelayMs(response, fallbackMs = 4000) {
+  const value = Number.parseInt(response?.headers?.get?.("Retry-After") || "", 10);
+  if (Number.isFinite(value) && value > 0) return value * 1000;
+  return fallbackMs;
 }
 
 function getPreviewHeightForAspect(width, aspectRatio, fallbackHeight = 240) {

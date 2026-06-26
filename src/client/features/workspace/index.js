@@ -11,7 +11,7 @@ export {
 } from "./chat/components/chat-log.js";
 export { addImageFilesToPreview, renderChatImagePreviewList } from "./chat/components/chat-image-preview.js";
 export { createChatWorkflow } from "./chat/workflows/chat-workflow.js";
-export { bindPromptShortcuts, bindPromptSubmit } from "./chat/workflows/prompt-workflow.js";
+export { bindPromptShortcuts, bindPromptSubmit } from "./chat/workflows/prompt-workflow.js?v=20260626-midjourney-4up-1";
 export { applyHomeFileState, renderHomeFilePreview, syncHomeModelPicker } from "./home/components/home-composer.js";
 export { bindHomeLibraryInteractions } from "./home/home-library-interactions.js";
 export { createHomeWorkflow } from "./home/workflows/home-workflow.js";

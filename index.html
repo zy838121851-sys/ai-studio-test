@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-store" />
   <title>Fresh Ideas AI Canvas</title>
-  <link rel="stylesheet" href="./styles.css?v=20260625-generator-convert-1" />
+  <link rel="stylesheet" href="./styles.css?v=20260626-midjourney-4up-1" />
 </head>
 
 <body>
@@ -38,11 +38,11 @@
           <div class="auth-account-name" id="authAccountName"></div>
           <div class="auth-account-email" id="authAccountEmail"></div>
           <button class="auth-upgrade-button" type="button">升级</button>
-          <div class="auth-points-row">
+          <button class="auth-points-row" type="button" data-auth-credits-open aria-label="查看积分详情">
             <span>积分</span>
-            <strong>30</strong>
-            <span class="auth-points-arrow" aria-hidden="true">›</span>
-          </div>
+            <strong data-auth-points-value>--</strong>
+            <span class="auth-points-arrow" aria-hidden="true">&rsaquo;</span>
+          </button>
         </section>
         <div class="auth-menu-list">
           <button type="button" role="menuitem" data-auth-menu-action="account">
@@ -64,6 +64,79 @@
         </div>
       </div>
     </div>
+    <div class="credit-detail-dialog hidden" id="creditDetailDialog" aria-hidden="true">
+      <div class="credit-detail-backdrop" data-credit-detail-close></div>
+      <section class="credit-detail-panel" role="dialog" aria-modal="true" aria-labelledby="creditDetailTitle">
+        <button class="credit-detail-close" type="button" data-credit-detail-close aria-label="关闭">&times;</button>
+        <nav class="credit-detail-tabs" aria-label="积分详情">
+          <button class="active" type="button" data-credit-tab="account" id="creditDetailTitle">账户管理</button>
+          <button type="button" data-credit-tab="transactions">积分消耗</button>
+          <button type="button" data-credit-tab="orders">订单与开票</button>
+        </nav>
+
+        <div class="credit-detail-content">
+          <section class="credit-detail-tab active" data-credit-panel="account">
+            <article class="credit-profile-card">
+              <div class="credit-profile-avatar" data-credit-avatar aria-hidden="true">D</div>
+              <div class="credit-profile-main">
+                <strong data-credit-name></strong>
+                <span data-credit-email></span>
+                <button class="credit-copy-id" type="button" data-credit-copy-id>
+                  ID: <span data-credit-short-id>--</span>
+                </button>
+              </div>
+              <button class="credit-edit-profile" type="button">编辑资料</button>
+            </article>
+
+            <article class="credit-info-card">
+              <h2>账户信息</h2>
+              <dl class="credit-info-list">
+                <div>
+                  <dt>套餐权益</dt>
+                  <dd>暂未开通</dd>
+                </div>
+                <div>
+                  <dt>可用积分</dt>
+                  <dd data-credit-available>--</dd>
+                </div>
+                <div>
+                  <dt>冻结积分</dt>
+                  <dd data-credit-reserved>--</dd>
+                </div>
+                <div>
+                  <dt>每日赠送</dt>
+                  <dd>暂无</dd>
+                </div>
+                <div>
+                  <dt>每月赠送</dt>
+                  <dd>暂无</dd>
+                </div>
+              </dl>
+              <p class="credit-detail-status" data-credit-balance-status></p>
+            </article>
+          </section>
+
+          <section class="credit-detail-tab" data-credit-panel="transactions">
+            <article class="credit-info-card">
+              <div class="credit-card-head">
+                <h2>积分消耗</h2>
+                <span>最近 50 条</span>
+              </div>
+              <div class="credit-transaction-list" data-credit-transactions></div>
+              <p class="credit-detail-status" data-credit-transactions-status></p>
+            </article>
+          </section>
+
+          <section class="credit-detail-tab" data-credit-panel="orders">
+            <article class="credit-info-card credit-empty-card">
+              <h2>订单与开票</h2>
+              <p>暂未接入订单与开票。</p>
+            </article>
+          </section>
+        </div>
+      </section>
+    </div>
+
 
     <section class="home-view app-view active" id="homeView" aria-label="首页">
       <nav class="home-nav">
@@ -111,7 +184,15 @@
               <button type="button" data-model-value="qwen-image-edit-plus">Qwen Image Edit Plus</button>
             </div>
           </div>
-          <button class="home-send" type="submit" title="发送">↑</button>
+          <button
+            class="home-send"
+            type="submit"
+            title="发送"
+            data-credit-quote
+            data-credit-task="image_generation"
+            data-credit-model-source="#homeModelSelect"
+            data-credit-count="1"
+          >&#9889;</button>
         </form>
         <section class="home-history" id="homeHistory" aria-label="最近项目"></section>
       </section>
@@ -445,9 +526,16 @@
             <option value="3">3 张</option>
             <option value="4">4 张</option>
           </select>
-          <span></span>
           <button id="imageEditCancel" type="button">取消</button>
-          <button id="imageEditSubmit" class="send" type="button">↑</button>
+          <button
+            id="imageEditSubmit"
+            class="send"
+            type="button"
+            data-credit-quote
+            data-credit-task="image_editing"
+            data-credit-model-source="#imageEditModel"
+            data-credit-count="1"
+          >&#9889;</button>
         </div>
       </div>
 
@@ -479,9 +567,16 @@
             <option value="3">3 张</option>
             <option value="4">4 张</option>
           </select>
-          <span></span>
           <button data-generator-cancel type="button">取消</button>
-          <button data-generator-submit class="send" type="submit">↑</button>
+          <button
+            data-generator-submit
+            class="send"
+            type="submit"
+            data-credit-quote
+            data-credit-task="image_generation"
+            data-credit-model-source="[data-generator-model]"
+            data-credit-count-source="[data-generator-count]"
+          >&#9889;</button>
         </div>
       </form>
 
@@ -606,7 +701,15 @@
             <button type="button" id="presetSkill" title="预设 Skill">✦ Skill</button>
           </div>
           <div class="right-actions">
-            <button type="submit" class="send" title="发送">↑</button>
+            <button
+              type="submit"
+              class="send"
+              title="发送"
+              data-credit-quote
+              data-credit-task="image_generation"
+              data-credit-model-source="#chatModelSelect"
+              data-credit-count="1"
+            >&#9889;</button>
           </div>
         </div>
         <input id="chatImageInput" class="visually-hidden" type="file" accept="image/*" multiple />
@@ -614,7 +717,7 @@
     </aside>
   </main>
 
-  <script type="module" src="./app.js?v=20260625-canvas-restore-1"></script>
+  <script type="module" src="./app.js?v=20260626-midjourney-4up-1"></script>
 </body>
 
 </html>

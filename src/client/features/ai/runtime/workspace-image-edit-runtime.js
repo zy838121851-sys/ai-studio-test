@@ -6,7 +6,8 @@ export function createWorkspaceImageEditRuntime({
 } = {}) {
   return createImageEditCommandRuntime({
     state: {
-      getImageEditModel: () => elements.imageEditModel?.value,
+      getImageEditModel: () => elements.imageEditModel?.dataset?.selectedModelId
+        || elements.imageEditModel?.value,
       getImageEditSize: () => elements.imageEditSize?.value,
       getImageEditCount: () => Number.parseInt(elements.imageEditCount?.value || "1", 10)
     },

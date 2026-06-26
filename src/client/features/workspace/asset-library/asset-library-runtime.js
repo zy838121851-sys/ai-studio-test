@@ -236,6 +236,7 @@ export function createAssetLibraryRuntime({
 
   async function registerGeneratedAssetRecord(payload = {}) {
     if (typeof registerGeneratedAsset !== "function") return null;
+    const defaultToActiveCollection = payload.libraryVisible !== false;
     try {
       const result = await registerGeneratedAsset({
         projectId: payload.projectId || getActiveProjectId(),
@@ -247,8 +248,11 @@ export function createAssetLibraryRuntime({
         thumbnailUrl: payload.thumbnailUrl || payload.url,
         prompt: payload.prompt || "",
         modelName: payload.modelName || payload.model || "",
+        libraryVisible: payload.libraryVisible,
         collection: payload.collection || "",
-        collectionId: payload.collectionId !== undefined ? payload.collectionId : activeCollectionId
+        collectionId: payload.collectionId !== undefined
+          ? payload.collectionId
+          : (defaultToActiveCollection ? activeCollectionId : "")
       });
       if (result.asset) return mergeAsset(result.asset);
     } catch (error) {

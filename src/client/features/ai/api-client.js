@@ -1,9 +1,13 @@
 export async function postJson(path, payload = {}) {
-  return requestJson(path, {
+  const result = await requestJson(path, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload)
   });
+  if (path === "/api/analyze-image") {
+    window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
+  }
+  return result;
 }
 
 export async function patchJson(path, payload = {}) {

@@ -1,4 +1,4 @@
-import { bindPromptShortcuts, bindPromptSubmit } from "../workflows/prompt-workflow.js";
+import { bindPromptShortcuts, bindPromptSubmit } from "../workflows/prompt-workflow.js?v=20260626-midjourney-4up-1";
 
 export function createPromptSubmitRuntimePayload(runtime = {}) {
   return {

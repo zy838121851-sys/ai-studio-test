@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { execute, queryOne, sqlValue } from "../db/sqlite.js";
+import { ensureCreditAccount } from "../services/credits/credit.service.js";
 import { publicEmail } from "./identity.service.js";
 import { hashPassword, verifyPassword } from "./password.js";
 
@@ -60,12 +61,21 @@ export function createUser({ email, password, name = "" } = {}) {
       ${now}
     );
   `);
+  grantInitialCreditsIfAvailable(id);
   return publicUser({
     id,
     email: normalizedEmail,
     name: String(name || "").trim(),
     created_at: now
   });
+}
+
+function grantInitialCreditsIfAvailable(userId) {
+  try {
+    ensureCreditAccount(userId);
+  } catch (error) {
+    if (!/no such table: credit_accounts/i.test(error?.message || "")) throw error;
+  }
 }
 
 export function authenticateUser({ email, password } = {}) {

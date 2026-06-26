@@ -71,6 +71,16 @@ function normalizeNumber(value) {
   return Number.isFinite(number) && number >= 0 ? number : null;
 }
 
+function normalizeBoolean(value, fallback = false) {
+  if (value === undefined || value === null || value === "") return Boolean(fallback);
+  if (typeof value === "boolean") return value;
+  if (typeof value === "number") return value !== 0;
+  const clean = String(value).trim().toLowerCase();
+  if (["1", "true", "yes", "on"].includes(clean)) return true;
+  if (["0", "false", "no", "off"].includes(clean)) return false;
+  return Boolean(fallback);
+}
+
 function ensureProjectAccess(userId, projectId) {
   const cleanProjectId = normalizeText(projectId);
   if (!cleanProjectId) return "";
@@ -105,6 +115,7 @@ function publicAsset(row) {
     duration: row.duration == null ? null : Number(row.duration),
     prompt: row.prompt || "",
     modelName: row.model_name || "",
+    libraryVisible: row.library_visible == null ? true : Number(row.library_visible) === 1,
     createdAt: Number(row.created_at || 0),
     updatedAt: Number(row.updated_at || 0),
     deletedAt: row.deleted_at ? Number(row.deleted_at) : null
@@ -132,16 +143,23 @@ function assetSelect() {
     a.duration,
     a.prompt,
     a.model_name,
+    a.library_visible,
     a.created_at,
     a.updated_at,
     a.deleted_at
   `;
 }
 
-export function listAssets(userId, { projectId = "", collection = "", collectionId = "" } = {}) {
+export function listAssets(userId, {
+  projectId = "",
+  collection = "",
+  collectionId = "",
+  includeHidden = false
+} = {}) {
   const projectFilter = normalizeText(projectId);
   const collectionFilter = normalizeText(collection);
   const collectionIdFilter = normalizeText(collectionId);
+  const hiddenFilter = normalizeBoolean(includeHidden, false) ? "" : "AND a.library_visible = 1";
   return query(`
     SELECT ${assetSelect()}
     FROM assets a
@@ -151,6 +169,7 @@ export function listAssets(userId, { projectId = "", collection = "", collection
       AND c.deleted_at IS NULL
     WHERE a.user_id = ${sqlValue(userId)}
       AND a.deleted_at IS NULL
+      ${hiddenFilter}
       ${projectFilter ? `AND a.project_id = ${sqlValue(projectFilter)}` : ""}
       ${collectionIdFilter ? `AND a.collection_id = ${sqlValue(collectionIdFilter)}` : ""}
       ${collectionFilter ? `AND a.collection = ${sqlValue(collectionFilter)}` : ""}
@@ -241,7 +260,8 @@ export function createUploadedAsset(userId, { file, fields = {} } = {}) {
     height: fields.height ?? dimensions.height,
     duration: fields.duration,
     prompt: fields.prompt,
-    modelName: fields.modelName
+    modelName: fields.modelName,
+    libraryVisible: true
   });
 }
 
@@ -286,7 +306,59 @@ export function createGeneratedAsset(userId, input = {}) {
     height: input.height ?? dimensions.height,
     duration: input.duration,
     prompt: input.prompt,
-    modelName: input.modelName
+    modelName: input.modelName,
+    libraryVisible: input.libraryVisible === undefined ? false : input.libraryVisible
+  });
+}
+
+export function createGeneratedAssetFromBuffer(userId, {
+  buffer,
+  mimeType = "application/octet-stream",
+  title = "Generated asset",
+  type = "",
+  source = "generated",
+  prompt = "",
+  modelName = "",
+  width = null,
+  height = null,
+  duration = null,
+  libraryVisible = false,
+  projectId = "",
+  collectionId = ""
+} = {}) {
+  if (!Buffer.isBuffer(buffer) || !buffer.length) {
+    const error = new Error("Generated asset buffer is required");
+    error.status = 400;
+    throw error;
+  }
+  assertAllowedUpload(mimeType, buffer.length);
+  ensureUploadDir();
+  const id = randomUUID();
+  const fileName = `${Date.now()}-${id}${getExtensionFromMime(mimeType)}`;
+  const absolutePath = join(UPLOAD_DIR, fileName);
+  writeFileSync(absolutePath, buffer);
+  const publicPath = `/uploads/${fileName}`;
+  const dimensions = mimeType.startsWith("image/")
+    ? readImageDimensions(buffer, mimeType)
+    : { width: null, height: null };
+  return insertAsset(userId, {
+    id,
+    projectId,
+    collectionId,
+    type: type || normalizeAssetType("", mimeType),
+    source,
+    title,
+    filePath: relative(process.cwd(), absolutePath).replaceAll("\\", "/"),
+    url: publicPath,
+    thumbnailUrl: publicPath,
+    mimeType,
+    sizeBytes: buffer.length,
+    width: width ?? dimensions.width,
+    height: height ?? dimensions.height,
+    duration,
+    prompt,
+    modelName,
+    libraryVisible
   });
 }
 
@@ -304,6 +376,9 @@ export function updateAsset(userId, id, input = {}) {
   const collection = input.collection === undefined ? existing.collection : normalizeText(input.collection);
   const prompt = input.prompt === undefined ? existing.prompt : normalizeText(input.prompt);
   const modelName = input.modelName === undefined ? existing.modelName : normalizeText(input.modelName);
+  const libraryVisible = input.libraryVisible === undefined
+    ? existing.libraryVisible
+    : normalizeBoolean(input.libraryVisible, existing.libraryVisible);
 
   execute(`
     UPDATE assets
@@ -313,6 +388,7 @@ export function updateAsset(userId, id, input = {}) {
         collection = ${sqlValue(collection)},
         prompt = ${sqlValue(prompt)},
         model_name = ${sqlValue(modelName)},
+        library_visible = ${libraryVisible ? 1 : 0},
         updated_at = ${now}
     WHERE id = ${sqlValue(id)}
       AND user_id = ${sqlValue(userId)}
@@ -358,7 +434,7 @@ export function moveAssetToCollection(userId, id, { collectionId } = {}) {
     error.status = 404;
     throw error;
   }
-  return updateAsset(userId, id, { collectionId: allowedCollectionId });
+  return updateAsset(userId, id, { collectionId: allowedCollectionId, libraryVisible: true });
 }
 
 export function listAssetsForCollection(userId, collectionId) {
@@ -374,6 +450,7 @@ export function listAssetsForCollection(userId, collectionId) {
     WHERE a.user_id = ${sqlValue(userId)}
       AND a.collection_id = ${sqlValue(allowedCollectionId)}
       AND a.deleted_at IS NULL
+      AND a.library_visible = 1
     ORDER BY a.updated_at DESC, a.created_at DESC;
   `).map(publicAsset);
 }
@@ -401,6 +478,7 @@ function insertAsset(userId, input = {}) {
     duration: normalizeNumber(input.duration),
     prompt: normalizeText(input.prompt),
     modelName: normalizeText(input.modelName),
+    libraryVisible: normalizeBoolean(input.libraryVisible, true),
     createdAt: now,
     updatedAt: now
   };
@@ -425,6 +503,7 @@ function insertAsset(userId, input = {}) {
       duration,
       prompt,
       model_name,
+      library_visible,
       created_at,
       updated_at,
       deleted_at
@@ -448,6 +527,7 @@ function insertAsset(userId, input = {}) {
       ${asset.duration == null ? "NULL" : asset.duration},
       ${sqlValue(asset.prompt)},
       ${sqlValue(asset.modelName)},
+      ${asset.libraryVisible ? 1 : 0},
       ${asset.createdAt},
       ${asset.updatedAt},
       NULL

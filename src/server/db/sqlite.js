@@ -61,6 +61,15 @@ export function queryReadOnly(sql) {
   return query(sql);
 }
 
+export function prepare(sql) {
+  return getConnection().prepare(sql.trim());
+}
+
+export function transaction(fn) {
+  const db = getConnection();
+  return db.transaction(() => fn(db))();
+}
+
 export function getDatabaseHealth() {
   assertSqliteAvailable();
   const integrity = queryReadOnly("PRAGMA integrity_check;")[0]?.integrity_check || "unknown";
@@ -216,6 +225,7 @@ export function initializeDatabase() {
       duration REAL,
       prompt TEXT NOT NULL DEFAULT '',
       model_name TEXT NOT NULL DEFAULT '',
+      library_visible INTEGER NOT NULL DEFAULT 1,
       created_at INTEGER NOT NULL,
       updated_at INTEGER NOT NULL,
       deleted_at INTEGER,
@@ -230,10 +240,49 @@ export function initializeDatabase() {
       ON assets(user_id, project_id, deleted_at);
     CREATE INDEX IF NOT EXISTS idx_assets_user_collection
       ON assets(user_id, collection, deleted_at);
+
+    CREATE TABLE IF NOT EXISTS ai_jobs (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      provider TEXT NOT NULL DEFAULT '',
+      vendor TEXT NOT NULL DEFAULT '',
+      model_id TEXT NOT NULL DEFAULT '',
+      provider_model TEXT NOT NULL DEFAULT '',
+      remote_task_id TEXT NOT NULL DEFAULT '',
+      type TEXT NOT NULL DEFAULT 'image',
+      status TEXT NOT NULL DEFAULT 'queued',
+      progress INTEGER NOT NULL DEFAULT 0,
+      prompt_preview TEXT NOT NULL DEFAULT '',
+      input_asset_ids_json TEXT NOT NULL DEFAULT '[]',
+      output_asset_ids_json TEXT NOT NULL DEFAULT '[]',
+      error_code TEXT NOT NULL DEFAULT '',
+      error_message TEXT NOT NULL DEFAULT '',
+      credits_reserved INTEGER NOT NULL DEFAULT 0,
+      credits_charged INTEGER NOT NULL DEFAULT 0,
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      completed_at INTEGER,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_ai_jobs_user_created
+      ON ai_jobs(user_id, created_at DESC);
+    CREATE INDEX IF NOT EXISTS idx_ai_jobs_remote_task
+      ON ai_jobs(provider, remote_task_id);
   `);
 
   if (!tableHasColumn("assets", "collection_id")) {
     execute("ALTER TABLE assets ADD COLUMN collection_id TEXT;");
+  }
+  if (!tableHasColumn("assets", "library_visible")) {
+    execute("ALTER TABLE assets ADD COLUMN library_visible INTEGER NOT NULL DEFAULT 1;");
+    execute(`
+      UPDATE assets
+      SET library_visible = 0
+      WHERE source = 'generated'
+        AND COALESCE(collection_id, '') = ''
+        AND COALESCE(collection, '') = '';
+    `);
   }
   if (!tableHasColumn("users", "phone")) {
     execute("ALTER TABLE users ADD COLUMN phone TEXT;");
@@ -248,6 +297,7 @@ export function initializeDatabase() {
     execute("ALTER TABLE oauth_states ADD COLUMN session_issued_at INTEGER;");
   }
   execute("CREATE INDEX IF NOT EXISTS idx_assets_user_collection_id ON assets(user_id, collection_id, deleted_at);");
+  execute("CREATE INDEX IF NOT EXISTS idx_assets_user_library_visible ON assets(user_id, library_visible, deleted_at, updated_at);");
 
   execute(`
     INSERT OR IGNORE INTO user_identities (

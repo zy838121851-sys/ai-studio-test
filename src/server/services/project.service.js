@@ -10,6 +10,14 @@ function normalizeText(value) {
   return String(value || "").trim();
 }
 
+export function normalizeProjectThumbnail(value) {
+  const clean = normalizeText(value);
+  if (!clean) return "";
+  const match = clean.match(/^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?(\/uploads\/[^?#]+)(?:[?#].*)?$/i);
+  if (match) return match[1];
+  return clean;
+}
+
 function normalizeItemCount(value) {
   const count = Number(value);
   return Number.isFinite(count) && count > 0 ? Math.floor(count) : 0;
@@ -27,7 +35,7 @@ function publicProject(row, { includeSnapshot = false } = {}) {
     userId: row.user_id,
     title: row.title || "Fresh Ideas",
     prompt: row.prompt || "",
-    thumbnail: row.thumbnail || "",
+    thumbnail: normalizeProjectThumbnail(row.thumbnail),
     itemCount: Number(row.item_count || 0),
     createdAt: Number(row.created_at || 0),
     updatedAt: Number(row.updated_at || 0),
@@ -95,7 +103,7 @@ export function createProject(userId, input = {}) {
     userId,
     title: normalizeTitle(input.title),
     prompt: normalizeText(input.prompt),
-    thumbnail: normalizeText(input.thumbnail),
+    thumbnail: normalizeProjectThumbnail(input.thumbnail),
     itemCount: normalizeItemCount(input.itemCount),
     canvasSnapshotJson: normalizeText(input.canvasSnapshotJson),
     createdAt: now,
@@ -142,7 +150,7 @@ export function updateProject(userId, id, input = {}) {
   const next = {
     title: input.title === undefined ? existing.title : normalizeTitle(input.title),
     prompt: input.prompt === undefined ? existing.prompt : normalizeText(input.prompt),
-    thumbnail: input.thumbnail === undefined ? existing.thumbnail : normalizeText(input.thumbnail),
+    thumbnail: input.thumbnail === undefined ? existing.thumbnail : normalizeProjectThumbnail(input.thumbnail),
     itemCount: input.itemCount === undefined ? existing.itemCount : normalizeItemCount(input.itemCount),
     canvasSnapshotJson: input.canvasSnapshotJson === undefined
       ? existing.canvasSnapshotJson
@@ -172,7 +180,7 @@ export function saveProjectCanvas(userId, id, input = {}) {
 
   const now = Date.now();
   const title = input.title === undefined ? existing.title : normalizeTitle(input.title);
-  const thumbnail = input.thumbnail === undefined ? existing.thumbnail : normalizeText(input.thumbnail);
+  const thumbnail = input.thumbnail === undefined ? existing.thumbnail : normalizeProjectThumbnail(input.thumbnail);
   const prompt = input.prompt === undefined ? existing.prompt : normalizeText(input.prompt);
   const itemCount = input.itemCount === undefined ? existing.itemCount : normalizeItemCount(input.itemCount);
   const canvasSnapshotJson = normalizeText(input.canvasSnapshotJson);

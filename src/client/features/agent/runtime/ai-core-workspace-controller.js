@@ -1,5 +1,5 @@
 import { renderCoreActionButtons, updateCoreWorkspaceCards, getAllDecisionStyles, normalizeDecisionStyles, buildAlternativeCoreSuggestions, normalizeCoreAnalysis as normalizeCoreAnalysisFromModule } from "../../../features/agent/ai-core-workspace.js";
-import { resolveImageModelId } from "../../ai/model-catalog.js";
+import { resolveImageModelId } from "../../ai/model-catalog.js?v=20260626-midjourney-4up-1";
 
 function normalizeAnalysisWithDirector(analysis, fallback, { normalizeCoreAnalysis, directorActions }) {
   if (typeof normalizeCoreAnalysis === "function") {
@@ -57,7 +57,7 @@ export function createAICoreWorkspaceController(deps = {}) {
         style: "风格统一",
         recommendedActions: [
           { type: "productPhoto", title: "Product Photo", description: "Generate a clean catalog listing image/" },
-          { type: "render3d", title: "3D渲染", description: "基于素材快速生�?D效果" },
+          { type: "render3d", title: "3D渲染", description: "基于素材快速生成3D效果" },
           { type: "scene", title: "场景应用", description: "生成场景化展示图" }
         ]
       },
@@ -183,7 +183,7 @@ export function createAICoreWorkspaceController(deps = {}) {
       renderCanvasSuggestionBubble(bubble, analysis, false);
     } catch (error) {
       renderCanvasSuggestionBubble(bubble, fallback, false);
-      addChat?.("assistant", `AI Core 分析素材失败�?{error.message}`);
+      addChat?.("assistant", `AI Core 分析素材失败：${error.message}`);
     } finally {
       window.clearTimeout(quickTimer);
       setAICoreState?.("idle");
@@ -208,7 +208,7 @@ export function createAICoreWorkspaceController(deps = {}) {
         action.decisionStyles = normalizeDecisionStyles(prepared.decisionStyles);
         action.prepared = Boolean(action.prompt);
       } catch (error) {
-        addChat?.("assistant", `建议�?{action.title}”准备失败：${error.message}`);
+        addChat?.("assistant", `建议“${action.title}”准备失败：${error.message}`);
       }
     }
     const basePrompt = directorActions.find((item) => item.type === action.type)?.prompt || action.prompt || "";
@@ -242,7 +242,7 @@ export function createAICoreWorkspaceController(deps = {}) {
       if (action.prompt) workspace._analysisPrompts[action.type] = action.prompt;
       return action;
     } catch (error) {
-      addChat?.("assistant", `生成�?{action.title}”提示词失败�?{error.message}`);
+      addChat?.("assistant", `生成“${action.title}”提示词失败：${error.message}`);
       return action;
     }
   }
@@ -289,7 +289,7 @@ export function createAICoreWorkspaceController(deps = {}) {
         const basePrompt = directorActions.find((item) => item.type === action.type)?.prompt || action.prompt || "";
         const modelPrompt = workspace._analysisPrompts?.[action.type] || action.prompt || basePrompt;
         const enriched = style
-          ? { ...action, prompt: `${modelPrompt}\n用户选择风格�?{style}` }
+          ? { ...action, prompt: `${modelPrompt}\n用户选择风格：${style}` }
           : { ...action, prompt: modelPrompt };
         await runDirectorAction(
           { dataset: { productNodeId: productNode.dataset.nodeId } },
@@ -337,7 +337,7 @@ export function createAICoreWorkspaceController(deps = {}) {
         escapeHtml
       });
     } catch (error) {
-      addChat?.("assistant", `更新建议失败�?{error.message}`);
+      addChat?.("assistant", `更新建议失败：${error.message}`);
     } finally {
       refreshButton?.classList.remove("running");
       if (refreshButton) refreshButton.disabled = false;
@@ -417,7 +417,7 @@ export function createAICoreWorkspaceController(deps = {}) {
         ...fallback,
         sellingPoints: ["Vision service unavailable/ Try again or check the input image/"]
       });
-      addChat?.("assistant", `AI Core 分析失败�?{error.message}`);
+      addChat?.("assistant", `AI Core 分析失败：${error.message}`);
     } finally {
       setAICoreState?.("idle");
     }

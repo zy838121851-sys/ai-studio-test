@@ -2,12 +2,12 @@ import {
   getDroppedExternalImageUrl,
   importExternalImageUrl
 } from "../canvas-viewport-events.js";
-import { getInverseCanvasUiScale } from "../canvas-viewport.js";
 import {
   formatModelUsage,
   getImageModelDisplayName,
   resolveImageModelId
-} from "../../ai/model-catalog.js";
+} from "../../ai/model-catalog.js?v=20260626-midjourney-4up-1";
+import { renderModelPreferenceMenu } from "../../ai/model-preference-menu.js";
 
 const GENERATOR_SELECTOR = ".node-image-generator";
 const GENERATOR_POPOVER_SELECTOR = "#imageGeneratorPopover";
@@ -15,6 +15,7 @@ const OUTPUT_SIZE = "1024*1024";
 const DEFAULT_GENERATOR_MODEL = "doubao-seedream-5-0-lite-260128";
 const DEFAULT_GENERATOR_RATIO = "1:1";
 const DEFAULT_GENERATOR_COUNT = "1";
+const MIDJOURNEY_IMAGE_COUNT = 4;
 const GENERATOR_FIXED_SIZES = {
   "1:1": { width: 1024, height: 1024 },
   "4:3": { width: 1024, height: 768 },
@@ -181,6 +182,7 @@ export function createImageGeneratorWorkflow({
 
   globalThis.document?.addEventListener?.("canvas:view-transformed", () => {
     if (!activeGeneratorNode || !getGeneratorPopover()?.classList.contains("open")) return;
+    closeGeneratorCustomSelects();
     scheduleGeneratorPopoverPosition();
   });
 
@@ -260,6 +262,9 @@ export function createImageGeneratorWorkflow({
     if (!select || !activeGeneratorNode) return;
     saveGeneratorControlState(activeGeneratorNode);
     syncGeneratorCustomSelect(select);
+    if (select.matches("[data-generator-model]")) {
+      syncGeneratorCustomSelect(getGeneratorControls().countSelect);
+    }
     if (select.matches("[data-generator-ratio]")) {
       syncGeneratorFrameToRatio(activeGeneratorNode, select.value);
     }
@@ -300,12 +305,12 @@ export function createImageGeneratorWorkflow({
     });
 
     try {
-      const result = await postJsonRequest("/api/chat", buildChatImagePayload({
+      const result = await runImageGenerationRequest({
         model,
         prompt,
         images,
         size
-      }));
+      });
       if (!result?.imageUrl) throw new Error(result?.message || "Model returned without an image URL");
 
       const displayUrl = await persistGeneratorResult({
@@ -337,7 +342,8 @@ export function createImageGeneratorWorkflow({
     const model = resolveImageModelId(getGeneratorModel(), "generator");
     let resultModel = model;
     let modelUsage = `模型：${getImageModelDisplayName(model)}`;
-    const count = getGeneratorCount();
+    const midjourney = isMidjourneyModel(model);
+    const count = midjourney ? MIDJOURNEY_IMAGE_COUNT : getGeneratorCount();
     const images = references.map((item) => item.dataUrl).filter(Boolean);
     const size = resolveGeneratorOutputSize(node, references);
     const dimensions = getGeneratorOutputDimensions(node, getGeneratorRatioValue(node), references);
@@ -374,18 +380,75 @@ export function createImageGeneratorWorkflow({
       if (node.isConnected) node.remove();
 
       const createdNodes = [];
+      if (midjourney) {
+        previewNodes.forEach((previewNode, index) => {
+          updatePreviewStatus(previewNode, `正在等待第 ${index + 1}/${count} 张结果`);
+        });
+        const result = await runImageGenerationRequest({
+          model,
+          prompt,
+          images,
+          size,
+          onProgress: (payload) => {
+            const progress = Number(payload?.progress || 0);
+            previewNodes.forEach((previewNode, index) => {
+              updatePreviewStatus(previewNode, progress > 0
+                ? `正在等待第 ${index + 1}/${count} 张结果 (${Math.min(99, progress)}%)`
+                : `正在等待第 ${index + 1}/${count} 张结果`);
+            });
+          }
+        });
+        const resultUrls = getResultImageUrls(result);
+        if (resultUrls.length < count) throw new Error(`Midjourney returned ${resultUrls.length || 0}/${count} images`);
+        resultModel = result.requestedModel || result.model || model;
+        warnIfGeneratorModelMismatch(model, resultModel, result);
+        modelUsage = formatModelUsage(result, resultModel);
+        resultUrls.slice(0, count).forEach((url, index) => {
+          const previewNode = previewNodes[index];
+          const createdNode = replacePreviewWithImage(previewNode, {
+            title: getGeneratorResultTitle(index, count),
+            desc: prompt || "Image generator result",
+            url,
+            width: getPreviewNodeWidth(previewNode),
+            aspectRatio,
+            prompt,
+            sourceNode: null,
+            actionType,
+            model: resultModel
+          });
+          if (!createdNode) throw new Error("Unable to replace generation preview");
+          applyGeneratedImageNodeResult(createdNode, url, {
+            prompt,
+            model: resultModel,
+            dimensions,
+            sourceNode: null
+          });
+          if (sourceNodeId) createdNode.dataset.generatorSourceNodeId = sourceNodeId;
+          createdNode.dataset.generatorBatchCount = String(count);
+          createdNode.dataset.generatorBatchIndex = String(index + 1);
+          createdNodes.push(createdNode);
+          if (!firstSuccessfulNode) firstSuccessfulNode = createdNode;
+        });
+      } else {
       for (let index = 0; index < count; index += 1) {
         const previewNode = previewNodes[index];
         if (count > 1) updatePreviewStatus(previewNode, `正在生成第 ${index + 1}/${count} 张`);
         if (count > 1) updateGeneratorStatus(node, `正在生成 ${index + 1}/${count}`);
-        const result = await postJsonRequest("/api/chat", buildChatImagePayload({
+        const result = await runImageGenerationRequest({
           model,
           prompt,
           images,
-          size
-        }));
+          size,
+          onProgress: (payload) => {
+            const progress = Number(payload?.progress || 0);
+            updatePreviewStatus(previewNode, progress > 0
+              ? `正在生成第 ${index + 1}/${count} 张 (${Math.min(99, progress)}%)`
+              : `正在生成第 ${index + 1}/${count} 张`);
+          }
+        });
         if (!result?.imageUrl) throw new Error(result?.message || "Model returned without an image URL");
         resultModel = result.requestedModel || result.model || model;
+        warnIfGeneratorModelMismatch(model, resultModel, result);
         modelUsage = formatModelUsage(result, resultModel);
 
         const createdNode = replacePreviewWithImage(previewNode, {
@@ -412,9 +475,11 @@ export function createImageGeneratorWorkflow({
         createdNodes.push(createdNode);
         if (!firstSuccessfulNode) firstSuccessfulNode = createdNode;
       }
+      }
 
       if (createdNodes.length) {
         selectNode(createdNodes[0]);
+        window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
       }
       await saveCurrentProject?.();
       addChat("assistant", count > 1
@@ -734,7 +799,8 @@ export function createImageGeneratorWorkflow({
         type: "image",
         source: "generated",
         prompt,
-        modelName: model
+        modelName: model,
+        libraryVisible: false
       });
       const asset = result?.asset || result;
       if (asset?.id) node.dataset.assetId = asset.id;
@@ -756,8 +822,10 @@ export function createImageGeneratorWorkflow({
     const previous = activeGeneratorNode;
     if (previous && previous !== node) saveGeneratorDraft(previous);
     activeGeneratorNode = node;
-    if (nextPopover.parentElement !== canvasWorld) canvasWorld.appendChild(nextPopover);
+    const popoverHost = globalThis.document?.body || canvasViewport || canvasWorld;
+    if (nextPopover.parentElement !== popoverHost) popoverHost.appendChild(nextPopover);
     globalThis.document?.querySelector?.("#imageEditPopover")?.classList.remove("open");
+    closeGeneratorCustomSelects();
     nextPopover.classList.add("open");
     nextPopover.classList.toggle("generator-panel-expanded", node.dataset.generatorExpanded === "true");
     const controls = getGeneratorControls();
@@ -783,8 +851,97 @@ export function createImageGeneratorWorkflow({
     const nextPopover = getGeneratorPopover();
     if (activeGeneratorNode) saveGeneratorDraft(activeGeneratorNode);
     activeGeneratorNode = null;
+    closeGeneratorCustomSelects();
     nextPopover?.classList.remove("open", "generator-panel-expanded");
     teardownPositionObserver();
+  }
+
+  async function runImageGenerationRequest({ model, prompt, images = [], size, onProgress = null } = {}) {
+    logSubmittedGeneratorModel(model);
+    const result = await postJsonRequest("/api/ai/generate", buildChatImagePayload({
+      model,
+      prompt,
+      images,
+      size
+    }));
+    if (result?.imageUrl || !result?.jobId) return result;
+    return waitForImageGenerationJob(result.jobId, { onProgress, fallback: result });
+  }
+
+  async function waitForImageGenerationJob(jobId, { attempts = 180, delayMs = 2000, onProgress = null, fallback = {} } = {}) {
+    let lastPayload = { jobId, ...fallback };
+    for (let index = 0; index < attempts; index += 1) {
+      await delay(delayMs);
+      const response = await fetch(`/api/ai/jobs/${encodeURIComponent(jobId)}`, {
+        credentials: "include"
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (response.status === 429) {
+        const retryDelay = getRetryAfterDelayMs(response, delayMs * 2);
+        onProgress?.({
+          ...lastPayload,
+          status: "running",
+          rateLimited: true,
+          message: payload?.message || "Waiting for job status"
+        });
+        await delay(retryDelay);
+        continue;
+      }
+      if (!response.ok) throw new Error(payload?.message || `Job request failed: ${response.status}`);
+      lastPayload = { ...fallback, ...payload };
+      if (["succeeded", "failed", "cancelled", "timeout", "save_failed"].includes(payload?.status)) {
+        if (payload.status !== "succeeded") throw new Error(payload.error || payload.status);
+        return lastPayload;
+      }
+      onProgress?.(payload);
+    }
+    throw new Error(`Generation is still running. Job ID: ${lastPayload.jobId || jobId}`);
+  }
+
+  function delay(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  function getRetryAfterDelayMs(response, fallbackMs = 4000) {
+    const value = Number.parseInt(response?.headers?.get?.("Retry-After") || "", 10);
+    if (Number.isFinite(value) && value > 0) return value * 1000;
+    return fallbackMs;
+  }
+
+  function warnIfGeneratorModelMismatch(selectedModel, returnedModel, result = {}) {
+    const selected = String(selectedModel || "").trim();
+    const returned = String(returnedModel || "").trim();
+    if (!selected || !returned || selected === returned) return;
+    console.warn("[models] Image generator response model does not match selected model", {
+      selectedModel: selected,
+      returnedModel: returned,
+      jobId: result?.jobId || result?.job?.id || ""
+    });
+  }
+
+  function logSubmittedGeneratorModel(model) {
+    if (!["localhost", "127.0.0.1"].includes(globalThis.location?.hostname || "")) return;
+    console.debug("[models] submitting generation", {
+      surface: "generator",
+      selectedModel: model,
+      payloadModel: model
+    });
+  }
+
+  function getResultImageUrls(result = {}) {
+    const urls = [];
+    if (Array.isArray(result?.imageUrls)) urls.push(...result.imageUrls);
+    if (Array.isArray(result?.outputs)) {
+      result.outputs.forEach((output) => {
+        if (output?.type === "image" && output.url) urls.push(output.url);
+      });
+    }
+    if (result?.imageUrl) urls.unshift(result.imageUrl);
+    return Array.from(new Set(urls.filter(Boolean)));
+  }
+
+  function isMidjourneyModel(model = "") {
+    return String(model || "").trim().toLowerCase() === "midjourney";
   }
 
   function saveGeneratorDraft(node) {
@@ -809,6 +966,7 @@ export function createImageGeneratorWorkflow({
     setSelectValue(controls.ratioSelect, node?.dataset.generatorRatio || DEFAULT_GENERATOR_RATIO);
     setSelectValue(controls.countSelect, node?.dataset.generatorCount || DEFAULT_GENERATOR_COUNT);
     syncGeneratorCustomSelects();
+    closeGeneratorCustomSelects();
   }
 
   function setSelectValue(select, value) {
@@ -870,6 +1028,7 @@ export function createImageGeneratorWorkflow({
         menu.setAttribute("role", "listbox");
         wrap.append(trigger, menu);
         select.after(wrap);
+        select.__generatorSelectRebuild = () => syncGeneratorCustomSelect(select);
         syncGeneratorCustomSelect(select);
       });
   }
@@ -886,10 +1045,30 @@ export function createImageGeneratorWorkflow({
     const trigger = wrap?.querySelector?.("[data-generator-select-trigger]");
     const menu = wrap?.querySelector?.("[data-generator-select-menu]");
     if (!wrap || !trigger || !menu) return;
+    wrap.classList.remove("open");
     const selectedOption = select.selectedOptions?.[0] || select.options?.[select.selectedIndex] || select.options?.[0];
-    trigger.textContent = selectedOption?.textContent || "";
+    trigger.textContent = selectedOption?.dataset?.modelLabel || selectedOption?.textContent || "";
     trigger.disabled = select.disabled;
     trigger.dataset.value = select.value || "";
+    menu.classList.remove("model-preference-menu");
+    if (kind === "model") {
+      renderModelPreferenceMenu({
+        menu,
+        select,
+        surface: "generator",
+        models: select.__modelPreferenceModels || [],
+        allowVideo: false,
+        onClose: closeGeneratorCustomSelects
+      });
+      return;
+    }
+    if (kind === "count" && isMidjourneyModel(getGeneratorModel())) {
+      trigger.textContent = "默认4张";
+      trigger.disabled = true;
+      trigger.dataset.value = "midjourney-default-4";
+      menu.innerHTML = "";
+      return;
+    }
     menu.innerHTML = Array.from(select.options || []).map((option) => `
       <button type="button"
         class="generator-select-option${option.value === select.value ? " selected" : ""}"
@@ -992,22 +1171,20 @@ export function createImageGeneratorWorkflow({
     const frameWidth = frame?.offsetWidth || node.offsetWidth || 560;
     const frameHeight = frame?.offsetHeight || frameWidth;
     const safeZoom = Math.max(0.2, Math.min(2.5, Number(getZoom?.()) || 1));
-    const editScreenScale = Math.max(0.76, Math.min(1.22, 1 / safeZoom));
     const screenNodeWidth = frameWidth * safeZoom;
-    const minScreenWidth = Math.max(330, 430 * editScreenScale);
-    const maxScreenWidth = Math.min(680, 600 * editScreenScale);
-    const preferredScreenWidth = screenNodeWidth + 132 * editScreenScale;
+    const minScreenWidth = 430;
+    const maxScreenWidth = 620;
+    const preferredScreenWidth = screenNodeWidth + 132;
     const targetScreenWidth = Math.max(minScreenWidth, Math.min(maxScreenWidth, preferredScreenWidth));
-    const minScreenHeight = Math.max(150, 168 * editScreenScale);
-    const maxScreenHeight = Math.min(292, 248 * editScreenScale);
+    const minScreenHeight = 168;
+    const maxScreenHeight = 268;
     const expanded = nextPopover.classList.contains("generator-panel-expanded");
     const targetScreenHeight = expanded
-      ? Math.max(maxScreenHeight, 292 * editScreenScale)
+      ? 292
       : Math.max(minScreenHeight, Math.min(maxScreenHeight, targetScreenWidth * 0.42));
-    const popoverWidth = Math.round(targetScreenWidth / safeZoom);
-    const popoverHeight = Math.round(targetScreenHeight / safeZoom);
-    const editScale = getInverseCanvasUiScale(safeZoom);
-    const scaledGap = (22 * editScreenScale) / safeZoom;
+    const popoverWidth = Math.round(targetScreenWidth);
+    const popoverHeight = Math.round(targetScreenHeight);
+    const scaledGap = 22;
 
     const position = getVisibleGeneratorPopoverPosition({
       frameLeft,
@@ -1025,11 +1202,13 @@ export function createImageGeneratorWorkflow({
     nextPopover.style.width = `${popoverWidth}px`;
     nextPopover.style.height = `${popoverHeight}px`;
     nextPopover.style.minHeight = `${popoverHeight}px`;
-    nextPopover.style.setProperty("--edit-scale", editScale.toFixed(3));
+    nextPopover.style.setProperty("--edit-scale", "1");
+    nextPopover.style.position = "fixed";
+    nextPopover.style.zIndex = "12070";
     nextPopover.style.left = `${position.left}px`;
     nextPopover.style.top = `${position.top}px`;
     resetCanvasViewportScroll();
-    return { popoverWidth, popoverHeight, editScale };
+    return { popoverWidth, popoverHeight, editScale: 1 };
   }
 
   function getVisibleGeneratorPopoverPosition({
@@ -1053,26 +1232,20 @@ export function createImageGeneratorWorkflow({
     }
 
     const margin = 16;
-    const screenLeft = worldRect.left + left * zoom;
-    const belowScreenTop = worldRect.top + (frameTop + frameHeight + gap) * zoom;
-    const aboveScreenTop = worldRect.top + (frameTop - gap - popoverHeight) * zoom;
-    const belowFits = belowScreenTop + screenHeight <= viewportRect.bottom - margin;
-    const aboveFits = aboveScreenTop >= viewportRect.top + margin;
-    const preferredScreenTop = belowFits || !aboveFits ? belowScreenTop : aboveScreenTop;
-
+    const frameScreenLeft = worldRect.left + frameLeft * zoom;
+    const frameScreenTop = worldRect.top + frameTop * zoom;
+    const frameScreenWidth = frameWidth * zoom;
+    const frameScreenHeight = frameHeight * zoom;
+    const screenLeft = frameScreenLeft + frameScreenWidth / 2 - popoverWidth / 2;
+    const belowScreenTop = frameScreenTop + frameScreenHeight + gap;
     const clampedScreenLeft = clampScreenPosition(
       screenLeft,
       viewportRect.left + margin,
       viewportRect.right - screenWidth - margin
     );
-    const clampedScreenTop = clampScreenPosition(
-      preferredScreenTop,
-      viewportRect.top + margin,
-      viewportRect.bottom - screenHeight - margin
-    );
 
-    left = (clampedScreenLeft - worldRect.left) / zoom;
-    top = (clampedScreenTop - worldRect.top) / zoom;
+    left = clampedScreenLeft;
+    top = belowScreenTop;
     return { left, top };
   }
 
@@ -1255,8 +1428,12 @@ function getActiveGeneratorNode() {
 }
 
 function getGeneratorModel() {
-  return globalThis.document?.querySelector?.(`${GENERATOR_POPOVER_SELECTOR} [data-generator-model]`)?.value
-    || globalThis.document?.querySelector?.("#chatModelSelect")?.value
+  const generatorSelect = globalThis.document?.querySelector?.(`${GENERATOR_POPOVER_SELECTOR} [data-generator-model]`);
+  const chatSelect = globalThis.document?.querySelector?.("#chatModelSelect");
+  return generatorSelect?.dataset?.selectedModelId
+    || generatorSelect?.value
+    || chatSelect?.dataset?.selectedModelId
+    || chatSelect?.value
     || DEFAULT_GENERATOR_MODEL;
 }
 

@@ -8,11 +8,21 @@ export function getProjectDisplayPrompt(project) {
 }
 
 export function getProjectPreview(project, index = 0, makeFallbackThumb) {
-  if (isRenderableProjectThumbnail(project?.thumbnail)) return project.thumbnail;
+  const thumbnail = normalizeProjectThumbnail(project?.thumbnail);
+  if (isRenderableProjectThumbnail(thumbnail)) return thumbnail;
   if (typeof makeFallbackThumb === "function") {
     return makeFallbackThumb(getProjectDisplayTitle(project, index), index);
   }
   return "";
+}
+
+export function normalizeProjectThumbnail(value = "") {
+  const thumbnail = String(value || "").trim();
+  if (!thumbnail) return "";
+  return thumbnail.replace(
+    /^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?(\/uploads\/[^?#]+)(?:[?#].*)?$/i,
+    "$1"
+  );
 }
 
 function isRenderableProjectThumbnail(value = "") {

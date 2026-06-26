@@ -1,8 +1,19 @@
-import express from "express";
-import { createAIRouter } from "../src/server/routes/ai.routes.js";
-import { generateImage } from "../src/server/services/ai.service.js";
-import { DEFAULT_IMAGE_MODEL } from "../src/server/services/model-catalog.service.js";
-import { registerAIProvider } from "../src/server/services/providers/index.js";
+import { mkdtempSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+const tempRoot = mkdtempSync(join(tmpdir(), "ai-studio-routing-"));
+process.env.DB_PATH = join(tempRoot, "routing.sqlite");
+process.env.NODE_ENV = "test";
+
+const express = (await import("express")).default;
+const { createAIRouter } = await import("../src/server/routes/ai.routes.js");
+const { generateImage } = await import("../src/server/services/ai.service.js");
+const { DEFAULT_IMAGE_MODEL } = await import("../src/server/services/model-catalog.service.js");
+const { registerAIProvider } = await import("../src/server/services/providers/index.js");
+const { initializeDatabase, closeDatabase, execute } = await import("../src/server/db/sqlite.js");
+const { runCreditsMigration } = await import("../src/server/db/credits-migration.js");
+const { ensureCreditAccount } = await import("../src/server/services/credits/credit.service.js");
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -62,21 +73,98 @@ const restoreQwen = registerAIProvider({
   }
 });
 
+const restoreApimart = registerAIProvider({
+  id: "apimart",
+  async generateImage(input) {
+    calls.push({ provider: "apimart", input });
+    return {
+      imageUrl: "mock://apimart-image",
+      model: input.model,
+      referenceCount: input.images?.length || 0,
+      providerCalls: [
+        {
+          provider: "apimart",
+          model: input.model,
+          operation: "generateImage",
+          endpoint: "mock://apimart"
+        }
+      ]
+    };
+  },
+  async generateVideo() {
+    throw new Error("generateVideo should not be called by routing checks");
+  }
+});
+
 try {
+  initializeDatabase();
+  runCreditsMigration({ grantExistingUsers: false });
+  execute(`
+    INSERT INTO users (id, email, name, password_hash, password_salt, created_at, updated_at)
+    VALUES ('test-user', 'routing@example.com', 'Routing User', '', '', ${Date.now()}, ${Date.now()});
+  `);
+  ensureCreditAccount("test-user", { initialCredits: 100, reason: "test_grant" });
+
   calls.length = 0;
-  const seedreamResult = await generateImage({
+  const defaultResult = await generateImage({
     model: DEFAULT_IMAGE_MODEL,
-    prompt: "route to seedream",
+    prompt: "route to default image model",
     images: ["data:image/png;base64,abc"],
     size: "2K"
   });
-  assert(seedreamResult.provider === "volcengine", "Seedream result should report volcengine provider");
-  assert(seedreamResult.requestedModel === DEFAULT_IMAGE_MODEL, "Seedream result should keep requested model");
-  assert(seedreamResult.providerModel === DEFAULT_IMAGE_MODEL, "Seedream result should keep provider model");
-  assert(seedreamResult.providerCalls?.[0]?.provider === "volcengine", "Seedream result should expose providerCalls");
-  assert(calls.length === 1, "Seedream should call exactly one provider");
-  assert(calls[0].provider === "volcengine", "Seedream should call Volcengine, not Qwen");
-  assert(calls[0].input.model === DEFAULT_IMAGE_MODEL, "Seedream provider should receive the selected model");
+  assert(defaultResult.provider === "apimart", "Default image result should report apimart provider internally");
+  assert(defaultResult.requestedModel === DEFAULT_IMAGE_MODEL, "Default image result should keep requested model");
+  assert(defaultResult.providerModel === "gpt-image-2", "Default image result should keep provider model");
+  assert(defaultResult.providerCalls?.[0]?.provider === "apimart", "Default image result should expose internal providerCalls");
+  assert(calls.length === 1, "Default image model should call exactly one provider");
+  assert(calls[0].provider === "apimart", "Default image model should call APIMart, not Qwen");
+  assert(calls[0].input.model === "gpt-image-2", "APIMart provider should receive the provider model");
+
+  const apimartImageMappings = [
+    ["gpt-image-2", "gpt-image-2"],
+    ["nano-banana-pro", "gemini-3-pro-image-preview"],
+    ["midjourney", "midjourney"],
+    ["nano-banana", "gemini-2.5-flash-image-preview"],
+    ["nano-banana-2", "gemini-3.1-flash-image-preview"],
+    ["qwen-image-2.0-pro", "qwen-image-2.0-pro"],
+    ["wan2.7-image-pro", "wan2.7-image-pro"],
+    ["qwen-image-edit-plus", "qwen-image-edit-plus"],
+    ["seedream-5-lite", "doubao-seedream-5-0-lite"],
+    ["seedream-4-5", "doubao-seedream-4.5"]
+  ];
+  for (const [modelId, providerModel] of apimartImageMappings) {
+    calls.length = 0;
+    const result = await generateImage({
+      model: modelId,
+      prompt: `route ${modelId}`,
+      images: ["data:image/png;base64,abc"],
+      size: "2K"
+    });
+    assert(result.requestedModel === modelId, `${modelId} should keep requestedModel`);
+    assert(result.provider === "apimart", `${modelId} should route to APIMart`);
+    assert(result.providerModel === providerModel, `${modelId} should resolve to ${providerModel}`);
+    assert(calls.length === 1, `${modelId} should call exactly one provider`);
+    assert(calls[0].provider === "apimart", `${modelId} should call APIMart`);
+    assert(calls[0].input.model === providerModel, `${modelId} should send ${providerModel} to APIMart`);
+    if (modelId !== DEFAULT_IMAGE_MODEL) {
+      assert(calls[0].input.model !== "gpt-image-2", `${modelId} must not fall back to gpt-image-2`);
+    }
+  }
+
+  calls.length = 0;
+  let hiddenDoubaoError = null;
+  try {
+    await generateImage({
+      model: "doubao-seedream-5-0-lite-260128",
+      prompt: "hidden direct seedream should fail",
+      images: ["data:image/png;base64,abc"],
+      size: "2K"
+    });
+  } catch (error) {
+    hiddenDoubaoError = error;
+  }
+  assert(hiddenDoubaoError?.message?.includes("Unsupported image model"), "Hidden Doubao direct model should fail explicitly");
+  assert(calls.length === 0, "Hidden Doubao direct model should not call any provider");
 
   calls.length = 0;
   const wanResult = await generateImage({
@@ -85,10 +173,10 @@ try {
     images: [],
     size: "2K"
   });
-  assert(wanResult.provider === "qwen", "Wan result should report qwen provider");
+  assert(wanResult.provider === "apimart", "Wan menu generation result should report apimart provider internally");
   assert(wanResult.requestedModel === "wan2.7-image-pro", "Wan result should keep requested model");
   assert(calls.length === 1, "Wan should call exactly one provider");
-  assert(calls[0].provider === "qwen", "Wan should call Qwen provider");
+  assert(calls[0].provider === "apimart", "Wan menu generation should call APIMart provider");
 
   calls.length = 0;
   let unsupportedError = null;
@@ -125,12 +213,12 @@ try {
     });
     const payload = await response.json();
     assert(response.ok, `Route should return 200, got ${response.status}: ${payload.message || ""}`);
-    assert(payload.provider === "volcengine", "Route response should expose the real provider");
+    assert(!("provider" in payload), "APIMart route response should not expose provider");
     assert(payload.requestedModel === DEFAULT_IMAGE_MODEL, "Route response should expose requestedModel");
-    assert(payload.providerModel === DEFAULT_IMAGE_MODEL, "Route response should expose providerModel");
-    assert(payload.resolvedModel === DEFAULT_IMAGE_MODEL, "Route response should expose resolvedModel");
-    assert(payload.providerCalls?.[0]?.provider === "volcengine", "Route response should expose real providerCalls");
-    assert(calls.length === 1 && calls[0].provider === "volcengine", "Route should call Volcengine exactly once");
+    assert(payload.providerModel === "gpt-image-2", "Route response should expose providerModel");
+    assert(payload.resolvedModel === "gpt-image-2", "Route response should expose resolvedModel");
+    assert(!payload.providerCalls?.length, "Route response should hide APIMart providerCalls");
+    assert(calls.length === 1 && calls[0].provider === "apimart", "Route should call APIMart exactly once");
 
     const restoreBadVolcengine = registerAIProvider({
       id: "volcengine",
@@ -166,8 +254,8 @@ try {
         })
       });
       const badPayload = await badResponse.json();
-      assert(!badResponse.ok, "Route should reject Doubao responses resolved to Qwen");
-      assert(badPayload.message?.includes("unexpected provider"), "Route should explain the unexpected provider");
+      assert(badResponse.ok, "APIMart default model should not use the Doubao direct-provider assertion");
+      assert(!badPayload.providerCalls?.length, "APIMart default model response should keep providerCalls hidden");
     } finally {
       restoreBadVolcengine();
     }
@@ -177,6 +265,9 @@ try {
 } finally {
   restoreVolcengine();
   restoreQwen();
+  restoreApimart();
+  closeDatabase();
+  rmSync(tempRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 }
 
 console.log("Model routing checks passed.");

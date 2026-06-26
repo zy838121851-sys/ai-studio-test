@@ -57,7 +57,8 @@ const restoreProvider = registerAIProvider({
     return {
       imageUrl: "mock://upscaled",
       upscaleFactor,
-      model: "wanx2.1-imageedit"
+      model: "wanx2.1-imageedit",
+      providerCalls: [{ provider: "qwen", model: "wanx2.1-imageedit", operation: "superResolutionImage", endpoint: "mock://qwen-image-edit" }]
     };
   },
   async generateImage() {

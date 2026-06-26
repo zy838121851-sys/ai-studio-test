@@ -1,4 +1,4 @@
-import { eventBus } from "./event-bus.js";
+﻿import { eventBus } from "./event-bus.js";
 import { appState, patchState } from "./state.js";
 import { initCanvasController } from "../features/canvas/canvas-controller.js";
 import { createAgentEventSystem } from "../features/agent/agent-event-system.js";
@@ -7,8 +7,9 @@ import { executeAgentAction } from "../features/agent/agent-actions.js";
 import { registerAIProvider, setActiveAIProvider } from "../features/ai/ai-client.js";
 import { mockProvider } from "../features/ai/providers/mock-provider.js";
 import { serverAPIProvider } from "../features/ai/providers/server-api-provider.js";
-import { initModelCatalog } from "../features/ai/model-catalog.js";
+import { initModelCatalog } from "../features/ai/model-catalog.js?v=20260626-midjourney-4up-1";
 import { initAuthEntry } from "../features/auth/auth-entry.js";
+import { initCreditQuoteBadges } from "../features/credits/quote-badges.js?v=20260626-midjourney-4up-1";
 import { initAssetPanel } from "../features/workspace/asset-library/asset-panel.js";
 import { initAgentPanel } from "../features/agent/agent-panel.js";
 import { mountWorkspaceApp } from "../features/workspace/runtime/index.js";
@@ -21,6 +22,7 @@ export async function initApp() {
   const workspaceMount = mountWorkspaceApp(document);
   const modelCatalog = await initModelCatalog(document);
   const authEntry = initAuthEntry(document);
+  const creditQuoteBadges = initCreditQuoteBadges(document);
   const workspaceRuntime = workspaceMount.runtime;
   const canvasController = initCanvasController({ eventBus, root: document });
   const agentEventSystem = createAgentEventSystem({ eventBus, canvasController });
@@ -42,6 +44,7 @@ export async function initApp() {
     suggestionEngine,
     assetPanel,
     authEntry,
+    creditQuoteBadges,
     workspaceMount,
     workspaceRuntime,
     modelCatalog,

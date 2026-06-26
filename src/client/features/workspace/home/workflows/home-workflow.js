@@ -6,7 +6,7 @@ import {
 import {
   DEFAULT_IMAGE_MODEL,
   resolveImageModelId
-} from "../../../ai/model-catalog.js";
+} from "../../../ai/model-catalog.js?v=20260626-midjourney-4up-1";
 
 export function createHomeWorkflow({
   elements = {},
@@ -113,6 +113,7 @@ export function createHomeWorkflow({
     if (!button || !homeModelSelect) return;
     homeModelSelect.value = button.dataset.modelValue;
     homeModelSelect.dataset.modelUserSelected = "true";
+    homeModelSelect.dataset.selectedModelId = homeModelSelect.value;
     homeModelSelect.dispatchEvent(new Event("change", { bubbles: true }));
     syncHomeModelPicker();
     homeModelPicker?.classList.remove("open");
@@ -122,15 +123,11 @@ export function createHomeWorkflow({
 
   function getSelectedHomeModel() {
     if (!homeModelSelect) return DEFAULT_IMAGE_MODEL;
-    const isImplicitSmartModel = homeModelSelect.dataset.modelUserSelected !== "true" && homeModelSelect.selectedIndex === 0;
-    const selectedOption = homeModelSelect.options?.[homeModelSelect.selectedIndex];
-    const selectedLabel = selectedOption?.textContent?.trim() || "";
-    const isSmartModelLabel = selectedLabel === "\u667a\u80fd\u6a21\u578b";
-    const model = isImplicitSmartModel || isSmartModelLabel
-      ? DEFAULT_IMAGE_MODEL
-      : resolveImageModelId(homeModelSelect.value, "home");
+    const selectedModel = homeModelSelect.dataset.selectedModelId || homeModelSelect.value;
+    const model = resolveImageModelId(selectedModel, "home");
     if (homeModelSelect.value !== model) {
       homeModelSelect.value = model;
+      homeModelSelect.dataset.selectedModelId = model;
       syncHomeModelPicker();
     }
     return model;

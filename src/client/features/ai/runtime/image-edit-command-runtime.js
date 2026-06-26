@@ -1,5 +1,5 @@
-import { getQwenImageSizeForElement } from "../image-generator.js";
-import { executeImageEditAction } from "../image-edit-actions.js";
+﻿import { getQwenImageSizeForElement } from "../image-generator.js";
+import { executeImageEditAction } from "../image-edit-actions.js?v=20260626-popover-anchor-1";
 import { createImageEditCommand } from "./image-edit-command.js";
 
 const IMAGE_EDIT_SIZE_PRESETS = {

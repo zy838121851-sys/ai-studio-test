@@ -9,7 +9,7 @@ import {
 import {
   formatModelUsage,
   resolveImageModelId
-} from "../../ai/model-catalog.js";
+} from "../../ai/model-catalog.js?v=20260626-midjourney-4up-1";
 import { getImageNodePreviewMetrics } from "../../canvas/upload-nodes.js";
 
 export function createDirectorActionWorkflow({
@@ -145,6 +145,7 @@ export function createDirectorActionWorkflow({
         productNode.classList.add("stack-expanded");
         renderStackTray(productNode);
         addChatImage("assistant", result.imageUrl, `${action.title}\n${modelUsage}`);
+        window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
         return imageNode;
       } else {
         previewNode.classList.add("generation-failed");

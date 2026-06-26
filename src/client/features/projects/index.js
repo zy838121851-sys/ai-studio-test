@@ -32,7 +32,7 @@ export {
 } from "./display.js";
 export { createProjectSavePatch } from "./snapshot.js";
 export { makeDemoProjectThumb, buildDemoProjects } from "./demo-projects.js";
-export { createProjectWorkflow } from "./workflows/project-workflow.js";
+export { createProjectWorkflow } from "./workflows/project-workflow.js?v=20260626-midjourney-4up-1";
 export {
   applyProjectLibraryClasses,
   renderHomeHistoryContent,
