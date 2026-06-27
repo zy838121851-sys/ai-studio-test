@@ -12,6 +12,7 @@ import { createAIRouter } from "./routes/ai.routes.js";
 import { createAssetCollectionRouter } from "./routes/asset-collection.routes.js";
 import { createAssetRouter } from "./routes/asset.routes.js";
 import { createAuthRouter } from "./routes/auth.routes.js";
+import { createConversationRouter } from "./routes/conversation.routes.js";
 import { createCreditRouter } from "./routes/credit.routes.js";
 import { createHealthRouter } from "./routes/health.routes.js";
 import { createProjectRouter } from "./routes/project.routes.js";
@@ -51,6 +52,7 @@ export function createServer() {
   app.use("/api", noStoreApi, createHealthRouter());
   app.use("/api", noStoreApi, createAuthRouter());
   app.use("/api", noStoreApi, createCreditRouter());
+  app.use("/api", noStoreApi, createConversationRouter());
   app.use("/api", noStoreApi, createAIRouter());
   app.use("/api", noStoreApi, createUploadRouter());
   app.use("/api", noStoreApi, createAssetCollectionRouter());

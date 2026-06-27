@@ -3,7 +3,8 @@ import {
   appendChatMessage,
   appendThinkingMessage,
   updateChatMessage,
-  updateThinkingMessage
+  updateThinkingMessage,
+  updateThinkingSummary
 } from "../components/chat-log.js";
 import { createChatWorkflow } from "../workflows/chat-workflow.js";
 
@@ -21,6 +22,7 @@ export function createChatWorkflowRuntime({
       appendThinkingMessage,
       updateChatMessage,
       updateThinkingMessage,
+      updateThinkingSummary,
       appendChatImage,
       escapeHtml: services.escapeHtml
     }

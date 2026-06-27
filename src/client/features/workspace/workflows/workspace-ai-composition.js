@@ -22,6 +22,7 @@ export function createWorkspaceImageEditCompositionBundle({
       readImageSourceAsDataUrl: services.readImageSourceAsDataUrl,
       addGenerationPreview: canvas.canvasGenerationRuntime.addGenerationPreview,
       replacePreviewWithImage: canvas.canvasGenerationRuntime.replacePreviewWithImage,
+      replacePreviewWithVideo: canvas.canvasGenerationRuntime.replacePreviewWithVideo,
       addSourceBadge: canvas.canvasGenerationRuntime.addSourceBadge,
       addChat: chatRuntime.addChat,
       addThinking: chatRuntime.addThinking,

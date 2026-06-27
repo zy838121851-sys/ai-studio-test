@@ -12,6 +12,7 @@ export function createChatWorkflow({
     appendThinkingMessage = () => null,
     updateChatMessage = () => {},
     updateThinkingMessage = () => {},
+    updateThinkingSummary = () => {},
     appendChatImage = () => null,
     escapeHtml = (value = "") => String(value)
   } = services;
@@ -32,6 +33,10 @@ export function createChatWorkflow({
     updateThinkingMessage(message, activeIndex, done);
   }
 
+  function setThinkingSummary(message, summary) {
+    updateThinkingSummary(message, summary);
+  }
+
   function addChatImage(role, imageUrl, caption) {
     return appendChatImage({ chatLog, role, imageUrl, caption, escapeHtml });
   }
@@ -41,6 +46,7 @@ export function createChatWorkflow({
     updateChat,
     addThinking,
     updateThinking,
+    setThinkingSummary,
     addChatImage
   };
 }

@@ -1,3 +1,5 @@
+import { getModelType } from "../ai/model-catalog.js?v=20260627-library-bulk-select-1";
+
 const QUOTE_REFRESH_EVENTS = [
   "change",
   "input",
@@ -31,7 +33,7 @@ export function initCreditQuoteBadges(root = document) {
 
 async function refreshQuoteTarget(target, root) {
   const model = readSourceValue(root, target.dataset.creditModelSource);
-  const task = String(target.dataset.creditTask || "").trim();
+  const task = resolveQuoteTask(model, target.dataset.creditTask);
   const count = isMidjourneyModel(model) ? "1" : readCount(root, target);
   if (!model || !task) {
     setQuoteText(target, "");
@@ -52,6 +54,12 @@ async function refreshQuoteTarget(target, root) {
     const status = Number(error?.status || 0);
     setQuoteText(target, status === 401 ? "" : PRICE_NOT_CONFIGURED_LABEL, true);
   }
+}
+
+function resolveQuoteTask(model, task) {
+  const cleanTask = String(task || "").trim();
+  if (getModelType(model) === "video") return "video_generation";
+  return cleanTask;
 }
 
 function isMidjourneyModel(model = "") {

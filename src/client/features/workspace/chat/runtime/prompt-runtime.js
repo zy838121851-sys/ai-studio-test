@@ -11,6 +11,7 @@ export function createPromptSubmitRuntimePayload(runtime = {}) {
     viewportPointToWorld: runtime.viewportPointToWorld,
     addThinking: runtime.addThinking,
     updateThinking: runtime.updateThinking,
+    setThinkingSummary: runtime.setThinkingSummary,
     addChat: runtime.addChat,
     updateChat: runtime.updateChat,
     addChatImage: runtime.addChatImage,

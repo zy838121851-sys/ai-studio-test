@@ -1,6 +1,7 @@
 import { postJson } from "./api-client.js";
 import {
-  formatModelUsage
+  formatModelUsage,
+  getModelType
 } from "./model-catalog.js?v=20260627-library-bulk-select-1";
 
 const IMAGE_EDIT_OUTPUT_GAP = 28;
@@ -179,6 +180,7 @@ export async function executeImageEditAction({
   referenceImages = [],
   createPreview,
   replacePreview,
+  replacePreviewVideo,
   addSourceBadge,
   addChat,
   addThinking,
@@ -245,6 +247,50 @@ export async function executeImageEditAction({
     const images = await Promise.all(imageSources.map((src) => readImageSourceAsDataUrl(src)));
     updateThinking?.(thinking, 2);
     const requestSize = outputSize || getOutputSize?.(img);
+    if (getModelType(model) === "video") {
+      let result = await postJson("/api/ai/generate", {
+        prompt,
+        model,
+        images
+      });
+      if (!result?.videoUrl && result?.jobId) {
+        previewNode.dataset.imageEditJobId = result.jobId;
+        updateChat?.(progress, `${label} is generating video, waiting for the result...`);
+        result = await waitForImageEditJob(result.jobId, {
+          expectedType: "video",
+          fallback: result,
+          onProgress: (payload) => {
+            const percent = Number(payload?.progress || 0);
+            updateChat?.(progress, percent > 0
+              ? `${label} is generating video (${Math.min(99, percent)}%)...`
+              : `${label} is generating video, waiting for the result...`);
+          }
+        });
+      }
+      const outputUrl = getPrimaryResultVideoUrl(result);
+      if (!outputUrl) throw new Error(getMissingImageEditResultMessage(result, "video"));
+      updateThinking?.(thinking, 3);
+      const resultModel = result.requestedModel || result.model || model || "";
+      const modelUsage = formatModelUsage(result, resultModel);
+      const videoNode = replacePreviewVideo?.(previewNode, {
+        title: `${label} Result.mp4`,
+        desc: "Generated video from the selected image.",
+        url: outputUrl,
+        width: nextPreviewWidth,
+        aspectRatio: nextPreviewAspect,
+        prompt,
+        sourceNode,
+        actionType: "video_generation",
+        model: resultModel
+      });
+      if (!videoNode) throw new Error("Unable to place generated video on canvas.");
+      addSourceBadge?.(videoNode, sourceNode);
+      addChat?.("assistant", `${label} video completed and placed next to the source image.\n${modelUsage}\n${outputUrl}`);
+      window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
+      updateThinking?.(thinking, 4, true);
+      updateChat?.(progress, `${result.message || `${label} video completed.`}\n${modelUsage}`);
+      return { ...result, videoUrl: outputUrl };
+    }
     let result = await postJson("/api/image-edit", {
       prompt,
       model,
@@ -310,6 +356,7 @@ async function waitForImageEditJob(jobId, {
   delayMs = 2000,
   fallback = {},
   onProgress = null,
+  expectedType = "image",
   missingUrlRetries = 4
 } = {}) {
   let lastPayload = { jobId, ...fallback };
@@ -336,17 +383,20 @@ async function waitForImageEditJob(jobId, {
     logImageEditJobPoll(lastPayload);
     if (["succeeded", "failed", "cancelled", "timeout", "save_failed"].includes(payload?.status)) {
       if (payload.status !== "succeeded") throw new Error(payload.error || payload.status);
-      if (!getResultImageUrls(lastPayload).length) {
+      const resultUrls = expectedType === "video"
+        ? getResultVideoUrls(lastPayload)
+        : getResultImageUrls(lastPayload);
+      if (!resultUrls.length) {
         missingUrlAttempts += 1;
         if (missingUrlAttempts <= missingUrlRetries) {
           onProgress?.({
             ...lastPayload,
             status: "running",
-            message: "Waiting for saved image URL"
+            message: expectedType === "video" ? "Waiting for saved video URL" : "Waiting for saved image URL"
           });
           continue;
         }
-        throw new Error(getMissingImageEditResultMessage(lastPayload));
+        throw new Error(getMissingImageEditResultMessage(lastPayload, expectedType));
       }
       return lastPayload;
     }
@@ -385,8 +435,31 @@ function getPrimaryResultImageUrl(result = {}) {
   return getResultImageUrls(result)[0] || "";
 }
 
-function getMissingImageEditResultMessage(result = {}) {
-  const message = String(result?.message || "Model returned without an image URL").trim();
+function getResultVideoUrls(result = {}) {
+  const urls = [];
+  if (Array.isArray(result?.videoUrls)) urls.push(...result.videoUrls);
+  if (Array.isArray(result?.outputs)) {
+    result.outputs.forEach((output) => {
+      const type = String(output?.type || "").toLowerCase();
+      const mimeType = String(output?.mimeType || output?.mime_type || "").toLowerCase();
+      if (output?.url && (type === "video" || mimeType.startsWith("video/"))) {
+        urls.push(output.url);
+      }
+    });
+  }
+  if (result?.videoUrl) urls.unshift(result.videoUrl);
+  return Array.from(new Set(urls.filter(Boolean)));
+}
+
+function getPrimaryResultVideoUrl(result = {}) {
+  return getResultVideoUrls(result)[0] || "";
+}
+
+function getMissingImageEditResultMessage(result = {}, expectedType = "image") {
+  const fallback = expectedType === "video"
+    ? "Model returned without a video URL"
+    : "Model returned without an image URL";
+  const message = String(result?.message || fallback).trim();
   const details = [
     result?.jobId ? `jobId=${result.jobId}` : "",
     result?.status ? `status=${result.status}` : "",
@@ -403,6 +476,7 @@ function logImageEditJobPoll(payload = {}) {
     status: payload.status || payload.job?.status || "",
     progress: payload.progress || payload.job?.progress || 0,
     imageUrls: getResultImageUrls(payload),
+    videoUrls: getResultVideoUrls(payload),
     outputCount: payload.outputCount ?? payload.outputs?.length ?? 0,
     updatedAt: payload.updatedAt || payload.job?.updatedAt || ""
   });

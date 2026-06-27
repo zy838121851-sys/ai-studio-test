@@ -81,6 +81,8 @@ export function getDatabaseHealth() {
     UNION ALL SELECT 'verification_codes', count(*) FROM verification_codes
     UNION ALL SELECT 'oauth_states', count(*) FROM oauth_states
     UNION ALL SELECT 'projects', count(*) FROM projects
+    UNION ALL SELECT 'chat_conversations', count(*) FROM chat_conversations
+    UNION ALL SELECT 'chat_messages', count(*) FROM chat_messages
     UNION ALL SELECT 'asset_collections', count(*) FROM asset_collections
     UNION ALL SELECT 'assets', count(*) FROM assets;
   `);
@@ -192,6 +194,51 @@ export function initializeDatabase() {
       ON projects(user_id, deleted_at, updated_at);
     CREATE INDEX IF NOT EXISTS idx_projects_user_last_opened
       ON projects(user_id, deleted_at, last_opened_at);
+
+    CREATE TABLE IF NOT EXISTS chat_conversations (
+      id TEXT PRIMARY KEY,
+      user_id TEXT NOT NULL,
+      project_id TEXT NOT NULL,
+      title TEXT NOT NULL DEFAULT '',
+      summary TEXT NOT NULL DEFAULT '',
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      deleted_at INTEGER,
+      UNIQUE(user_id, project_id, deleted_at),
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_chat_conversations_user_project
+      ON chat_conversations(user_id, project_id, deleted_at, updated_at);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_chat_conversations_active_project
+      ON chat_conversations(user_id, project_id)
+      WHERE deleted_at IS NULL;
+
+    CREATE TABLE IF NOT EXISTS chat_messages (
+      id TEXT PRIMARY KEY,
+      conversation_id TEXT NOT NULL,
+      user_id TEXT NOT NULL,
+      project_id TEXT NOT NULL,
+      role TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'done',
+      content_json TEXT NOT NULL DEFAULT '{}',
+      attachments_json TEXT NOT NULL DEFAULT '[]',
+      tool_calls_json TEXT NOT NULL DEFAULT '[]',
+      thinking_steps_json TEXT NOT NULL DEFAULT '[]',
+      decision_summary TEXT NOT NULL DEFAULT '',
+      created_at INTEGER NOT NULL,
+      updated_at INTEGER NOT NULL,
+      completed_at INTEGER,
+      FOREIGN KEY (conversation_id) REFERENCES chat_conversations(id) ON DELETE CASCADE,
+      FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+      FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_chat_messages_conversation_created
+      ON chat_messages(conversation_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_chat_messages_user_project
+      ON chat_messages(user_id, project_id, created_at);
 
     CREATE TABLE IF NOT EXISTS asset_collections (
       id TEXT PRIMARY KEY,

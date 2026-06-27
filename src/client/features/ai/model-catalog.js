@@ -29,6 +29,8 @@ const MODEL_SELECT_TARGETS = [
   { selector: "[data-generator-model]", surface: "generator" }
 ];
 
+const HOME_LIST_SURFACES = new Set(["generator", "imageEdit"]);
+
 const MODEL_STATE_KEY = "__AI_STUDIO_MODEL_CATALOG_STATE__";
 
 function getSharedModelState() {
@@ -62,6 +64,10 @@ function setSelectedModel(surface, modelId) {
 function getSelectedModel(surface) {
   const state = getSharedModelState();
   return state.selectedBySurface?.[surface] || state.selectedBySurface?.global || "";
+}
+
+export function getSelectedModelId(surface = "") {
+  return getSelectedModel(surface);
 }
 
 export async function initModelCatalog(root = document) {
@@ -181,7 +187,7 @@ function hydrateHomeModelPicker(root) {
 
 function hydrateNativeSelect(select, surface) {
   if (!select) return;
-  const models = filterModelsForSurface(getCatalogModels(), surface);
+  const models = filterModelsForSurface(getCatalogModels(), getMenuSurface(surface));
   const current = select.dataset.modelUserSelected === "true"
     ? (select.dataset.selectedModelId || select.value)
     : (getSelectedModel(surface) || DEFAULT_IMAGE_MODEL);
@@ -192,7 +198,7 @@ function hydrateNativeSelect(select, surface) {
     groupItems.forEach((model) => {
       const option = document.createElement("option");
       option.value = model.id;
-      option.textContent = getModelLabel(model, surface);
+      option.textContent = getModelLabel(model, getMenuSurface(surface));
       option.title = getModelOptionTitle(model);
       option.dataset.modelLabel = model.label || model.id;
       option.dataset.modelType = model.type || "image";
@@ -206,7 +212,7 @@ function hydrateNativeSelect(select, surface) {
   if (!select.value && select.options.length) select.selectedIndex = 0;
   select.__modelPreferenceModels = models;
   select.__modelPreferenceSurface = surface;
-  select.__modelPreferenceAllowVideo = surface === "home" || surface === "chat";
+  select.__modelPreferenceAllowVideo = true;
   if (select.dataset.modelCatalogBound !== "true") {
     select.addEventListener("change", () => {
       select.dataset.modelUserSelected = "true";
@@ -230,13 +236,14 @@ function syncModelSelectionAcrossSurfaces(modelId, sourceSelect) {
   MODEL_SELECT_TARGETS.forEach(({ selector, surface }) => {
     document.querySelectorAll(selector).forEach((select) => {
       if (select === sourceSelect) return;
-      const models = filterModelsForSurface(getCatalogModels(), surface);
+      const models = filterModelsForSurface(getCatalogModels(), getMenuSurface(surface));
       if (!models.some((model) => model.id === id)) return;
       select.value = id;
       select.dataset.modelUserSelected = "true";
       select.dataset.modelAuto = "false";
       select.dataset.selectedModelId = id;
       setSelectedModel(surface, id);
+      select.__compactSelectRebuild?.();
       select.__compactSelectSync?.();
       select.__generatorSelectRebuild?.();
     });
@@ -245,6 +252,10 @@ function syncModelSelectionAcrossSurfaces(modelId, sourceSelect) {
   document.dispatchEvent(new CustomEvent("ai-studio-model-selection-changed", {
     detail: { model: id }
   }));
+}
+
+function getMenuSurface(surface) {
+  return HOME_LIST_SURFACES.has(surface) ? "home" : surface;
 }
 
 function filterModelsForSurface(models, surface) {

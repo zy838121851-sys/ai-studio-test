@@ -500,13 +500,59 @@
   object-fit: cover;
 }
 
-.edit-head .edit-reference-thumb {
-  width: calc(38px * var(--edit-scale));
-  height: calc(38px * var(--edit-scale));
-  border: 1px solid rgba(31, 46, 72, 0.1);
-  border-radius: calc(12px * var(--edit-scale));
-  box-shadow: 0 10px 22px rgba(31, 46, 72, 0.08);
+.edit-head .edit-reference-item {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: calc(38px * var(--edit-scale, 1));
+  height: calc(38px * var(--edit-scale, 1));
+  padding: 0;
+  overflow: visible;
+  border: 0;
+  border-radius: calc(12px * var(--edit-scale, 1));
+  background: transparent;
   cursor: pointer;
+}
+
+.edit-head .edit-reference-thumb {
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(31, 46, 72, 0.1);
+  border-radius: calc(12px * var(--edit-scale, 1));
+  box-shadow: 0 10px 22px rgba(31, 46, 72, 0.08);
+  object-fit: cover;
+}
+
+.edit-reference-remove {
+  position: absolute;
+  right: calc(-4px * var(--edit-scale, 1));
+  top: calc(-4px * var(--edit-scale, 1));
+  display: grid;
+  place-items: center;
+  width: calc(15px * var(--edit-scale, 1));
+  height: calc(15px * var(--edit-scale, 1));
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 1px 4px rgba(17, 24, 39, 0.22);
+  pointer-events: none;
+}
+
+.edit-reference-remove::before,
+.edit-reference-remove::after {
+  position: absolute;
+  width: calc(8px * var(--edit-scale, 1));
+  height: calc(1.5px * var(--edit-scale, 1));
+  border-radius: 999px;
+  background: #111827;
+  content: "";
+}
+
+.edit-reference-remove::before {
+  transform: rotate(45deg);
+}
+
+.edit-reference-remove::after {
+  transform: rotate(-45deg);
 }
 
 .add-ref-btn:disabled {

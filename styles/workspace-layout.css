@@ -2568,6 +2568,11 @@ body.canvas-entering .chat-panel {
   position: relative;
 }
 
+.library-small-card.selected {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
 .library-small-card.is-selectable > button:not(.library-card-check) {
   cursor: pointer;
 }
@@ -2575,16 +2580,13 @@ body.canvas-entering .chat-panel {
 .library-small-card.selected > button:not(.library-card-check) {
   border-color: rgba(77, 156, 255, 0.54);
   background: rgba(255, 255, 255, 0.88);
-  box-shadow:
-    0 16px 42px rgba(77, 156, 255, 0.12),
-    inset 0 0 0 1px rgba(77, 156, 255, 0.34),
-    inset 0 1px rgba(255, 255, 255, 0.96);
+  box-shadow: 0 16px 42px rgba(31, 46, 72, 0.055), inset 0 1px rgba(255, 255, 255, 0.94);
 }
 
 .library-card-check {
   position: absolute;
   top: 13px;
-  left: 13px;
+  right: 13px;
   z-index: 3;
   display: grid !important;
   place-items: center;
@@ -2622,6 +2624,11 @@ body.canvas-entering .chat-panel {
   background: rgba(255, 255, 255, 0.94);
   box-shadow: 0 22px 54px rgba(31, 46, 72, 0.09), inset 0 1px rgba(255, 255, 255, 0.98);
   transform: translateY(-2px);
+}
+
+.library-small-card.selected > button:not(.library-card-check):hover {
+  border-color: rgba(77, 156, 255, 0.54);
+  box-shadow: 0 16px 42px rgba(31, 46, 72, 0.055), inset 0 1px rgba(255, 255, 255, 0.94);
 }
 
 .library-new-card {
@@ -2753,8 +2760,15 @@ body[data-view="library"] .library-small-card.selected > button:not(.library-car
   border-color: rgba(77, 156, 255, 0.54);
   background: rgba(255, 255, 255, 0.9);
   box-shadow:
-    0 16px 42px rgba(77, 156, 255, 0.12),
-    inset 0 0 0 1px rgba(77, 156, 255, 0.34),
+    0 18px 44px rgba(31, 46, 72, 0.06),
+    inset 0 1px rgba(255, 255, 255, 0.96);
+}
+
+body[data-view="library"] .library-small-card.selected > button:not(.library-card-check):hover {
+  border-color: rgba(77, 156, 255, 0.54);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 18px 44px rgba(31, 46, 72, 0.06),
     inset 0 1px rgba(255, 255, 255, 0.96);
 }
 

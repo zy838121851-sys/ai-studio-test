@@ -668,9 +668,9 @@
 
     <aside class="chat-panel collapsed" id="chatPanel" aria-label="AI 对话生成">
       <div class="window-actions">
-        <button title="新建">＋</button>
-        <button title="消息">□</button>
-        <button id="collapseChat" title="收起">×</button>
+        <button id="newConversation" type="button" title="新对话" aria-label="新对话">+</button>
+        <button id="conversationHistory" type="button" title="历史对话" aria-label="历史对话">≡</button>
+        <button id="collapseChat" type="button" title="关闭" aria-label="关闭">x</button>
       </div>
 
       <section class="welcome">
@@ -691,7 +691,7 @@
         <textarea id="promptInput" rows="4" placeholder="描述创意或需求，添加画布内容，按 @ 引用参考"></textarea>
         <div class="composer-actions">
           <div class="left-actions">
-            <button type="button" id="chatUploadImage" title="上传图片">▧</button>
+            <button type="button" id="chatUploadImage" title="Upload image" aria-label="Upload image">+</button>
             <select id="chatModelSelect" title="选择模型">
               <option value="qwen-image-2.0-pro">Qwen Image 2.0 Pro</option>
               <option value="qwen-image-2.0">Qwen Image 2.0</option>

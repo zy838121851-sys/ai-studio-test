@@ -25,6 +25,7 @@ export function createImageEditCommandRuntime({
     },
     addGenerationPreview: services.addGenerationPreview,
     replacePreviewWithImage: services.replacePreviewWithImage,
+    replacePreviewWithVideo: services.replacePreviewWithVideo,
     addSourceBadge: services.addSourceBadge,
     addChat: services.addChat,
     addThinking: services.addThinking,

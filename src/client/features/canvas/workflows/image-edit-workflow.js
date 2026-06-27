@@ -88,7 +88,7 @@ export function createImageEditWorkflow({
 
   function renderImageEditReferences() {
     if (!imageEditPopover) return;
-    imageEditPopover.querySelectorAll(".edit-reference-thumb").forEach((item) => item.remove());
+    imageEditPopover.querySelectorAll(".edit-reference-item").forEach((item) => item.remove());
     const refs = normalizeReferenceNodes(state.imageEditReferenceNodes);
     state.imageEditReferenceNodes = refs;
     if (editImageThumb) {
@@ -96,29 +96,29 @@ export function createImageEditWorkflow({
       editImageThumb.title = refs.length > 1 ? `\u56fe1\uff0c\u5df2\u5f15\u7528 ${refs.length} \u5f20\u53c2\u8003\u56fe` : "\u56fe1\uff0c\u5f53\u524d\u56fe\u7247";
     }
     refs.slice(1).forEach((node, index) => {
-      const thumb = document.createElement("img");
-      thumb.className = "edit-reference-thumb";
-      thumb.src = getImageNodeSrc(node);
-      thumb.alt = `\u53c2\u8003\u56fe ${index + 2}`;
-      thumb.title = `\u56fe${index + 2}\uff0c\u70b9\u51fb\u79fb\u9664\u53c2\u8003\u56fe`;
-      thumb.addEventListener("click", () => {
-        state.imageEditReferenceNodes = normalizeReferenceNodes([
-          state.imageEditReferenceNodes[0],
-          ...state.imageEditReferenceNodes.slice(1).filter((item) => item !== node)
-        ]);
-        renderImageEditReferences();
+      const thumb = createEditReferenceItem({
+        src: getImageNodeSrc(node),
+        alt: `\u53c2\u8003\u56fe ${index + 2}`,
+        label: `\u79fb\u9664\u56fe${index + 2}\u53c2\u8003\u56fe`,
+        onRemove: () => {
+          state.imageEditReferenceNodes = normalizeReferenceNodes([
+            state.imageEditReferenceNodes[0],
+            ...state.imageEditReferenceNodes.slice(1).filter((item) => item !== node)
+          ]);
+          renderImageEditReferences();
+        }
       });
       editAddRef?.before(thumb);
     });
     state.imageEditReferenceImages.slice(0, Math.max(0, 3 - refs.length)).forEach((item, index) => {
-      const thumb = document.createElement("img");
-      thumb.className = "edit-reference-thumb";
-      thumb.src = item.dataUrl;
-      thumb.alt = `上传参考图 ${index + 1}`;
-      thumb.title = "点击移除上传参考图";
-      thumb.addEventListener("click", () => {
-        state.imageEditReferenceImages = state.imageEditReferenceImages.filter((reference) => reference !== item);
-        renderImageEditReferences();
+      const thumb = createEditReferenceItem({
+        src: item.dataUrl,
+        alt: `上传参考图 ${index + 1}`,
+        label: "移除上传参考图",
+        onRemove: () => {
+          state.imageEditReferenceImages = state.imageEditReferenceImages.filter((reference) => reference !== item);
+          renderImageEditReferences();
+        }
       });
       editAddRef?.before(thumb);
     });
@@ -128,6 +128,29 @@ export function createImageEditWorkflow({
       editAddRef.title = totalRefs >= 3 ? "\u6700\u591a\u5f15\u7528 3 \u5f20\u53c2\u8003\u56fe" : "\u4e0a\u4f20\u53c2\u8003\u56fe";
       editAddRef.setAttribute("aria-label", editAddRef.title);
     }
+  }
+
+  function createEditReferenceItem({ src = "", alt = "", label = "", onRemove = null } = {}) {
+    const button = document.createElement("button");
+    button.className = "edit-reference-item";
+    button.type = "button";
+    button.title = label;
+    button.setAttribute("aria-label", label);
+    button.addEventListener("click", () => {
+      if (typeof onRemove === "function") onRemove();
+    });
+
+    const thumb = document.createElement("img");
+    thumb.className = "edit-reference-thumb";
+    thumb.src = src;
+    thumb.alt = alt;
+
+    const remove = document.createElement("span");
+    remove.className = "edit-reference-remove";
+    remove.setAttribute("aria-hidden", "true");
+
+    button.append(thumb, remove);
+    return button;
   }
 
   function openReferenceUpload() {

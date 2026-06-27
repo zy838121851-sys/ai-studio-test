@@ -41,13 +41,18 @@ function createCompactSelect(select) {
   menu.className = "compact-select-menu";
   menu.setAttribute("role", "listbox");
   menu.hidden = true;
+  wrapper.__compactSelectMenu = menu;
 
   wrapper.append(button, menu);
   select.after(wrapper);
 
-  function sync() {
+  function sync({ skipModelRebuild = false } = {}) {
     const selected = getSelectedOption(select);
     label.textContent = selected?.dataset?.modelLabel || selected?.textContent?.trim() || "";
+    if (!skipModelRebuild && shouldUseModelPreferenceMenu(select) && menu.classList.contains("model-preference-menu")) {
+      rebuildMenu();
+      return;
+    }
     Array.from(menu.querySelectorAll(".compact-select-option")).forEach((option) => {
       const active = option.dataset.value === select.value;
       option.classList.toggle("selected", active);
@@ -60,7 +65,7 @@ function createCompactSelect(select) {
     menu.classList.remove("model-preference-menu");
     delete menu.dataset.modelPreferenceSurface;
     delete menu.dataset.modelPreferenceType;
-    if (wrapper.dataset.compactKind === "model") {
+    if (shouldUseModelPreferenceMenu(select)) {
       renderModelPreferenceMenu({
         menu,
         select,
@@ -70,7 +75,7 @@ function createCompactSelect(select) {
         onChoose: () => sync(),
         onClose: () => closeMenu(wrapper)
       });
-      sync();
+      sync({ skipModelRebuild: true });
       return;
     }
     Array.from(select.options).forEach((item) => {
@@ -140,6 +145,10 @@ function getCompactKind(select) {
   return "model";
 }
 
+function shouldUseModelPreferenceMenu(select) {
+  return getCompactKind(select) === "model";
+}
+
 function getModelSurface(select) {
   if (select.id === "imageEditModel") return "imageEdit";
   return "chat";
@@ -151,26 +160,102 @@ function getSelectedOption(select) {
 
 function openMenu(wrapper) {
   const button = wrapper.querySelector(".compact-select-trigger");
-  const menu = wrapper.querySelector(".compact-select-menu");
+  const menu = getCompactSelectMenu(wrapper);
   wrapper.classList.add("open");
   button?.setAttribute("aria-expanded", "true");
-  if (menu) menu.hidden = false;
+  if (menu) {
+    if (isChatModelMenu(wrapper, menu)) {
+      menu.dataset.portalOwner = wrapper.dataset.selectId || "";
+      menu.classList.add("compact-select-menu-portal", "chat-model-menu");
+      document.body.append(menu);
+    }
+    menu.hidden = false;
+    positionChatModelMenu(wrapper, menu, { reset: true });
+  }
 }
 
 function closeMenu(wrapper) {
   const button = wrapper.querySelector(".compact-select-trigger");
-  const menu = wrapper.querySelector(".compact-select-menu");
+  const menu = getCompactSelectMenu(wrapper);
   wrapper.classList.remove("open");
   button?.setAttribute("aria-expanded", "false");
-  if (menu) menu.hidden = true;
+  if (menu) {
+    menu.hidden = true;
+    menu.classList.remove("compact-select-menu-portal", "chat-model-menu");
+    delete menu.dataset.portalOwner;
+    delete menu.__chatModelMenuGeometry;
+    menu.removeAttribute("style");
+    if (menu.parentElement !== wrapper) wrapper.append(menu);
+  }
 }
 
 export function closeAllCompactSelects() {
   document.querySelectorAll(".compact-select.open").forEach(closeMenu);
 }
 
+function getCompactSelectMenu(wrapper) {
+  return wrapper?.__compactSelectMenu || wrapper?.querySelector?.(".compact-select-menu") || null;
+}
+
+function isChatModelMenu(wrapper, menu) {
+  return wrapper?.dataset?.selectId === "chatModelSelect" && menu?.classList?.contains("model-preference-menu");
+}
+
+function positionChatModelMenu(wrapper, menu, { reset = false } = {}) {
+  if (!isChatModelMenu(wrapper, menu) || menu.hidden) return;
+  if (!reset && menu.__chatModelMenuGeometry) {
+    applyChatModelMenuGeometry(menu, menu.__chatModelMenuGeometry);
+    return;
+  }
+  const viewportWidth = document.documentElement.clientWidth || window.innerWidth || 0;
+  const viewportHeight = document.documentElement.clientHeight || window.innerHeight || 0;
+  const wrapperRect = wrapper.getBoundingClientRect();
+  const triggerRect = wrapper.querySelector(".compact-select-trigger")?.getBoundingClientRect?.() || wrapperRect;
+  const gutter = 12;
+  const gap = 16;
+  const preferredHeight = 360;
+  const minUsefulHeight = 280;
+  const width = Math.max(260, Math.min(390, viewportWidth - gutter * 2));
+  const left = Math.max(gutter, Math.min(triggerRect.left - 72, viewportWidth - gutter - width));
+  const spaceAbove = Math.max(0, triggerRect.top - gutter - gap);
+  const spaceBelow = Math.max(0, viewportHeight - triggerRect.bottom - gutter - gap);
+  const openAbove = spaceAbove >= minUsefulHeight || spaceAbove >= spaceBelow;
+  const availableHeight = openAbove ? spaceAbove : spaceBelow;
+  const naturalHeight = Math.ceil(menu.scrollHeight || 0);
+  const desiredHeight = naturalHeight > 0
+    ? Math.min(preferredHeight, Math.max(minUsefulHeight, naturalHeight))
+    : preferredHeight;
+  const height = Math.max(
+    Math.min(minUsefulHeight, Math.max(spaceAbove, spaceBelow)),
+    Math.min(desiredHeight, availableHeight)
+  );
+  const geometry = {
+    left,
+    right: "auto",
+    top: openAbove ? "auto" : triggerRect.bottom + gap,
+    bottom: openAbove ? viewportHeight - triggerRect.top + gap : "auto",
+    width,
+    height
+  };
+  menu.__chatModelMenuGeometry = geometry;
+  applyChatModelMenuGeometry(menu, geometry);
+}
+
+function applyChatModelMenuGeometry(menu, geometry) {
+  menu.style.left = `${geometry.left}px`;
+  menu.style.right = geometry.right;
+  menu.style.top = geometry.top === "auto" ? "auto" : `${geometry.top}px`;
+  menu.style.bottom = geometry.bottom === "auto" ? "auto" : `${geometry.bottom}px`;
+  menu.style.width = `${geometry.width}px`;
+  menu.style.minWidth = "0";
+  menu.style.maxWidth = `${geometry.width}px`;
+  menu.style.height = `${geometry.height}px`;
+  menu.style.maxHeight = `${geometry.height}px`;
+}
+
 document.addEventListener("pointerdown", (event) => {
   if (event.target.closest(".compact-select")) return;
+  if (event.target.closest(".compact-select-menu-portal")) return;
   closeAllCompactSelects();
 });
 
@@ -179,3 +264,13 @@ document.addEventListener("keydown", (event) => {
 });
 
 document.addEventListener("canvas:view-transformed", closeAllCompactSelects);
+
+function repositionOpenChatModelMenus() {
+  document.querySelectorAll('.compact-select.open[data-select-id="chatModelSelect"]').forEach((wrapper) => {
+    const menu = getCompactSelectMenu(wrapper);
+    if (menu) delete menu.__chatModelMenuGeometry;
+    if (menu && !menu.hidden) positionChatModelMenu(wrapper, menu, { reset: true });
+  });
+}
+
+window.addEventListener("resize", repositionOpenChatModelMenus);

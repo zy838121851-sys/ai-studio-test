@@ -77,7 +77,8 @@ export { renderNodeTemplate } from "./node-template.js";
 export {
   createGenerationPreviewNode,
   createWorkspaceNode,
-  replacePreviewNodeWithImage
+  replacePreviewNodeWithImage,
+  replacePreviewNodeWithVideo
 } from "./node-creation.js";
 export { addSourceBadgeElement } from "./source-badge.js";
 export {

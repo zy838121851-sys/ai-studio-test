@@ -159,6 +159,7 @@ export function launchWorkspaceAppRuntime({
       commitProjectTitleEdit: projectHomeRuntime.commitProjectTitleEdit,
       addThinking: chatRuntime.addThinking,
       updateThinking: chatRuntime.updateThinking,
+      setThinkingSummary: chatRuntime.setThinkingSummary,
       updateChat: chatRuntime.updateChat,
       addChatImage: chatRuntime.addChatImage,
       renderChatImagePreview: canvasGenerationRuntime.renderChatImagePreview,

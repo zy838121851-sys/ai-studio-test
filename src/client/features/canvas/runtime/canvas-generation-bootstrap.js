@@ -16,6 +16,7 @@ export function createCanvasGenerationBootstrap({
       createGenerationPreviewNode: services.createGenerationPreviewNode,
       addNode: services.addNode,
       replacePreviewNodeWithImage: services.replacePreviewNodeWithImage,
+      replacePreviewNodeWithVideo: services.replacePreviewNodeWithVideo,
       markGeneratedNodeContext: services.markGeneratedNodeContext,
       recordCanvasEvent: services.recordCanvasEvent,
       addSourceBadgeElement: services.addSourceBadgeElement,
@@ -104,6 +105,7 @@ export function createCanvasGenerationBootstrap({
       recordCanvasEvent: services.recordCanvasEvent,
       registerGeneratedAsset: services.registerGeneratedAsset,
       replacePreviewWithImage: generationNodeWorkflow.replacePreviewWithImage,
+      replacePreviewWithVideo: generationNodeWorkflow.replacePreviewWithVideo,
       saveCurrentProject: services.saveCurrentProject,
       saveCurrentProjectAfterGeneration: services.saveCurrentProjectAfterGeneration,
       selectNode: services.selectNode

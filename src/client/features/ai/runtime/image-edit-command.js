@@ -1,3 +1,5 @@
+import { getModelType } from "../model-catalog.js?v=20260627-library-bulk-select-1";
+
 export function createImageEditCommand({
   executeImageEditAction,
   getImageEditModel = () => "",
@@ -6,6 +8,7 @@ export function createImageEditCommand({
   getOutputSize,
   addGenerationPreview,
   replacePreviewWithImage,
+  replacePreviewWithVideo,
   addSourceBadge,
   addChat,
   addThinking,
@@ -20,8 +23,10 @@ export function createImageEditCommand({
 
   return function runImageEditCommand(sourceNode, prompt, label = "Image Editing", options = {}) {
     const requestedCount = options.count ?? getImageEditCount();
-    const count = Math.max(1, Math.min(4, Number.parseInt(requestedCount, 10) || 1));
     const model = options.model || getImageEditModel();
+    const count = getModelType(model) === "video"
+      ? 1
+      : Math.max(1, Math.min(4, Number.parseInt(requestedCount, 10) || 1));
     const referenceNodes = Array.isArray(options.referenceNodes) && options.referenceNodes.length
       ? options.referenceNodes
       : [sourceNode];
@@ -45,6 +50,7 @@ export function createImageEditCommand({
       referenceImages: options.referenceImages,
       createPreview: addGenerationPreview,
       replacePreview: replacePreviewWithImage,
+      replacePreviewVideo: replacePreviewWithVideo,
       addSourceBadge,
       addChat,
       addThinking,
@@ -56,7 +62,7 @@ export function createImageEditCommand({
     return Array.from({ length: count }).reduce(
       (queue, _, index) => queue.then(async (results) => {
         const result = await runOne(index);
-        if (result?.imageUrl && !result?.error) {
+        if ((result?.imageUrl || result?.videoUrl) && !result?.error) {
           await saveCurrentProjectAfterGeneration?.();
         }
         return [...results, result];

@@ -13,6 +13,7 @@ export function createWorkspaceCanvasGenerationCompositionRuntime({
       createGenerationPreviewNode: services.createGenerationPreviewNode,
       addNode: services.addNode,
       replacePreviewNodeWithImage: services.replacePreviewNodeWithImage,
+      replacePreviewNodeWithVideo: services.replacePreviewNodeWithVideo,
       markGeneratedNodeContext: services.markGeneratedNodeContext,
       recordCanvasEvent: services.recordCanvasEvent,
       addSourceBadgeElement: services.addSourceBadgeElement,

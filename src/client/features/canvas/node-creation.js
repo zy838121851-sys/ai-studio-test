@@ -122,6 +122,46 @@ export function replacePreviewNodeWithImage({
   return node;
 }
 
+export function replacePreviewNodeWithVideo({
+  previewNode,
+  addNode,
+  applyGeneratedContext,
+  recordGenerationCreated,
+  title,
+  desc,
+  url,
+  width,
+  aspectRatio,
+  prompt = "",
+  sourceNode = null,
+  actionType = "video_generation",
+  model = ""
+}) {
+  const x = parseFloat(previewNode.style.left || "0");
+  const y = parseFloat(previewNode.style.top || "0");
+  previewNode.remove();
+
+  const node = addNode({
+    kind: "video",
+    title,
+    desc,
+    x,
+    y,
+    media: {
+      url,
+      name: title,
+      type: "video/mp4"
+    }
+  });
+
+  applyNodePreviewSize(node, { width, aspectRatio });
+  applyGeneratedContext(node, { prompt, sourceNode, actionType, model });
+  recordGenerationCreated(node, { sourceNode, actionType, model });
+  node.dataset.objectUrl = url;
+  node.dataset.uploadPersisted = "true";
+  return node;
+}
+
 function localizeGeneratedImageSource(node, sourceUrl = "") {
   const image = node?.querySelector?.(".image-frame img");
   if (!image || !sourceUrl) return Promise.resolve("");

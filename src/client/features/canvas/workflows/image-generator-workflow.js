@@ -5,7 +5,8 @@ import {
 import {
   formatModelUsage,
   getImageModelDisplayName,
-  resolveImageModelId
+  getModelType,
+  getSelectedModelId
 } from "../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 import { renderModelPreferenceMenu } from "../../ai/model-preference-menu.js";
 
@@ -51,6 +52,7 @@ export function createImageGeneratorWorkflow({
     recordCanvasEvent = () => {},
     registerGeneratedAsset = null,
     replacePreviewWithImage = null,
+    replacePreviewWithVideo = null,
     saveCurrentProject = null,
     saveCurrentProjectAfterGeneration = saveCurrentProject,
     selectNode = () => {}
@@ -204,12 +206,15 @@ export function createImageGeneratorWorkflow({
   });
 
   globalThis.document?.addEventListener?.("ai-studio-models-updated", () => {
+    syncGeneratorModelFromGlobal();
     syncGeneratorFrameToRatio(activeGeneratorNode, getGeneratorRatioValue(activeGeneratorNode));
     syncGeneratorCustomSelects();
   });
 
   globalThis.document?.addEventListener?.("ai-studio-model-selection-changed", () => {
+    syncGeneratorModelFromGlobal();
     syncGeneratorCustomSelects();
+    globalThis.document?.dispatchEvent?.(new Event("change"));
   });
 
   function handlePopoverClick(event) {
@@ -357,11 +362,12 @@ export function createImageGeneratorWorkflow({
   }
 
   async function runGeneratorBatch(node, { prompt = "", references = [] } = {}) {
-    const model = resolveImageModelId(getGeneratorModel(), "generator");
+    const model = getGeneratorModel();
+    const videoModel = getModelType(model) === "video";
     let resultModel = model;
     let modelUsage = `模型：${getImageModelDisplayName(model)}`;
     const midjourney = isMidjourneyModel(model);
-    const count = midjourney ? MIDJOURNEY_IMAGE_COUNT : getGeneratorCount();
+    const count = videoModel ? 1 : (midjourney ? MIDJOURNEY_IMAGE_COUNT : getGeneratorCount());
     const images = references.map((item) => item.dataUrl).filter(Boolean);
     const size = resolveGeneratorOutputSize(node, references);
     const dimensions = getGeneratorOutputDimensions(node, getGeneratorRatioValue(node), references);
@@ -383,7 +389,11 @@ export function createImageGeneratorWorkflow({
     });
 
     try {
-      if (typeof addGenerationPreview !== "function" || typeof replacePreviewWithImage !== "function") {
+      if (
+        typeof addGenerationPreview !== "function"
+        || typeof replacePreviewWithImage !== "function"
+        || (videoModel && typeof replacePreviewWithVideo !== "function")
+      ) {
         throw new Error("Image generator preview workflow is unavailable");
       }
       previewNodes = createGeneratorPreviewBatch(node, {
@@ -398,7 +408,49 @@ export function createImageGeneratorWorkflow({
       if (node.isConnected) node.remove();
 
       const createdNodes = [];
-      if (midjourney) {
+      if (videoModel) {
+        updatePreviewStatus(previewNodes[0], "Waiting for video result...");
+        const result = await runImageGenerationRequest({
+          model,
+          prompt,
+          images,
+          size,
+          expectedType: "video",
+          onJobCreated: (payload) => tagGeneratorPreviewJobs(previewNodes, payload, {
+            prompt,
+            model,
+            actionType: "video_generation",
+            aspectRatio,
+            dimensions
+          }),
+          onProgress: (payload) => {
+            const progress = Number(payload?.progress || 0);
+            updatePreviewStatus(previewNodes[0], progress > 0
+              ? `Waiting for video result (${Math.min(99, progress)}%)`
+              : "Waiting for video result...");
+          }
+        });
+        const videoUrl = getPrimaryResultVideoUrl(result);
+        if (!videoUrl) throw new Error(getMissingGeneratorResultMessage(result, "video"));
+        resultModel = result.requestedModel || result.model || model;
+        warnIfGeneratorModelMismatch(model, resultModel, result);
+        modelUsage = formatModelUsage(result, resultModel);
+        const createdNode = replacePreviewWithVideo(previewNodes[0], {
+          title: "Generated Video.mp4",
+          desc: prompt || "Image generator video result",
+          url: videoUrl,
+          width: getPreviewNodeWidth(previewNodes[0]),
+          aspectRatio,
+          prompt,
+          sourceNode: null,
+          actionType: "video_generation",
+          model: resultModel
+        });
+        if (!createdNode) throw new Error("Unable to replace generation preview");
+        if (sourceNodeId) createdNode.dataset.generatorSourceNodeId = sourceNodeId;
+        createdNodes.push(createdNode);
+        firstSuccessfulNode = createdNode;
+      } else if (midjourney) {
         previewNodes.forEach((previewNode, index) => {
           updatePreviewStatus(previewNode, `正在等待第 ${index + 1}/${count} 张结果`);
         });
@@ -515,9 +567,11 @@ export function createImageGeneratorWorkflow({
         window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
       }
       await saveCurrentProjectAfterGeneration?.();
-      addChat("assistant", count > 1
-        ? `\u56fe\u50cf\u751f\u6210\u5668\u5df2\u751f\u6210 ${count} \u5f20\u7ed3\u679c\u3002\n${modelUsage}`
-        : `\u56fe\u50cf\u751f\u6210\u5668\u5df2\u751f\u6210\u7ed3\u679c\u3002\n${modelUsage}`);
+      addChat("assistant", videoModel
+        ? `Video generation completed.\n${modelUsage}`
+        : (count > 1
+          ? `Image generator completed ${count} results.\n${modelUsage}`
+          : `Image generator completed.\n${modelUsage}`));
     } catch (error) {
       console.error("[canvas] Image generator failed", error);
       if (previewNodes.length) {
@@ -991,7 +1045,7 @@ export function createImageGeneratorWorkflow({
     teardownPositionObserver();
   }
 
-  async function runImageGenerationRequest({ model, prompt, images = [], size, onJobCreated = null, onProgress = null } = {}) {
+  async function runImageGenerationRequest({ model, prompt, images = [], size, expectedType = "image", onJobCreated = null, onProgress = null } = {}) {
     logSubmittedGeneratorModel(model);
     const result = await postJsonRequest("/api/ai/generate", buildChatImagePayload({
       model,
@@ -1000,8 +1054,8 @@ export function createImageGeneratorWorkflow({
       size
     }));
     if (result?.jobId) onJobCreated?.(result);
-    if (result?.imageUrl || !result?.jobId) return result;
-    return waitForImageGenerationJob(result.jobId, { onProgress, fallback: result });
+    if (result?.imageUrl || result?.videoUrl || !result?.jobId) return result;
+    return waitForImageGenerationJob(result.jobId, { onProgress, fallback: result, expectedType });
   }
 
   async function waitForImageGenerationJob(jobId, {
@@ -1009,6 +1063,7 @@ export function createImageGeneratorWorkflow({
     delayMs = 2000,
     onProgress = null,
     fallback = {},
+    expectedType = "image",
     missingUrlRetries = 4
   } = {}) {
     let lastPayload = { jobId, ...fallback };
@@ -1035,17 +1090,20 @@ export function createImageGeneratorWorkflow({
       logGeneratorJobPoll(lastPayload);
       if (["succeeded", "failed", "cancelled", "timeout", "save_failed"].includes(payload?.status)) {
         if (payload.status !== "succeeded") throw new Error(payload.error || payload.status);
-        if (!getResultImageUrls(lastPayload).length) {
+        const resultUrls = expectedType === "video"
+          ? getResultVideoUrls(lastPayload)
+          : getResultImageUrls(lastPayload);
+        if (!resultUrls.length) {
           missingUrlAttempts += 1;
           if (missingUrlAttempts <= missingUrlRetries) {
             onProgress?.({
               ...lastPayload,
               status: "running",
-              message: "Waiting for saved image URL"
+              message: expectedType === "video" ? "Waiting for saved video URL" : "Waiting for saved image URL"
             });
             continue;
           }
-          throw new Error(getMissingGeneratorResultMessage(lastPayload));
+          throw new Error(getMissingGeneratorResultMessage(lastPayload, expectedType));
         }
         return lastPayload;
       }
@@ -1092,6 +1150,7 @@ export function createImageGeneratorWorkflow({
       status: payload.status || payload.job?.status || "",
       progress: payload.progress || payload.job?.progress || 0,
       imageUrls: getResultImageUrls(payload),
+      videoUrls: getResultVideoUrls(payload),
       outputCount: payload.outputCount ?? payload.outputs?.length ?? 0,
       updatedAt: payload.updatedAt || payload.job?.updatedAt || ""
     });
@@ -1117,8 +1176,31 @@ export function createImageGeneratorWorkflow({
     return getResultImageUrls(result)[0] || "";
   }
 
-  function getMissingGeneratorResultMessage(result = {}) {
-    const message = String(result?.message || "Model returned without an image URL").trim();
+  function getResultVideoUrls(result = {}) {
+    const urls = [];
+    if (Array.isArray(result?.videoUrls)) urls.push(...result.videoUrls);
+    if (Array.isArray(result?.outputs)) {
+      result.outputs.forEach((output) => {
+        const type = String(output?.type || "").toLowerCase();
+        const mimeType = String(output?.mimeType || output?.mime_type || "").toLowerCase();
+        if (output?.url && (type === "video" || mimeType.startsWith("video/"))) {
+          urls.push(output.url);
+        }
+      });
+    }
+    if (result?.videoUrl) urls.unshift(result.videoUrl);
+    return Array.from(new Set(urls.filter(Boolean)));
+  }
+
+  function getPrimaryResultVideoUrl(result = {}) {
+    return getResultVideoUrls(result)[0] || "";
+  }
+
+  function getMissingGeneratorResultMessage(result = {}, expectedType = "image") {
+    const fallback = expectedType === "video"
+      ? "Model returned without a video URL"
+      : "Model returned without an image URL";
+    const message = String(result?.message || fallback).trim();
     const details = [
       result?.jobId ? `jobId=${result.jobId}` : "",
       result?.status ? `status=${result.status}` : ""
@@ -1141,18 +1223,37 @@ export function createImageGeneratorWorkflow({
   function saveGeneratorControlState(node) {
     if (!node) return;
     const controls = getGeneratorControls();
-    if (controls.modelSelect) node.dataset.generatorModel = controls.modelSelect.value || DEFAULT_GENERATOR_MODEL;
     if (controls.ratioSelect) node.dataset.generatorRatio = controls.ratioSelect.value || DEFAULT_GENERATOR_RATIO;
     if (controls.countSelect) node.dataset.generatorCount = controls.countSelect.value || DEFAULT_GENERATOR_COUNT;
   }
 
   function restoreGeneratorControlState(node) {
     const controls = getGeneratorControls();
-    setSelectValue(controls.modelSelect, node?.dataset.generatorModel || DEFAULT_GENERATOR_MODEL);
+    setGeneratorModelSelectValue(controls.modelSelect, getSyncedGeneratorModel());
     setSelectValue(controls.ratioSelect, node?.dataset.generatorRatio || DEFAULT_GENERATOR_RATIO);
     setSelectValue(controls.countSelect, node?.dataset.generatorCount || DEFAULT_GENERATOR_COUNT);
     syncGeneratorCustomSelects();
     closeGeneratorCustomSelects();
+  }
+
+  function syncGeneratorModelFromGlobal() {
+    const controls = getGeneratorControls();
+    if (!controls.popover?.classList?.contains("open") && !activeGeneratorNode) return;
+    setGeneratorModelSelectValue(controls.modelSelect, getSyncedGeneratorModel());
+    syncGeneratorCustomSelect(controls.modelSelect);
+    syncGeneratorCustomSelect(controls.countSelect);
+  }
+
+  function getSyncedGeneratorModel() {
+    return getSelectedModelId() || DEFAULT_GENERATOR_MODEL;
+  }
+
+  function setGeneratorModelSelectValue(select, value) {
+    if (!select) return;
+    setSelectValue(select, value);
+    select.dataset.selectedModelId = select.value || "";
+    select.dataset.modelUserSelected = "true";
+    select.dataset.modelAuto = "false";
   }
 
   function setSelectValue(select, value) {
@@ -1243,9 +1344,16 @@ export function createImageGeneratorWorkflow({
         select,
         surface: "generator",
         models: select.__modelPreferenceModels || [],
-        allowVideo: false,
+        allowVideo: true,
         onClose: closeGeneratorCustomSelects
       });
+      return;
+    }
+    if (kind === "count" && getModelType(getGeneratorModel()) === "video") {
+      trigger.textContent = "1 video";
+      trigger.disabled = true;
+      trigger.dataset.value = "video-default-1";
+      menu.innerHTML = "";
       return;
     }
     if (kind === "count" && isMidjourneyModel(getGeneratorModel())) {

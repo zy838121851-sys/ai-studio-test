@@ -41,7 +41,7 @@ export function applyNodePreviewSize(node, { width, aspectRatio } = {}) {
   if (!node) return;
   if (width) node.style.width = `${width}px`;
   if (aspectRatio) {
-    const frame = node.querySelector(".image-frame");
+    const frame = node.querySelector(".image-frame, .video-file-preview, .video-preview");
     if (frame) frame.style.aspectRatio = aspectRatio;
     node.dataset.manualSize = "true";
   }

@@ -13,6 +13,7 @@
     "credits:add": "node scripts/credits-add.js",
     "credits:check": "node scripts/credits-check.js",
     "credits:set-min": "node scripts/credits-set-min.js",
+    "conversations:check": "node scripts/check-conversations.js",
     "credits:quote-check": "node scripts/check-credit-quote.js",
     "apimart:catalog-check": "node scripts/check-apimart-catalog.js && node scripts/check-apimart-public-copy.js",
     "apimart:mock-check": "node scripts/check-apimart-mock.js",
