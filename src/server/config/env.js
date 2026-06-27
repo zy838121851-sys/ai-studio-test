@@ -1,8 +1,10 @@
 import "dotenv/config";
 import { join } from "node:path";
 
+const nodeEnv = process.env.NODE_ENV || "development";
+
 export const env = {
-  nodeEnv: process.env.NODE_ENV || "development",
+  nodeEnv,
   port: Number(process.env.PORT || 3000),
   dashscopeApiKey: process.env.DASHSCOPE_API_KEY || "",
   dashscopeVisionModel: process.env.DASHSCOPE_VISION_MODEL || "qwen3-vl-plus",
@@ -21,7 +23,7 @@ export const env = {
     "https://ark.cn-beijing.volces.com/api/v3/images/generations",
   apimartApiKey: process.env.APIMART_API_KEY || "",
   apimartBaseUrl: process.env.APIMART_BASE_URL || "https://api.apimart.ai/v1",
-  apimartMock: envFlag("APIMART_MOCK", true),
+  apimartMock: envFlag("APIMART_MOCK", nodeEnv !== "production"),
   enableApimart: envFlag("ENABLE_APIMART", true),
   enableApimartImage: envFlag("ENABLE_APIMART_IMAGE", true),
   enableApimartVideo: envFlag("ENABLE_APIMART_VIDEO", true),
