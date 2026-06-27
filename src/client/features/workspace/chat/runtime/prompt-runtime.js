@@ -1,4 +1,4 @@
-import { bindPromptShortcuts, bindPromptSubmit } from "../workflows/prompt-workflow.js?v=20260627-generator-job-recovery-2";
+import { bindPromptShortcuts, bindPromptSubmit } from "../workflows/prompt-workflow.js?v=20260627-library-bulk-select-1";
 
 export function createPromptSubmitRuntimePayload(runtime = {}) {
   return {

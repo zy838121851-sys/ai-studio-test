@@ -2366,6 +2366,53 @@ body[data-view="assetsPage"] .asset-pinterest-masonry {
   column-gap: 18px;
 }
 
+.asset-selection-bar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+.asset-selection-bar strong {
+  color: #111827;
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.asset-select-toggle,
+.asset-selection-bar button {
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 999px;
+  color: #111827;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.08);
+  font-size: 12px;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.asset-select-toggle.active,
+.asset-selection-bar button:hover {
+  color: #fff;
+  background: #111827;
+}
+
+.asset-selection-bar .danger {
+  color: #d74735;
+}
+
+.asset-selection-bar .danger:hover {
+  color: #fff;
+  background: #d74735;
+}
+
+.asset-selection-bar button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}
+
 body[data-view="assetsPage"] .asset-pinterest-pin.asset-item {
   position: relative;
   display: inline-block;
@@ -2377,6 +2424,37 @@ body[data-view="assetsPage"] .asset-pinterest-pin.asset-item {
   background: transparent;
   box-shadow: none;
   break-inside: avoid;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin.is-selectable {
+  cursor: pointer;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin.selected .asset-pinterest-pin-thumb {
+  box-shadow: 0 18px 42px rgba(77, 156, 255, 0.18), inset 0 0 0 3px rgba(77, 156, 255, 0.6);
+}
+
+body[data-view="assetsPage"] .asset-card-check {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+  font-size: 12px;
+  font-weight: 860;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin.selected .asset-card-check {
+  background: #4d9cff;
+  border-color: #4d9cff;
 }
 
 body[data-view="assetsPage"] .asset-pinterest-pin-thumb {

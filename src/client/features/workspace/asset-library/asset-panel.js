@@ -46,6 +46,8 @@ export function initAssetPanel({
     const activeCollectionId = payload?.activeCollectionId || "";
     const assetPageMode = payload?.assetPageMode || "boards";
     const activeProjectId = payload?.activeProjectId || "";
+    const selectionMode = Boolean(payload?.selectionMode);
+    const selectedAssetIds = Array.isArray(payload?.selectedAssetIds) ? payload.selectedAssetIds : [];
     if (!assetList) return;
     renderAssetLibrary({
       assetList,
@@ -54,6 +56,8 @@ export function initAssetPanel({
       activeCollectionId,
       assetPageMode,
       activeProjectId,
+      selectionMode,
+      selectedAssetIds,
       escapeHtml
     });
     rendered.length = 0;
@@ -112,11 +116,23 @@ export function renderAssetLibrary({
   activeCollectionId = "",
   assetPageMode = "boards",
   activeProjectId = "",
+  selectionMode = false,
+  selectedAssetIds = [],
   escapeHtml = (value) => String(value ?? "")
 } = {}) {
   if (!assetList) return;
   if (assetList.classList.contains("assets-page-list")) {
-    renderPinterestAssetLibrary({ assetList, assets, collections, activeCollectionId, assetPageMode, activeProjectId, escapeHtml });
+    renderPinterestAssetLibrary({
+      assetList,
+      assets,
+      collections,
+      activeCollectionId,
+      assetPageMode,
+      activeProjectId,
+      selectionMode,
+      selectedAssetIds,
+      escapeHtml
+    });
     return;
   }
 
@@ -355,6 +371,8 @@ function renderPinterestAssetLibrary({
   activeCollectionId = "",
   assetPageMode = "boards",
   activeProjectId = "",
+  selectionMode = false,
+  selectedAssetIds = [],
   escapeHtml
 }) {
   const safeAssets = Array.isArray(assets) ? assets : [];
@@ -400,6 +418,8 @@ function renderPinterestAssetLibrary({
             totalCount: activeCollection ? activeCollection.assetCount : visibleAssets.length,
             showBack: Boolean(activeCollectionId),
             emptyContext: normalizedMode,
+            selectionMode,
+            selectedAssetIds,
             escapeHtml
           })}
       ${renderAssetCardContextMenuV2({ collections: safeCollections, escapeHtml })}
@@ -532,8 +552,11 @@ function renderPinterestAssetGridV2({
   totalCount = 0,
   showBack = true,
   emptyContext = "all",
+  selectionMode = false,
+  selectedAssetIds = [],
   escapeHtml
 }) {
+  const selectedAssetSet = new Set(selectedAssetIds);
   const emptyActions = `
     <div class="asset-pinterest-empty-actions">
       <button type="button" data-upload-asset>上传素材</button>
@@ -546,11 +569,22 @@ function renderPinterestAssetGridV2({
       <div class="asset-pinterest-section-title">
         ${showBack ? `<button class="asset-pinterest-back" type="button" data-asset-page-mode="boards">所有图板</button>` : ""}
         <strong>${escapeHtml(title)}</strong>
+        ${renderAssetSelectionToolbar({
+          selectionMode,
+          selectedCount: selectedAssetSet.size,
+          totalCount: assets.length
+        })}
         <span>${Number(totalCount || assets.length || 0)} 个素材</span>
       </div>
       ${assets.length ? `
         <div class="asset-pinterest-masonry">
-          ${assets.map((asset, index) => renderPinterestAssetCardV2({ asset, index, escapeHtml })).join("")}
+          ${assets.map((asset, index) => renderPinterestAssetCardV2({
+            asset,
+            index,
+            selectionMode,
+            selected: selectedAssetSet.has(asset.id),
+            escapeHtml
+          })).join("")}
         </div>
       ` : `
         <div class="asset-pinterest-empty" data-empty-context="${escapeHtml(emptyContext)}">
@@ -564,21 +598,49 @@ function renderPinterestAssetGridV2({
   `;
 }
 
-function renderPinterestAssetCardV2({ asset, index, escapeHtml }) {
+function renderAssetSelectionToolbar({
+  selectionMode = false,
+  selectedCount = 0,
+  totalCount = 0
+} = {}) {
+  const allSelected = totalCount > 0 && selectedCount === totalCount;
+  return `
+    <div class="asset-selection-bar" aria-label="Asset selection actions">
+      <button class="asset-select-toggle${selectionMode ? " active" : ""}" type="button" data-asset-select-mode>
+        ${selectionMode ? "\u53d6\u6d88\u591a\u9009" : "\u591a\u9009"}
+      </button>
+      ${selectionMode ? `
+        <strong>\u5df2\u9009\u62e9 ${selectedCount} \u4e2a\u7d20\u6750</strong>
+        <button type="button" data-asset-select-all>${allSelected ? "\u53d6\u6d88\u5168\u9009" : "\u5168\u9009"}</button>
+        <button type="button" class="danger" data-asset-bulk-delete ${selectedCount ? "" : "disabled"}>\u5220\u9664</button>
+      ` : ""}
+    </div>
+  `;
+}
+
+function renderPinterestAssetCardV2({ asset, index, selectionMode = false, selected = false, escapeHtml }) {
   const thumb = asset.thumbnailUrl || asset.thumbnail || asset.url || "";
   const title = asset.title || asset.name || "Untitled asset";
   const spanClass = index % 5 === 0 ? "tall" : (index % 4 === 0 ? "wide" : "");
   const placeholder = `<span class="asset-image-placeholder">${escapeHtml(String(asset.type || "asset").toUpperCase())}</span>`;
+  const thumbAction = selectionMode
+    ? `data-asset-select="${escapeHtml(asset.id)}"`
+    : `data-preview-asset="${escapeHtml(asset.id)}"`;
   return `
-    <article class="asset-pinterest-pin asset-item ${spanClass}" draggable="true" data-id="${escapeHtml(asset.id)}" data-type="${escapeHtml(asset.type)}">
-      <button type="button" class="asset-pinterest-pin-thumb" data-preview-asset="${escapeHtml(asset.id)}" title="预览素材">
+    <article class="asset-pinterest-pin asset-item ${spanClass}${selectionMode ? " is-selectable" : ""}${selected ? " selected" : ""}" draggable="true" data-id="${escapeHtml(asset.id)}" data-type="${escapeHtml(asset.type)}">
+      ${selectionMode ? `
+        <button class="asset-card-check" type="button" data-asset-select="${escapeHtml(asset.id)}" aria-label="${selected ? "Unselect" : "Select"} ${escapeHtml(title)}">
+          <span aria-hidden="true">${selected ? "\u2713" : ""}</span>
+        </button>
+      ` : ""}
+      <button type="button" class="asset-pinterest-pin-thumb" ${thumbAction} title="Preview asset">
         ${thumb ? `<img src="${escapeHtml(thumb)}" alt="${escapeHtml(title)}" draggable="false" onerror="this.closest('.asset-pinterest-pin-thumb')?.classList.add('is-broken'); this.remove();" />${placeholder}` : placeholder}
       </button>
       <div class="asset-pinterest-pin-meta">
         <strong>${escapeHtml(title)}</strong>
         <span>${escapeHtml(asset.collectionName || asset.source || asset.type || "")}</span>
       </div>
-      <button class="asset-pinterest-pin-delete" type="button" data-delete-asset="${escapeHtml(asset.id)}" aria-label="移除出素材库">×</button>
+      <button class="asset-pinterest-pin-delete" type="button" data-delete-asset="${escapeHtml(asset.id)}" aria-label="Remove asset">&#215;</button>
     </article>
   `;
 }

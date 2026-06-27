@@ -2,7 +2,7 @@ import { buildRuntimeBootstrapStateBindings } from "./state/runtime-state-bootst
 import { buildAgentRuntimeBootstrapActionBindings } from "../../agent/runtime/index.js";
 import { buildAICoreRuntimeBootstrapBindings } from "../../ai/runtime/index.js";
 import { buildChatRuntimeBootstrapBindings } from "../chat/runtime/chat-runtime.js";
-import { buildHomeRuntimeBootstrapBindings } from "../home/runtime/home-runtime.js";
+import { buildHomeRuntimeBootstrapBindings } from "../home/runtime/home-runtime.js?v=20260627-library-bulk-select-1";
 import { buildWorkspaceWorkflowRuntimeBootstrapBindings } from "../workflows/runtime/workflow-runtime.js";
 
 function safeSetWithGuard(callback) {

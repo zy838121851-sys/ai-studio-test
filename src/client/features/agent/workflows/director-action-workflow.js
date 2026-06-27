@@ -9,7 +9,7 @@ import {
 import {
   formatModelUsage,
   resolveImageModelId
-} from "../../ai/model-catalog.js?v=20260627-generator-job-recovery-2";
+} from "../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 import { getImageNodePreviewMetrics } from "../../canvas/upload-nodes.js";
 
 export function createDirectorActionWorkflow({

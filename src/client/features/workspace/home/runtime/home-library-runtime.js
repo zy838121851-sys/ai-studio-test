@@ -1,4 +1,4 @@
-import { bindHomeLibraryInteractions } from "../home-library-interactions.js";
+import { bindHomeLibraryInteractions } from "../home-library-interactions.js?v=20260627-library-bulk-select-1";
 
 export function createHomeLibraryRuntimePayload(runtime = {}) {
   if (!runtime.homeBindings || !runtime.libraryBindings) return null;
@@ -13,6 +13,10 @@ export function createHomeLibraryRuntimePayload(runtime = {}) {
     saveCurrentProject,
     selectLibraryProject,
     stepLibraryProject,
+    setProjectSelectionMode,
+    toggleProjectSelection,
+    toggleAllProjectSelection,
+    deleteSelectedProjects,
     openProject,
     deleteProject,
     setLibraryWheelLock,
@@ -52,6 +56,10 @@ export function createHomeLibraryRuntimePayload(runtime = {}) {
       saveCurrentProject,
       selectLibraryProject,
       stepLibraryProject,
+      setProjectSelectionMode,
+      toggleProjectSelection,
+      toggleAllProjectSelection,
+      deleteSelectedProjects,
       openProject,
       deleteProject,
       setLibraryWheelLock: (value) => setLibraryWheelLock(value),

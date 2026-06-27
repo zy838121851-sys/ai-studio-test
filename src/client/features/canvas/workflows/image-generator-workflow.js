@@ -6,7 +6,7 @@ import {
   formatModelUsage,
   getImageModelDisplayName,
   resolveImageModelId
-} from "../../ai/model-catalog.js?v=20260627-generator-job-recovery-2";
+} from "../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 import { renderModelPreferenceMenu } from "../../ai/model-preference-menu.js";
 
 const GENERATOR_SELECTOR = ".node-image-generator";

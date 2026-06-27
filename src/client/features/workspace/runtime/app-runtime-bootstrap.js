@@ -1,5 +1,5 @@
-import { buildAppRuntimeBootstrapGroups } from "./app-runtime-groups.js";
-import { launchAppRuntimeFromGroups } from "./app-runtime-launch.js";
+import { buildAppRuntimeBootstrapGroups } from "./app-runtime-groups.js?v=20260627-library-bulk-select-1";
+import { launchAppRuntimeFromGroups } from "./app-runtime-launch.js?v=20260627-library-bulk-select-1";
 import { buildRuntimeBootstrapStateSetters } from "./state/runtime-state-bootstrap.js";
 
 function hasPrebuiltBootstrapBindings(context = {}) {

@@ -1,4 +1,4 @@
-import { createProjectWorkflow } from "./workflows/project-workflow.js?v=20260627-generator-job-recovery-2";
+import { createProjectWorkflow } from "./workflows/project-workflow.js?v=20260627-library-bulk-select-1";
 
 export function createProjectWorkflowRuntime({
   state,

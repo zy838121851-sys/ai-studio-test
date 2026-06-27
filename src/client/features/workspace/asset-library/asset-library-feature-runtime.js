@@ -1,5 +1,5 @@
-import { renderAssetLibrary } from "./asset-panel.js";
-import { createAssetLibraryRuntime } from "./asset-library-runtime.js";
+import { renderAssetLibrary } from "./asset-panel.js?v=20260627-library-bulk-select-1";
+import { createAssetLibraryRuntime } from "./asset-library-runtime.js?v=20260627-library-bulk-select-1";
 import {
   addRemoteAssetToProject,
   createRemoteAssetCollection,

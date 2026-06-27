@@ -11,7 +11,7 @@ import {
   formatModelUsage,
   getModelType,
   resolveImageModelId
-} from "../../../ai/model-catalog.js?v=20260627-generator-job-recovery-2";
+} from "../../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
 

@@ -1,5 +1,5 @@
 import { buildRuntimeDependencyStateAdaptersFromRuntime } from "./state/runtime-state-dependencies.js";
-import { bootstrapAppRuntimeFromDependencyGroups } from "./app-runtime-launch.js";
+import { bootstrapAppRuntimeFromDependencyGroups } from "./app-runtime-launch.js?v=20260627-library-bulk-select-1";
 import { buildAppRuntimeDependencyGroupsFromInputs } from "./app-runtime-dependency-groups.js";
 import { buildAppRuntimeInputsFromRuntimeRefs } from "./app-runtime-ref-builders.js";
 

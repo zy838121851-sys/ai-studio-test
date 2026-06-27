@@ -37,16 +37,16 @@ export function showProjectSaveStatus(element, {
 
 export function applyProjectLibraryClasses(element, { mode = "stack", transitionDirection = 0 } = {}) {
   if (!element) return;
-  element.classList.toggle("mode-grid", mode === "grid");
-  element.classList.toggle("mode-stack", mode !== "grid");
-  element.classList.toggle("switch-next", transitionDirection > 0);
-  element.classList.toggle("switch-prev", transitionDirection < 0);
+  element.classList.add("mode-grid");
+  element.classList.remove("mode-stack", "switch-next", "switch-prev");
 }
 
 export function renderProjectLibraryContent({
   projects = [],
   activeProjectId = "",
-  mode = "stack",
+  mode = "grid",
+  selectionMode = false,
+  selectedProjectIds = [],
   getProjectPreview,
   getProjectDisplayTitle,
   getProjectDisplayPrompt,
@@ -74,54 +74,34 @@ export function renderProjectLibraryContent({
     `;
   }
 
-  const activeIndex = Math.max(0, projects.findIndex((project) => project.id === activeProjectId));
-  const viewSwitch = renderLibraryViewSwitch(mode, projects.length);
-  if (mode === "grid") {
-    return `
-      <header class="library-page-header">
-        <span>Project Library</span>
-        <strong>项目库</strong>
-        <small>${projects.length} 个项目</small>
-      </header>
-      <section class="project-card-board" aria-label="Project previews">
-        <button class="library-new-card" type="button" data-new-project>
-          <span>+</span>
-          <strong>New Project</strong>
-          <small>Blank canvas</small>
-        </button>
-        ${projects.map((project, index) => renderSmallProjectCard({
-          project,
-          index,
-          getProjectPreview,
-          getProjectDisplayTitle,
-          formatProjectDate
-        })).join("")}
-      </section>
-      ${viewSwitch}
-    `;
-  }
-
+  const selectedProjectSet = new Set(selectedProjectIds);
   return `
-    <aside class="project-timeline" aria-label="Project timeline">
-      <small>Timeline</small>
-      <div>${renderTimeline({ projects, activeIndex, formatProjectDate })}</div>
-    </aside>
-    <section class="project-stack" aria-label="Project stack">
-      <button class="stack-nav stack-nav-up" type="button" data-library-step="-1" aria-label="Previous"></button>
-      ${renderProjectStack({
-        projects,
-        activeIndex,
+    <header class="library-page-header">
+      <span>Project Library</span>
+      <strong>\u9879\u76ee\u5e93</strong>
+      <small>${projects.length} \u4e2a\u9879\u76ee</small>
+    </header>
+    ${renderProjectSelectionToolbar({
+      selectionMode,
+      selectedCount: selectedProjectSet.size,
+      totalCount: projects.length
+    })}
+    <section class="project-card-board" aria-label="Project previews">
+      <button class="library-new-card" type="button" data-new-project>
+        <span>+</span>
+        <strong>New Project</strong>
+        <small>Blank canvas</small>
+      </button>
+      ${projects.map((project, index) => renderSmallProjectCard({
+        project,
+        index,
         getProjectPreview,
         getProjectDisplayTitle,
-        getProjectDisplayPrompt
-      })}
-      <button class="stack-nav stack-nav-down" type="button" data-library-step="1" aria-label="Next"></button>
+        formatProjectDate,
+        selectionMode,
+        selected: selectedProjectSet.has(project.id)
+      })).join("")}
     </section>
-    <aside class="project-count">
-      <strong>${projects.length}</strong>
-      <span>boards</span>
-    </aside>
-    ${viewSwitch}
   `;
 }
 
@@ -216,14 +196,24 @@ function renderHomeHistoryContentLegacy({ projects = [], getProjectPreview } = {
   `;
 }
 
-function renderLibraryViewSwitch(mode, count) {
+function renderProjectSelectionToolbar({
+  selectionMode = false,
+  selectedCount = 0,
+  totalCount = 0
+} = {}) {
+  const allSelected = totalCount > 0 && selectedCount === totalCount;
   return `
-    <div class="library-bottom-tools" aria-label="Library view mode">
-      <div class="library-view-switch">
-        <button class="${mode === "stack" ? "active" : ""}" type="button" data-library-mode="stack"><i></i>Stack</button>
-        <button class="${mode === "grid" ? "active" : ""}" type="button" data-library-mode="grid">Grid</button>
-      </div>
-      <div class="library-count-pill">${count}</div>
+    <div class="library-selection-bar" aria-label="Project selection actions">
+      <button class="library-select-toggle${selectionMode ? " active" : ""}" type="button" data-project-select-mode>
+        ${selectionMode ? "\u53d6\u6d88\u591a\u9009" : "\u591a\u9009"}
+      </button>
+      ${selectionMode ? `
+        <strong>\u5df2\u9009\u62e9 ${selectedCount} \u4e2a\u9879\u76ee</strong>
+        <div>
+          <button type="button" data-project-select-all>${allSelected ? "\u53d6\u6d88\u5168\u9009" : "\u5168\u9009"}</button>
+          <button type="button" class="danger" data-project-bulk-delete ${selectedCount ? "" : "disabled"}>\u5220\u9664</button>
+        </div>
+      ` : ""}
     </div>
   `;
 }
@@ -233,13 +223,23 @@ function renderSmallProjectCard({
   index,
   getProjectPreview,
   getProjectDisplayTitle,
-  formatProjectDate
+  formatProjectDate,
+  selectionMode = false,
+  selected = false
 }) {
   const preview = getProjectPreview(project, index);
   const title = getProjectDisplayTitle(project, index);
+  const cardAction = selectionMode
+    ? `data-project-select="${escapeHtml(project.id)}"`
+    : `data-open-project="${escapeHtml(project.id)}"`;
   return `
-    <article class="library-small-card" data-project-id="${escapeHtml(project.id)}">
-      <button type="button" data-open-project="${escapeHtml(project.id)}">
+    <article class="library-small-card${selectionMode ? " is-selectable" : ""}${selected ? " selected" : ""}" data-project-id="${escapeHtml(project.id)}">
+      ${selectionMode ? `
+        <button class="library-card-check" type="button" data-project-select="${escapeHtml(project.id)}" aria-label="${selected ? "Unselect" : "Select"} ${escapeHtml(title)}">
+          <span aria-hidden="true">${selected ? "\u2713" : ""}</span>
+        </button>
+      ` : ""}
+      <button type="button" ${cardAction}>
         <div>
           ${renderProjectPreviewImage({ preview, title })}
         </div>
@@ -248,45 +248,4 @@ function renderSmallProjectCard({
       </button>
     </article>
   `;
-}
-
-function renderTimeline({ projects, activeIndex, formatProjectDate }) {
-  const timelineLimit = 4;
-  const timelineStart = Math.max(0, Math.min(activeIndex - 1, projects.length - timelineLimit));
-  return projects.slice(timelineStart, timelineStart + timelineLimit).map((project) => {
-    const index = projects.indexOf(project);
-    return `
-      <button class="timeline-item${index === activeIndex ? " active" : ""}" type="button" data-library-index="${index}">
-        <span>${String(projects.length - index).padStart(2, "0")}</span>
-        <strong>${formatProjectDate(project.updatedAt)}</strong>
-      </button>
-    `;
-  }).join("");
-}
-
-function renderProjectStack({
-  projects,
-  activeIndex,
-  getProjectPreview,
-  getProjectDisplayTitle,
-  getProjectDisplayPrompt
-}) {
-  return projects.map((project, index) => {
-    const rawDepth = (index - activeIndex + projects.length) % projects.length;
-    const depth = Math.min(rawDepth, 3);
-    const preview = getProjectPreview(project, index);
-    const title = getProjectDisplayTitle(project, index);
-    return `
-      <article class="project-stack-card${index === activeIndex ? " active" : ""}${rawDepth > 3 ? " distant" : ""}" style="--stack-index:${index}; --stack-depth:${depth}" data-project-id="${escapeHtml(project.id)}">
-        <button class="project-board-preview" type="button" data-open-project="${escapeHtml(project.id)}">
-          ${renderProjectPreviewImage({ preview, title })}
-        </button>
-        <div class="project-board-meta">
-          <span>${index + 1} / ${projects.length}</span>
-          <strong>${escapeHtml(title)}</strong>
-          <p>${escapeHtml(getProjectDisplayPrompt(project))}</p>
-        </div>
-      </article>
-    `;
-  }).join("");
 }

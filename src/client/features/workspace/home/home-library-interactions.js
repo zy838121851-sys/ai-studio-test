@@ -25,6 +25,10 @@ export function bindHomeLibraryInteractions({
     saveCurrentProject,
     selectLibraryProject,
     stepLibraryProject,
+    setProjectSelectionMode,
+    toggleProjectSelection,
+    toggleAllProjectSelection,
+    deleteSelectedProjects,
     openProject,
     deleteProject,
     setLibraryWheelLock,
@@ -81,42 +85,34 @@ export function bindHomeLibraryInteractions({
         saveCurrentProject();
         return;
       }
-      const modeButton = event.target.closest("[data-library-mode]");
-      if (modeButton) {
-        const nextMode = modeButton.dataset.libraryMode;
-        setLibraryViewModeInMemory(nextMode);
-        (setLibraryViewModeStorage || setLibraryViewModeInMemory)(nextMode);
-        renderProjectLibrary();
+      const selectionModeButton = event.target.closest("[data-project-select-mode]");
+      if (selectionModeButton) {
+        event.preventDefault();
+        setProjectSelectionMode?.(!selectionModeButton.classList.contains("active"));
         return;
       }
-      const timelineItem = event.target.closest("[data-library-index]");
-      if (timelineItem) {
-        selectLibraryProject(Number(timelineItem.dataset.libraryIndex));
+      const selectAllButton = event.target.closest("[data-project-select-all]");
+      if (selectAllButton) {
+        event.preventDefault();
+        toggleAllProjectSelection?.();
         return;
       }
-      const stepButton = event.target.closest("[data-library-step]");
-      if (stepButton) {
-        stepLibraryProject(Number(stepButton.dataset.libraryStep));
+      const bulkDeleteButton = event.target.closest("[data-project-bulk-delete]");
+      if (bulkDeleteButton) {
+        event.preventDefault();
+        deleteSelectedProjects?.();
+        return;
+      }
+      const selectProjectButton = event.target.closest("[data-project-select]");
+      if (selectProjectButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleProjectSelection?.(selectProjectButton.dataset.projectSelect);
         return;
       }
       const open = event.target.closest("[data-open-project]");
       if (open) openProject(open.dataset.openProject);
     });
-
-    projectGrid?.addEventListener("wheel", (event) => {
-      if (
-        getLibraryViewMode() !== "stack" ||
-        documentRoot?.body?.dataset.view !== "library" ||
-        !event.target.closest(".project-stack, .project-timeline")
-      ) return;
-      event.preventDefault();
-      if (getLibraryWheelLock()) return;
-      setLibraryWheelLock(true);
-      stepLibraryProject(event.deltaY > 0 ? 1 : -1);
-      window.setTimeout(() => {
-        setLibraryWheelLock(false);
-      }, 900);
-    }, { passive: false });
   });
 
   homeHistory?.addEventListener("click", (event) => {

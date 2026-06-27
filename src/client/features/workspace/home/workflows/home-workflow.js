@@ -6,7 +6,7 @@ import {
 import {
   DEFAULT_IMAGE_MODEL,
   resolveImageModelId
-} from "../../../ai/model-catalog.js?v=20260627-generator-job-recovery-2";
+} from "../../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 
 export function createHomeWorkflow({
   elements = {},

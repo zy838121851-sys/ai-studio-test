@@ -1,6 +1,6 @@
 export { mountWorkspaceApp, startWorkspaceApp } from "./workflows/index.js";
 export { applyViewState } from "./routing/view-router.js";
-export { initAssetPanel, renderAssetLibrary } from "./asset-library/asset-panel.js";
+export { initAssetPanel, renderAssetLibrary } from "./asset-library/asset-panel.js?v=20260627-library-bulk-select-1";
 export { createChatCollapseController } from "./chat/chat-collapse.js";
 export {
   appendChatImage,
@@ -11,9 +11,9 @@ export {
 } from "./chat/components/chat-log.js";
 export { addImageFilesToPreview, renderChatImagePreviewList } from "./chat/components/chat-image-preview.js";
 export { createChatWorkflow } from "./chat/workflows/chat-workflow.js";
-export { bindPromptShortcuts, bindPromptSubmit } from "./chat/workflows/prompt-workflow.js?v=20260627-generator-job-recovery-2";
+export { bindPromptShortcuts, bindPromptSubmit } from "./chat/workflows/prompt-workflow.js?v=20260627-library-bulk-select-1";
 export { applyHomeFileState, renderHomeFilePreview, syncHomeModelPicker } from "./home/components/home-composer.js";
-export { bindHomeLibraryInteractions } from "./home/home-library-interactions.js";
+export { bindHomeLibraryInteractions } from "./home/home-library-interactions.js?v=20260627-library-bulk-select-1";
 export { createHomeWorkflow } from "./home/workflows/home-workflow.js";
 export { initAppInteractions } from "./interactions/app-interactions.js";
 export { bindFooterEvents } from "./interactions/footer-events.js";

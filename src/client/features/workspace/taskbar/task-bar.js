@@ -10,8 +10,8 @@ import {
 import {
   formatModelUsage,
   resolveImageModelId
-} from "../../ai/model-catalog.js?v=20260627-generator-job-recovery-2";
-import { enhanceCompactSelects } from "../../../lib/compact-select.js?v=20260627-generator-job-recovery-2";
+} from "../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
+import { enhanceCompactSelects } from "../../../lib/compact-select.js?v=20260627-library-bulk-select-1";
 
 function findActiveTaskbarImageNode(root = globalThis.document) {
   return root?.querySelector?.("#canvasWorld .node-image.selected[data-active-selection='true']")

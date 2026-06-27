@@ -1,5 +1,5 @@
 import { renderCoreActionButtons, updateCoreWorkspaceCards, getAllDecisionStyles, normalizeDecisionStyles, buildAlternativeCoreSuggestions, normalizeCoreAnalysis as normalizeCoreAnalysisFromModule } from "../../../features/agent/ai-core-workspace.js";
-import { resolveImageModelId } from "../../ai/model-catalog.js?v=20260627-generator-job-recovery-2";
+import { resolveImageModelId } from "../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 
 function normalizeAnalysisWithDirector(analysis, fallback, { normalizeCoreAnalysis, directorActions }) {
   if (typeof normalizeCoreAnalysis === "function") {

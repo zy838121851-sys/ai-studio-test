@@ -1,6 +1,6 @@
-import { launchAppRuntimeFromState } from "./app-runtime-bootstrap.js";
+import { launchAppRuntimeFromState } from "./app-runtime-bootstrap.js?v=20260627-library-bulk-select-1";
 import { createWorkspaceLauncherContext } from "./launcher-context.js";
-import { createWorkspaceLauncherSafeBindings } from "./launcher-safe-bindings.js";
+import { createWorkspaceLauncherSafeBindings } from "./launcher-safe-bindings.js?v=20260627-library-bulk-select-1";
 
 export function launchWorkspaceRuntimeFromCompatibilityLayer({
   state = {},

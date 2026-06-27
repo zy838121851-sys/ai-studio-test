@@ -1,4 +1,4 @@
-import { startWorkspaceApp } from "./workspace-app-composition.js";
+import { startWorkspaceApp } from "./workspace-app-composition.js?v=20260627-library-bulk-select-1";
 import { initHomeBackTop } from "../home/components/home-back-top.js";
 import { initHomeInspirationFeed } from "../home/components/home-inspiration-feed.js";
 

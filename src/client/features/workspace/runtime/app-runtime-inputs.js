@@ -4,7 +4,7 @@ import { buildCanvasViewportRuntimeInputs } from "../../canvas/runtime/index.js"
 import { buildAgentRuntimeActionInputs, buildAgentRuntimeActionSources } from "../../agent/runtime/index.js";
 import { buildAICoreRuntimeInputs, buildAICoreRuntimeSources } from "../../ai/runtime/index.js";
 import { buildChatRuntimeInputs, buildChatRuntimeSources } from "../chat/runtime/chat-runtime.js";
-import { buildHomeRuntimeInputs, buildHomeRuntimeSources } from "../home/runtime/home-runtime.js";
+import { buildHomeRuntimeInputs, buildHomeRuntimeSources } from "../home/runtime/home-runtime.js?v=20260627-library-bulk-select-1";
 import { buildWorkspaceWorkflowRuntimeInputs, buildWorkspaceWorkflowRuntimeSources } from "../workflows/runtime/workflow-runtime.js";
 
 export function buildAppRuntimeInputs(deps) {

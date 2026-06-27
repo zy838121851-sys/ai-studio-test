@@ -2,7 +2,7 @@ import {
   getModelMenuLabel,
   getModelOptionTitle,
   renderModelPreferenceMenu
-} from "./model-preference-menu.js?v=20260627-generator-job-recovery-2";
+} from "./model-preference-menu.js?v=20260627-library-bulk-select-1";
 
 export const DEFAULT_IMAGE_MODEL = "gpt-image-2";
 

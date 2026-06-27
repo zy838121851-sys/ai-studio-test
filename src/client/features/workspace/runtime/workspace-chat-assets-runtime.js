@@ -1,4 +1,4 @@
-import { createWorkspaceAssetLibraryRuntime } from "../asset-library/asset-library-app-runtime.js";
+import { createWorkspaceAssetLibraryRuntime } from "../asset-library/asset-library-app-runtime.js?v=20260627-library-bulk-select-1";
 import { createWorkspaceChatRuntime } from "../chat/runtime/chat-app-runtime.js";
 
 export function createWorkspaceAssetRuntime({

@@ -1,7 +1,7 @@
 import { postJson } from "./api-client.js";
 import {
   formatModelUsage
-} from "./model-catalog.js?v=20260627-generator-job-recovery-2";
+} from "./model-catalog.js?v=20260627-library-bulk-select-1";
 
 const IMAGE_EDIT_OUTPUT_GAP = 28;
 

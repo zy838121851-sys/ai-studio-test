@@ -33,6 +33,8 @@ export function createAssetLibraryRuntime({
   const collections = [];
   let activeCollectionId = "";
   let assetPageMode = "boards";
+  let assetSelectionMode = false;
+  const selectedAssetIds = new Set();
 
   const getAssetLists = () => [assetList, pageAssetList].filter(Boolean);
   const getAssetsPageView = () => pageAssetList?.closest?.(".assets-page-view") || document.querySelector("#assetsPageView");
@@ -49,11 +51,69 @@ export function createAssetLibraryRuntime({
     fallbackAssets.length = 0;
     fallbackAssets.push(...nextAssets);
   };
+  const getVisibleAssetIds = () => {
+    const assets = readAssets();
+    if (assetPageMode === "recent") {
+      return assets
+        .filter((asset) => asset.isFavorite || asset.favorite || asset.collectionName || asset.source === "generated")
+        .map((asset) => asset.id)
+        .filter(Boolean);
+    }
+    return assets.map((asset) => asset.id).filter(Boolean);
+  };
+
+  function pruneAssetSelection(currentAssets = readAssets()) {
+    const assetIds = new Set((currentAssets || []).map((asset) => asset.id));
+    Array.from(selectedAssetIds).forEach((assetId) => {
+      if (!assetIds.has(assetId)) selectedAssetIds.delete(assetId);
+    });
+    if (assetPageMode === "boards" && !activeCollectionId) {
+      assetSelectionMode = false;
+      selectedAssetIds.clear();
+    }
+  }
+
+  function setAssetSelectionMode(value) {
+    assetSelectionMode = Boolean(value) && (assetPageMode !== "boards" || Boolean(activeCollectionId));
+    if (!assetSelectionMode) selectedAssetIds.clear();
+    renderAssets();
+  }
+
+  function toggleAssetSelection(assetId) {
+    if (!assetId || (assetPageMode === "boards" && !activeCollectionId)) return;
+    assetSelectionMode = true;
+    if (selectedAssetIds.has(assetId)) selectedAssetIds.delete(assetId);
+    else selectedAssetIds.add(assetId);
+    renderAssets();
+  }
+
+  function toggleAllAssetSelection() {
+    const visibleAssetIds = getVisibleAssetIds();
+    const allSelected = visibleAssetIds.length > 0 && visibleAssetIds.every((assetId) => selectedAssetIds.has(assetId));
+    selectedAssetIds.clear();
+    if (!allSelected) visibleAssetIds.forEach((assetId) => selectedAssetIds.add(assetId));
+    assetSelectionMode = true;
+    renderAssets();
+  }
+
+  async function deleteSelectedAssets() {
+    const assetIds = Array.from(selectedAssetIds);
+    if (!assetIds.length) return;
+    if (!window.confirm(`Delete ${assetIds.length} assets? This cannot be undone.`)) return;
+    assetSelectionMode = false;
+    selectedAssetIds.clear();
+    for (const assetId of assetIds) {
+      await removeAsset(assetId);
+    }
+    renderAssets();
+  }
 
   function renderAssets() {
     const currentAssets = readAssets();
     const currentCollections = readCollections();
+    pruneAssetSelection(currentAssets);
     getAssetLists().forEach((list) => {
+      const isAssetsPageList = list === pageAssetList || list?.classList?.contains("assets-page-list");
       safeRenderAssetLibrary({
         assetList: list,
         assets: currentAssets,
@@ -61,6 +121,8 @@ export function createAssetLibraryRuntime({
         activeCollectionId,
         assetPageMode,
         activeProjectId: getActiveProjectId(),
+        selectionMode: isAssetsPageList && assetSelectionMode && (assetPageMode !== "boards" || Boolean(activeCollectionId)),
+        selectedAssetIds: isAssetsPageList ? Array.from(selectedAssetIds) : [],
         escapeHtml: safeEscapeHtml
       });
     });
@@ -368,6 +430,8 @@ export function createAssetLibraryRuntime({
   async function selectCollection(collectionId = "") {
     activeCollectionId = String(collectionId || "");
     assetPageMode = activeCollectionId ? "boards" : assetPageMode;
+    assetSelectionMode = false;
+    selectedAssetIds.clear();
     await syncRemoteAssets();
     return activeCollectionId;
   }
@@ -375,6 +439,8 @@ export function createAssetLibraryRuntime({
   async function selectAssetPageMode(mode = "boards") {
     assetPageMode = ["boards", "all", "recent"].includes(mode) ? mode : "boards";
     activeCollectionId = "";
+    assetSelectionMode = false;
+    selectedAssetIds.clear();
     await syncRemoteAssets();
     return assetPageMode;
   }
@@ -651,6 +717,42 @@ export function createAssetLibraryRuntime({
         }
       }
 
+      const assetSelectModeButton = event.target.closest("[data-asset-select-mode]");
+      if (assetSelectModeButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        closeAssetContextMenu();
+        setAssetSelectionMode(!assetSelectModeButton.classList.contains("active"));
+        return;
+      }
+
+      const assetSelectAllButton = event.target.closest("[data-asset-select-all]");
+      if (assetSelectAllButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        closeAssetContextMenu();
+        toggleAllAssetSelection();
+        return;
+      }
+
+      const assetBulkDeleteButton = event.target.closest("[data-asset-bulk-delete]");
+      if (assetBulkDeleteButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        closeAssetContextMenu();
+        deleteSelectedAssets();
+        return;
+      }
+
+      const assetSelectButton = event.target.closest("[data-asset-select]");
+      if (assetSelectButton) {
+        event.preventDefault();
+        event.stopPropagation();
+        closeAssetContextMenu();
+        toggleAssetSelection(assetSelectButton.dataset.assetSelect);
+        return;
+      }
+
       const deleteButton = event.target.closest("[data-delete-asset]");
       if (deleteButton) {
         event.preventDefault();
@@ -698,6 +800,10 @@ export function createAssetLibraryRuntime({
       if (pageAssetCard) {
         event.preventDefault();
         event.stopPropagation();
+        if (assetSelectionMode) {
+          toggleAssetSelection(pageAssetCard.dataset.id);
+          return;
+        }
         previewAsset(pageAssetCard.dataset.id);
         return;
       }

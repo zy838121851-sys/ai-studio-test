@@ -1,5 +1,5 @@
 import { buildAppRuntimeRefGroups, buildAppRuntimeRefsFromState, launchAppRuntimeFromRuntimeRefs } from "./app-runtime-dependencies.js";
-import { bootstrapAppRuntimeFromInputs } from "./app-runtime-host.js";
+import { bootstrapAppRuntimeFromInputs } from "./app-runtime-host.js?v=20260627-library-bulk-select-1";
 import { buildAppRuntimeInputSources, buildAppRuntimeInputsFromSources } from "./app-runtime-inputs.js";
 
 export function buildAppRuntimeConfigFromGroups({

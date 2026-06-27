@@ -14,7 +14,7 @@ import {
   renderHomeHistoryContent,
   renderProjectLibraryContent,
   showProjectSaveStatus
-} from "./components/project-library.js";
+} from "./components/project-library.js?v=20260627-library-bulk-select-1";
 import {
   deleteRemoteProject,
   getRemoteProject,
@@ -26,7 +26,7 @@ import {
 import { createProjectRuntime } from "./runtime.js";
 import { createProjectRuntimeBootstrap } from "./runtime-bootstrap.js";
 import { createProjectSavePatch, restoreCanvasSnapshotJson } from "./snapshot.js";
-import { createProjectWorkflowRuntime } from "./project-workflow-bootstrap.js";
+import { createProjectWorkflowRuntime } from "./project-workflow-bootstrap.js?v=20260627-library-bulk-select-1";
 import {
   formatProjectDate,
   clearProjectsStorage,

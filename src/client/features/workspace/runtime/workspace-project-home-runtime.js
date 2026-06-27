@@ -1,4 +1,4 @@
-import { createWorkspaceProjectRuntime } from "../../projects/workspace-project-runtime.js";
+import { createWorkspaceProjectRuntime } from "../../projects/workspace-project-runtime.js?v=20260627-library-bulk-select-1";
 import { createWorkspaceHomeRuntime } from "../home/runtime/home-app-runtime.js";
 
 export function createWorkspaceProjectHomeRuntime({

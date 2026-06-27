@@ -1,4 +1,4 @@
-import { initTaskBar } from "./task-bar.js?v=20260627-generator-job-recovery-2";
+import { initTaskBar } from "./task-bar.js?v=20260627-library-bulk-select-1";
 
 export function createTaskBarRuntimePayload(runtime = {}) {
   const setChatCollapsed = runtime.setChatCollapsed;

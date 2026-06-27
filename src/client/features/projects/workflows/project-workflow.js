@@ -1,6 +1,6 @@
 import {
   resolveImageModelId
-} from "../../ai/model-catalog.js?v=20260627-generator-job-recovery-2";
+} from "../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 
 export function createProjectWorkflow(ctx) {
   const { state, projectRuntime, services = {}, elements = {}, ui = {}, chat = {} } = ctx;
@@ -70,6 +70,8 @@ export function createProjectWorkflow(ctx) {
 
   const pendingProjectCreates = new Map();
   let generationAutosaveQueue = Promise.resolve();
+  let projectSelectionMode = false;
+  const selectedProjectIds = new Set();
 
   function ensureDemoProjects() {
     if (remoteProjectsEnabled) return;
@@ -184,6 +186,10 @@ export function createProjectWorkflow(ctx) {
       setChatCollapsed(true);
       if (elements.projectMenu) elements.projectMenu.classList.remove("open");
     }
+    if (view !== "library" && projectSelectionMode) {
+      projectSelectionMode = false;
+      selectedProjectIds.clear();
+    }
     if (elements.brandMenu) elements.brandMenu.classList.remove("open");
     if (view === "library") renderProjectLibrary();
   }
@@ -207,14 +213,17 @@ export function createProjectWorkflow(ctx) {
 
   function renderProjectLibrary() {
     if (!projectGrid) return;
+    pruneProjectSelection();
     applyProjectLibraryClasses(projectGrid, {
-      mode: state.libraryViewMode,
-      transitionDirection: state.libraryTransitionDirection
+      mode: "grid",
+      transitionDirection: 0
     });
     projectGrid.innerHTML = renderProjectLibraryContent({
       projects: state.projects,
       activeProjectId: state.activeProjectId,
-      mode: state.libraryViewMode,
+      mode: "grid",
+      selectionMode: projectSelectionMode,
+      selectedProjectIds: Array.from(selectedProjectIds),
       getProjectPreview: getProjectPreviewImage,
       getProjectDisplayTitle: getProjectDisplayTitleForCard,
       getProjectDisplayPrompt: getProjectDisplayPromptText,
@@ -247,6 +256,50 @@ export function createProjectWorkflow(ctx) {
   function stepLibraryProject(direction) {
     const currentIndex = Math.max(0, state.projects.findIndex((project) => project.id === state.activeProjectId));
     selectLibraryProject(currentIndex + direction);
+  }
+
+  function pruneProjectSelection() {
+    const projectIds = new Set((state.projects || []).map((project) => project.id));
+    Array.from(selectedProjectIds).forEach((projectId) => {
+      if (!projectIds.has(projectId)) selectedProjectIds.delete(projectId);
+    });
+  }
+
+  function setProjectSelectionMode(value) {
+    projectSelectionMode = Boolean(value);
+    if (!projectSelectionMode) selectedProjectIds.clear();
+    renderProjectLibrary();
+  }
+
+  function toggleProjectSelection(projectId) {
+    if (!projectId) return;
+    projectSelectionMode = true;
+    if (selectedProjectIds.has(projectId)) selectedProjectIds.delete(projectId);
+    else selectedProjectIds.add(projectId);
+    renderProjectLibrary();
+  }
+
+  function toggleAllProjectSelection() {
+    const projectIds = (state.projects || []).map((project) => project.id).filter(Boolean);
+    const allSelected = projectIds.length > 0 && projectIds.every((projectId) => selectedProjectIds.has(projectId));
+    selectedProjectIds.clear();
+    if (!allSelected) projectIds.forEach((projectId) => selectedProjectIds.add(projectId));
+    projectSelectionMode = true;
+    renderProjectLibrary();
+  }
+
+  function deleteSelectedProjects() {
+    const projectIds = Array.from(selectedProjectIds);
+    if (!projectIds.length) return;
+    if (!window.confirm(`删除 ${projectIds.length} 个项目？此操作不可恢复。`)) return;
+    projectSelectionMode = false;
+    selectedProjectIds.clear();
+    projectIds.forEach((projectId) => deleteProject(projectId));
+    state.projects = projectRuntime.list();
+    renderProjectLibrary();
+    renderHomeHistory();
+    updateProjectTitle(getActiveProject());
+    updateProjectTitleView(getActiveProject());
   }
 
   function resetCanvasForProject({ showEmptyState = true } = {}) {
@@ -578,6 +631,10 @@ export function createProjectWorkflow(ctx) {
     renderHomeHistory,
     selectLibraryProject,
     stepLibraryProject,
+    setProjectSelectionMode,
+    toggleProjectSelection,
+    toggleAllProjectSelection,
+    deleteSelectedProjects,
     resetCanvasForProject,
     openProject,
     deleteProject,

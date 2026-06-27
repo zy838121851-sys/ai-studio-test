@@ -7,7 +7,7 @@ import {
   buildAICoreRuntimeDependencyInputs
 } from "../../ai/runtime/index.js";
 import { buildChatRuntimeDependencyInputs, buildChatRuntimeSources } from "../chat/runtime/chat-runtime.js";
-import { buildHomeRuntimeDependencyInputs, buildHomeRuntimeSources } from "../home/runtime/home-runtime.js";
+import { buildHomeRuntimeDependencyInputs, buildHomeRuntimeSources } from "../home/runtime/home-runtime.js?v=20260627-library-bulk-select-1";
 import {
   buildWorkspaceWorkflowRuntimeDependencyInputs,
   buildWorkspaceWorkflowRuntimeSources

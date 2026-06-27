@@ -1,5 +1,5 @@
-import { createWorkspaceAppLaunchConfig } from "./workspace-app-launch-config.js";
-import { launchWorkspaceRuntimeFromCompatibilityLayer } from "./workspace-runtime-launcher.js";
+import { createWorkspaceAppLaunchConfig } from "./workspace-app-launch-config.js?v=20260627-library-bulk-select-1";
+import { launchWorkspaceRuntimeFromCompatibilityLayer } from "./workspace-runtime-launcher.js?v=20260627-library-bulk-select-1";
 
 export function launchWorkspaceAppRuntime({
   workspaceAppScope,
@@ -145,6 +145,10 @@ export function launchWorkspaceAppRuntime({
       renderProjectLibrary: projectHomeRuntime.renderProjectLibrary,
       selectLibraryProject: projectHomeRuntime.selectLibraryProject,
       stepLibraryProject: projectHomeRuntime.stepLibraryProject,
+      setProjectSelectionMode: projectHomeRuntime.setProjectSelectionMode,
+      toggleProjectSelection: projectHomeRuntime.toggleProjectSelection,
+      toggleAllProjectSelection: projectHomeRuntime.toggleAllProjectSelection,
+      deleteSelectedProjects: projectHomeRuntime.deleteSelectedProjects,
       openProject: projectHomeRuntime.openProject,
       deleteProject: projectHomeRuntime.deleteProject,
       newBlankProject: projectHomeRuntime.newBlankProject,
