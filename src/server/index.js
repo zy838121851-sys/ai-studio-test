@@ -4,6 +4,7 @@ import { env } from "./config/env.js";
 import { validateRuntimeEnvironment } from "./config/runtime.js";
 import { cleanupAuthArtifacts } from "./auth/cleanup.service.js";
 import { initializeDatabase } from "./db/sqlite.js";
+import { runCreditsMigration } from "./db/credits-migration.js";
 import { logError, logInfo } from "./lib/logger.js";
 import { attachAuth } from "./middleware/auth.middleware.js";
 import { requestErrorLogger } from "./middleware/request-log.middleware.js";
@@ -20,6 +21,7 @@ import { createUploadRouter } from "./routes/upload.routes.js";
 export function createServer() {
   validateRuntimeEnvironment();
   initializeDatabase();
+  runCreditsMigration();
   cleanupAuthArtifacts();
 
   const app = express();
