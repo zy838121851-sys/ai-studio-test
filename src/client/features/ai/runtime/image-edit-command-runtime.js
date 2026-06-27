@@ -1,5 +1,5 @@
-﻿import { getQwenImageSizeForElement } from "../image-generator.js";
-import { executeImageEditAction } from "../image-edit-actions.js?v=20260626-popover-anchor-1";
+import { getQwenImageSizeForElement } from "../image-generator.js";
+import { executeImageEditAction } from "../image-edit-actions.js?v=20260627-generator-job-recovery-2";
 import { createImageEditCommand } from "./image-edit-command.js";
 
 const IMAGE_EDIT_SIZE_PRESETS = {
@@ -30,6 +30,7 @@ export function createImageEditCommandRuntime({
     addThinking: services.addThinking,
     updateThinking: services.updateThinking,
     updateChat: services.updateChat,
-    addChatImage: services.addChatImage
+    addChatImage: services.addChatImage,
+    saveCurrentProjectAfterGeneration: services.saveCurrentProjectAfterGeneration
   });
 }

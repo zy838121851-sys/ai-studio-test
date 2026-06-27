@@ -40,7 +40,8 @@ export function createWorkspaceCanvasGenerationCompositionRuntime({
       buildChatImagePayload: services.buildChatImagePayload,
       readFileAsDataUrl: services.readFileAsDataUrl,
       readImageSourceAsDataUrl: services.readImageSourceAsDataUrl,
-      saveCurrentProject: services.saveCurrentProject
+      saveCurrentProject: services.saveCurrentProject,
+      saveCurrentProjectAfterGeneration: services.saveCurrentProjectAfterGeneration
     },
     defaults
   });

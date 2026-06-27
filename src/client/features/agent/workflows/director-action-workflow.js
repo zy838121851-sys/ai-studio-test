@@ -9,7 +9,7 @@ import {
 import {
   formatModelUsage,
   resolveImageModelId
-} from "../../ai/model-catalog.js?v=20260626-midjourney-4up-1";
+} from "../../ai/model-catalog.js?v=20260627-generator-job-recovery-2";
 import { getImageNodePreviewMetrics } from "../../canvas/upload-nodes.js";
 
 export function createDirectorActionWorkflow({
@@ -33,6 +33,7 @@ export function createDirectorActionWorkflow({
     getChatModel = () => "",
     addSourceBadge = () => {},
     replacePreviewWithImage = () => null,
+    saveCurrentProjectAfterGeneration = null,
     getGenerationAspectRatio = (previewNode) =>
       previewNode.querySelector(".image-frame")?.style.aspectRatio || "1 / 1",
     escapeHtml = (value = "") => String(value)
@@ -146,6 +147,7 @@ export function createDirectorActionWorkflow({
         renderStackTray(productNode);
         addChatImage("assistant", result.imageUrl, `${action.title}\n${modelUsage}`);
         window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
+        await saveCurrentProjectAfterGeneration?.();
         return imageNode;
       } else {
         previewNode.classList.add("generation-failed");

@@ -11,7 +11,8 @@ export function createImageEditCommand({
   addThinking,
   updateThinking,
   updateChat,
-  addChatImage
+  addChatImage,
+  saveCurrentProjectAfterGeneration = null
 } = {}) {
   if (typeof executeImageEditAction !== "function") {
     return () => Promise.resolve();
@@ -55,6 +56,9 @@ export function createImageEditCommand({
     return Array.from({ length: count }).reduce(
       (queue, _, index) => queue.then(async (results) => {
         const result = await runOne(index);
+        if (result?.imageUrl && !result?.error) {
+          await saveCurrentProjectAfterGeneration?.();
+        }
         return [...results, result];
       }),
       Promise.resolve([])

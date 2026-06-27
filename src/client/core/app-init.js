@@ -1,4 +1,4 @@
-﻿import { eventBus } from "./event-bus.js";
+import { eventBus } from "./event-bus.js";
 import { appState, patchState } from "./state.js";
 import { initCanvasController } from "../features/canvas/canvas-controller.js";
 import { createAgentEventSystem } from "../features/agent/agent-event-system.js";
@@ -7,14 +7,18 @@ import { executeAgentAction } from "../features/agent/agent-actions.js";
 import { registerAIProvider, setActiveAIProvider } from "../features/ai/ai-client.js";
 import { mockProvider } from "../features/ai/providers/mock-provider.js";
 import { serverAPIProvider } from "../features/ai/providers/server-api-provider.js";
-import { initModelCatalog } from "../features/ai/model-catalog.js?v=20260626-midjourney-4up-1";
+import { initModelCatalog } from "../features/ai/model-catalog.js?v=20260627-generator-job-recovery-2";
 import { initAuthEntry } from "../features/auth/auth-entry.js";
-import { initCreditQuoteBadges } from "../features/credits/quote-badges.js?v=20260626-midjourney-4up-1";
+import { initCreditQuoteBadges } from "../features/credits/quote-badges.js?v=20260627-generator-job-recovery-2";
 import { initAssetPanel } from "../features/workspace/asset-library/asset-panel.js";
 import { initAgentPanel } from "../features/agent/agent-panel.js";
 import { mountWorkspaceApp } from "../features/workspace/runtime/index.js";
 
 export async function initApp() {
+  console.info("[runtime] AI Studio client", {
+    origin: globalThis.location?.origin || "",
+    build: "generator-job-poll-20260627"
+  });
   registerAIProvider("mock", mockProvider);
   registerAIProvider("server", serverAPIProvider);
   setActiveAIProvider("server");

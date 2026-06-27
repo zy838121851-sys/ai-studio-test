@@ -7,6 +7,7 @@ import { getApimartTaskStatus } from "./providers/apimart/apimart-task.service.j
 import { sanitizePromptPreview } from "./providers/apimart/apimart.client.js";
 
 const TERMINAL_STATUSES = new Set(["succeeded", "failed", "cancelled", "timeout", "save_failed"]);
+const activeJobRefreshes = new Set();
 
 export function createAIJob(input = {}) {
   return transaction((db) => {
@@ -54,7 +55,7 @@ export function getAIJob(userId, id) {
 export async function refreshAIJob(userId, id) {
   const job = getAIJob(userId, id);
   if (!job) return null;
-  if (TERMINAL_STATUSES.has(job.status)) return job;
+  if (TERMINAL_STATUSES.has(job.status) && !shouldRefreshTerminalJob(job)) return job;
   const remote = await getApimartTaskStatus(job.remoteTaskId, {
     type: job.type,
     model: job.providerModel
@@ -78,10 +79,32 @@ export async function refreshAIJob(userId, id) {
   });
 }
 
+export function scheduleAIJobRefresh(userId, id, { attempts = 180, delayMs = 2000 } = {}) {
+  const key = `${userId}:${id}`;
+  if (!userId || !id || activeJobRefreshes.has(key)) return;
+  activeJobRefreshes.add(key);
+  runScheduledAIJobRefresh(userId, id, { attempts, delayMs, key });
+}
+
+async function runScheduledAIJobRefresh(userId, id, { attempts, delayMs, key }) {
+  try {
+    for (let index = 0; index < attempts; index += 1) {
+      await delay(delayMs);
+      const job = await refreshAIJob(userId, id);
+      if (!job) return;
+      if (TERMINAL_STATUSES.has(job.status) && !shouldRefreshTerminalJob(job)) return;
+    }
+  } catch (error) {
+    console.warn("[ai-jobs] Scheduled refresh failed", { jobId: id, error: error?.message || String(error) });
+  } finally {
+    activeJobRefreshes.delete(key);
+  }
+}
+
 export async function completeAIJob(userId, id, { outputs = [] } = {}) {
   const job = getAIJob(userId, id);
   if (!job) return null;
-  if (TERMINAL_STATUSES.has(job.status)) return job;
+  if (TERMINAL_STATUSES.has(job.status) && !shouldCompleteMissingOutputs(job)) return job;
   try {
     const assets = [];
     for (const output of outputs) {
@@ -89,7 +112,7 @@ export async function completeAIJob(userId, id, { outputs = [] } = {}) {
       if (asset) assets.push(asset);
     }
     if (!assets.length) throw new Error("Generated output could not be saved locally");
-    const charge = job.creditsReserved > 0
+    const charge = job.creditsReserved > 0 && job.creditsCharged <= 0
       ? chargeReservedCredits({
         userId,
         reservedAmount: job.creditsReserved,
@@ -101,7 +124,7 @@ export async function completeAIJob(userId, id, { outputs = [] } = {}) {
         reason: "ai_job_succeeded",
         requestId: id
       })
-      : { chargedCredits: 0 };
+      : { chargedCredits: job.creditsCharged || 0 };
     return updateAIJobTerminal(userId, id, {
       status: "succeeded",
       progress: 100,
@@ -117,10 +140,29 @@ export async function completeAIJob(userId, id, { outputs = [] } = {}) {
   }
 }
 
+function shouldRefreshTerminalJob(job = {}) {
+  return shouldCompleteMissingOutputs(job) && Boolean(job.remoteTaskId);
+}
+
+function shouldCompleteMissingOutputs(job = {}) {
+  return job.status === "succeeded" && !hasOutputAssets(job);
+}
+
+function hasOutputAssets(job = {}) {
+  return Array.isArray(job.outputAssetIds) && job.outputAssetIds.length > 0;
+}
+
+function delay(ms) {
+  return new Promise((resolve) => {
+    const timer = setTimeout(resolve, ms);
+    timer.unref?.();
+  });
+}
+
 export function failAIJob(userId, id, { status = "failed", errorCode = "", errorMessage = "" } = {}) {
   const job = getAIJob(userId, id);
   if (!job) return null;
-  if (TERMINAL_STATUSES.has(job.status)) return job;
+  if (TERMINAL_STATUSES.has(job.status) && !(status === "save_failed" && shouldCompleteMissingOutputs(job))) return job;
   if (job.creditsReserved > 0 && job.creditsCharged <= 0) {
     releaseReservedCredits({
       userId,

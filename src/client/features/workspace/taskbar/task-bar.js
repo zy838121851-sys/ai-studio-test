@@ -1,4 +1,4 @@
-﻿import {
+import {
   getImageNodePreviewMetrics,
   getPreviewHeight,
   readImageFilePreviewMetrics
@@ -10,8 +10,8 @@ import {
 import {
   formatModelUsage,
   resolveImageModelId
-} from "../../ai/model-catalog.js?v=20260626-midjourney-4up-1";
-import { enhanceCompactSelects } from "../../../lib/compact-select.js?v=20260626-midjourney-4up-1";
+} from "../../ai/model-catalog.js?v=20260627-generator-job-recovery-2";
+import { enhanceCompactSelects } from "../../../lib/compact-select.js?v=20260627-generator-job-recovery-2";
 
 function findActiveTaskbarImageNode(root = globalThis.document) {
   return root?.querySelector?.("#canvasWorld .node-image.selected[data-active-selection='true']")
@@ -130,6 +130,7 @@ export function initTaskBar({
     makeProjectTitle = () => "",
     updateActiveProject = () => {},
     getActiveProject = () => null,
+    saveCurrentProjectAfterGeneration = null,
     applyFileToDataUrl = async () => "",
     viewportPointToWorld = () => ({ x: 0, y: 0 }),
     viewportRectToWorldCenter = () => ({ x: 0, y: 0 }),
@@ -366,6 +367,7 @@ export function initTaskBar({
           thumbnail: result.imageUrl,
           itemCount: (getActiveProject()?.itemCount || 0) + 1
         });
+        await saveCurrentProjectAfterGeneration?.();
         addChatImage("assistant", result.imageUrl, `\u751f\u6210\u56fe\u7247 \u00b7 ${modelUsage}`);
         window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
       }

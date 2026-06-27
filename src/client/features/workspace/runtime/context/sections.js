@@ -195,6 +195,7 @@ export function buildRuntimeActionsSections(deps = {}) {
         replacePreviewWithImage: deps.replacePreviewWithImage,
         updateActiveProject: deps.updateActiveProject,
         saveCurrentProject: deps.saveCurrentProject,
+        saveCurrentProjectAfterGeneration: deps.saveCurrentProjectAfterGeneration,
         getActiveProject: deps.getActiveProject,
         makeProjectTitle: deps.makeProjectTitle,
         postJsonRequest: deps.postJsonRequest,

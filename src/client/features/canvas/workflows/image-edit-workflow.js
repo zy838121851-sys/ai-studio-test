@@ -49,6 +49,15 @@ export function createImageEditWorkflow({
     scheduleImageEditPopoverPosition();
   });
 
+  globalThis.document?.addEventListener?.("canvas:selection-changed", (event) => {
+    handleImageEditSelectionChange(event.detail?.activeNode || null);
+  });
+
+  globalThis.document?.addEventListener?.("canvas:context-overlay-close", () => {
+    hideImageEditPopover({ preserveDraft: true });
+    hideImageTextPanel();
+  });
+
   function getImageNodeSrc(node) {
     return node?.querySelector?.(".image-frame img")?.src || "";
   }
@@ -186,6 +195,22 @@ export function createImageEditWorkflow({
     state.editingImageNode = null;
     state.imageEditReferenceNodes = [];
     state.imageEditReferenceImages = [];
+  }
+
+  function handleImageEditSelectionChange(activeNode) {
+    if (state.editingImageNode && !state.editingImageNode.isConnected) {
+      hideImageEditPopover({ preserveDraft: true });
+      return;
+    }
+    if (state.textEditingImageNode && !state.textEditingImageNode.isConnected) {
+      hideImageTextPanel();
+    }
+    if (!isImageEditPopoverOpen()) return;
+    if (activeNode === state.editingImageNode) {
+      scheduleImageEditPopoverPosition();
+      return;
+    }
+    hideImageEditPopover({ preserveDraft: true });
   }
 
   function closeImageEditSelects() {

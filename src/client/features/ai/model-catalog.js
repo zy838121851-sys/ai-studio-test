@@ -1,8 +1,8 @@
-﻿import {
+import {
   getModelMenuLabel,
   getModelOptionTitle,
   renderModelPreferenceMenu
-} from "./model-preference-menu.js?v=20260626-midjourney-4up-1";
+} from "./model-preference-menu.js?v=20260627-generator-job-recovery-2";
 
 export const DEFAULT_IMAGE_MODEL = "gpt-image-2";
 

@@ -1,4 +1,4 @@
-import { bindPromptShortcuts, bindPromptSubmit } from "../workflows/prompt-workflow.js?v=20260626-midjourney-4up-1";
+import { bindPromptShortcuts, bindPromptSubmit } from "../workflows/prompt-workflow.js?v=20260627-generator-job-recovery-2";
 
 export function createPromptSubmitRuntimePayload(runtime = {}) {
   return {
@@ -18,6 +18,7 @@ export function createPromptSubmitRuntimePayload(runtime = {}) {
     replacePreviewWithImage: runtime.replacePreviewWithImage,
     updateActiveProject: runtime.updateActiveProject,
     saveCurrentProject: runtime.saveCurrentProject,
+    saveCurrentProjectAfterGeneration: runtime.saveCurrentProjectAfterGeneration,
     getActiveProject: runtime.getActiveProject,
     makeProjectTitle: runtime.makeProjectTitle,
     postJsonRequest: runtime.postJsonRequest,

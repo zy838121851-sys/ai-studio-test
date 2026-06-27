@@ -27,7 +27,8 @@ export function createWorkspaceImageEditCompositionBundle({
       addThinking: chatRuntime.addThinking,
       updateThinking: chatRuntime.updateThinking,
       updateChat: chatRuntime.updateChat,
-      addChatImage: chatRuntime.addChatImage
+      addChatImage: chatRuntime.addChatImage,
+      saveCurrentProjectAfterGeneration: services.saveCurrentProjectAfterGeneration
     }
   });
 }

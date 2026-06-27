@@ -1,7 +1,7 @@
 import { postJson } from "./api-client.js";
 import {
   formatModelUsage
-} from "./model-catalog.js?v=20260626-midjourney-4up-1";
+} from "./model-catalog.js?v=20260627-generator-job-recovery-2";
 
 const IMAGE_EDIT_OUTPUT_GAP = 28;
 
@@ -256,6 +256,7 @@ export async function executeImageEditAction({
       expand
     });
     if (!result?.imageUrl && result?.jobId) {
+      previewNode.dataset.imageEditJobId = result.jobId;
       updateChat?.(progress, `${label}仍在生成，正在等待结果...`);
       result = await waitForImageEditJob(result.jobId, {
         fallback: result,
@@ -267,7 +268,8 @@ export async function executeImageEditAction({
         }
       });
     }
-    let outputUrl = result.imageUrl || (result.imageBase64 ? `data:image/png;base64,${result.imageBase64}` : "");
+    let outputUrl = getPrimaryResultImageUrl(result) || (result.imageBase64 ? `data:image/png;base64,${result.imageBase64}` : "");
+    if (!outputUrl) throw new Error(getMissingImageEditResultMessage(result));
     if (outputUrl && actionType === "remove_background") {
       outputUrl = await makeBackgroundTransparent(outputUrl);
     }
@@ -303,8 +305,15 @@ export async function executeImageEditAction({
   }
 }
 
-async function waitForImageEditJob(jobId, { attempts = 180, delayMs = 2000, fallback = {}, onProgress = null } = {}) {
+async function waitForImageEditJob(jobId, {
+  attempts = 180,
+  delayMs = 2000,
+  fallback = {},
+  onProgress = null,
+  missingUrlRetries = 4
+} = {}) {
   let lastPayload = { jobId, ...fallback };
+  let missingUrlAttempts = 0;
   for (let index = 0; index < attempts; index += 1) {
     await delay(delayMs);
     const response = await fetch(`/api/ai/jobs/${encodeURIComponent(jobId)}`, {
@@ -324,8 +333,21 @@ async function waitForImageEditJob(jobId, { attempts = 180, delayMs = 2000, fall
     }
     if (!response.ok) throw new Error(payload?.message || `Job request failed: ${response.status}`);
     lastPayload = { ...fallback, ...payload };
+    logImageEditJobPoll(lastPayload);
     if (["succeeded", "failed", "cancelled", "timeout", "save_failed"].includes(payload?.status)) {
       if (payload.status !== "succeeded") throw new Error(payload.error || payload.status);
+      if (!getResultImageUrls(lastPayload).length) {
+        missingUrlAttempts += 1;
+        if (missingUrlAttempts <= missingUrlRetries) {
+          onProgress?.({
+            ...lastPayload,
+            status: "running",
+            message: "Waiting for saved image URL"
+          });
+          continue;
+        }
+        throw new Error(getMissingImageEditResultMessage(lastPayload));
+      }
       return lastPayload;
     }
     onProgress?.(payload);
@@ -341,6 +363,49 @@ function getRetryAfterDelayMs(response, fallbackMs = 4000) {
   const value = Number.parseInt(response?.headers?.get?.("Retry-After") || "", 10);
   if (Number.isFinite(value) && value > 0) return value * 1000;
   return fallbackMs;
+}
+
+function getResultImageUrls(result = {}) {
+  const urls = [];
+  if (Array.isArray(result?.imageUrls)) urls.push(...result.imageUrls);
+  if (Array.isArray(result?.outputs)) {
+    result.outputs.forEach((output) => {
+      const type = String(output?.type || "").toLowerCase();
+      const mimeType = String(output?.mimeType || output?.mime_type || "").toLowerCase();
+      if (output?.url && (type === "image" || mimeType.startsWith("image/") || (!type && !mimeType))) {
+        urls.push(output.url);
+      }
+    });
+  }
+  if (result?.imageUrl) urls.unshift(result.imageUrl);
+  return Array.from(new Set(urls.filter(Boolean)));
+}
+
+function getPrimaryResultImageUrl(result = {}) {
+  return getResultImageUrls(result)[0] || "";
+}
+
+function getMissingImageEditResultMessage(result = {}) {
+  const message = String(result?.message || "Model returned without an image URL").trim();
+  const details = [
+    result?.jobId ? `jobId=${result.jobId}` : "",
+    result?.status ? `status=${result.status}` : "",
+    Number.isFinite(Number(result?.outputCount)) ? `outputCount=${Number(result.outputCount)}` : ""
+  ].filter(Boolean).join(", ");
+  return details ? `${message} (${details})` : message;
+}
+
+function logImageEditJobPoll(payload = {}) {
+  if (!["localhost", "127.0.0.1"].includes(globalThis.location?.hostname || "")) return;
+  console.debug("[image-edit] job poll", {
+    jobId: payload.jobId || payload.job?.id || "",
+    remoteTaskId: payload.remoteTaskId || payload.job?.remoteTaskId || "",
+    status: payload.status || payload.job?.status || "",
+    progress: payload.progress || payload.job?.progress || 0,
+    imageUrls: getResultImageUrls(payload),
+    outputCount: payload.outputCount ?? payload.outputs?.length ?? 0,
+    updatedAt: payload.updatedAt || payload.job?.updatedAt || ""
+  });
 }
 
 function getPreviewHeightForAspect(width, aspectRatio, fallbackHeight = 240) {

@@ -23,6 +23,7 @@ export function createDirectorActionRuntime({
       getChatModel: state.getChatModel,
       addSourceBadge: services.addSourceBadge,
       replacePreviewWithImage: services.replacePreviewWithImage,
+      saveCurrentProjectAfterGeneration: services.saveCurrentProjectAfterGeneration,
       escapeHtml: services.escapeHtml
     }
   });

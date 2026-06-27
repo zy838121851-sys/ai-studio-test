@@ -19,7 +19,8 @@ export function createWorkspaceImageEditAppRuntime({
       addThinking: services.addThinking,
       updateThinking: services.updateThinking,
       updateChat: services.updateChat,
-      addChatImage: services.addChatImage
+      addChatImage: services.addChatImage,
+      saveCurrentProjectAfterGeneration: services.saveCurrentProjectAfterGeneration
     }
   });
 }

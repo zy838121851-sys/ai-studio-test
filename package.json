@@ -12,9 +12,15 @@
     "credits:migrate": "node scripts/credits-migrate.js",
     "credits:add": "node scripts/credits-add.js",
     "credits:check": "node scripts/credits-check.js",
+    "credits:set-min": "node scripts/credits-set-min.js",
     "credits:quote-check": "node scripts/check-credit-quote.js",
     "apimart:catalog-check": "node scripts/check-apimart-catalog.js && node scripts/check-apimart-public-copy.js",
     "apimart:mock-check": "node scripts/check-apimart-mock.js",
+    "apimart:task-check": "node scripts/check-apimart-task-output.js",
+    "autosave:check": "node scripts/check-generation-autosave.js",
+    "generator:job-check": "node scripts/check-generator-job-recovery.js",
+    "image-edit:job-check": "node scripts/check-image-edit-job-output.js",
+    "overlays:check": "node scripts/check-overlay-lifecycle.js",
     "dev": "node server.js"
   },
   "dependencies": {

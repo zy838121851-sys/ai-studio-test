@@ -1,6 +1,6 @@
 import {
   resolveImageModelId
-} from "../../ai/model-catalog.js?v=20260626-midjourney-4up-1";
+} from "../../ai/model-catalog.js?v=20260627-generator-job-recovery-2";
 
 export function createProjectWorkflow(ctx) {
   const { state, projectRuntime, services = {}, elements = {}, ui = {}, chat = {} } = ctx;
@@ -69,6 +69,7 @@ export function createProjectWorkflow(ctx) {
   } = chat;
 
   const pendingProjectCreates = new Map();
+  let generationAutosaveQueue = Promise.resolve();
 
   function ensureDemoProjects() {
     if (remoteProjectsEnabled) return;
@@ -121,9 +122,14 @@ export function createProjectWorkflow(ctx) {
     persistProjectUpdate(project, { title });
   }
 
-  async function saveCurrentProject() {
+  async function saveCurrentProject(options = {}) {
+    const {
+      pendingText = "\u4fdd\u5b58\u4e2d...",
+      successText = "\u5df2\u4fdd\u5b58\u5230\u9879\u76ee\u5e93",
+      failureText = null
+    } = options;
     const project = getActiveProject() || createProject({ title: "Fresh Ideas" });
-    showSaveStatus({ text: "保存中...", tone: "pending", duration: 0 });
+    showSaveStatus({ text: pendingText, tone: "pending", duration: 0 });
     await waitForPendingCanvasUploads(canvasWorld);
     const patch = createProjectSavePatch({
       project,
@@ -138,14 +144,34 @@ export function createProjectWorkflow(ctx) {
     await waitForPendingProjectCreate(updatedProject?.id);
     const result = await persistCanvasSnapshot(updatedProject, patch);
     showSaveStatus({
-      text: result.ok ? "已保存到项目库" : getProjectPersistenceFailureText(result),
+      text: result.ok ? successText : (failureText || getProjectPersistenceFailureText(result)),
       tone: result.ok ? "success" : "error",
       duration: result.ok ? 1600 : 4200
     });
     return result.ok;
   }
 
+  function saveCurrentProjectAfterGeneration() {
+    const autosave = generationAutosaveQueue
+      .catch(() => false)
+      .then(() => saveCurrentProject({
+        pendingText: "\u6b63\u5728\u81ea\u52a8\u4fdd\u5b58...",
+        successText: "\u5df2\u81ea\u52a8\u4fdd\u5b58\u5f53\u524d\u9879\u76ee",
+        failureText: "\u81ea\u52a8\u4fdd\u5b58\u5931\u8d25\uff0c\u8bf7\u624b\u52a8\u4fdd\u5b58"
+      }));
+    generationAutosaveQueue = autosave.catch((error) => {
+      console.warn("[projects] Generation autosave failed", error);
+      return false;
+    });
+    return autosave;
+  }
+
   function showView(view) {
+    if (view !== "canvas") {
+      globalThis.document?.dispatchEvent?.(new CustomEvent("canvas:context-overlay-close", {
+        detail: { reason: "view-change", view }
+      }));
+    }
     applyViewState({
       view,
       appRoot,
@@ -224,6 +250,9 @@ export function createProjectWorkflow(ctx) {
   }
 
   function resetCanvasForProject({ showEmptyState = true } = {}) {
+    globalThis.document?.dispatchEvent?.(new CustomEvent("canvas:context-overlay-close", {
+      detail: { reason: "canvas-reset" }
+    }));
     state.selectedNodes.clear();
     state.selectedNode = null;
     if (canvasWorld) {
@@ -540,6 +569,7 @@ export function createProjectWorkflow(ctx) {
     updateProjectTitle,
     commitProjectTitleEdit,
     saveCurrentProject,
+    saveCurrentProjectAfterGeneration,
     showView,
     getProjectDisplayTitleForCard,
     getProjectDisplayPromptText,

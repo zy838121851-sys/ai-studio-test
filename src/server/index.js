@@ -29,7 +29,12 @@ export function createServer() {
   const staticOptions = {
     dotfiles: "deny",
     index: false,
-    fallthrough: true
+    fallthrough: true,
+    setHeaders: (res) => {
+      res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+      res.setHeader("Pragma", "no-cache");
+      res.setHeader("Expires", "0");
+    }
   };
 
   app.use(express.json({ limit: "25mb" }));
@@ -59,15 +64,19 @@ export function createServer() {
     res.status(404).end();
   });
   app.get(["/", "/index.html"], (_req, res) => {
+    noStoreStatic(res);
     res.sendFile(join(rootDir, "index.html"));
   });
   app.get("/app.js", (_req, res) => {
+    noStoreStatic(res);
     res.type("application/javascript").sendFile(join(rootDir, "app.js"));
   });
   app.get("/styles.css", (_req, res) => {
+    noStoreStatic(res);
     res.type("text/css").sendFile(join(rootDir, "styles.css"));
   });
   app.get("/src/main.js", (_req, res) => {
+    noStoreStatic(res);
     res.type("application/javascript").sendFile(join(rootDir, "src", "main.js"));
   });
   app.use("/src/client", express.static(join(rootDir, "src", "client"), staticOptions));
@@ -79,6 +88,7 @@ export function createServer() {
       && isAppNavigationPath(req.path)
       && req.accepts("html")
     ) {
+      noStoreStatic(res);
       res.sendFile(join(rootDir, "index.html"));
       return;
     }
@@ -87,6 +97,12 @@ export function createServer() {
   app.use(requestErrorLogger);
 
   return app;
+}
+
+function noStoreStatic(res) {
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+  res.setHeader("Pragma", "no-cache");
+  res.setHeader("Expires", "0");
 }
 
 function isAppNavigationPath(pathname = "") {

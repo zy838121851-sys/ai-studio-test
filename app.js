@@ -1,1 +1,1 @@
-﻿import "./src/main.js?v=20260626-job-poll-1";
+import "./src/main.js?v=20260627-generator-job-recovery-2";

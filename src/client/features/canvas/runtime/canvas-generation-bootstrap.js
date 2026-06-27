@@ -1,8 +1,8 @@
-﻿import { createDirectorCardWorkflow } from "../../agent/workflows/director-card-workflow.js";
+import { createDirectorCardWorkflow } from "../../agent/workflows/director-card-workflow.js";
 import { createPromptGenerationWorkflow } from "../../ai/workflows/prompt-generation-workflow.js";
 import { createGenerationNodeWorkflow } from "../workflows/generation-node-workflow.js";
 import { createGenerationUploadWorkflow } from "../workflows/generation-upload-workflow.js";
-import { createImageGeneratorWorkflow } from "../workflows/image-generator-workflow.js?v=20260626-popover-anchor-1";
+import { createImageGeneratorWorkflow } from "../workflows/image-generator-workflow.js?v=20260627-generator-job-recovery-2";
 import { createModelViewerWorkflow } from "../workflows/model-viewer-workflow.js";
 
 export function createCanvasGenerationBootstrap({
@@ -79,6 +79,7 @@ export function createCanvasGenerationBootstrap({
       setUploadChoiceHover: services.setUploadChoiceHover,
       syncCanvasTransform: services.syncCanvasTransform,
       registerUploadedAsset: services.registerUploadedAsset,
+      saveCurrentProjectAfterGeneration: services.saveCurrentProjectAfterGeneration,
       setUploadDragDepth: state.setUploadDragDepth,
       setChatDragDepth: state.setChatDragDepth,
       escapeHtml: services.escapeHtml
@@ -104,6 +105,7 @@ export function createCanvasGenerationBootstrap({
       registerGeneratedAsset: services.registerGeneratedAsset,
       replacePreviewWithImage: generationNodeWorkflow.replacePreviewWithImage,
       saveCurrentProject: services.saveCurrentProject,
+      saveCurrentProjectAfterGeneration: services.saveCurrentProjectAfterGeneration,
       selectNode: services.selectNode
     }
   });

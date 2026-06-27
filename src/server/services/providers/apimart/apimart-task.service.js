@@ -47,30 +47,49 @@ function mockImageOutputs(model = "") {
   }));
 }
 
-function normalizeTaskPayload(payload = {}, { type = "image", model = "" } = {}) {
+export function normalizeTaskPayload(payload = {}, { type = "image", model = "" } = {}) {
   const data = payload?.data || payload;
-  const status = normalizeRemoteStatus(data?.status || payload?.status);
   const result = data?.result || data?.output || data;
-  const images = Array.isArray(result?.images) ? result.images : [];
-  const videos = Array.isArray(result?.videos) ? result.videos : [];
+  const status = normalizeRemoteStatus(data?.status || result?.status || payload?.status);
+  const items = type === "video"
+    ? collectOutputItems(result?.videos, data?.videos, payload?.videos, result, data, payload)
+    : collectOutputItems(result?.images, data?.images, payload?.images, result, data, payload);
   return {
     status,
     progress: status === "succeeded" || status === "failed" ? 100 : Number(data?.progress || 50),
-    outputs: (type === "video" ? videos : images)
+    outputs: dedupeOutputs(items
       .flatMap((item) => extractOutputUrls(item).map((url) => ({
         url,
         mimeType: type === "video" ? "video/mp4" : "image/png",
         model
       })))
-      .filter((item) => item.url),
+      .filter((item) => item.url)),
     errorCode: data?.error?.code || data?.error_code || "",
     errorMessage: data?.error?.message || data?.error_message || ""
   };
 }
 
+function dedupeOutputs(outputs = []) {
+  const seen = new Set();
+  return outputs.filter((output) => {
+    const key = output.url;
+    if (!key || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function collectOutputItems(...candidates) {
+  return candidates.flatMap((candidate) => {
+    if (!candidate) return [];
+    if (Array.isArray(candidate)) return candidate;
+    return [candidate];
+  });
+}
+
 function extractOutputUrls(item) {
   if (typeof item === "string") return [item].filter(Boolean);
-  const rawUrl = item?.url || item?.video_url || item?.image_url || "";
+  const rawUrl = item?.url || item?.video_url || item?.videoUrl || item?.image_url || item?.imageUrl || "";
   if (Array.isArray(rawUrl)) return rawUrl.map((url) => String(url || "")).filter(Boolean);
   return [String(rawUrl || "")].filter(Boolean);
 }

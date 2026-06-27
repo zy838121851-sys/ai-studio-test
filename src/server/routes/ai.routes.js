@@ -24,7 +24,8 @@ import { quoteFixedCredits } from "../services/credits/pricing.service.js";
 import {
   completeAIJob,
   createAIJob,
-  refreshAIJob
+  refreshAIJob,
+  scheduleAIJobRefresh
 } from "../services/ai-job.service.js";
 import { getAsset } from "../services/asset.service.js";
 import {
@@ -159,7 +160,7 @@ export function createAIRouter() {
         providerModel: modelConfig.providerModel || modelConfig.id,
         remoteTaskId: result.remoteTaskId || result.taskId || requestId,
         type,
-        status: result.imageUrl ? "running" : (result.status || "queued"),
+        status: getInitialAIJobStatus(result),
         progress: result.imageUrl ? 90 : 5,
         prompt,
         inputAssetIds: req.body?.inputAssetIds || [],
@@ -197,6 +198,7 @@ export function createAIRouter() {
         });
         return;
       }
+      scheduleAIJobRefresh(req.auth.user.id, job.id);
       if (result.status === "succeeded") {
         const completed = await refreshAIJob(req.auth.user.id, job.id);
         res.json({
@@ -245,8 +247,11 @@ export function createAIRouter() {
     res.json({
       job: toClientJob(job),
       jobId: job.id,
+      remoteTaskId: job.remoteTaskId || "",
       status: job.status,
       progress: job.progress,
+      updatedAt: job.updatedAt,
+      outputCount: assets.length,
       outputs: assets.map(toClientAsset),
       imageUrls: assets.filter((asset) => asset.type === "image").map((asset) => asset.url),
       videoUrls: assets.filter((asset) => asset.type === "video").map((asset) => asset.url),
@@ -431,11 +436,56 @@ export function createAIRouter() {
       task: "image_editing",
       count: 1,
       reason: "image_editing",
-      callProvider: () => generateImage({ model, prompt, images: referenceImages, size })
+      callProvider: async ({ reservation, requestId }) => {
+        const editResult = await generateImage({
+          model,
+          prompt,
+          images: referenceImages,
+          size,
+          requestId
+        });
+        const remoteTaskId = editResult.remoteTaskId || editResult.taskId;
+        if (!remoteTaskId) return editResult;
+        const modelConfig = getModelConfig(model);
+        const job = createAIJob({
+          id: requestId,
+          userId: req.auth.user.id,
+          provider: modelConfig?.providerId || editResult.provider || "",
+          vendor: modelConfig?.vendor || "",
+          modelId: model,
+          providerModel: editResult.providerModel || editResult.resolvedModel || editResult.model || modelConfig?.providerModel || model,
+          remoteTaskId,
+          type: "image",
+          status: getInitialAIJobStatus(editResult),
+          progress: editResult.imageUrl ? 90 : (editResult.status === "running" ? 50 : 5),
+          prompt,
+          creditsReserved: reservation.amountCredits
+        });
+        if (editResult.imageUrl) {
+          const completed = await completeAIJob(req.auth.user.id, job.id, {
+            outputs: [{ url: editResult.imageUrl, mimeType: "image/png" }]
+          });
+          const firstAsset = completed?.outputAssetIds?.[0]
+            ? getAsset(req.auth.user.id, completed.outputAssetIds[0])
+            : null;
+          return buildDeferredImageEditResult(editResult, completed || job, firstAsset, reservation);
+        }
+        scheduleAIJobRefresh(req.auth.user.id, job.id);
+        if (editResult.status === "succeeded") {
+          const completed = await refreshAIJob(req.auth.user.id, job.id);
+          const firstAsset = completed?.outputAssetIds?.[0]
+            ? getAsset(req.auth.user.id, completed.outputAssetIds[0])
+            : null;
+          return buildDeferredImageEditResult(editResult, completed || job, firstAsset, reservation);
+        }
+        return buildDeferredImageEditResult(editResult, job, null, reservation);
+      }
     });
     res.json({
       message: result.imageUrl ? "Image updated" : "Model returned without an image URL",
       imageUrl: result.imageUrl,
+      imageUrls: result.imageUrls || [],
+      outputs: result.outputs || [],
       model: result.model,
       requestedModel: result.requestedModel,
       resolvedModel: result.resolvedModel || result.model,
@@ -443,6 +493,12 @@ export function createAIRouter() {
       providerModel: result.providerModel || result.resolvedModel || result.model,
       providerCalls: isApimartModel(model) ? [] : (result.providerCalls || []),
       referenceCount: result.referenceCount,
+      job: result.job,
+      jobId: result.jobId,
+      remoteTaskId: result.remoteTaskId || result.taskId || "",
+      status: result.status || result.job?.status || "",
+      outputCount: result.outputCount || 0,
+      asset: result.asset,
       billing: toClientBilling(result.billing)
     });
   }));
@@ -612,6 +668,13 @@ function validateVideoOptions(modelConfig = {}, input = {}) {
   return output;
 }
 
+function getInitialAIJobStatus(result = {}) {
+  if (result.imageUrl) return "running";
+  const status = String(result.status || "").trim().toLowerCase();
+  if (status === "succeeded") return "running";
+  return status || "queued";
+}
+
 function sanitizeGenerationResult(result = {}, modelConfig = {}) {
   return {
     message: result.imageUrl ? "Image generated" : "Model returned without an image URL",
@@ -621,6 +684,28 @@ function sanitizeGenerationResult(result = {}, modelConfig = {}) {
     resolvedModel: result.resolvedModel || result.model,
     referenceCount: result.referenceCount,
     billing: toClientBilling(result.billing)
+  };
+}
+
+function buildDeferredImageEditResult(result = {}, job = {}, firstAsset = null, reservation = {}) {
+  const imageAssets = firstAsset?.type === "image" ? [firstAsset] : [];
+  return {
+    ...result,
+    imageUrl: firstAsset?.type === "image" ? firstAsset.url : "",
+    imageUrls: imageAssets.map((asset) => asset.url),
+    outputs: imageAssets.map(toClientAsset),
+    asset: toClientAsset(firstAsset),
+    job: toClientJob(job),
+    jobId: job?.id || "",
+    remoteTaskId: job?.remoteTaskId || result.remoteTaskId || result.taskId || "",
+    status: job?.status || result.status || "",
+    outputCount: imageAssets.length,
+    deferCharge: true,
+    billing: {
+      creditsReserved: reservation.amountCredits || job?.creditsReserved || 0,
+      creditsCharged: job?.creditsCharged || 0,
+      status: job?.status === "succeeded" ? "charged" : (job?.status || "reserved")
+    }
   };
 }
 
@@ -636,6 +721,8 @@ function toClientJob(job = {}) {
     promptPreview: job.promptPreview,
     inputAssetIds: job.inputAssetIds || [],
     outputAssetIds: job.outputAssetIds || [],
+    outputCount: Array.isArray(job.outputAssetIds) ? job.outputAssetIds.length : 0,
+    remoteTaskId: job.remoteTaskId || "",
     errorCode: job.errorCode || "",
     errorMessage: job.errorMessage || "",
     creditsReserved: job.creditsReserved || 0,

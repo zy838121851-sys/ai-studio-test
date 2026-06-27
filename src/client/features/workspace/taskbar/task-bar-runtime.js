@@ -1,4 +1,4 @@
-﻿import { initTaskBar } from "./task-bar.js?v=20260626-midjourney-4up-1";
+import { initTaskBar } from "./task-bar.js?v=20260627-generator-job-recovery-2";
 
 export function createTaskBarRuntimePayload(runtime = {}) {
   const setChatCollapsed = runtime.setChatCollapsed;

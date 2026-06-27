@@ -1,4 +1,4 @@
-﻿export { initCanvasController } from "./canvas-controller.js";
+export { initCanvasController } from "./canvas-controller.js";
 export { CANVAS_EVENT_TYPES, recordCanvasEvent, getCanvasEventStore, getRecentCanvasEvents, clearCanvasEvents } from "./canvas-events.js";
 export { getElementWorldBounds } from "./canvas-geometry.js";
 export { bindCanvasInfrastructureFromRuntime, bindCanvasRuntimeInfrastructure } from "./runtime/canvas-runtime-bindings.js";
@@ -104,8 +104,8 @@ export { createCanvasToolWorkflow } from "./workflows/canvas-tool-workflow.js";
 export { createEraserWorkflow } from "./workflows/eraser-workflow.js";
 export { createGenerationNodeWorkflow } from "./workflows/generation-node-workflow.js";
 export { createGenerationUploadWorkflow } from "./workflows/generation-upload-workflow.js";
-export { createImageEditWorkflow } from "./workflows/image-edit-workflow.js?v=20260626-midjourney-4up-1";
-export { createImageGeneratorWorkflow } from "./workflows/image-generator-workflow.js?v=20260626-popover-anchor-1";
+export { createImageEditWorkflow } from "./workflows/image-edit-workflow.js?v=20260627-generator-job-recovery-2";
+export { createImageGeneratorWorkflow } from "./workflows/image-generator-workflow.js?v=20260627-generator-job-recovery-2";
 export { createModelViewerWorkflow } from "./workflows/model-viewer-workflow.js";
 export { createNodeDragWorkflow } from "./workflows/node-drag-workflow.js";
 export { createSelectionWorkflow } from "./workflows/selection-workflow.js";

@@ -11,7 +11,7 @@ import {
   formatModelUsage,
   getModelType,
   resolveImageModelId
-} from "../../../ai/model-catalog.js?v=20260626-midjourney-4up-1";
+} from "../../../ai/model-catalog.js?v=20260627-generator-job-recovery-2";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
 
@@ -86,6 +86,7 @@ export function bindPromptSubmit({
   replacePreviewWithImage,
   updateActiveProject,
   saveCurrentProject = null,
+  saveCurrentProjectAfterGeneration = saveCurrentProject,
   getActiveProject,
   makeProjectTitle,
   postJsonRequest,
@@ -246,7 +247,7 @@ export function bindPromptSubmit({
           thumbnail: imageUrls[0],
           itemCount: (getActiveProject()?.itemCount || 0) + imageUrls.length
         });
-        await saveCurrentProject?.();
+        await saveCurrentProjectAfterGeneration?.();
         onProjectTitleRefresh();
         imageUrls.forEach((imageUrl, index) => {
           addChatImage("assistant", imageUrl, imageUrls.length > 1

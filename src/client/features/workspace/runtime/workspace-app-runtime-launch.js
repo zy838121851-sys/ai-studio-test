@@ -162,6 +162,7 @@ export function launchWorkspaceAppRuntime({
       replacePreviewWithImage: canvasGenerationRuntime.replacePreviewWithImage,
       updateActiveProject: projectHomeRuntime.updateActiveProject,
       saveCurrentProject: projectHomeRuntime.saveCurrentProject,
+      saveCurrentProjectAfterGeneration: projectHomeRuntime.saveCurrentProjectAfterGeneration,
       makeProjectTitle: projectHomeRuntime.makeProjectTitle,
       postJsonRequest,
       buildChatImagePayload,

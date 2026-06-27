@@ -70,6 +70,18 @@ try {
   assert(imageJob.imageUrl?.startsWith("/uploads/"), "Image job output should be local");
   assertNoPublicApimart(imageJob, "image job response");
 
+  const completedNoUrl = await postJson(`${baseUrl}/api/ai/generate`, {
+    modelId: "seedream-5-lite",
+    prompt: "mock-apimart-task-no-url image"
+  });
+  assert(completedNoUrl.jobId, "Completed no-url task should return a local job id");
+  assertNoPublicApimart(completedNoUrl, "completed no-url image response");
+
+  const completedNoUrlJob = await getJson(`${baseUrl}/api/ai/jobs/${completedNoUrl.jobId}`);
+  assert(completedNoUrlJob.status === "succeeded", "Completed no-url image job should finish");
+  assert(completedNoUrlJob.imageUrl?.startsWith("/uploads/"), "Completed no-url job output should be local");
+  assertNoPublicApimart(completedNoUrlJob, "completed no-url image job response");
+
   const midjourney = await postJson(`${baseUrl}/api/ai/generate`, {
     modelId: "midjourney",
     prompt: "mock-apimart-pending midjourney"
@@ -103,7 +115,7 @@ try {
   assertNoPublicApimart(videoJob, "video job response");
 
   const after = getCreditBalance("apimart-user").balanceCredits;
-  assert(after === before - 12 - 12 - 8 - 18, "Successful mock jobs should charge configured credits");
+  assert(after === before - 12 - 12 - 12 - 8 - 18, "Successful mock jobs should charge configured credits");
 
   const invalidVideo = await fetch(`${baseUrl}/api/ai/generate`, {
     method: "POST",

@@ -424,6 +424,10 @@ body[data-view="canvas"] .ai-core {
 }
 
 body[data-view="canvas"] .project-header {
+  position: fixed;
+  top: 18px;
+  left: 18px;
+  z-index: 14000;
   background: transparent !important;
   border-color: transparent !important;
   box-shadow: none !important;
@@ -458,12 +462,14 @@ body[data-view="canvas"] .project-header p {
   align-items: center;
   width: fit-content;
   min-height: 18px;
-  padding: 2px 7px;
+  padding: 4px 9px;
   margin-top: 4px !important;
   border-radius: 999px;
   opacity: 0;
   transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.08);
   transition: opacity 0.18s ease, transform 0.18s ease, background 0.18s ease, color 0.18s ease;
+  pointer-events: none;
 }
 
 body[data-view="canvas"] .project-header p.show {

@@ -235,6 +235,18 @@ export function mockImageResult({
       providerCalls: [providerCall(model, operation, requestId)]
     };
   }
+  if (cleanPrompt.includes("mock-apimart-task-no-url")) {
+    const remoteTaskId = `remote-image-${randomUUID()}`;
+    return {
+      taskId: remoteTaskId,
+      remoteTaskId,
+      status: "succeeded",
+      type: "image",
+      model,
+      referenceCount: images.length,
+      providerCalls: [providerCall(model, operation, requestId)]
+    };
+  }
   if (cleanPrompt.includes("mock-apimart-task")) {
     const remoteTaskId = `remote-image-${randomUUID()}`;
     return {

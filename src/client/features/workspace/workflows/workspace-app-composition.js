@@ -235,6 +235,7 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
       postJsonRequest: libDeps.postJsonRequest,
       readImageSourceAsDataUrl: aiDeps.readImageSourceAsDataUrl,
       buildChatImagePayload: aiDeps.buildChatImagePayload,
+      saveCurrentProjectAfterGeneration: (...args) => projectHomeRuntime.saveCurrentProjectAfterGeneration?.(...args),
       escapeHtml: libDeps.escapeHtmlText
     }
   });
@@ -340,6 +341,7 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
       escapeHtml: libDeps.escapeHtmlText,
       addChat: (...args) => chatRuntime.addChat(...args),
       saveCurrentProject: (...args) => projectHomeRuntime.saveCurrentProject?.(...args),
+      saveCurrentProjectAfterGeneration: (...args) => projectHomeRuntime.saveCurrentProjectAfterGeneration?.(...args),
       registerUploadedAsset: (...args) => assetRuntime.uploadAssetFile?.(...args),
       registerGeneratedAsset: (...args) => assetRuntime.registerGeneratedAsset?.(...args),
       registerImageAsset: (payload = {}) => assetRuntime.registerGeneratedAsset?.({
@@ -400,7 +402,8 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
     canvas: canvasCompositionRuntime,
     chatRuntime,
     services: {
-      readImageSourceAsDataUrl: aiDeps.readImageSourceAsDataUrl
+      readImageSourceAsDataUrl: aiDeps.readImageSourceAsDataUrl,
+      saveCurrentProjectAfterGeneration: (...args) => projectHomeRuntime.saveCurrentProjectAfterGeneration?.(...args)
     }
   });
 

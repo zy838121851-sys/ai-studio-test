@@ -49,6 +49,7 @@ export function createGenerationUploadWorkflow({
     setUploadChoiceHover = () => {},
     syncCanvasTransform = () => {},
     registerUploadedAsset = () => Promise.resolve(null),
+    saveCurrentProjectAfterGeneration = null,
     escapeHtml = (value = "") => String(value),
   } = services;
 
@@ -122,6 +123,9 @@ export function createGenerationUploadWorkflow({
       .then((result) => {
         const asset = result?.asset || result || null;
         applyPersistentAssetToNode(node, asset, transientUrl);
+        if (asset?.url && node.isConnected) {
+          saveCurrentProjectAfterGeneration?.();
+        }
         return asset;
       })
       .catch((error) => {

@@ -55,6 +55,7 @@ export function createWorkspaceDirectorActionCompositionRuntime({
       buildChatImagePayload: services.buildChatImagePayload,
       addSourceBadge: (...args) => canvas.canvasGenerationRuntime.addSourceBadge(...args),
       replacePreviewWithImage: (...args) => canvas.canvasGenerationRuntime.replacePreviewWithImage(...args),
+      saveCurrentProjectAfterGeneration: services.saveCurrentProjectAfterGeneration,
       escapeHtml: services.escapeHtml
     }
   });

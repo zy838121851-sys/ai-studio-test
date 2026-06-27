@@ -6,7 +6,7 @@ import {
 import {
   DEFAULT_IMAGE_MODEL,
   resolveImageModelId
-} from "../../../ai/model-catalog.js?v=20260626-midjourney-4up-1";
+} from "../../../ai/model-catalog.js?v=20260627-generator-job-recovery-2";
 
 export function createHomeWorkflow({
   elements = {},

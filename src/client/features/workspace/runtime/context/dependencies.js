@@ -328,6 +328,7 @@ export function buildRuntimeActionDependencies(deps = {}) {
     replacePreviewWithImage: deps.replacePreviewWithImage,
     updateActiveProject: deps.updateActiveProject,
     saveCurrentProject: deps.saveCurrentProject,
+    saveCurrentProjectAfterGeneration: deps.saveCurrentProjectAfterGeneration,
     makeProjectTitle: deps.makeProjectTitle,
     postJsonRequest: deps.postJsonRequest,
     buildChatImagePayload: deps.buildChatImagePayload,

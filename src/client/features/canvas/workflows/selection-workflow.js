@@ -25,6 +25,7 @@ export function createSelectionWorkflow({
     setSelectedNode(clearSelectedNodeElements(selectedNodes));
     hideTextToolbar(getTextFormatToolbar());
     hideShapeToolbar();
+    dispatchSelectionChanged(null);
   }
 
   function selectNode(node, additive = false) {
@@ -38,6 +39,7 @@ export function createSelectionWorkflow({
     positionShapeFormatToolbar();
     recordCanvasEvent("select", { nodeId: node.dataset.nodeId });
     scheduleAICoreAgent("selection_pause", node, 5000);
+    dispatchSelectionChanged(node);
   }
 
   function selectNodes(nodes) {
@@ -49,6 +51,7 @@ export function createSelectionWorkflow({
     setSelectedNode(replaceSelectedNodeElements(selectedNodes, nodes));
     positionTextFormatToolbar();
     positionShapeFormatToolbar();
+    dispatchSelectionChanged(nodes[nodes.length - 1] || null);
   }
 
   function removeNodeDeep(node) {
@@ -72,6 +75,16 @@ export function createSelectionWorkflow({
     recordCanvasEvent("delete", eventPayload);
     clearSelection();
     nodes.forEach(detachNodeForUndo);
+  }
+
+  function dispatchSelectionChanged(activeNode) {
+    const root = activeNode?.ownerDocument || globalThis.document;
+    root?.dispatchEvent?.(new CustomEvent("canvas:selection-changed", {
+      detail: {
+        activeNode,
+        selectedNodes: Array.from(getSelectedNodes() || [])
+      }
+    }));
   }
 
   return {

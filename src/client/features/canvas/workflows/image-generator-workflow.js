@@ -6,7 +6,7 @@ import {
   formatModelUsage,
   getImageModelDisplayName,
   resolveImageModelId
-} from "../../ai/model-catalog.js?v=20260626-midjourney-4up-1";
+} from "../../ai/model-catalog.js?v=20260627-generator-job-recovery-2";
 import { renderModelPreferenceMenu } from "../../ai/model-preference-menu.js";
 
 const GENERATOR_SELECTOR = ".node-image-generator";
@@ -52,6 +52,7 @@ export function createImageGeneratorWorkflow({
     registerGeneratedAsset = null,
     replacePreviewWithImage = null,
     saveCurrentProject = null,
+    saveCurrentProjectAfterGeneration = saveCurrentProject,
     selectNode = () => {}
   } = services;
 
@@ -168,6 +169,14 @@ export function createImageGeneratorWorkflow({
     }
   });
 
+  globalThis.document?.addEventListener?.("canvas:selection-changed", (event) => {
+    handleGeneratorSelectionChange(event.detail?.activeNode || null);
+  });
+
+  globalThis.document?.addEventListener?.("canvas:context-overlay-close", () => {
+    hideGeneratorPopover();
+  });
+
   globalThis.document?.addEventListener?.("canvas:image-generator-reference-files", (event) => {
     const node = getActiveGeneratorNode();
     if (!node) return;
@@ -184,6 +193,14 @@ export function createImageGeneratorWorkflow({
     if (!activeGeneratorNode || !getGeneratorPopover()?.classList.contains("open")) return;
     closeGeneratorCustomSelects();
     scheduleGeneratorPopoverPosition();
+  });
+
+  globalThis.window?.addEventListener?.("focus", () => {
+    resumePendingGeneratorPreviews();
+  });
+
+  globalThis.document?.addEventListener?.("visibilitychange", () => {
+    if (globalThis.document?.visibilityState === "visible") resumePendingGeneratorPreviews();
   });
 
   globalThis.document?.addEventListener?.("ai-studio-models-updated", () => {
@@ -311,22 +328,23 @@ export function createImageGeneratorWorkflow({
         images,
         size
       });
-      if (!result?.imageUrl) throw new Error(result?.message || "Model returned without an image URL");
+      const imageUrl = getPrimaryResultImageUrl(result);
+      if (!imageUrl) throw new Error(getMissingGeneratorResultMessage(result));
 
       const displayUrl = await persistGeneratorResult({
         node,
-        sourceUrl: result.imageUrl,
+        sourceUrl: imageUrl,
         prompt,
         model
       });
-      applyGeneratorResult(node, displayUrl || result.imageUrl, { prompt, model });
+      applyGeneratorResult(node, displayUrl || imageUrl, { prompt, model });
       recordCanvasEvent("generation_created", {
         nodeId: node.dataset.nodeId,
         sourceId: "",
         actionType: detectGenerationKind(prompt),
         model
       });
-      await saveCurrentProject?.();
+      await saveCurrentProjectAfterGeneration?.();
       addChat("assistant", "图像生成器已生成结果。");
     } catch (error) {
       console.error("[canvas] Image generator failed", error);
@@ -389,6 +407,13 @@ export function createImageGeneratorWorkflow({
           prompt,
           images,
           size,
+          onJobCreated: (payload) => tagGeneratorPreviewJobs(previewNodes, payload, {
+            prompt,
+            model,
+            actionType,
+            aspectRatio,
+            dimensions
+          }),
           onProgress: (payload) => {
             const progress = Number(payload?.progress || 0);
             previewNodes.forEach((previewNode, index) => {
@@ -439,6 +464,13 @@ export function createImageGeneratorWorkflow({
           prompt,
           images,
           size,
+          onJobCreated: (payload) => tagGeneratorPreviewJobs([previewNode], payload, {
+            prompt,
+            model,
+            actionType,
+            aspectRatio,
+            dimensions
+          }),
           onProgress: (payload) => {
             const progress = Number(payload?.progress || 0);
             updatePreviewStatus(previewNode, progress > 0
@@ -446,7 +478,8 @@ export function createImageGeneratorWorkflow({
               : `正在生成第 ${index + 1}/${count} 张`);
           }
         });
-        if (!result?.imageUrl) throw new Error(result?.message || "Model returned without an image URL");
+        const imageUrl = getPrimaryResultImageUrl(result);
+        if (!imageUrl) throw new Error(getMissingGeneratorResultMessage(result));
         resultModel = result.requestedModel || result.model || model;
         warnIfGeneratorModelMismatch(model, resultModel, result);
         modelUsage = formatModelUsage(result, resultModel);
@@ -454,7 +487,7 @@ export function createImageGeneratorWorkflow({
         const createdNode = replacePreviewWithImage(previewNode, {
           title: getGeneratorResultTitle(index, count),
           desc: prompt || "Image generator result",
-          url: result.imageUrl,
+          url: imageUrl,
           width: getPreviewNodeWidth(previewNode),
           aspectRatio,
           prompt,
@@ -463,7 +496,7 @@ export function createImageGeneratorWorkflow({
           model: resultModel
         });
         if (!createdNode) throw new Error("Unable to replace generation preview");
-        applyGeneratedImageNodeResult(createdNode, result.imageUrl, {
+        applyGeneratedImageNodeResult(createdNode, imageUrl, {
           prompt,
           model: resultModel,
           dimensions,
@@ -481,7 +514,7 @@ export function createImageGeneratorWorkflow({
         selectNode(createdNodes[0]);
         window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
       }
-      await saveCurrentProject?.();
+      await saveCurrentProjectAfterGeneration?.();
       addChat("assistant", count > 1
         ? `\u56fe\u50cf\u751f\u6210\u5668\u5df2\u751f\u6210 ${count} \u5f20\u7ed3\u679c\u3002\n${modelUsage}`
         : `\u56fe\u50cf\u751f\u6210\u5668\u5df2\u751f\u6210\u7ed3\u679c\u3002\n${modelUsage}`);
@@ -492,7 +525,6 @@ export function createImageGeneratorWorkflow({
           .filter((previewNode) => previewNode?.isConnected)
           .forEach((previewNode) => markGeneratorPreviewFailed(previewNode, error));
         if (firstSuccessfulNode) selectNode(firstSuccessfulNode);
-        await saveCurrentProject?.();
         addChat("assistant", `鍥惧儚鐢熸垚澶辫触锛?{error.message}`);
         return;
       }
@@ -559,11 +591,100 @@ export function createImageGeneratorWorkflow({
 
   function markGeneratorPreviewFailed(previewNode, error) {
     if (!previewNode) return;
+    previewNode.dataset.generatorFailed = "true";
     previewNode.classList.add("generation-failed");
     const title = previewNode.querySelector(".generation-frame strong");
     const statusText = previewNode.querySelector(".generation-frame span");
     if (title) title.textContent = "生成失败";
     if (statusText) statusText.textContent = error?.message || "生成失败，请重试";
+  }
+
+  function tagGeneratorPreviewJobs(previewNodes = [], payload = {}, meta = {}) {
+    const jobId = String(payload?.jobId || payload?.job?.id || "").trim();
+    if (!jobId) return;
+    previewNodes.filter(Boolean).forEach((previewNode) => {
+      previewNode.dataset.generatorJobId = jobId;
+      previewNode.dataset.generatorJobStatus = payload?.status || payload?.job?.status || "queued";
+      previewNode.dataset.generatorPrompt = meta.prompt || "";
+      previewNode.dataset.generatorModel = meta.model || payload?.model || payload?.requestedModel || "";
+      previewNode.dataset.generatorActionType = meta.actionType || "";
+      previewNode.dataset.generatorAspectRatio = meta.aspectRatio || "";
+      if (meta.dimensions?.width > 0) previewNode.dataset.outputWidth = String(meta.dimensions.width);
+      if (meta.dimensions?.height > 0) previewNode.dataset.outputHeight = String(meta.dimensions.height);
+    });
+  }
+
+  function resumePendingGeneratorPreviews() {
+    const root = canvasWorld?.ownerDocument || globalThis.document;
+    const previews = Array.from(root?.querySelectorAll?.(".node-loading-image[data-generator-job-id]") || [])
+      .filter((previewNode) => (
+        previewNode.isConnected
+        && previewNode.dataset.generatorResuming !== "true"
+        && previewNode.dataset.generatorFailed !== "true"
+      ));
+    if (!previews.length) return;
+    const groups = new Map();
+    previews.forEach((previewNode) => {
+      const jobId = previewNode.dataset.generatorJobId;
+      if (!jobId) return;
+      if (!groups.has(jobId)) groups.set(jobId, []);
+      groups.get(jobId).push(previewNode);
+    });
+    groups.forEach((nodes, jobId) => resumeGeneratorPreviewGroup(jobId, nodes));
+  }
+
+  function resumeGeneratorPreviewGroup(jobId, nodes = []) {
+    nodes.forEach((node) => {
+      node.dataset.generatorResuming = "true";
+      updatePreviewStatus(node, "正在恢复生成结果...");
+    });
+    waitForImageGenerationJob(jobId, {
+      attempts: 20,
+      delayMs: 1500,
+      fallback: { jobId },
+      onProgress: (payload) => {
+        const progress = Number(payload?.progress || 0);
+        nodes.forEach((node) => updatePreviewStatus(node, progress > 0
+          ? `正在恢复生成结果 (${Math.min(99, progress)}%)`
+          : "正在恢复生成结果..."));
+      }
+    }).then((result) => {
+      const urls = getResultImageUrls(result);
+      nodes.forEach((previewNode, index) => replaceRecoveredGeneratorPreview(previewNode, {
+        jobId,
+        result,
+        url: urls[Math.max(0, Number(previewNode.dataset.generatorBatchIndex || index + 1) - 1)] || urls[index] || urls[0] || "",
+        index,
+        count: urls.length || nodes.length || 1
+      }));
+      window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
+      saveCurrentProjectAfterGeneration?.();
+    }).catch((error) => {
+      nodes.forEach((node) => {
+        delete node.dataset.generatorResuming;
+        if (node.isConnected) markGeneratorPreviewFailed(node, error);
+      });
+    });
+  }
+
+  function replaceRecoveredGeneratorPreview(previewNode, { jobId, result = {}, url = "", index = 0, count = 1 } = {}) {
+    if (!previewNode?.isConnected) return null;
+    if (!url) throw new Error(getMissingGeneratorResultMessage(result));
+    const batchIndex = Math.max(0, Number(previewNode.dataset.generatorBatchIndex || index + 1) - 1);
+    const createdNode = replacePreviewWithImage(previewNode, {
+      title: getGeneratorResultTitle(batchIndex, count),
+      desc: previewNode.dataset.generatorPrompt || "Image generator result",
+      url,
+      width: getPreviewNodeWidth(previewNode),
+      aspectRatio: previewNode.dataset.generatorAspectRatio || "",
+      prompt: previewNode.dataset.generatorPrompt || "",
+      sourceNode: null,
+      actionType: previewNode.dataset.generatorActionType || "",
+      model: result.requestedModel || result.model || previewNode.dataset.generatorModel || ""
+    });
+    if (!createdNode) throw new Error("Unable to replace generation preview");
+    createdNode.dataset.generatorJobId = jobId;
+    return createdNode;
   }
 
   async function addGeneratedImageBesideGenerator(node, {
@@ -847,6 +968,20 @@ export function createImageGeneratorWorkflow({
     showGeneratorPopover(node);
   }
 
+  function handleGeneratorSelectionChange(activeNode) {
+    const nextPopover = getGeneratorPopover();
+    if (!nextPopover?.classList.contains("open") && !activeGeneratorNode) return;
+    if (activeNode === activeGeneratorNode) {
+      refreshGeneratorPopoverIfOpen(activeNode);
+      return;
+    }
+    if (activeNode?.matches?.(GENERATOR_SELECTOR)) {
+      showGeneratorPopover(activeNode);
+      return;
+    }
+    hideGeneratorPopover();
+  }
+
   function hideGeneratorPopover() {
     const nextPopover = getGeneratorPopover();
     if (activeGeneratorNode) saveGeneratorDraft(activeGeneratorNode);
@@ -856,7 +991,7 @@ export function createImageGeneratorWorkflow({
     teardownPositionObserver();
   }
 
-  async function runImageGenerationRequest({ model, prompt, images = [], size, onProgress = null } = {}) {
+  async function runImageGenerationRequest({ model, prompt, images = [], size, onJobCreated = null, onProgress = null } = {}) {
     logSubmittedGeneratorModel(model);
     const result = await postJsonRequest("/api/ai/generate", buildChatImagePayload({
       model,
@@ -864,12 +999,20 @@ export function createImageGeneratorWorkflow({
       images,
       size
     }));
+    if (result?.jobId) onJobCreated?.(result);
     if (result?.imageUrl || !result?.jobId) return result;
     return waitForImageGenerationJob(result.jobId, { onProgress, fallback: result });
   }
 
-  async function waitForImageGenerationJob(jobId, { attempts = 180, delayMs = 2000, onProgress = null, fallback = {} } = {}) {
+  async function waitForImageGenerationJob(jobId, {
+    attempts = 180,
+    delayMs = 2000,
+    onProgress = null,
+    fallback = {},
+    missingUrlRetries = 4
+  } = {}) {
     let lastPayload = { jobId, ...fallback };
+    let missingUrlAttempts = 0;
     for (let index = 0; index < attempts; index += 1) {
       await delay(delayMs);
       const response = await fetch(`/api/ai/jobs/${encodeURIComponent(jobId)}`, {
@@ -889,8 +1032,21 @@ export function createImageGeneratorWorkflow({
       }
       if (!response.ok) throw new Error(payload?.message || `Job request failed: ${response.status}`);
       lastPayload = { ...fallback, ...payload };
+      logGeneratorJobPoll(lastPayload);
       if (["succeeded", "failed", "cancelled", "timeout", "save_failed"].includes(payload?.status)) {
         if (payload.status !== "succeeded") throw new Error(payload.error || payload.status);
+        if (!getResultImageUrls(lastPayload).length) {
+          missingUrlAttempts += 1;
+          if (missingUrlAttempts <= missingUrlRetries) {
+            onProgress?.({
+              ...lastPayload,
+              status: "running",
+              message: "Waiting for saved image URL"
+            });
+            continue;
+          }
+          throw new Error(getMissingGeneratorResultMessage(lastPayload));
+        }
         return lastPayload;
       }
       onProgress?.(payload);
@@ -928,16 +1084,46 @@ export function createImageGeneratorWorkflow({
     });
   }
 
+  function logGeneratorJobPoll(payload = {}) {
+    if (!["localhost", "127.0.0.1"].includes(globalThis.location?.hostname || "")) return;
+    console.debug("[generator] job poll", {
+      jobId: payload.jobId || payload.job?.id || "",
+      remoteTaskId: payload.remoteTaskId || payload.job?.remoteTaskId || "",
+      status: payload.status || payload.job?.status || "",
+      progress: payload.progress || payload.job?.progress || 0,
+      imageUrls: getResultImageUrls(payload),
+      outputCount: payload.outputCount ?? payload.outputs?.length ?? 0,
+      updatedAt: payload.updatedAt || payload.job?.updatedAt || ""
+    });
+  }
+
   function getResultImageUrls(result = {}) {
     const urls = [];
     if (Array.isArray(result?.imageUrls)) urls.push(...result.imageUrls);
     if (Array.isArray(result?.outputs)) {
       result.outputs.forEach((output) => {
-        if (output?.type === "image" && output.url) urls.push(output.url);
+        const type = String(output?.type || "").toLowerCase();
+        const mimeType = String(output?.mimeType || output?.mime_type || "").toLowerCase();
+        if (output?.url && (type === "image" || mimeType.startsWith("image/") || (!type && !mimeType))) {
+          urls.push(output.url);
+        }
       });
     }
     if (result?.imageUrl) urls.unshift(result.imageUrl);
     return Array.from(new Set(urls.filter(Boolean)));
+  }
+
+  function getPrimaryResultImageUrl(result = {}) {
+    return getResultImageUrls(result)[0] || "";
+  }
+
+  function getMissingGeneratorResultMessage(result = {}) {
+    const message = String(result?.message || "Model returned without an image URL").trim();
+    const details = [
+      result?.jobId ? `jobId=${result.jobId}` : "",
+      result?.status ? `status=${result.status}` : ""
+    ].filter(Boolean).join(", ");
+    return details ? `${message} (${details})` : message;
   }
 
   function isMidjourneyModel(model = "") {
