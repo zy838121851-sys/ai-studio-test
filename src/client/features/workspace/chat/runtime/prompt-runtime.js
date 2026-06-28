@@ -1,4 +1,4 @@
-import { bindPromptShortcuts, bindPromptSubmit } from "../workflows/prompt-workflow.js?v=20260627-library-bulk-select-1";
+import { bindPromptShortcuts, bindPromptSubmit } from "../workflows/prompt-workflow.js?v=20260628-lightweight-prompt-1";
 
 export function createPromptSubmitRuntimePayload(runtime = {}) {
   return {
@@ -15,8 +15,10 @@ export function createPromptSubmitRuntimePayload(runtime = {}) {
     addChat: runtime.addChat,
     updateChat: runtime.updateChat,
     addChatImage: runtime.addChatImage,
+    addChatBlocks: runtime.addChatBlocks,
     addGenerationPreview: runtime.addGenerationPreview,
     replacePreviewWithImage: runtime.replacePreviewWithImage,
+    replacePreviewWithVideo: runtime.replacePreviewWithVideo,
     updateActiveProject: runtime.updateActiveProject,
     saveCurrentProject: runtime.saveCurrentProject,
     saveCurrentProjectAfterGeneration: runtime.saveCurrentProjectAfterGeneration,
@@ -25,6 +27,7 @@ export function createPromptSubmitRuntimePayload(runtime = {}) {
     postJsonRequest: runtime.postJsonRequest,
     buildChatImagePayload: runtime.buildChatImagePayload,
     readFileAsDataUrl: runtime.readFileAsDataUrl,
+    readImageSourceAsDataUrl: runtime.readImageSourceAsDataUrl,
     recordCanvasEvent: runtime.recordCanvasEvent,
     chatModelSelect: runtime.chatModelSelect,
     setChatCollapsed: runtime.setChatCollapsed,

@@ -1,12 +1,13 @@
 import {
+  appendChatBlocks,
   appendChatImage,
   appendChatMessage,
   appendThinkingMessage,
   updateChatMessage,
   updateThinkingMessage,
   updateThinkingSummary
-} from "../components/chat-log.js";
-import { createChatWorkflow } from "../workflows/chat-workflow.js";
+} from "../components/chat-log.js?v=20260628-agent-blocks-1";
+import { createChatWorkflow } from "../workflows/chat-workflow.js?v=20260628-agent-blocks-1";
 
 export function createChatWorkflowRuntime({
   elements = {},
@@ -23,6 +24,7 @@ export function createChatWorkflowRuntime({
       updateChatMessage,
       updateThinkingMessage,
       updateThinkingSummary,
+      appendChatBlocks,
       appendChatImage,
       escapeHtml: services.escapeHtml
     }

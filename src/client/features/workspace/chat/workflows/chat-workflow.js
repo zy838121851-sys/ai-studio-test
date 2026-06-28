@@ -14,6 +14,7 @@ export function createChatWorkflow({
     updateThinkingMessage = () => {},
     updateThinkingSummary = () => {},
     appendChatImage = () => null,
+    appendChatBlocks = () => null,
     escapeHtml = (value = "") => String(value)
   } = services;
 
@@ -41,12 +42,17 @@ export function createChatWorkflow({
     return appendChatImage({ chatLog, role, imageUrl, caption, escapeHtml });
   }
 
+  function addChatBlocks(role, blocks = []) {
+    return appendChatBlocks({ chatPanel, chatLog, role, blocks, escapeHtml });
+  }
+
   return {
     addChat,
     updateChat,
     addThinking,
     updateThinking,
     setThinkingSummary,
-    addChatImage
+    addChatImage,
+    addChatBlocks
   };
 }

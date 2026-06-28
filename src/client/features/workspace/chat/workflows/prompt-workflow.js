@@ -16,16 +16,395 @@ import {
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
 const CONVERSATION_THINKING_STEPS = [
-  { key: "context", label: "Read context" },
-  { key: "references", label: "Analyze references" },
-  { key: "intent", label: "Route intent" },
-  { key: "tool", label: "Run tool" },
-  { key: "final", label: "Prepare result" }
+  { key: "context", label: "读取上下文" },
+  { key: "references", label: "图片分析" },
+  { key: "prompt", label: "优化提示词" },
+  { key: "tool", label: "执行生成" },
+  { key: "final", label: "整理结果" }
 ];
 const conversationIdsByProject = new Map();
 let restoredConversationProjects = new Set();
 let currentConversationAbort = null;
+let activeChatAgentRunId = "";
 let lastConversationPrompt = "";
+const CONVERSATION_STREAM_TIMEOUT_MS = 0;
+const CHAT_AGENT_WORKFLOW_VERSION = "20260628-lightweight-prompt-1";
+
+if (globalThis.window) {
+  globalThis.__chatAgentWorkflowVersion = CHAT_AGENT_WORKFLOW_VERSION;
+  console.debug("[chat-agent] workflow.version", CHAT_AGENT_WORKFLOW_VERSION);
+}
+
+const CHAT_AGENT_CONFIG = {
+  autoExecute: true
+};
+const CHAT_AGENT_DEBUG_PREFIX = "[chat-agent]";
+
+function isChatAgentDev() {
+  const host = globalThis.location?.hostname || "";
+  return ["localhost", "127.0.0.1"].includes(host);
+}
+
+function createAgentDebugRecord(input = {}) {
+  return {
+    runId: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+    startedAt: new Date().toISOString(),
+    originalPrompt: input.originalPrompt || "",
+    modelId: input.modelId || "",
+    generationType: "",
+    composerAttachmentCount: Number(input.composerAttachmentCount || 0),
+    pendingHomeAttachmentCount: Number(input.pendingHomeAttachmentCount || 0),
+    copiedAttachmentCount: 0,
+    dataUrlSuccessCount: 0,
+    dataUrlFailureCount: 0,
+    referenceImageCount: 0,
+    referenceImages: [],
+    intent: "",
+    taskType: "",
+    promptStrategy: "",
+    strategyTags: [],
+    promptDriftDetected: false,
+    usedConservativeFallback: false,
+    optimizedPrompt: "",
+    qwenVlMode: "",
+    promptOptimizerMode: "",
+    skippedOptimizer: false,
+    optimizerStarted: false,
+    optimizerFinished: false,
+    optimizerTimedOut: false,
+    optimizerError: "",
+    usedFallbackPrompt: false,
+    totalBudgetExceeded: false,
+    imageAnalysisPresent: false,
+    imageAnalysisStarted: false,
+    imageAnalysisFinished: false,
+    imageAnalysisTimedOut: false,
+    imageAnalysisError: "",
+    messageDoneReceived: false,
+    messageDoneHandled: false,
+    messageDoneSkipReason: "",
+    startGenerationAttempted: false,
+    previewCreationAttempted: false,
+    previewCreationError: "",
+    generatePayloadBuilt: false,
+    generateRequestStarted: false,
+    addChatBlocksAvailable: Boolean(input.addChatBlocksAvailable),
+    streamEventTypes: [],
+    lastStreamEventType: "",
+    streamAbortReason: "",
+    streamParseError: "",
+    streamFinished: false,
+    streamError: "",
+    streamTimeout: false,
+    shouldGenerate: false,
+    autoExecute: CHAT_AGENT_CONFIG.autoExecute,
+    executeGeneration: false,
+    pendingPreviewCreated: false,
+    generationStarted: false,
+    generatePayload: null,
+    generateResult: null,
+    error: ""
+  };
+}
+
+function logAgentDebug(record, label, data = {}) {
+  if (!isChatAgentDev()) return;
+  const payload = sanitizeDebugValue(data);
+  console.debug(CHAT_AGENT_DEBUG_PREFIX, label, {
+    runId: record?.runId || "",
+    ...payload
+  });
+}
+
+function logMessageDoneGenerationDecision(record, data = {}) {
+  console.debug("[message.done] generation decision", {
+    runId: record?.runId || "",
+    activeRunId: activeChatAgentRunId || "",
+    intent: record?.intent || "",
+    shouldGenerate: Boolean(record?.shouldGenerate),
+    generationType: record?.generationType || "",
+    autoExecute: CHAT_AGENT_CONFIG.autoExecute,
+    generationStarted: Boolean(record?.generationStarted),
+    executeGeneration: Boolean(record?.executeGeneration),
+    pendingPreviewCreated: Boolean(record?.pendingPreviewCreated),
+    messageDoneHandled: Boolean(record?.messageDoneHandled),
+    skipReason: record?.messageDoneSkipReason || "",
+    ...sanitizeDebugValue(data)
+  });
+}
+
+function sanitizeDebugValue(value) {
+  if (typeof value === "string") return summarizeDataUrl(value);
+  if (Array.isArray(value)) return value.map(sanitizeDebugValue);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, sanitizeDebugValue(item)]));
+}
+
+function updateAgentDebugPanel(record) {
+  if (!record || !isChatAgentDev()) return;
+  const panel = ensureAgentDebugPanel();
+  if (!panel) return;
+  const pre = panel.querySelector("[data-agent-debug-output]");
+  if (!pre) return;
+  pre.textContent = JSON.stringify({
+    runId: record.runId,
+    originalPrompt: record.originalPrompt,
+    intent: record.intent,
+    taskType: record.taskType,
+    promptStrategy: record.promptStrategy,
+    optimizedPrompt: record.optimizedPrompt,
+    qwenVlMode: record.qwenVlMode,
+    promptOptimizerMode: record.promptOptimizerMode,
+    skippedOptimizer: record.skippedOptimizer,
+    optimizerStarted: record.optimizerStarted,
+    optimizerFinished: record.optimizerFinished,
+    optimizerTimedOut: record.optimizerTimedOut,
+    optimizerError: record.optimizerError,
+    usedFallbackPrompt: record.usedFallbackPrompt,
+    totalBudgetExceeded: record.totalBudgetExceeded,
+    imageAnalysisPresent: record.imageAnalysisPresent,
+    imageAnalysisStarted: record.imageAnalysisStarted,
+    imageAnalysisFinished: record.imageAnalysisFinished,
+    imageAnalysisTimedOut: record.imageAnalysisTimedOut,
+    imageAnalysisError: record.imageAnalysisError,
+    referenceImageCount: record.referenceImageCount,
+    referenceImagesCount: record.referenceImageCount,
+    referenceImages: record.referenceImages,
+    generatePayload: record.generatePayload,
+    modelId: record.modelId,
+    generationType: record.generationType || record.generatePayload?.generationType || "",
+    generateResult: record.generateResult,
+    autoExecute: record.autoExecute,
+    shouldGenerate: record.shouldGenerate,
+    messageDoneReceived: record.messageDoneReceived,
+    messageDoneHandled: record.messageDoneHandled,
+    messageDoneSkipReason: record.messageDoneSkipReason,
+    startGenerationAttempted: record.startGenerationAttempted,
+    executeGeneration: record.executeGeneration,
+    previewCreationAttempted: record.previewCreationAttempted,
+    pendingPreviewCreated: record.pendingPreviewCreated,
+    previewCreationError: record.previewCreationError,
+    generatePayloadBuilt: record.generatePayloadBuilt,
+    generateRequestStarted: record.generateRequestStarted,
+    addChatBlocksAvailable: record.addChatBlocksAvailable,
+    workflowVersion: CHAT_AGENT_WORKFLOW_VERSION,
+    loadedWorkflowVersion: globalThis.__chatAgentWorkflowVersion || "",
+    streamEventTypes: record.streamEventTypes,
+    lastStreamEventType: record.lastStreamEventType,
+    streamAbortReason: record.streamAbortReason,
+    streamParseError: record.streamParseError,
+    generationStarted: record.generationStarted,
+    streamFinished: record.streamFinished,
+    streamError: record.streamError,
+    streamTimeout: record.streamTimeout,
+    error: record.error
+  }, null, 2);
+}
+
+function ensureAgentDebugPanel() {
+  if (!isChatAgentDev()) return null;
+  let panel = globalThis.document?.querySelector?.("#chatAgentDebugPanel");
+  if (panel) {
+    positionAgentDebugPanel(panel);
+    return panel;
+  }
+  panel = globalThis.document.createElement("section");
+  panel.id = "chatAgentDebugPanel";
+  panel.style.cssText = [
+    "position:fixed",
+    "left:16px",
+    "bottom:24px",
+    "z-index:9999",
+    "width:360px",
+    "max-height:44vh",
+    "font:12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace",
+    "color:#111827",
+    "background:rgba(255,255,255,.96)",
+    "border:1px solid rgba(15,23,42,.16)",
+    "border-radius:10px",
+    "box-shadow:0 16px 45px rgba(15,23,42,.18)",
+    "overflow:hidden"
+  ].join(";");
+  panel.innerHTML = `
+    <button type="button" data-agent-debug-toggle style="width:100%;border:0;background:#111827;color:#fff;padding:7px 10px;text-align:left;font:inherit;cursor:pointer;">Agent Debug</button>
+    <pre data-agent-debug-output style="margin:0;padding:10px;max-height:calc(42vh - 32px);overflow:auto;white-space:pre-wrap;"></pre>
+  `;
+  const output = panel.querySelector("[data-agent-debug-output]");
+  if (output) output.hidden = true;
+  panel.querySelector("[data-agent-debug-toggle]")?.addEventListener("click", () => {
+    const pre = panel.querySelector("[data-agent-debug-output]");
+    if (pre) {
+      pre.hidden = !pre.hidden;
+      panel.dataset.userExpandedOnNarrow = pre.hidden ? "" : "true";
+    }
+  });
+  globalThis.document.body.append(panel);
+  positionAgentDebugPanel(panel);
+  if (!globalThis.__chatAgentDebugPanelPositionBound) {
+    globalThis.__chatAgentDebugPanelPositionBound = true;
+    globalThis.addEventListener("resize", () => {
+      const current = globalThis.document?.querySelector?.("#chatAgentDebugPanel");
+      if (current) positionAgentDebugPanel(current);
+    });
+  }
+  return panel;
+}
+
+function positionAgentDebugPanel(panel) {
+  if (!panel) return;
+  const viewportWidth = globalThis.innerWidth || 0;
+  const viewportHeight = globalThis.innerHeight || 0;
+  const gutter = 16;
+  const gap = 18;
+  const preferredWidth = 360;
+  const promptRect = globalThis.document?.querySelector?.("#promptForm")?.getBoundingClientRect?.();
+  const availableLeftWidth = promptRect ? Math.max(0, promptRect.left - gap - gutter) : viewportWidth - gutter * 2;
+  const wideEnough = availableLeftWidth >= 280;
+  const width = wideEnough
+    ? Math.min(preferredWidth, availableLeftWidth)
+    : Math.min(320, Math.max(240, viewportWidth - gutter * 2));
+  const left = wideEnough && promptRect
+    ? Math.max(gutter, promptRect.left - gap - width)
+    : gutter;
+  const bottom = promptRect
+    ? Math.max(gutter, viewportHeight - promptRect.bottom)
+    : 24;
+  panel.style.left = `${left}px`;
+  panel.style.right = "auto";
+  panel.style.bottom = `${bottom}px`;
+  panel.style.width = `${width}px`;
+  panel.style.maxHeight = wideEnough ? "44vh" : "30vh";
+  const pre = panel.querySelector("[data-agent-debug-output]");
+  if (pre) {
+    pre.style.maxHeight = wideEnough ? "calc(44vh - 32px)" : "calc(30vh - 32px)";
+    if (!wideEnough && !panel.dataset.userExpandedOnNarrow) pre.hidden = true;
+  }
+}
+
+function summarizeDataUrl(value = "") {
+  const text = String(value || "");
+  if (!text.startsWith("data:")) return text;
+  const [header = "data:", body = ""] = text.split(",", 2);
+  return `${header}, length=${body.length}`;
+}
+
+function summarizePrompt(value = "") {
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  return text.length > 220 ? `${text.slice(0, 220)}...` : text;
+}
+
+function summarizeFiles(files = []) {
+  return {
+    count: files.length,
+    files: files.map((file, index) => ({
+      index,
+      name: file?.name || "",
+      type: file?.type || "",
+      size: Number(file?.size || 0)
+    }))
+  };
+}
+
+function inferSubmitTriggerSource(event, form) {
+  const submitter = event?.submitter || null;
+  if (submitter?.id === "promptSubmit" || submitter?.classList?.contains("send")) return "send-button";
+  if (submitter?.id === "presetSkill" || submitter?.closest?.("#presetSkill")) return "skill-button";
+  if (submitter?.dataset?.prompt || submitter?.closest?.("[data-prompt]")) return "quick-action";
+  if (Array.isArray(form?.__pendingHomeGenerationFiles) && form.__pendingHomeGenerationFiles.length) return "quick-action";
+  return submitter ? "other" : "enter";
+}
+
+function getChatPreviewDomSummaries(root = globalThis.document) {
+  return Array.from(root?.querySelectorAll?.(".chat-image-preview button") || []).map((button, index) => {
+    const image = button.querySelector("img");
+    return {
+      index,
+      attachmentId: button.dataset.attachmentId || "",
+      name: button.dataset.attachmentName || image?.alt || `Reference ${index + 1}`,
+      type: button.dataset.attachmentType || "",
+      mime: button.dataset.attachmentType || "",
+      size: Number(button.dataset.attachmentSize || 0),
+      hasFile: false,
+      hasBlob: Boolean(image?.src?.startsWith("blob:")),
+      hasDataUrl: Boolean(image?.src?.startsWith("data:")),
+      dataUrl: summarizeDataUrl(image?.src || "")
+    };
+  });
+}
+
+function summarizeReferenceImages(attachments = []) {
+  return attachments.map((item, index) => ({
+    index,
+    source: item.source || "",
+    name: item.name || "",
+    type: item.type || "",
+    dataUrl: summarizeDataUrl(item.dataUrl || "")
+  }));
+}
+
+function summarizeConversationPayload(payload = {}) {
+  return {
+    textLength: String(payload.text || "").length,
+    model: payload.model || "",
+    mode: payload.mode || "",
+    attachmentCount: Array.isArray(payload.attachments) ? payload.attachments.length : 0,
+    attachments: summarizeReferenceImages(payload.attachments || []),
+    canvasSelectedCount: Array.isArray(payload.canvasContext?.selected) ? payload.canvasContext.selected.length : 0,
+    canvasNodeCount: Array.isArray(payload.canvasContext?.nodes) ? payload.canvasContext.nodes.length : 0
+  };
+}
+
+function summarizeGeneratePayload(payload = {}, generationType = "image") {
+  return {
+    modelId: payload.model || "",
+    generationType,
+    prompt: summarizePrompt(payload.prompt || ""),
+    imageCount: Array.isArray(payload.images) ? payload.images.length : 0,
+    images: (payload.images || []).map((item, index) => ({
+      index,
+      dataUrl: summarizeDataUrl(item || "")
+    })),
+    size: payload.size || ""
+  };
+}
+
+function summarizeGenerationResult(result = {}) {
+  return {
+    imageUrl: Boolean(result.imageUrl),
+    imageUrls: Array.isArray(result.imageUrls) ? result.imageUrls.length : 0,
+    videoUrl: Boolean(result.videoUrl),
+    videoUrls: Array.isArray(result.videoUrls) ? result.videoUrls.length : 0,
+    outputs: Array.isArray(result.outputs) ? result.outputs.map((item) => ({
+      type: item?.type || "",
+      mimeType: item?.mimeType || item?.mime_type || "",
+      hasUrl: Boolean(item?.url)
+    })) : [],
+    jobId: result.jobId || result.job?.id || "",
+    status: result.status || result.job?.status || "",
+    message: result.message || result.error || ""
+  };
+}
+
+function copyReferenceFiles(files = []) {
+  return Array.from(files || []).filter((file) => file instanceof Blob);
+}
+
+function clearComposerAttachments({ setChatImageFiles, renderChatImagePreview } = {}) {
+  setChatImageFiles([]);
+  renderChatImagePreview();
+}
+
+function restoreComposerAttachmentsOnFailure({
+  files = [],
+  setChatImageFiles,
+  renderChatImagePreview,
+  debugRecord = null
+} = {}) {
+  if (!files.length) return;
+  setChatImageFiles(files.slice());
+  renderChatImagePreview();
+  logAgentDebug(debugRecord, "attachments.restored", summarizeFiles(files));
+}
 
 function findActiveImageNode(root = globalThis.document) {
   return root?.querySelector?.("#canvasWorld .node-image.selected[data-active-selection='true']")
@@ -81,6 +460,238 @@ function getGenerationPlacement(metrics, target) {
   };
 }
 
+function compactText(value = "", maxLength = 180) {
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  return text.length > maxLength ? `${text.slice(0, maxLength)}...` : text;
+}
+
+function normalizeAnalysisText(imageAnalysis = null) {
+  if (!imageAnalysis) return "";
+  if (typeof imageAnalysis === "string") return imageAnalysis;
+  if (typeof imageAnalysis === "object") {
+    return [
+      imageAnalysis.subject,
+      imageAnalysis.content,
+      imageAnalysis.description,
+      imageAnalysis.style,
+      imageAnalysis.colors || imageAnalysis.color,
+      imageAnalysis.composition,
+      imageAnalysis.suggestion
+    ].filter(Boolean).join("\n");
+  }
+  return String(imageAnalysis || "");
+}
+
+function pickAnalysisSection(text = "", labels = [], fallback = "") {
+  const source = String(text || "");
+  for (const label of labels) {
+    const pattern = new RegExp(`${label}[：:、\\s]+([\\s\\S]*?)(?=\\n\\s*(?:内容|主体|风格|色彩|颜色|主题|布局|特点|生成建议|为.*参考)[：:]|$)`, "i");
+    const match = source.match(pattern);
+    if (match?.[1]) return compactText(match[1], 240);
+  }
+  return fallback;
+}
+
+function buildAnalysisCardContent({ imageAnalysis = null, prompt = "" } = {}) {
+  const text = normalizeAnalysisText(imageAnalysis);
+  if (!text) return null;
+  const firstSentence = compactText(text.split(/[。.!！?？]\s*/).filter(Boolean)[0] || text, 220);
+  const isEcommerce = /电商|主图|商品|产品|卖点|促销/.test(prompt);
+  const is3d = /3d|3D|立体|效果图|手办/.test(prompt);
+  return {
+    content: pickAnalysisSection(text, ["内容", "主体", "图片主体"], firstSentence),
+    style: pickAnalysisSection(text, ["风格"], is3d ? "适合强化立体质感、材质和灯光表现。" : "整体风格可作为生成时的视觉参考。"),
+    color: pickAnalysisSection(text, ["色彩", "颜色"], "保留参考图中的主要色彩关系，并增强画面层次。"),
+    theme: pickAnalysisSection(text, ["主题"], isEcommerce ? "突出产品主体、卖点和展示信息。" : "围绕参考图主体进行视觉延展。"),
+    layout: pickAnalysisSection(text, ["布局与特点", "布局", "特点"], "参考图的主体位置、构图关系和关键特征会用于生成约束。"),
+    suggestion: pickAnalysisSection(text, ["为生成设计提供参考", "生成建议", "建议"], isEcommerce
+      ? "适合生成电商主图、详情页首图、卖点图和场景展示图。"
+      : "适合生成效果图、风格化展示图和细节强化图。")
+  };
+}
+
+function inferAgentResultTitle(prompt = "", generationType = "image", taskType = "") {
+  const text = String(prompt || "");
+  if (generationType === "video") return "生成视频";
+  if (taskType === "figurine_render") return "手办效果图";
+  if (taskType === "ecommerce_main_image") return "电商主图";
+  if (taskType === "product_render") return "3D效果图";
+  if (taskType === "poster_design") return "海报设计图";
+  if (taskType === "style_transfer") return "风格化效果图";
+  if (/电商|主图/.test(text)) return "电商主图";
+  if (/3d|3D|立体|效果图/.test(text)) return "3D效果图";
+  if (/手办/.test(text)) return "手办效果图";
+  if (/海报/.test(text)) return "海报设计图";
+  return "生成图片";
+}
+
+function buildAgentSummary({ prompt = "", hasReference = false, generationType = "image" } = {}) {
+  const text = String(prompt || "");
+  const prefix = hasReference ? "已根据参考图" : "已根据你的需求";
+  if (generationType === "video") {
+    return `已完成！我${prefix}生成了一段视频，并放入画布中。`;
+  }
+  if (/电商|主图/.test(text)) {
+    return `已完成！我${prefix}生成了一张电商主图，并强化了产品主体、核心卖点和展示信息。`;
+  }
+  if (/3d|3D|立体|效果图|手办/.test(text)) {
+    return `已完成！我${prefix}为你生成了一张 3D 效果图，并增强了材质、灯光和立体感。`;
+  }
+  return `已完成！我${prefix}生成了图片，并放入画布中。`;
+}
+
+function formatAgentModelLabel(model = "", modelUsage = "") {
+  const id = String(model || "").trim();
+  const normalized = id.toLowerCase();
+  const labels = {
+    "gpt-image-2": "GPT Image 2",
+    "nano-banana-pro": "Nano Banana Pro",
+    "nano-banana": "Nano Banana",
+    "midjourney": "Midjourney"
+  };
+  return labels[normalized] || modelUsage || id || "当前模型";
+}
+
+function buildAgentResultBlocks({
+  conversationResult = {},
+  finalResult = {},
+  imageUrls = [],
+  videoUrls = [],
+  model,
+  modelUsage = "",
+  prompt = "",
+  generationPrompt = "",
+  generationMetrics = {},
+  generationType = "image",
+  taskType = ""
+} = {}) {
+  const blocks = [];
+  const analysisContent = buildAnalysisCardContent({
+    imageAnalysis: conversationResult.imageAnalysis,
+    prompt: prompt || generationPrompt
+  });
+  if (analysisContent) {
+    blocks.push({
+      type: "analysis_card",
+      title: "图片分析",
+      collapsed: false,
+      content: analysisContent
+    });
+  } else if (conversationResult.imageAnalysisError) {
+    blocks.push({
+      type: "analysis_card",
+      title: "图片分析",
+      collapsed: false,
+      errorText: "图片分析未完成，已使用原始需求继续生成。"
+    });
+  }
+  const title = inferAgentResultTitle(prompt || generationPrompt, generationType, taskType);
+  blocks.push({
+    type: "generation_result",
+    imageUrl: imageUrls[0] || "",
+    imageUrls,
+    videoUrl: videoUrls[0] || "",
+    modelId: model,
+    modelLabel: formatAgentModelLabel(model, modelUsage),
+    generationType,
+    title,
+    prompt,
+    optimizedPrompt: generationPrompt,
+    size: generationMetrics.outputSize || "",
+    jobId: finalResult.jobId || finalResult.job?.id || "",
+    status: "已在画布中"
+  });
+  blocks.push({
+    type: "assistant_summary",
+    text: buildAgentSummary({
+      prompt: prompt || generationPrompt,
+      hasReference: Boolean(conversationResult.imageAnalysis || conversationResult.imageAnalysisError),
+      generationType
+    })
+  });
+  return blocks;
+}
+
+function buildAgentCompletionSummary({ hasReference = false, generationType = "image" } = {}) {
+  if (generationType === "video") {
+    return hasReference
+      ? "已完成！我已根据参考图生成了视频，并放入画布中。"
+      : "已完成！我已根据你的需求生成了视频，并放入画布中。";
+  }
+  return hasReference
+    ? "已完成！我已根据参考图生成了图片，并放入画布中。"
+    : "已完成！我已根据你的需求生成了图片，并放入画布中。";
+}
+
+function buildAgentProgressBlocks(state = {}) {
+  const blocks = [];
+  const hasReference = Boolean(state.hasReference);
+  if (hasReference || state.analysisStatus === "pending" || state.analysisStatus === "done" || state.analysisStatus === "error") {
+    const analysisContent = state.imageAnalysis
+      ? buildAnalysisCardContent({
+        imageAnalysis: state.imageAnalysis,
+        prompt: state.prompt || state.optimizedPrompt
+      })
+      : null;
+    blocks.push({
+      id: "analysis",
+      type: "analysis_card",
+      title: "图片分析",
+      status: state.analysisStatus || "pending",
+      collapsed: state.analysisStatus !== "done",
+      content: analysisContent,
+      errorText: state.analysisStatus === "error"
+        ? (state.imageAnalysisError || "图片分析未完成，已继续优化提示词并生成。")
+        : "",
+      pendingText: "正在分析参考图..."
+    });
+  }
+
+  if (state.promptStatus && state.promptStatus !== "idle") {
+    blocks.push({
+      id: "prompt",
+      type: "prompt_card",
+      title: "查看提示词",
+      status: state.promptStatus,
+      collapsed: true,
+      prompt: state.prompt,
+      optimizedPrompt: state.optimizedPrompt,
+      errorText: state.promptError || "",
+      pendingText: "正在优化提示词..."
+    });
+  }
+
+  if (state.resultStatus && state.resultStatus !== "idle") {
+    blocks.push({
+      id: "result",
+      type: "generation_result",
+      imageUrl: state.imageUrls?.[0] || "",
+      imageUrls: state.imageUrls || [],
+      videoUrl: state.videoUrls?.[0] || "",
+      videoUrls: state.videoUrls || [],
+      modelId: state.model,
+      modelLabel: formatAgentModelLabel(state.model, state.modelUsage),
+      generationType: state.generationType || "image",
+      title: inferAgentResultTitle(state.prompt || state.optimizedPrompt, state.generationType || "image", state.taskType || ""),
+      prompt: state.prompt,
+      optimizedPrompt: state.optimizedPrompt,
+      size: state.size || "",
+      status: state.resultStatus === "succeeded" ? "已在画布中" : state.resultStatus,
+      statusText: state.resultStatus === "pending" ? "正在生成..." : (state.resultError || ""),
+      jobId: state.jobId || ""
+    });
+  }
+
+  if (state.summary) {
+    blocks.push({
+      id: "summary",
+      type: "assistant_summary",
+      text: state.summary
+    });
+  }
+  return blocks;
+}
+
 export function bindPromptSubmit({
   promptForm,
   promptInput,
@@ -95,8 +706,10 @@ export function bindPromptSubmit({
   addChat,
   updateChat,
   addChatImage,
+  addChatBlocks = null,
   addGenerationPreview,
   replacePreviewWithImage,
+  replacePreviewWithVideo = null,
   updateActiveProject,
   saveCurrentProject = null,
   saveCurrentProjectAfterGeneration = saveCurrentProject,
@@ -105,6 +718,7 @@ export function bindPromptSubmit({
   postJsonRequest,
   buildChatImagePayload,
   readFileAsDataUrl,
+  readImageSourceAsDataUrl = null,
   recordCanvasEvent,
   chatModelSelect,
   setChatCollapsed,
@@ -142,21 +756,52 @@ export function bindPromptSubmit({
   resolvedPromptForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const prompt = resolvedPromptInput.value.trim();
+    const triggerSource = inferSubmitTriggerSource(event, resolvedPromptForm);
     const pendingHomeFiles = Array.isArray(resolvedPromptForm.__pendingHomeGenerationFiles)
       ? resolvedPromptForm.__pendingHomeGenerationFiles
       : [];
     const pendingHomeModel = String(resolvedPromptForm.__pendingHomeGenerationModel || "").trim();
-    const currentFiles = chatImageFilesRef();
+    const rawCurrentFiles = chatImageFilesRef();
+    const currentFiles = Array.isArray(rawCurrentFiles) ? rawCurrentFiles : [];
+    const domPreviewAttachments = getChatPreviewDomSummaries();
     const referenceFiles = currentFiles.length ? currentFiles : pendingHomeFiles;
+    console.debug("[chat-submit] trigger source", {
+      source: triggerSource,
+      composerAttachmentCount: currentFiles.length,
+      pendingHomeAttachmentCount: pendingHomeFiles.length,
+      domPreviewAttachmentCount: domPreviewAttachments.length,
+      composerAttachments: summarizeFiles(currentFiles),
+      pendingHomeAttachments: summarizeFiles(pendingHomeFiles),
+      domPreviewAttachments
+    });
+    const agentDebug = createAgentDebugRecord({
+      originalPrompt: prompt,
+      modelId: pendingHomeModel || resolvedChatModelSelect.dataset.selectedModelId || resolvedChatModelSelect.value,
+      composerAttachmentCount: currentFiles.length,
+      pendingHomeAttachmentCount: pendingHomeFiles.length,
+      addChatBlocksAvailable: typeof addChatBlocks === "function"
+    });
+    activeChatAgentRunId = agentDebug.runId;
+    logAgentDebug(agentDebug, "submit.before", {
+      triggerSource,
+      composerAttachmentCount: currentFiles.length,
+      pendingHomeAttachmentCount: pendingHomeFiles.length,
+      domPreviewAttachmentCount: domPreviewAttachments.length,
+      selectedSource: currentFiles.length ? "composer" : (pendingHomeFiles.length ? "pending-home" : (domPreviewAttachments.length ? "dom-preview" : "none")),
+      composerAttachments: summarizeFiles(currentFiles),
+      domPreviewAttachments
+    });
 
-    if (!prompt && !referenceFiles.length) {
+    if (!prompt && !referenceFiles.length && !domPreviewAttachments.length) {
       resolvedPromptForm.__pendingHomeGenerationModel = "";
+      updateAgentDebugPanel(agentDebug);
       return;
     }
     if (prompt) lastConversationPrompt = prompt;
 
     const selectedChatModel = resolvedChatModelSelect.dataset.selectedModelId || resolvedChatModelSelect.value;
     const model = resolveImageModelId(pendingHomeModel || selectedChatModel, "chat");
+    agentDebug.modelId = model;
     if (resolvedChatModelSelect.value !== model) {
       resolvedChatModelSelect.value = model;
       resolvedChatModelSelect.dataset.modelUserSelected = "true";
@@ -173,101 +818,511 @@ export function bindPromptSubmit({
     recordCanvasEvent("prompt_submitted", {
       source: "chat-panel",
       hasPrompt: Boolean(prompt),
-      imageCount: referenceFiles.length,
+      imageCount: referenceFiles.length || domPreviewAttachments.length,
       model
     });
 
     setChatCollapsed(false);
-    const attachmentText = referenceFiles.length ? ` Attached ${referenceFiles.length} reference image(s)` : "";
+    const submittedReferenceCount = referenceFiles.length || domPreviewAttachments.length;
+    const attachmentText = submittedReferenceCount ? ` Attached ${submittedReferenceCount} reference image(s)` : "";
     addChat("user", `${prompt || "[image reference]"} ${attachmentText}`);
     resolvedPromptInput.value = "";
 
-    const files = referenceFiles.slice();
+    const files = copyReferenceFiles(referenceFiles);
+    agentDebug.copiedAttachmentCount = files.length;
+    logAgentDebug(agentDebug, "attachments.copied", summarizeFiles(files));
     const generationMetrics = await resolveGenerationMetrics(files);
     resolvedPromptForm.__pendingHomeGenerationFiles = [];
     resolvedPromptForm.__pendingHomeGenerationModel = "";
-    setChatImageFiles([]);
-    renderChatImagePreview();
 
     const thinking = addThinking("Thinking", CONVERSATION_THINKING_STEPS);
     let progress = null;
     let previewNodes = [];
     let previewNode = null;
     let previewCount = 1;
+    let generationStarted = false;
+    let pendingPreviewCreationStarted = false;
+    let agentBlocksMessage = null;
+    const agentBlocksState = {
+      hasReference: false,
+      analysisStatus: "idle",
+      imageAnalysis: null,
+      imageAnalysisError: "",
+      promptStatus: "idle",
+      prompt,
+      optimizedPrompt: "",
+      promptError: "",
+      resultStatus: "idle",
+      resultError: "",
+      imageUrls: [],
+      videoUrls: [],
+      model,
+      modelUsage: "",
+      generationType: getModelType(model) === "video" ? "video" : "image",
+      taskType: "",
+      size: "",
+      jobId: "",
+      summary: ""
+    };
+    const refreshAgentBlocks = () => {
+      if (typeof addChatBlocks !== "function") return;
+      const blocks = buildAgentProgressBlocks(agentBlocksState);
+      if (!blocks.length) return;
+      if (!agentBlocksMessage) {
+        agentBlocksMessage = addChatBlocks("assistant", blocks);
+        return;
+      }
+      agentBlocksMessage.__updateBlocks?.(blocks);
+    };
+    const handleAgentStreamEvent = (event = {}) => {
+      if (activeChatAgentRunId !== agentDebug.runId) return;
+      if (event.type === "agent.intent") {
+        agentBlocksState.taskType = event.taskType || agentBlocksState.taskType;
+        agentBlocksState.generationType = event.generationType || agentBlocksState.generationType;
+        if (event.shouldGenerate) {
+          agentBlocksState.resultStatus = "pending";
+          refreshAgentBlocks();
+        }
+        return;
+      }
+      if (event.type === "image.analysis.start") {
+        agentBlocksState.hasReference = true;
+        agentBlocksState.analysisStatus = "pending";
+        refreshAgentBlocks();
+        return;
+      }
+      if (event.type === "image.analysis") {
+        agentBlocksState.hasReference = true;
+        agentBlocksState.analysisStatus = "done";
+        agentBlocksState.imageAnalysis = event.analysis || event.summary || "";
+        agentBlocksState.imageAnalysisError = "";
+        refreshAgentBlocks();
+        return;
+      }
+      if (event.type === "image.analysis.error") {
+        agentBlocksState.hasReference = true;
+        agentBlocksState.analysisStatus = "error";
+        agentBlocksState.imageAnalysisError = "图片分析未完成，已继续优化提示词并生成。";
+        refreshAgentBlocks();
+        return;
+      }
+      if (event.type === "prompt.optimizer.start") {
+        agentBlocksState.promptStatus = "pending";
+        refreshAgentBlocks();
+        return;
+      }
+      if (event.type === "prompt.optimized") {
+        agentBlocksState.promptStatus = "done";
+        agentBlocksState.optimizedPrompt = event.optimizedPrompt || agentBlocksState.optimizedPrompt || prompt;
+        agentBlocksState.taskType = event.taskType || agentBlocksState.taskType;
+        agentBlocksState.promptError = event.optimizerError || "";
+        refreshAgentBlocks();
+      }
+    };
+    const createPendingPreviewForRun = ({ outputType = "" } = {}) => {
+      if (activeChatAgentRunId !== agentDebug.runId) return false;
+      if (previewNodes.length || pendingPreviewCreationStarted) return Boolean(previewNodes.length);
+      pendingPreviewCreationStarted = true;
+      agentDebug.previewCreationAttempted = true;
+      try {
+        if (typeof addGenerationPreview !== "function") {
+          throw new Error("missing createPreview function");
+        }
+        const videoModel = getModelType(model) === "video" || outputType === "video";
+        const target = viewportPointToWorld(
+          resolvedCanvasViewport.getBoundingClientRect().left + resolvedCanvasViewport.clientWidth / 2,
+          resolvedCanvasViewport.getBoundingClientRect().top + resolvedCanvasViewport.clientHeight / 2
+        );
+        const placement = getGenerationPlacement(generationMetrics, target);
+        previewCount = videoModel ? 1 : (isMidjourneyModel(model) ? MIDJOURNEY_IMAGE_COUNT : 1);
+        previewNodes = createPromptPreviewBatch({
+          addGenerationPreview,
+          placement,
+          generationMetrics,
+          files,
+          count: previewCount,
+          outputType: videoModel ? "video" : "image"
+        });
+        if (!previewNodes.length) {
+          throw new Error("Unable to create pending generation preview.");
+        }
+        previewNode = previewNodes[0];
+        agentDebug.generationType = videoModel ? "video" : "image";
+        agentBlocksState.generationType = agentDebug.generationType;
+        agentBlocksState.resultStatus = "pending";
+        agentBlocksState.size = generationMetrics.outputSize || "";
+        refreshAgentBlocks();
+        agentDebug.pendingPreviewCreated = true;
+        agentDebug.previewCreationError = "";
+        logAgentDebug(agentDebug, "preview.created_from_intent", {
+          count: previewNodes.length,
+          generationType: agentDebug.generationType
+        });
+        updateAgentDebugPanel(agentDebug);
+        return true;
+      } catch (error) {
+        pendingPreviewCreationStarted = false;
+        agentDebug.previewCreationError = error.message || String(error);
+        logAgentDebug(agentDebug, "preview.create_failed", {
+          message: agentDebug.previewCreationError
+        });
+        updateAgentDebugPanel(agentDebug);
+        return false;
+      }
+    };
 
     try {
-      const images = await Promise.all(files.map(readFileAsDataUrl));
-      const conversationResult = await runConversation({
+      logAgentDebug(agentDebug, "workflow.attachments.received", {
+        copiedFileCount: files.length,
+        domPreviewAttachmentCount: domPreviewAttachments.length,
+        copiedFiles: summarizeFiles(files),
+        domPreviewAttachments
+      });
+      const referenceBundle = await collectReferenceImages({
+        files,
+        domPreviewAttachments,
+        readFileAsDataUrl,
+        readImageSourceAsDataUrl,
+        debugRecord: agentDebug
+      });
+      const imageAttachments = referenceBundle.attachments;
+      const images = referenceBundle.images;
+      agentDebug.referenceImages = summarizeReferenceImages(imageAttachments);
+      agentDebug.referenceImageCount = imageAttachments.length;
+      agentBlocksState.hasReference = imageAttachments.length > 0;
+      if (agentBlocksState.hasReference) {
+        agentBlocksState.analysisStatus = "pending";
+        refreshAgentBlocks();
+      }
+      logAgentDebug(agentDebug, "attachments.final", {
+        referenceImageCount: imageAttachments.length,
+        sources: imageAttachments.map((item) => item.source || "unknown")
+      });
+      updateAgentDebugPanel(agentDebug);
+      const conversationResult = await runConversationAgent({
         projectId: getActiveProject()?.id,
         prompt,
         model,
         images,
         files,
+        attachments: imageAttachments,
         canvasContext: collectCanvasContext(),
+        debugRecord: agentDebug,
         thinking,
         addChat,
         updateChat,
         updateThinking,
-        setThinkingSummary
+        setThinkingSummary,
+        onAgentEvent: handleAgentStreamEvent,
+        onShouldGenerateIntent: ({ outputType } = {}) => {
+          agentBlocksState.generationType = outputType || agentBlocksState.generationType;
+          agentBlocksState.resultStatus = "pending";
+          refreshAgentBlocks();
+          createPendingPreviewForRun({ outputType });
+        }
       });
+      agentDebug.intent = conversationResult.intent || agentDebug.intent || "";
+      agentDebug.taskType = conversationResult.taskType || agentDebug.taskType || "";
+      agentDebug.promptStrategy = conversationResult.promptStrategy || agentDebug.promptStrategy || "";
+      agentDebug.optimizedPrompt = conversationResult.optimizedPrompt || agentDebug.optimizedPrompt || prompt;
+      agentDebug.qwenVlMode = conversationResult.qwenVlMode || agentDebug.qwenVlMode || "";
+      agentDebug.promptOptimizerMode = conversationResult.promptOptimizerMode || agentDebug.promptOptimizerMode || "";
+      agentDebug.skippedOptimizer = Boolean(conversationResult.skippedOptimizer || agentDebug.skippedOptimizer);
+      agentDebug.optimizerError = conversationResult.optimizerError || agentDebug.optimizerError || "";
+      agentDebug.usedFallbackPrompt = Boolean(conversationResult.usedFallbackPrompt || agentDebug.usedFallbackPrompt);
+      agentDebug.totalBudgetExceeded = Boolean(conversationResult.totalBudgetExceeded || agentDebug.totalBudgetExceeded);
+      agentDebug.imageAnalysisPresent = Boolean(conversationResult.imageAnalysis);
+      agentDebug.imageAnalysisError = conversationResult.imageAnalysisError || agentDebug.imageAnalysisError || "";
+      agentDebug.generationType = conversationResult.outputType || agentDebug.generationType || "";
+      agentDebug.shouldGenerate = Boolean(conversationResult.shouldGenerate);
+      logMessageDoneGenerationDecision(agentDebug, {
+        stage: "conversation-result-returned",
+        messageDoneReceived: agentDebug.messageDoneReceived,
+        conversationShouldGenerate: Boolean(conversationResult.shouldGenerate)
+      });
+      if (activeChatAgentRunId !== agentDebug.runId) {
+        agentDebug.messageDoneSkipReason = "skipped because runId mismatch";
+        logMessageDoneGenerationDecision(agentDebug, {
+          stage: "guard.skip",
+          reason: agentDebug.messageDoneSkipReason
+        });
+        logAgentDebug(agentDebug, "run.stale_after_conversation", {
+          activeRunId: activeChatAgentRunId,
+          reason: agentDebug.messageDoneSkipReason
+        });
+        updateAgentDebugPanel(agentDebug);
+        return;
+      }
 
+      agentDebug.startGenerationAttempted = true;
+      logMessageDoneGenerationDecision(agentDebug, {
+        stage: "start-generation-attempted"
+      });
       if (!conversationResult.shouldGenerate) {
+        agentDebug.autoExecute = CHAT_AGENT_CONFIG.autoExecute;
+        agentDebug.shouldGenerate = false;
+        agentDebug.executeGeneration = false;
+        agentDebug.messageDoneSkipReason = "skipped because shouldGenerate false";
+        logMessageDoneGenerationDecision(agentDebug, {
+          stage: "guard.skip",
+          reason: agentDebug.messageDoneSkipReason
+        });
+        logAgentDebug(agentDebug, "generation.skip", {
+          intent: agentDebug.intent,
+          reason: agentDebug.messageDoneSkipReason
+        });
+        updateAgentDebugPanel(agentDebug);
         updateThinking(thinking, CONVERSATION_THINKING_STEPS.length, true);
         return;
       }
 
-      progress = conversationResult.message || addChat("assistant", "Generating result...");
-      progress.classList.add("loading");
-      updateChat(progress, `${conversationResult.text || "Generating result..."}\nCalling generation model...`);
-
-      const target = viewportPointToWorld(
-        resolvedCanvasViewport.getBoundingClientRect().left + resolvedCanvasViewport.clientWidth / 2,
-        resolvedCanvasViewport.getBoundingClientRect().top + resolvedCanvasViewport.clientHeight / 2
-      );
-      const placement = getGenerationPlacement(generationMetrics, target);
-      previewCount = isMidjourneyModel(model) ? MIDJOURNEY_IMAGE_COUNT : 1;
-      previewNodes = createPromptPreviewBatch({
-        addGenerationPreview,
-        placement,
-        generationMetrics,
-        files,
-        count: previewCount
+      agentDebug.intent = conversationResult.intent || "";
+      agentDebug.taskType = conversationResult.taskType || agentDebug.taskType || "";
+      agentDebug.promptStrategy = conversationResult.promptStrategy || agentDebug.promptStrategy || "";
+      agentDebug.optimizedPrompt = conversationResult.optimizedPrompt || prompt;
+      agentDebug.qwenVlMode = conversationResult.qwenVlMode || agentDebug.qwenVlMode || "";
+      agentDebug.promptOptimizerMode = conversationResult.promptOptimizerMode || agentDebug.promptOptimizerMode || "";
+      agentDebug.skippedOptimizer = Boolean(conversationResult.skippedOptimizer || agentDebug.skippedOptimizer);
+      agentDebug.optimizerError = conversationResult.optimizerError || agentDebug.optimizerError || "";
+      agentDebug.usedFallbackPrompt = Boolean(conversationResult.usedFallbackPrompt || agentDebug.usedFallbackPrompt);
+      agentDebug.totalBudgetExceeded = Boolean(conversationResult.totalBudgetExceeded || agentDebug.totalBudgetExceeded);
+      agentDebug.imageAnalysisPresent = Boolean(conversationResult.imageAnalysis);
+      agentDebug.imageAnalysisError = conversationResult.imageAnalysisError || agentDebug.imageAnalysisError || "";
+      agentDebug.autoExecute = CHAT_AGENT_CONFIG.autoExecute;
+      agentDebug.shouldGenerate = true;
+      agentDebug.executeGeneration = CHAT_AGENT_CONFIG.autoExecute;
+      if (!CHAT_AGENT_CONFIG.autoExecute) {
+        agentDebug.messageDoneSkipReason = "skipped because autoExecute false";
+        logMessageDoneGenerationDecision(agentDebug, {
+          stage: "guard.skip",
+          reason: agentDebug.messageDoneSkipReason
+        });
+        logAgentDebug(agentDebug, "generation.waiting_for_confirmation", {
+          intent: agentDebug.intent,
+          optimizedPrompt: summarizePrompt(agentDebug.optimizedPrompt),
+          reason: agentDebug.messageDoneSkipReason
+        });
+        updateAgentDebugPanel(agentDebug);
+        addChat("assistant", "Agent has prepared the generation prompt. Auto execution is disabled for this build.");
+        updateThinking(thinking, CONVERSATION_THINKING_STEPS.length, true);
+        return;
+      }
+      if (generationStarted) {
+        agentDebug.messageDoneSkipReason = "skipped because generationStarted already true";
+        logMessageDoneGenerationDecision(agentDebug, {
+          stage: "guard.skip",
+          reason: agentDebug.messageDoneSkipReason
+        });
+        logAgentDebug(agentDebug, "generation.duplicate_ignored", {
+          runId: agentDebug.runId,
+          reason: agentDebug.messageDoneSkipReason
+        });
+        updateAgentDebugPanel(agentDebug);
+        return;
+      }
+      if (typeof addGenerationPreview !== "function") {
+        agentDebug.messageDoneSkipReason = "skipped because missing preview creation fn";
+        logMessageDoneGenerationDecision(agentDebug, {
+          stage: "guard.skip",
+          reason: agentDebug.messageDoneSkipReason
+        });
+        throw new Error("missing createPreview function");
+      }
+      if (typeof replacePreviewWithImage !== "function") {
+        agentDebug.messageDoneSkipReason = "skipped because missing replacePreviewWithImage";
+        logMessageDoneGenerationDecision(agentDebug, {
+          stage: "guard.skip",
+          reason: agentDebug.messageDoneSkipReason
+        });
+        throw new Error("missing replacePreviewWithImage");
+      }
+      generationStarted = true;
+      agentDebug.generationStarted = true;
+      agentDebug.executeGeneration = true;
+      agentDebug.messageDoneHandled = true;
+      agentDebug.messageDoneSkipReason = "";
+      updateAgentDebugPanel(agentDebug);
+      logMessageDoneGenerationDecision(agentDebug, {
+        stage: "guard.pass",
+        enterExecuteGeneration: true
       });
+      logAgentDebug(agentDebug, "generation.execute", {
+        intent: agentDebug.intent,
+        optimizedPrompt: summarizePrompt(agentDebug.optimizedPrompt)
+      });
+
+      progress = conversationResult.message || (typeof addChatBlocks === "function" ? null : addChat("assistant", "Generating result..."));
+      progress?.classList?.add("loading");
+      const generationPrompt = conversationResult.optimizedPrompt || prompt;
+      const videoModel = getModelType(model) === "video" || conversationResult.outputType === "video";
+      if (videoModel && typeof replacePreviewWithVideo !== "function") {
+        agentDebug.messageDoneSkipReason = "skipped because missing replacePreviewWithVideo";
+        logMessageDoneGenerationDecision(agentDebug, {
+          stage: "guard.skip",
+          reason: agentDebug.messageDoneSkipReason
+        });
+        throw new Error("missing replacePreviewWithVideo");
+      }
+      agentDebug.generationType = videoModel ? "video" : "image";
+      agentBlocksState.generationType = agentDebug.generationType;
+      agentBlocksState.optimizedPrompt = generationPrompt;
+      agentBlocksState.resultStatus = "pending";
+      agentBlocksState.size = generationMetrics.outputSize || "";
+      refreshAgentBlocks();
+      updateChat(progress, `${conversationResult.text || "Generating result..."}\nCalling ${videoModel ? "video" : "image"} generation model...`);
+
+      previewCount = videoModel ? 1 : (isMidjourneyModel(model) ? MIDJOURNEY_IMAGE_COUNT : 1);
+      agentDebug.previewCreationAttempted = true;
+      updateAgentDebugPanel(agentDebug);
+      if (!previewNodes.length) {
+        const target = viewportPointToWorld(
+          resolvedCanvasViewport.getBoundingClientRect().left + resolvedCanvasViewport.clientWidth / 2,
+          resolvedCanvasViewport.getBoundingClientRect().top + resolvedCanvasViewport.clientHeight / 2
+        );
+        const placement = getGenerationPlacement(generationMetrics, target);
+        previewNodes = createPromptPreviewBatch({
+          addGenerationPreview,
+          placement,
+          generationMetrics,
+          files,
+          count: previewCount,
+          outputType: videoModel ? "video" : "image"
+        });
+      }
+      if (!previewNodes.length) {
+        agentDebug.previewCreationError = "Unable to create pending generation preview.";
+        logMessageDoneGenerationDecision(agentDebug, {
+          stage: "preview.failed",
+          reason: agentDebug.previewCreationError
+        });
+        throw new Error(agentDebug.previewCreationError);
+      }
       previewNode = previewNodes[0];
+      agentDebug.pendingPreviewCreated = true;
+      logAgentDebug(agentDebug, "preview.created", {
+        count: previewNodes.length,
+        generationType: videoModel ? "video" : "image"
+      });
+      clearComposerAttachments({
+        setChatImageFiles,
+        renderChatImagePreview
+      });
 
       logSubmittedModel("chat", model);
-      const result = await postJsonRequest("/api/ai/generate", buildChatImagePayload({
+      const generationPayload = buildChatImagePayload({
         model,
-        prompt,
+        prompt: generationPrompt,
         images,
         size: generationMetrics.outputSize
-      }));
-      const finalResult = result.imageUrl || !result.jobId
+      });
+      if (!generationPayload?.prompt && !Array.isArray(generationPayload?.images)) {
+        agentDebug.messageDoneSkipReason = "skipped because missing payload";
+        logMessageDoneGenerationDecision(agentDebug, {
+          stage: "guard.skip",
+          reason: agentDebug.messageDoneSkipReason
+        });
+        throw new Error("missing payload");
+      }
+      agentDebug.generatePayload = summarizeGeneratePayload(generationPayload, videoModel ? "video" : "image");
+      agentDebug.generatePayloadBuilt = true;
+      logMessageDoneGenerationDecision(agentDebug, {
+        stage: "payload.built",
+        generatePayloadBuilt: true
+      });
+      logAgentDebug(agentDebug, "generate.request", agentDebug.generatePayload);
+      updateAgentDebugPanel(agentDebug);
+      agentDebug.generateRequestStarted = true;
+      logMessageDoneGenerationDecision(agentDebug, {
+        stage: "request.started",
+        generateRequestStarted: true
+      });
+      updateAgentDebugPanel(agentDebug);
+      const result = await postJsonRequest("/api/ai/generate", generationPayload);
+      agentDebug.generateResult = summarizeGenerationResult(result);
+      logAgentDebug(agentDebug, "generate.response.initial", agentDebug.generateResult);
+      const finalResult = result.imageUrl || result.videoUrl || !result.jobId
         ? result
         : await waitForAIJob(result.jobId, {
           onProgress: (payload) => {
+            if (activeChatAgentRunId !== agentDebug.runId) return;
             const status = payload?.status || "running";
             const progressValue = Number(payload?.progress || 0);
             const suffix = progressValue > 0 ? ` (${Math.min(99, progressValue)}%)` : "";
-            updateChat(progress, `Generation is still running${suffix}.\n${formatModelUsage(result, model)}`);
+            updateChat(progress, `${videoModel ? "Video" : "Image"} generation is still running${suffix}.\n${formatModelUsage(result, model)}`);
             previewNodes.forEach((node, index) => updatePromptPreviewStatus(node, previewCount > 1
               ? `Waiting for result ${index + 1}/${previewCount}...`
-              : "Waiting for generation result..."));
+              : (videoModel ? "Waiting for video result..." : "Waiting for generation result...")));
             if (status === "queued" || status === "running") {
-              updateThinking(thinking, 3);
+              updateThinking(thinking, 4);
             }
           }
         });
+      if (activeChatAgentRunId !== agentDebug.runId) {
+        logAgentDebug(agentDebug, "generation.result.stale_ignored", {
+          activeRunId: activeChatAgentRunId
+        });
+        return;
+      }
+      agentDebug.generateResult = summarizeGenerationResult(finalResult);
+      logAgentDebug(agentDebug, "generate.response.final", agentDebug.generateResult);
+      updateAgentDebugPanel(agentDebug);
       const resultModel = finalResult.requestedModel || finalResult.model || model;
       warnIfModelMismatch(model, resultModel, finalResult);
       const modelUsage = formatModelUsage(finalResult, resultModel);
-      updateChat(progress, `${finalResult.text || finalResult.message || "Generation finished."}\n${modelUsage}`);
+      agentDebug.addChatBlocksAvailable = typeof addChatBlocks === "function";
+      updateChat(progress, "正在整理生成结果...");
+      updateAgentDebugPanel(agentDebug);
 
-      if (finalResult.videoUrl && getModelType(model) === "video") {
-        previewNode?.classList?.add("generation-failed");
-        const statusText = previewNode?.querySelector?.(".generation-frame span");
-        if (statusText) statusText.textContent = "Video generated in task results.";
-        addChat("assistant", `Video task completed: ${finalResult.videoUrl}`);
+      const videoUrls = getResultVideoUrls(finalResult);
+      if (videoModel && videoUrls.length) {
+        if (typeof replacePreviewWithVideo !== "function") {
+          throw new Error("Video preview workflow is unavailable.");
+        }
+        const videoNode = replacePreviewWithVideo(previewNode, {
+          title: "Generated Video.mp4",
+          desc: "Generated video from your prompt.",
+          url: videoUrls[0],
+          width: previewNode?.offsetWidth || generationMetrics.width,
+          aspectRatio: generationMetrics.aspectRatio || "",
+          prompt: generationPrompt,
+          actionType: "video_generation",
+          model: resultModel
+        });
+        if (getPendingHomeGenerationFocus()) {
+          setPendingHomeGenerationFocus(false);
+          centerViewOnNode(videoNode, 1);
+        }
+        updateActiveProject({
+          title: getActiveProject()?.title || makeProjectTitle(prompt || generationPrompt),
+          prompt: generationPrompt,
+          thumbnail: videoUrls[0],
+          itemCount: (getActiveProject()?.itemCount || 0) + 1
+        });
+        await saveCurrentProjectAfterGeneration?.();
+        onProjectTitleRefresh();
+        if (typeof addChatBlocks === "function") {
+          progress?.remove?.();
+          progress = null;
+          agentBlocksState.videoUrls = videoUrls;
+          agentBlocksState.imageUrls = [];
+          agentBlocksState.model = resultModel;
+          agentBlocksState.modelUsage = modelUsage;
+          agentBlocksState.generationType = "video";
+          agentBlocksState.taskType = conversationResult.taskType || agentDebug.taskType;
+          agentBlocksState.optimizedPrompt = generationPrompt;
+          agentBlocksState.size = generationMetrics.outputSize || "";
+          agentBlocksState.jobId = finalResult.jobId || finalResult.job?.id || "";
+          agentBlocksState.resultStatus = "succeeded";
+          agentBlocksState.summary = buildAgentCompletionSummary({
+            hasReference: imageAttachments.length > 0,
+            generationType: "video"
+          });
+          refreshAgentBlocks();
+        } else {
+          progress?.remove?.();
+          progress = null;
+          addChat("assistant", `生成视频 · ${modelUsage}\n${videoUrls[0]}`);
+        }
         window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
       } else if (getResultImageUrls(finalResult).length) {
         const imageUrls = getResultImageUrls(finalResult);
@@ -277,8 +1332,8 @@ export function bindPromptSubmit({
           url: imageUrl,
           width: (previewNodes[index] || previewNodes[0])?.offsetWidth || generationMetrics.width,
           aspectRatio: generationMetrics.aspectRatio || "",
-          prompt,
-          actionType: detectGenerationKind(prompt),
+          prompt: generationPrompt,
+          actionType: detectGenerationKind(generationPrompt),
           model: resultModel
         })).filter(Boolean);
         const imageNode = imageNodes[0] || null;
@@ -287,32 +1342,85 @@ export function bindPromptSubmit({
           centerViewOnNode(imageNode, 1);
         }
         updateActiveProject({
-          title: getActiveProject()?.title || makeProjectTitle(prompt),
-          prompt,
+          title: getActiveProject()?.title || makeProjectTitle(prompt || generationPrompt),
+          prompt: generationPrompt,
           thumbnail: imageUrls[0],
           itemCount: (getActiveProject()?.itemCount || 0) + imageUrls.length
         });
         await saveCurrentProjectAfterGeneration?.();
         onProjectTitleRefresh();
-        imageUrls.forEach((imageUrl, index) => {
-          addChatImage("assistant", imageUrl, imageUrls.length > 1
-            ? `\u751f\u6210\u56fe\u7247 ${index + 1}/${imageUrls.length} \u00b7 ${modelUsage}`
-            : `\u751f\u6210\u56fe\u7247 \u00b7 ${modelUsage}`);
-        });
+        if (typeof addChatBlocks === "function") {
+          progress?.remove?.();
+          progress = null;
+          agentBlocksState.imageUrls = imageUrls;
+          agentBlocksState.videoUrls = [];
+          agentBlocksState.model = resultModel;
+          agentBlocksState.modelUsage = modelUsage;
+          agentBlocksState.generationType = "image";
+          agentBlocksState.taskType = conversationResult.taskType || agentDebug.taskType;
+          agentBlocksState.optimizedPrompt = generationPrompt;
+          agentBlocksState.size = generationMetrics.outputSize || "";
+          agentBlocksState.jobId = finalResult.jobId || finalResult.job?.id || "";
+          agentBlocksState.resultStatus = "succeeded";
+          agentBlocksState.summary = buildAgentCompletionSummary({
+            hasReference: imageAttachments.length > 0,
+            generationType: "image"
+          });
+          refreshAgentBlocks();
+        } else {
+          progress?.remove?.();
+          progress = null;
+          imageUrls.forEach((imageUrl, index) => {
+            addChatImage("assistant", imageUrl, imageUrls.length > 1
+              ? `\u751f\u6210\u56fe\u7247 ${index + 1}/${imageUrls.length} \u00b7 ${modelUsage}`
+              : `\u751f\u6210\u56fe\u7247 \u00b7 ${modelUsage}`);
+          });
+        }
         window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
       } else {
-        throw new Error("Generation completed but no image URL was returned.");
+        throw new Error(videoModel
+          ? "Generation completed but no video URL was returned."
+          : "Generation completed but no image URL was returned.");
       }
 
-      updateThinking(thinking, 4, true);
+      updateThinking(thinking, 5, true);
     } catch (error) {
+      if (activeChatAgentRunId !== agentDebug.runId) {
+        logAgentDebug(agentDebug, "run.stale_error_ignored", {
+          activeRunId: activeChatAgentRunId,
+          message: error.message || String(error)
+        });
+        return;
+      }
+      agentDebug.error = error.message || String(error);
+      if (agentDebug.previewCreationAttempted && !agentDebug.pendingPreviewCreated && !agentDebug.previewCreationError) {
+        agentDebug.previewCreationError = agentDebug.error;
+      }
+      logAgentDebug(agentDebug, "error", {
+        message: agentDebug.error,
+        pendingPreviewCreated: previewNodes.length > 0
+      });
+      updateAgentDebugPanel(agentDebug);
       if (getPendingHomeGenerationFocus()) {
         setPendingHomeGenerationFocus(false);
+      }
+      if (!previewNodes.length && files.length) {
+        restoreComposerAttachmentsOnFailure({
+          files,
+          setChatImageFiles,
+          renderChatImagePreview,
+          debugRecord: agentDebug
+        });
       }
       previewNodes.forEach((node) => {
         node?.classList?.add("generation-failed");
         updatePromptPreviewStatus(node, "Generation failed, please try again.");
       });
+      if (typeof addChatBlocks === "function" && agentBlocksMessage) {
+        agentBlocksState.resultStatus = "failed";
+        agentBlocksState.resultError = "生成失败，请重试。";
+        refreshAgentBlocks();
+      }
       updateThinking(thinking, 0, true);
       if (progress) {
         updateChat(progress, `Generation failed: ${error.message}`);
@@ -323,24 +1431,30 @@ export function bindPromptSubmit({
   });
 }
 
-async function runConversation({
+async function runConversationAgent({
   projectId,
   prompt,
   model,
   images = [],
   files = [],
+  attachments = [],
   canvasContext = {},
+  debugRecord = null,
   thinking,
   addChat,
   updateChat,
   updateThinking,
-  setThinkingSummary
+  setThinkingSummary,
+  onAgentEvent = null,
+  onShouldGenerateIntent = null
 } = {}) {
   if (!projectId) {
     return {
       shouldGenerate: true,
       message: null,
-      text: "Generating result..."
+      text: "Generating result...",
+      optimizedPrompt: prompt,
+      outputType: getModelType(model)
     };
   }
 
@@ -348,45 +1462,345 @@ async function runConversation({
   let assistantMessage = null;
   let assistantText = "";
   let shouldGenerate = false;
+  let optimizedPrompt = "";
+  let qwenVlMode = "";
+  let promptOptimizerMode = "";
+  let skippedOptimizer = false;
+  let optimizerError = "";
+  let usedFallbackPrompt = false;
+  let totalBudgetExceeded = false;
+  let intent = "";
+  let taskType = "";
+  let promptStrategy = "";
+  let outputType = getModelType(model);
+  let imageAnalysis = null;
+  let imageAnalysisError = "";
+  let sawMessageDone = false;
+  const runId = debugRecord?.runId || "";
 
-  await streamConversationRun(conversation.id, {
+  const conversationPayload = {
+    runId,
     text: prompt,
     model,
     mode: "auto",
-    attachments: images.map((dataUrl, index) => ({
+    attachments: attachments.length ? attachments : images.map((dataUrl, index) => ({
       type: files[index]?.type || "image",
       name: files[index]?.name || `Reference ${index + 1}`,
       source: "upload",
       dataUrl
     })),
     canvasContext
-  }, (event) => {
+  };
+  logAgentDebug(debugRecord, "conversation.request", summarizeConversationPayload(conversationPayload));
+  updateAgentDebugPanel(debugRecord);
+
+  try {
+    await streamConversationRun(conversation.id, conversationPayload, (event) => {
+    if (runId && activeChatAgentRunId !== runId) {
+      if (debugRecord) {
+        debugRecord.messageDoneSkipReason = "skipped because runId mismatch";
+        debugRecord.streamAbortReason = `stale event ignored: ${event.type || ""}`;
+      }
+      if (event.type === "message.done") {
+        console.debug("[message.done] received", {
+          runId,
+          activeRunId: activeChatAgentRunId,
+          intent: event.intent || event.message?.content?.intent || "",
+          shouldGenerate: Boolean(event.shouldGenerate),
+          generationType: event.generationType || "",
+          autoExecute: CHAT_AGENT_CONFIG.autoExecute,
+          generationStarted: false,
+          enterExecuteGeneration: false,
+          skipReason: "skipped because runId mismatch"
+        });
+      }
+      logAgentDebug(debugRecord, "conversation.event.stale_ignored", {
+        activeRunId: activeChatAgentRunId,
+        type: event.type || ""
+      });
+      return;
+    }
+    logAgentDebug(debugRecord, "conversation.event", { type: event.type || "" });
+    onAgentEvent?.(event);
     if (event.type === "thinking.step" && event.steps) {
       updateThinking(thinking, event.steps);
+      updateAgentDebugPanel(debugRecord);
       return;
     }
     if (event.type === "thinking.summary") {
       setThinkingSummary(thinking, event.summary || "");
+      updateAgentDebugPanel(debugRecord);
+      return;
+    }
+    if (event.type === "agent.intent") {
+      intent = event.intent || intent;
+      taskType = event.taskType || taskType;
+      promptStrategy = event.promptStrategy || promptStrategy;
+      const nextStrategyTags = Array.isArray(event.strategyTags) ? event.strategyTags : null;
+      qwenVlMode = event.qwenVlMode || qwenVlMode;
+      promptOptimizerMode = event.promptOptimizerMode || promptOptimizerMode;
+      shouldGenerate = Boolean(event.shouldGenerate ?? (isGenerationIntent(intent) || shouldGenerate));
+      outputType = event.generationType || outputType;
+      if (debugRecord) {
+        debugRecord.intent = intent;
+        debugRecord.taskType = taskType;
+        debugRecord.promptStrategy = promptStrategy;
+        if (nextStrategyTags) debugRecord.strategyTags = nextStrategyTags;
+        debugRecord.qwenVlMode = qwenVlMode;
+        debugRecord.promptOptimizerMode = promptOptimizerMode;
+        debugRecord.shouldGenerate = shouldGenerate;
+        debugRecord.generationType = outputType;
+      }
+      logAgentDebug(debugRecord, "conversation.intent", {
+        intent,
+        taskType,
+        promptStrategy,
+        strategyTags: nextStrategyTags || debugRecord?.strategyTags || [],
+        shouldGenerate,
+        generationType: outputType,
+        qwenVlMode,
+        promptOptimizerMode
+      });
+      if (shouldGenerate && CHAT_AGENT_CONFIG.autoExecute && typeof onShouldGenerateIntent === "function") {
+        onShouldGenerateIntent({
+          intent,
+          outputType,
+          qwenVlMode,
+          promptOptimizerMode
+        });
+      }
+      updateAgentDebugPanel(debugRecord);
+      return;
+    }
+    if (event.type === "image.analysis.start") {
+      intent = event.intent || intent;
+      taskType = event.taskType || taskType;
+      promptStrategy = event.promptStrategy || promptStrategy;
+      qwenVlMode = event.qwenVlMode || qwenVlMode;
+      promptOptimizerMode = event.promptOptimizerMode || promptOptimizerMode;
+      shouldGenerate = Boolean(event.shouldGenerate ?? (isGenerationIntent(intent) || shouldGenerate));
+      outputType = event.generationType || outputType;
+      if (debugRecord) {
+        debugRecord.intent = intent;
+        debugRecord.taskType = taskType;
+        debugRecord.promptStrategy = promptStrategy;
+        debugRecord.qwenVlMode = qwenVlMode;
+        debugRecord.promptOptimizerMode = promptOptimizerMode;
+        debugRecord.shouldGenerate = shouldGenerate;
+        debugRecord.generationType = outputType;
+        debugRecord.imageAnalysisStarted = true;
+        debugRecord.imageAnalysisFinished = false;
+        debugRecord.imageAnalysisTimedOut = false;
+        debugRecord.imageAnalysisError = "";
+      }
+      updateAgentDebugPanel(debugRecord);
+      return;
+    }
+    if (event.type === "prompt.optimized") {
+      optimizedPrompt = event.optimizedPrompt || optimizedPrompt;
+      taskType = event.taskType || taskType;
+      promptStrategy = event.promptStrategy || promptStrategy;
+      qwenVlMode = event.qwenVlMode || qwenVlMode;
+      promptOptimizerMode = event.promptOptimizerMode || promptOptimizerMode;
+      skippedOptimizer = Boolean(event.skippedOptimizer ?? skippedOptimizer);
+      optimizerError = event.optimizerError || optimizerError;
+      usedFallbackPrompt = Boolean(event.usedFallbackPrompt ?? event.fallback ?? usedFallbackPrompt);
+      totalBudgetExceeded = Boolean(event.totalBudgetExceeded ?? totalBudgetExceeded);
+      if (debugRecord) {
+        debugRecord.optimizedPrompt = optimizedPrompt;
+        debugRecord.taskType = taskType;
+        debugRecord.promptStrategy = promptStrategy;
+        debugRecord.strategyTags = Array.isArray(event.strategyTags) ? event.strategyTags : debugRecord.strategyTags;
+        debugRecord.promptDriftDetected = Boolean(event.promptDriftDetected);
+        debugRecord.usedConservativeFallback = Boolean(event.usedConservativeFallback || usedFallbackPrompt);
+        debugRecord.qwenVlMode = qwenVlMode;
+        debugRecord.promptOptimizerMode = promptOptimizerMode;
+        debugRecord.skippedOptimizer = skippedOptimizer;
+        debugRecord.optimizerStarted = true;
+        debugRecord.optimizerFinished = true;
+        debugRecord.optimizerTimedOut = Boolean(event.optimizerTimedOut);
+        debugRecord.optimizerError = optimizerError;
+        debugRecord.usedFallbackPrompt = usedFallbackPrompt;
+        debugRecord.totalBudgetExceeded = totalBudgetExceeded;
+      }
+      updateAgentDebugPanel(debugRecord);
+      return;
+    }
+    if (event.type === "prompt.optimizer.start") {
+      qwenVlMode = event.qwenVlMode || qwenVlMode;
+      promptOptimizerMode = event.promptOptimizerMode || promptOptimizerMode;
+      if (debugRecord) {
+        debugRecord.qwenVlMode = qwenVlMode;
+        debugRecord.promptOptimizerMode = promptOptimizerMode;
+        debugRecord.optimizerStarted = true;
+        debugRecord.optimizerFinished = false;
+        debugRecord.optimizerTimedOut = false;
+        debugRecord.optimizerError = "";
+      }
+      updateAgentDebugPanel(debugRecord);
+      return;
+    }
+    if (event.type === "image.analysis") {
+      imageAnalysis = event.analysis || event.summary || imageAnalysis;
+      if (debugRecord) {
+        debugRecord.imageAnalysisPresent = Boolean(imageAnalysis);
+        debugRecord.imageAnalysisStarted = true;
+        debugRecord.imageAnalysisFinished = true;
+        debugRecord.imageAnalysisTimedOut = false;
+        debugRecord.imageAnalysisError = "";
+      }
+      updateAgentDebugPanel(debugRecord);
+      return;
+    }
+    if (event.type === "image.analysis.error") {
+      imageAnalysisError = event.error || "Image analysis failed";
+      if (debugRecord) {
+        debugRecord.imageAnalysisStarted = true;
+        debugRecord.imageAnalysisFinished = true;
+        debugRecord.imageAnalysisTimedOut = Boolean(event.timedOut);
+        debugRecord.imageAnalysisError = imageAnalysisError;
+      }
+      updateAgentDebugPanel(debugRecord);
       return;
     }
     if (event.type === "assistant.delta") {
       assistantText += event.delta || "";
+      if (shouldGenerate || isGenerationIntent(intent)) return;
       if (!assistantMessage) assistantMessage = addChat("assistant", "");
       updateChat(assistantMessage, assistantText);
       return;
     }
-    if (event.type === "tool.call" && isGenerationTool(event.toolCall?.name)) {
+    const generationTool = getGenerationToolNameFromEvent(event);
+    if (generationTool) {
       shouldGenerate = true;
+      if (generationTool === "generate_video") outputType = "video";
+      if (debugRecord) {
+        debugRecord.shouldGenerate = true;
+        debugRecord.generationType = outputType;
+      }
+      updateAgentDebugPanel(debugRecord);
+    }
+    if (event.type === "message.done") {
+      sawMessageDone = true;
+      intent = event.intent || event.message?.content?.intent || intent;
+      taskType = event.taskType || event.message?.content?.taskType || taskType;
+      promptStrategy = event.promptStrategy || event.message?.content?.promptStrategy || promptStrategy;
+      const nextStrategyTags = event.strategyTags || event.message?.content?.strategyTags;
+      optimizedPrompt = event.optimizedPrompt || event.message?.content?.optimizedPrompt || optimizedPrompt;
+      qwenVlMode = event.qwenVlMode || event.message?.content?.qwenVlMode || qwenVlMode;
+      promptOptimizerMode = event.promptOptimizerMode || event.message?.content?.promptOptimizerMode || promptOptimizerMode;
+      skippedOptimizer = Boolean(event.skippedOptimizer ?? event.message?.content?.skippedOptimizer ?? skippedOptimizer);
+      optimizerError = event.optimizerError || event.message?.content?.optimizerError || optimizerError;
+      usedFallbackPrompt = Boolean(event.usedFallbackPrompt ?? event.message?.content?.usedFallbackPrompt ?? usedFallbackPrompt);
+      const promptDriftDetected = Boolean(event.promptDriftDetected ?? event.message?.content?.promptDriftDetected ?? false);
+      const usedConservativeFallback = Boolean(event.usedConservativeFallback ?? event.message?.content?.usedConservativeFallback ?? false);
+      totalBudgetExceeded = Boolean(event.totalBudgetExceeded ?? event.message?.content?.totalBudgetExceeded ?? totalBudgetExceeded);
+      imageAnalysis = event.imageAnalysis || event.message?.content?.imageAnalysis || imageAnalysis;
+      imageAnalysisError = event.imageAnalysisError || event.message?.content?.imageAnalysisError || imageAnalysisError;
+      shouldGenerate = Boolean(event.shouldGenerate ?? (isGenerationIntent(intent) || shouldGenerate));
+      if (event.generationType === "video" || intent === "generate_video") outputType = "video";
+      if (debugRecord) {
+        debugRecord.intent = intent;
+        debugRecord.taskType = taskType;
+        debugRecord.promptStrategy = promptStrategy;
+        debugRecord.strategyTags = Array.isArray(nextStrategyTags) ? nextStrategyTags : debugRecord.strategyTags;
+        debugRecord.promptDriftDetected = promptDriftDetected;
+        debugRecord.usedConservativeFallback = usedConservativeFallback || usedFallbackPrompt;
+        debugRecord.optimizedPrompt = optimizedPrompt || prompt;
+        debugRecord.qwenVlMode = qwenVlMode;
+        debugRecord.promptOptimizerMode = promptOptimizerMode;
+        debugRecord.skippedOptimizer = skippedOptimizer;
+        debugRecord.optimizerError = optimizerError;
+        debugRecord.optimizerTimedOut = /timed out|time budget/i.test(optimizerError);
+        debugRecord.usedFallbackPrompt = usedFallbackPrompt;
+        debugRecord.totalBudgetExceeded = totalBudgetExceeded;
+        debugRecord.imageAnalysisPresent = Boolean(imageAnalysis);
+        debugRecord.imageAnalysisError = imageAnalysisError;
+        debugRecord.imageAnalysisTimedOut = /timed out|time budget/i.test(imageAnalysisError);
+        debugRecord.shouldGenerate = shouldGenerate;
+        debugRecord.messageDoneReceived = true;
+        debugRecord.messageDoneHandled = true;
+        debugRecord.generationType = outputType;
+      }
+      console.debug("[message.done] received", {
+        runId,
+        activeRunId: activeChatAgentRunId,
+        intent,
+        taskType,
+        promptStrategy,
+        shouldGenerate,
+        generationType: outputType,
+        autoExecute: CHAT_AGENT_CONFIG.autoExecute,
+        generationStarted: false,
+        enterExecuteGeneration: shouldGenerate && CHAT_AGENT_CONFIG.autoExecute && (!runId || activeChatAgentRunId === runId),
+        skipReason: !(!runId || activeChatAgentRunId === runId)
+          ? "skipped because runId mismatch"
+          : (!CHAT_AGENT_CONFIG.autoExecute
+            ? "skipped because autoExecute false"
+            : (!shouldGenerate ? "skipped because shouldGenerate false" : ""))
+      });
+      logAgentDebug(debugRecord, "conversation.done", {
+        intent,
+        taskType,
+        promptStrategy,
+        shouldGenerate,
+        optimizedPrompt: summarizePrompt(optimizedPrompt || prompt),
+        qwenVlMode,
+        promptOptimizerMode,
+        skippedOptimizer,
+        optimizerError,
+        usedFallbackPrompt,
+        totalBudgetExceeded,
+        imageAnalysisPresent: Boolean(imageAnalysis),
+        imageAnalysisError
+      });
+      updateAgentDebugPanel(debugRecord);
+      return false;
     }
     if (event.type === "error") {
+      if (debugRecord) {
+        debugRecord.streamError = event.message || "Conversation run failed";
+        updateAgentDebugPanel(debugRecord);
+      }
       throw new Error(event.message || "Conversation run failed");
     }
-  });
+  }, { runId, timeoutMs: CONVERSATION_STREAM_TIMEOUT_MS, debugRecord });
+    if (debugRecord) {
+      debugRecord.streamFinished = true;
+      updateAgentDebugPanel(debugRecord);
+    }
+  } catch (error) {
+    if (debugRecord) {
+      debugRecord.streamError = error.streamTimeout
+        ? "Agent 流程超时，请重试"
+        : (error.message || String(error));
+      debugRecord.streamTimeout = Boolean(error.streamTimeout);
+      updateAgentDebugPanel(debugRecord);
+    }
+    throw error;
+  }
+
+  if (!sawMessageDone) {
+    throw new Error("Conversation stream ended before message.done");
+  }
 
   return {
     shouldGenerate,
     message: assistantMessage,
-    text: assistantText
+    text: assistantText,
+    intent,
+    taskType,
+    promptStrategy,
+    optimizedPrompt: optimizedPrompt || prompt,
+    qwenVlMode,
+    promptOptimizerMode,
+    skippedOptimizer,
+    optimizerError,
+    usedFallbackPrompt,
+    totalBudgetExceeded,
+    outputType,
+    imageAnalysis,
+    imageAnalysisError
   };
 }
 
@@ -410,16 +1824,58 @@ async function ensureConversation(projectId, { reset = false } = {}) {
   return conversation;
 }
 
-async function streamConversationRun(conversationId, payload, onEvent) {
+function recordStreamEvent(debugRecord, eventType = "") {
+  if (!debugRecord) return;
+  const type = eventType || "unknown";
+  debugRecord.lastStreamEventType = type;
+  if (!Array.isArray(debugRecord.streamEventTypes)) debugRecord.streamEventTypes = [];
+  debugRecord.streamEventTypes.push(type);
+  if (debugRecord.streamEventTypes.length > 80) debugRecord.streamEventTypes.splice(0, debugRecord.streamEventTypes.length - 80);
+  updateAgentDebugPanel(debugRecord);
+}
+
+function parseStreamEventLine(text, debugRecord = null) {
+  try {
+    const event = JSON.parse(text);
+    recordStreamEvent(debugRecord, event?.type || "");
+    logAgentDebug(debugRecord, "stream.event.parsed", {
+      type: event?.type || "",
+      textLength: text.length
+    });
+    return event;
+  } catch (error) {
+    if (debugRecord) {
+      debugRecord.streamParseError = error.message || String(error);
+      debugRecord.lastStreamEventType = "parse.error";
+      updateAgentDebugPanel(debugRecord);
+    }
+    console.warn("[chat-agent] stream event parse failed", {
+      message: error.message || String(error),
+      textLength: text.length
+    });
+    throw error;
+  }
+}
+
+async function streamConversationRun(conversationId, payload, onEvent, { timeoutMs = CONVERSATION_STREAM_TIMEOUT_MS, debugRecord = null } = {}) {
   currentConversationAbort?.abort?.();
-  currentConversationAbort = new AbortController();
+  const controller = new AbortController();
+  currentConversationAbort = controller;
+  let timedOut = false;
+  const safeTimeoutMs = Number(timeoutMs || 0);
+  const timer = safeTimeoutMs > 0
+    ? window.setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, safeTimeoutMs)
+    : null;
   try {
     const response = await fetch(`/api/conversations/${encodeURIComponent(conversationId)}/runs`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
-      signal: currentConversationAbort.signal
+      signal: controller.signal
     });
     if (!response.ok) {
       const errorPayload = await response.json().catch(() => ({}));
@@ -438,12 +1894,63 @@ async function streamConversationRun(conversationId, payload, onEvent) {
       for (const line of lines) {
         const text = line.trim();
         if (!text) continue;
-        onEvent(JSON.parse(text));
+        const event = parseStreamEventLine(text, debugRecord);
+        const shouldContinue = onEvent(event);
+        logAgentDebug(debugRecord, "stream.event.handled", {
+          type: event?.type || "",
+          shouldContinue
+        });
+        if (shouldContinue === false) {
+          if (debugRecord) {
+            debugRecord.streamAbortReason = `handler stopped after ${event?.type || "unknown"}`;
+            updateAgentDebugPanel(debugRecord);
+          }
+          reader.cancel?.().catch?.(() => {});
+          return;
+        }
       }
     }
-    if (buffer.trim()) onEvent(JSON.parse(buffer.trim()));
+    if (buffer.trim()) {
+      const event = parseStreamEventLine(buffer.trim(), debugRecord);
+      const shouldContinue = onEvent(event);
+      logAgentDebug(debugRecord, "stream.event.handled", {
+        type: event?.type || "",
+        shouldContinue
+      });
+      if (shouldContinue === false) {
+        if (debugRecord) {
+          debugRecord.streamAbortReason = `handler stopped after ${event?.type || "unknown"}`;
+          updateAgentDebugPanel(debugRecord);
+        }
+        reader.cancel?.().catch?.(() => {});
+        return;
+      }
+    }
+    if (debugRecord) {
+      debugRecord.streamAbortReason = "reader completed";
+      updateAgentDebugPanel(debugRecord);
+    }
+  } catch (error) {
+    if (timedOut) {
+      const timeoutError = new Error("Agent 流程超时，请重试");
+      timeoutError.streamTimeout = true;
+      if (debugRecord) {
+        debugRecord.streamAbortReason = "timeout";
+        updateAgentDebugPanel(debugRecord);
+      }
+      throw timeoutError;
+    }
+    if (error?.name === "AbortError") {
+      if (debugRecord) {
+        debugRecord.streamAbortReason = "aborted by new run or stop";
+        updateAgentDebugPanel(debugRecord);
+      }
+      throw new Error("Conversation run was stopped.");
+    }
+    throw error;
   } finally {
-    currentConversationAbort = null;
+    if (timer) window.clearTimeout(timer);
+    if (currentConversationAbort === controller) currentConversationAbort = null;
   }
 }
 
@@ -472,8 +1979,23 @@ async function restoreProjectConversation({ projectId, conversationId = "", addC
   });
 }
 
+function getGenerationToolNameFromEvent(event = {}) {
+  const names = [
+    event.toolCall?.name,
+    event.tool?.name,
+    event.name,
+    ...(Array.isArray(event.toolCalls) ? event.toolCalls.map((item) => item?.name) : []),
+    ...(Array.isArray(event.message?.toolCalls) ? event.message.toolCalls.map((item) => item?.name) : [])
+  ];
+  return names.map((name) => String(name || "").trim()).find(isGenerationTool) || "";
+}
+
 function isGenerationTool(name = "") {
-  return ["generate_image", "edit_image"].includes(String(name || "").trim());
+  return ["generate_image", "edit_image", "generate_video"].includes(String(name || "").trim());
+}
+
+function isGenerationIntent(intent = "") {
+  return ["generate_image", "edit_image", "generate_video"].includes(String(intent || "").trim());
 }
 
 function bindConversationControls({ getProjectId, addChat, addChatImage } = {}) {
@@ -699,6 +2221,160 @@ function snapshotCanvasNode(node) {
   };
 }
 
+async function collectReferenceImages({
+  files = [],
+  domPreviewAttachments = [],
+  readFileAsDataUrl,
+  readImageSourceAsDataUrl,
+  debugRecord = null
+} = {}) {
+  const attachments = [];
+  let successCount = 0;
+  let failureCount = 0;
+  logAgentDebug(debugRecord, "attachments.collect.input", {
+    fileCount: files.length,
+    domPreviewAttachmentCount: domPreviewAttachments.length,
+    files: summarizeFiles(files),
+    domPreviewAttachments
+  });
+
+  for (const [index, file] of files.entries()) {
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      if (!dataUrl) throw new Error("empty dataURL");
+      successCount += 1;
+      attachments.push({
+        type: file?.type || "image",
+        name: file?.name || `Reference ${index + 1}`,
+        source: "upload",
+        dataUrl
+      });
+    } catch (error) {
+      failureCount += 1;
+      logAgentDebug(debugRecord, "attachments.dataurl_failed", {
+        index,
+        name: file?.name || "",
+        type: file?.type || "",
+        size: Number(file?.size || 0),
+        error: error.message || String(error)
+      });
+    }
+  }
+
+  if (files.length && !attachments.length) {
+    throw new Error("No uploaded reference images could be converted to dataURL.");
+  }
+
+  if (!attachments.length && !files.length && domPreviewAttachments.length) {
+    const domReferences = await readDomPreviewReferences(debugRecord);
+    attachments.push(...domReferences);
+    if (!attachments.length) {
+      throw new Error("Chat preview attachments were visible but could not be read.");
+    }
+  }
+
+  if (!attachments.length && !files.length && !domPreviewAttachments.length) {
+    const selectedReference = await readSelectedImageReference(readImageSourceAsDataUrl);
+    if (selectedReference) attachments.push(selectedReference);
+  }
+
+  if (debugRecord) {
+    debugRecord.dataUrlSuccessCount = successCount;
+    debugRecord.dataUrlFailureCount = failureCount;
+  }
+  logAgentDebug(debugRecord, "attachments.dataurl_complete", {
+    successCount,
+    failureCount,
+    finalReferenceCount: attachments.length,
+    sources: attachments.map((item) => item.source || "unknown")
+  });
+
+  return {
+    attachments,
+    images: attachments.map((item) => item.dataUrl).filter(Boolean)
+  };
+}
+
+async function readDomPreviewReferences(debugRecord = null, root = globalThis.document) {
+  const items = Array.from(root?.querySelectorAll?.(".chat-image-preview button") || []);
+  const references = [];
+  for (const [index, button] of items.entries()) {
+    const image = button.querySelector("img");
+    const source = image?.currentSrc || image?.src || "";
+    if (!source) continue;
+    try {
+      const dataUrl = await imageSourceToDataUrl(source);
+      if (!dataUrl) throw new Error("empty dataURL");
+      references.push({
+        type: button.dataset.attachmentType || inferMimeTypeFromDataUrl(dataUrl) || "image",
+        name: button.dataset.attachmentName || image?.alt || `Reference ${index + 1}`,
+        source: "upload",
+        attachmentId: button.dataset.attachmentId || "",
+        dataUrl
+      });
+    } catch (error) {
+      logAgentDebug(debugRecord, "attachments.dom_preview_failed", {
+        index,
+        attachmentId: button.dataset.attachmentId || "",
+        name: button.dataset.attachmentName || image?.alt || "",
+        src: summarizeDataUrl(source),
+        error: error.message || String(error)
+      });
+    }
+  }
+  logAgentDebug(debugRecord, "attachments.dom_preview_complete", {
+    domPreviewCount: items.length,
+    recoveredReferenceCount: references.length,
+    sources: references.map((item) => item.source)
+  });
+  return references;
+}
+
+async function imageSourceToDataUrl(source = "") {
+  const src = String(source || "");
+  if (!src) return "";
+  if (src.startsWith("data:")) return src;
+  const response = await fetch(src);
+  if (!response.ok) throw new Error(`preview fetch failed: ${response.status}`);
+  const blob = await response.blob();
+  return blobToDataUrl(blob);
+}
+
+function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ""));
+    reader.onerror = () => reject(reader.error || new Error("blob read failed"));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function inferMimeTypeFromDataUrl(dataUrl = "") {
+  const match = String(dataUrl || "").match(/^data:([^;,]+)/);
+  return match?.[1] || "";
+}
+
+async function readSelectedImageReference(readImageSourceAsDataUrl) {
+  if (typeof readImageSourceAsDataUrl !== "function") return null;
+  const node = findActiveImageNode();
+  const image = node?.querySelector?.("img");
+  const source = image?.currentSrc || image?.src || node?.dataset?.objectUrl || "";
+  if (!source) return null;
+  try {
+    const dataUrl = await readImageSourceAsDataUrl(source);
+    if (!dataUrl) return null;
+    return {
+      type: "image",
+      name: node?.dataset?.title || node?.querySelector?.(".node-title")?.textContent?.trim?.() || "Selected canvas image",
+      source: "canvas-selection",
+      dataUrl
+    };
+  } catch (error) {
+    console.warn("[conversation] Failed to read selected image reference", error);
+    return null;
+  }
+}
+
 function parseDatasetJson(text) {
   if (!text) return null;
   try {
@@ -713,18 +2389,23 @@ function createPromptPreviewBatch({
   placement,
   generationMetrics,
   files = [],
-  count = 1
+  count = 1,
+  outputType = "image"
 } = {}) {
   const safeCount = Math.max(1, Math.ceil(Number(count || 1)));
   const gap = 28;
   return Array.from({ length: safeCount }, (_, index) => {
     const desc = safeCount > 1
       ? `Waiting for result ${index + 1}/${safeCount}...`
-      : (generationMetrics.sourceNode
+      : (outputType === "video"
+        ? "Waiting for video result..."
+        : generationMetrics.sourceNode
         ? "Generating from the selected image"
         : (files.length ? "Generating from reference images" : "Generating from prompt"));
     return addGenerationPreview({
-      title: safeCount > 1 ? `Generated Image ${index + 1}.png` : "Generated Image.png",
+      title: outputType === "video"
+        ? "Generated Video.mp4"
+        : (safeCount > 1 ? `Generated Image ${index + 1}.png` : "Generated Image.png"),
       desc,
       x: placement.x + index * ((generationMetrics.width || 320) + gap),
       y: placement.y,
@@ -748,6 +2429,22 @@ function getResultImageUrls(result = {}) {
     });
   }
   if (result?.imageUrl) urls.unshift(result.imageUrl);
+  return Array.from(new Set(urls.filter(Boolean)));
+}
+
+function getResultVideoUrls(result = {}) {
+  const urls = [];
+  if (Array.isArray(result?.videoUrls)) urls.push(...result.videoUrls);
+  if (Array.isArray(result?.outputs)) {
+    result.outputs.forEach((output) => {
+      const type = String(output?.type || "").toLowerCase();
+      const mimeType = String(output?.mimeType || output?.mime_type || "").toLowerCase();
+      if (output?.url && (type === "video" || mimeType.startsWith("video/"))) {
+        urls.push(output.url);
+      }
+    });
+  }
+  if (result?.videoUrl) urls.unshift(result.videoUrl);
   return Array.from(new Set(urls.filter(Boolean)));
 }
 
@@ -822,6 +2519,11 @@ export function bindPromptShortcuts({
 }) {
   queryAll(labelSelector).forEach((button) => {
     button.addEventListener("click", () => {
+      console.debug("[chat-submit] trigger source", {
+        source: "quick-action",
+        action: "fill-prompt-only",
+        prompt: summarizePrompt(button.dataset.prompt || "")
+      });
       promptInput.value = button.dataset.prompt;
       promptInput.focus();
     });

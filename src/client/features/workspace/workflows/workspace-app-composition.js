@@ -4,7 +4,7 @@ import {
   createWorkspaceCompositionDefaults,
   createWorkspaceCompositionElements
 } from "./workspace-app-bootstrap-composition.js";
-import { createWorkspaceChatAssetsCompositionRuntime } from "./workspace-chat-assets-composition.js?v=20260627-library-bulk-select-1";
+import { createWorkspaceChatAssetsCompositionRuntime } from "./workspace-chat-assets-composition.js?v=20260628-lightweight-prompt-1";
 import {
   createWorkspaceCanvasCompositionBundle
 } from "./workspace-canvas-composition.js";
@@ -14,11 +14,11 @@ import {
   createWorkspaceDirectorActionCompositionRuntime
 } from "./workspace-agent-composition.js";
 import { createWorkspaceImageEditCompositionBundle } from "./workspace-ai-composition.js";
-import { createWorkspaceProjectHomeCompositionBundle } from "./workspace-project-home-composition.js?v=20260627-library-bulk-select-1";
+import { createWorkspaceProjectHomeCompositionBundle } from "./workspace-project-home-composition.js?v=20260628-lightweight-prompt-1";
 import {
   createWorkspaceCompositionStateBundle
 } from "./workspace-state-composition.js";
-import { launchWorkspaceAppComposition } from "./workspace-launch-composition.js?v=20260627-library-bulk-select-1";
+import { launchWorkspaceAppComposition } from "./workspace-launch-composition.js?v=20260628-lightweight-prompt-1";
 export function startWorkspaceApp(documentRoot = globalThis.document) {
   if (!documentRoot) {
     throw new Error("startWorkspaceApp requires a document root");
@@ -457,6 +457,7 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
       postJsonRequest: libDeps.postJsonRequest,
       buildChatImagePayload: aiDeps.buildChatImagePayload,
       readFileAsDataUrl: aiDeps.readFileAsDataUrl,
+      readImageSourceAsDataUrl: aiDeps.readImageSourceAsDataUrl,
       detectGenerationKind: aiDeps.detectGenerationKind,
       getPendingHomeGenerationFocus: () => appState.pendingHomeGenerationFocus,
       setPendingHomeGenerationFocus: (value) => {

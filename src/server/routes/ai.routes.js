@@ -151,6 +151,9 @@ export function createAIRouter() {
         type,
         referenceCount: images.length
       });
+      const immediateOutputUrl = type === "video"
+        ? (result.videoUrl || result.imageUrl || "")
+        : (result.imageUrl || "");
       const job = createAIJob({
         id: requestId,
         userId: req.auth.user.id,
@@ -161,14 +164,14 @@ export function createAIRouter() {
         remoteTaskId: result.remoteTaskId || result.taskId || requestId,
         type,
         status: getInitialAIJobStatus(result),
-        progress: result.imageUrl ? 90 : 5,
+        progress: immediateOutputUrl ? 90 : 5,
         prompt,
         inputAssetIds: req.body?.inputAssetIds || [],
         creditsReserved: reservation.amountCredits
       });
-      if (result.imageUrl) {
+      if (immediateOutputUrl) {
         const completed = await completeAIJob(req.auth.user.id, job.id, {
-          outputs: [{ url: result.imageUrl, mimeType: type === "video" ? "video/mp4" : "image/png" }]
+          outputs: [{ url: immediateOutputUrl, mimeType: type === "video" ? "video/mp4" : "image/png" }]
         });
         if (completed?.status !== "succeeded") {
           res.status(500).json({
@@ -186,7 +189,11 @@ export function createAIRouter() {
           message: type === "video" ? "Video generated" : "Image generated",
           job: toClientJob(completed),
           jobId: completed?.id,
-          imageUrl: firstAsset?.url || "",
+          imageUrl: firstAsset?.type === "image" ? firstAsset.url : "",
+          imageUrls: firstAsset?.type === "image" ? [firstAsset.url] : [],
+          videoUrl: firstAsset?.type === "video" ? firstAsset.url : "",
+          videoUrls: firstAsset?.type === "video" ? [firstAsset.url] : [],
+          outputs: firstAsset ? [toClientAsset(firstAsset)] : [],
           asset: toClientAsset(firstAsset),
           model: modelConfig.id,
           requestedModel: modelConfig.id,
@@ -669,7 +676,7 @@ function validateVideoOptions(modelConfig = {}, input = {}) {
 }
 
 function getInitialAIJobStatus(result = {}) {
-  if (result.imageUrl) return "running";
+  if (result.imageUrl || result.videoUrl) return "running";
   const status = String(result.status || "").trim().toLowerCase();
   if (status === "succeeded") return "running";
   return status || "queued";

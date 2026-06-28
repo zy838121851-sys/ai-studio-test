@@ -1,5 +1,5 @@
-import { createWorkspaceAppLaunchConfig } from "./workspace-app-launch-config.js?v=20260627-library-bulk-select-1";
-import { launchWorkspaceRuntimeFromCompatibilityLayer } from "./workspace-runtime-launcher.js?v=20260627-library-bulk-select-1";
+import { createWorkspaceAppLaunchConfig } from "./workspace-app-launch-config.js?v=20260628-lightweight-prompt-1";
+import { launchWorkspaceRuntimeFromCompatibilityLayer } from "./workspace-runtime-launcher.js?v=20260628-lightweight-prompt-1";
 
 export function launchWorkspaceAppRuntime({
   workspaceAppScope,
@@ -55,6 +55,7 @@ export function launchWorkspaceAppRuntime({
     postJsonRequest,
     buildChatImagePayload,
     readFileAsDataUrl,
+    readImageSourceAsDataUrl,
     detectGenerationKind,
     getPendingHomeGenerationFocus,
     setPendingHomeGenerationFocus,
@@ -162,9 +163,11 @@ export function launchWorkspaceAppRuntime({
       setThinkingSummary: chatRuntime.setThinkingSummary,
       updateChat: chatRuntime.updateChat,
       addChatImage: chatRuntime.addChatImage,
+      addChatBlocks: chatRuntime.addChatBlocks,
       renderChatImagePreview: canvasGenerationRuntime.renderChatImagePreview,
       addGenerationPreview: canvasGenerationRuntime.addGenerationPreview,
       replacePreviewWithImage: canvasGenerationRuntime.replacePreviewWithImage,
+      replacePreviewWithVideo: canvasGenerationRuntime.replacePreviewWithVideo,
       updateActiveProject: projectHomeRuntime.updateActiveProject,
       saveCurrentProject: projectHomeRuntime.saveCurrentProject,
       saveCurrentProjectAfterGeneration: projectHomeRuntime.saveCurrentProjectAfterGeneration,
@@ -172,6 +175,7 @@ export function launchWorkspaceAppRuntime({
       postJsonRequest,
       buildChatImagePayload,
       readFileAsDataUrl,
+      readImageSourceAsDataUrl,
       detectGenerationKind,
       getPendingHomeGenerationFocus,
       setPendingHomeGenerationFocus,

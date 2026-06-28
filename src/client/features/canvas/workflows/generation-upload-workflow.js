@@ -1,7 +1,7 @@
 import {
   addImageFilesToPreview,
   renderChatImagePreviewList
-} from "../../workspace/chat/components/chat-image-preview.js";
+} from "../../workspace/chat/components/chat-image-preview.js?v=20260627-chat-agent-2";
 import {
   createGenerationChoiceOverlay,
   hideGenerationChoiceOverlay,

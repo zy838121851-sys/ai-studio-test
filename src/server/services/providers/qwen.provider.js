@@ -49,29 +49,63 @@ function pickWanImageUrl(data) {
   return candidates.find(Boolean) || null;
 }
 
-export async function callQwen({ model, content, parameters = {} }) {
+export async function callQwen({ model, content, parameters = {}, signal, runId = "" } = {}) {
   assertApiKey();
-  const response = await fetch(env.dashscopeUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${env.dashscopeApiKey}`
-    },
-    body: JSON.stringify({
-      model,
-      input: {
-        messages: [
-          {
-            role: "user",
-            content
-          }
-        ]
-      },
-      parameters
-    })
+  console.debug("[qwen.provider] fetch start", {
+    runId,
+    model,
+    hasSignal: Boolean(signal),
+    signalAborted: Boolean(signal?.aborted),
+    endpoint: env.dashscopeUrl
   });
+  let response;
+  try {
+    response = await fetch(env.dashscopeUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${env.dashscopeApiKey}`
+      },
+      body: JSON.stringify({
+        model,
+        input: {
+          messages: [
+            {
+              role: "user",
+              content
+            }
+          ]
+        },
+        parameters
+      }),
+      signal
+    });
+  } catch (error) {
+    console.debug("[qwen.provider] fetch error", {
+      runId,
+      model,
+      aborted: error?.name === "AbortError",
+      signalAborted: Boolean(signal?.aborted),
+      errorName: error?.name || "",
+      error: error?.message || String(error)
+    });
+    throw error;
+  }
 
-  const data = await response.json();
+  let data;
+  try {
+    data = await response.json();
+  } catch (error) {
+    console.debug("[qwen.provider] response body error", {
+      runId,
+      model,
+      aborted: error?.name === "AbortError",
+      signalAborted: Boolean(signal?.aborted),
+      errorName: error?.name || "",
+      error: error?.message || String(error)
+    });
+    throw error;
+  }
   if (!response.ok || data.code) {
     throw new Error(data.message || `DashScope request failed: ${response.status}`);
   }
@@ -430,12 +464,20 @@ function buildImageGenerationPrompt({ prompt = "", hasReferences = false, refere
   ].join("\n");
 }
 
-export async function callQwenVision({ image, prompt } = {}) {
+export async function callQwenVision({ image, prompt, signal, runId = "" } = {}) {
   if (!image) throw new Error("Missing image");
+  console.debug("[qwen.provider] vision signal", {
+    runId,
+    hasSignal: Boolean(signal),
+    signalAborted: Boolean(signal?.aborted),
+    model: env.dashscopeVisionModel
+  });
   const data = await callQwen({
     model: env.dashscopeVisionModel,
     content: [{ image }, { text: prompt }],
-    parameters: { result_format: "message" }
+    parameters: { result_format: "message" },
+    signal,
+    runId
   });
   return {
     text: pickText(data),
@@ -452,11 +494,12 @@ export async function callQwenVision({ image, prompt } = {}) {
   };
 }
 
-export async function callQwenText({ prompt } = {}) {
+export async function callQwenText({ prompt, signal } = {}) {
   const data = await callQwen({
     model: env.dashscopeVisionModel,
     content: [{ text: prompt }],
-    parameters: { result_format: "message" }
+    parameters: { result_format: "message" },
+    signal
   });
   return {
     text: pickText(data),

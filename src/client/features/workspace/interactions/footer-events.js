@@ -118,6 +118,10 @@ export function bindFooterEvents({
 
   presetSkill?.addEventListener("click", () => {
     if (!promptInput) return;
+    console.debug("[chat-submit] trigger source", {
+      source: "skill-button",
+      action: "fill-prompt-only"
+    });
     promptInput.value = presetSkillPrompt;
     promptInput.focus();
   });

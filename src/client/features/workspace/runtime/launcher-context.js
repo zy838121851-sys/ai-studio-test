@@ -2,7 +2,7 @@ import { createWorkspaceLauncherAIContext } from "./launcher-ai-context.js";
 import { createWorkspaceLauncherCanvasContext } from "./launcher-canvas-context.js";
 import { createWorkspaceLauncherElementsContext } from "./launcher-elements-context.js";
 import { createWorkspaceLauncherStateContext } from "./launcher-state-context.js";
-import { createWorkspaceLauncherWorkspaceContext } from "./launcher-workspace-context.js?v=20260627-library-bulk-select-1";
+import { createWorkspaceLauncherWorkspaceContext } from "./launcher-workspace-context.js?v=20260628-lightweight-prompt-1";
 
 export function createWorkspaceLauncherContext({
   state = {},

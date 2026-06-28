@@ -201,12 +201,30 @@ export async function superResolutionImage({ image, prompt, upscaleFactor } = {}
   };
 }
 
-export async function analyzeImage({ image, title = "Current asset", refreshCount = 0, model } = {}) {
+export async function analyzeImage({ image, title = "Current asset", refreshCount = 0, model, signal, runId = "" } = {}) {
   if (!image) throw new Error("Missing image");
   {
     assertAuxiliaryProviderAllowed({ model, operation: "图片分析" });
     const prompt = buildAnalyzeImagePrompt({ title, refreshCount });
-    const result = await getAIProvider("qwen").analyzeImage({ image, prompt });
+    console.debug("[ai.service] analyzeImage signal", {
+      runId,
+      hasSignal: Boolean(signal),
+      signalAborted: Boolean(signal?.aborted),
+      provider: "qwen"
+    });
+    let result;
+    try {
+      result = await getAIProvider("qwen").analyzeImage({ image, prompt, signal, runId });
+    } catch (error) {
+      console.debug("[ai.service] analyzeImage error", {
+        runId,
+        aborted: error?.name === "AbortError",
+        signalAborted: Boolean(signal?.aborted),
+        errorName: error?.name || "",
+        error: error?.message || String(error)
+      });
+      throw error;
+    }
     const text = result.text;
     return {
       text,
@@ -254,10 +272,10 @@ export async function prepareAction({ analysis, action, model } = {}) {
   }
 }
 
-export async function generateSuggestions({ prompt, canvasState, model } = {}) {
+export async function generateSuggestions({ prompt, canvasState, model, signal } = {}) {
   assertAuxiliaryProviderAllowed({ model, operation: "智能建议" });
   if (!prompt) {
-    const result = await getAIProvider("qwen").generateText({ prompt: buildCanvasAgentPrompt({ canvasState }) });
+    const result = await getAIProvider("qwen").generateText({ prompt: buildCanvasAgentPrompt({ canvasState }), signal });
     const text = result.text;
     return {
       text,
@@ -270,7 +288,7 @@ export async function generateSuggestions({ prompt, canvasState, model } = {}) {
   }
   const textPrompt = prompt;
 
-  const result = await getAIProvider("qwen").generateText({ prompt: textPrompt });
+  const result = await getAIProvider("qwen").generateText({ prompt: textPrompt, signal });
   const text = result.text;
   return {
     text,
