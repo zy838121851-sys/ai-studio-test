@@ -129,7 +129,10 @@ export function createProjectFeatureRuntime({
     chat
   });
 
-  workflowRuntime.syncRemoteProjects?.();
+  const ready = Promise.resolve(workflowRuntime.syncRemoteProjects?.()).catch((error) => {
+    console.warn("Initial project sync failed", error);
+    return false;
+  });
   window.addEventListener("ai-studio-auth-changed", (event) => {
     if (event.detail?.user) {
       workflowRuntime.syncRemoteProjects?.();
@@ -146,6 +149,7 @@ export function createProjectFeatureRuntime({
   return {
     runtimeBootstrap,
     projectRuntime: runtimeBootstrap.projectRuntime,
+    ready,
     ...workflowRuntime
   };
 }

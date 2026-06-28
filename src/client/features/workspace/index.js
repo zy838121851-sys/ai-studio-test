@@ -1,6 +1,6 @@
 export { mountWorkspaceApp, startWorkspaceApp } from "./workflows/index.js";
 export { applyViewState } from "./routing/view-router.js";
-export { initAssetPanel, renderAssetLibrary } from "./asset-library/asset-panel.js?v=20260628-lightweight-prompt-1";
+export { initAssetPanel, renderAssetLibrary } from "./asset-library/asset-panel.js?v=20260628-boot-inline-1";
 export { createChatCollapseController } from "./chat/chat-collapse.js";
 export {
   appendChatBlocks,
@@ -9,12 +9,12 @@ export {
   appendThinkingMessage,
   updateChatMessage,
   updateThinkingMessage
-} from "./chat/components/chat-log.js?v=20260628-lightweight-prompt-1";
+} from "./chat/components/chat-log.js?v=20260628-boot-inline-1";
 export { addImageFilesToPreview, renderChatImagePreviewList } from "./chat/components/chat-image-preview.js?v=20260627-chat-agent-2";
-export { createChatWorkflow } from "./chat/workflows/chat-workflow.js?v=20260628-lightweight-prompt-1";
-export { bindPromptShortcuts, bindPromptSubmit } from "./chat/workflows/prompt-workflow.js?v=20260628-lightweight-prompt-1";
+export { createChatWorkflow } from "./chat/workflows/chat-workflow.js?v=20260628-boot-inline-1";
+export { bindPromptShortcuts, bindPromptSubmit } from "./chat/workflows/prompt-workflow.js?v=20260628-boot-inline-1";
 export { applyHomeFileState, renderHomeFilePreview, syncHomeModelPicker } from "./home/components/home-composer.js";
-export { bindHomeLibraryInteractions } from "./home/home-library-interactions.js?v=20260628-lightweight-prompt-1";
+export { bindHomeLibraryInteractions } from "./home/home-library-interactions.js?v=20260628-boot-inline-1";
 export { createHomeWorkflow } from "./home/workflows/home-workflow.js";
 export { initAppInteractions } from "./interactions/app-interactions.js";
 export { bindFooterEvents } from "./interactions/footer-events.js";

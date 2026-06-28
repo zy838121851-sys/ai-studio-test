@@ -1,4 +1,4 @@
-import { launchWorkspaceAppRuntime } from "../runtime/workspace-app-runtime-launch.js?v=20260628-lightweight-prompt-1";
+import { launchWorkspaceAppRuntime } from "../runtime/workspace-app-runtime-launch.js?v=20260628-boot-inline-1";
 
 export function launchWorkspaceAppComposition({
   workspaceAppScope,

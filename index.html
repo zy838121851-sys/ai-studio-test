@@ -6,10 +6,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta http-equiv="Cache-Control" content="no-store" />
   <title>Fresh Ideas AI Canvas</title>
-  <link rel="stylesheet" href="./styles.css?v=20260628-lightweight-prompt-1" />
+  <link rel="stylesheet" href="./styles.css?v=20260628-boot-inline-1" />
 </head>
 
-<body>
+<body class="app-booting">
   <main class="app">
     <aside class="home-side-menu" aria-label="页面入口">
       <button class="active" type="button" data-nav-view="home" aria-label="主页" title="主页">
@@ -152,6 +152,7 @@
           <textarea id="homePromptInput" rows="1" placeholder="有想法，尽管试"></textarea>
           <div class="home-model-picker" id="homeModelPicker">
             <select class="home-model native-model" id="homeModelSelect" aria-label="选择模型">
+              <option value="gpt-image-2" selected>GPT Image 2</option>
               <option value="doubao-seedream-5-0-lite-260128">Doubao-Seedream-5.0-lite</option>
               <option value="doubao-seedream-4-5-251128">Doubao-Seedream-4.5</option>
               <option value="doubao-seedream-4-0-250828">Doubao-Seedream-4.0</option>
@@ -166,10 +167,11 @@
               <option value="qwen-image-edit-plus">Qwen Image Edit Plus</option>
             </select>
             <button class="home-model-button" id="homeModelButton" type="button" aria-haspopup="listbox" aria-expanded="false">
-              <span>Doubao-Seedream-5.0-lite</span>
+              <span>GPT Image 2</span>
               <i></i>
             </button>
             <div class="home-model-menu" id="homeModelMenu" role="listbox">
+              <button type="button" data-model-value="gpt-image-2" class="active">GPT Image 2</button>
               <button type="button" data-model-value="doubao-seedream-5-0-lite-260128">Doubao-Seedream-5.0-lite</button>
               <button type="button" data-model-value="doubao-seedream-4-5-251128">Doubao-Seedream-4.5</button>
               <button type="button" data-model-value="doubao-seedream-4-0-250828">Doubao-Seedream-4.0</button>
@@ -717,7 +719,7 @@
     </aside>
   </main>
 
-  <script type="module" src="./app.js?v=20260628-lightweight-prompt-1"></script>
+  <script type="module" src="./app.js?v=20260628-boot-inline-1"></script>
 </body>
 
 </html>

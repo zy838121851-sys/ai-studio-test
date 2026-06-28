@@ -28,7 +28,7 @@ let currentConversationAbort = null;
 let activeChatAgentRunId = "";
 let lastConversationPrompt = "";
 const CONVERSATION_STREAM_TIMEOUT_MS = 0;
-const CHAT_AGENT_WORKFLOW_VERSION = "20260628-lightweight-prompt-1";
+const CHAT_AGENT_WORKFLOW_VERSION = "20260628-boot-inline-1";
 
 if (globalThis.window) {
   globalThis.__chatAgentWorkflowVersion = CHAT_AGENT_WORKFLOW_VERSION;

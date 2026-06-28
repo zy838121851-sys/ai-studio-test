@@ -1,4 +1,4 @@
-import { startWorkspaceApp } from "./workspace-app-composition.js?v=20260628-lightweight-prompt-1";
+import { startWorkspaceApp } from "./workspace-app-composition.js?v=20260628-boot-inline-1";
 import { initHomeBackTop } from "../home/components/home-back-top.js";
 import { initHomeInspirationFeed } from "../home/components/home-inspiration-feed.js";
 

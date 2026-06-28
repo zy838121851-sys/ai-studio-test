@@ -628,8 +628,8 @@ export function initAuthEntry(root = document) {
   });
 
   applyMethod();
-  refreshProviderStatus();
-  refresh();
+  const providersReady = refreshProviderStatus();
+  const ready = refresh();
 
-  return { refresh };
+  return { refresh, ready, providersReady };
 }

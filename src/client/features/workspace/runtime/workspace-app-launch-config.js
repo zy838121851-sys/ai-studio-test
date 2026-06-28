@@ -7,7 +7,7 @@ import {
   createWorkspaceRuntimeStateFromScope,
   createWorkspaceRuntimeStateSettersFromScope,
   createWorkspaceRuntimeWorkflows
-} from "./workspace-runtime-launch-config.js?v=20260628-lightweight-prompt-1";
+} from "./workspace-runtime-launch-config.js?v=20260628-boot-inline-1";
 
 export function createWorkspaceAppLaunchConfig({
   workspaceAppScope,

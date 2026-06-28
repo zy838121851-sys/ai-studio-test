@@ -4,7 +4,7 @@ import {
   createWorkspaceCompositionDefaults,
   createWorkspaceCompositionElements
 } from "./workspace-app-bootstrap-composition.js";
-import { createWorkspaceChatAssetsCompositionRuntime } from "./workspace-chat-assets-composition.js?v=20260628-lightweight-prompt-1";
+import { createWorkspaceChatAssetsCompositionRuntime } from "./workspace-chat-assets-composition.js?v=20260628-boot-inline-1";
 import {
   createWorkspaceCanvasCompositionBundle
 } from "./workspace-canvas-composition.js";
@@ -14,11 +14,11 @@ import {
   createWorkspaceDirectorActionCompositionRuntime
 } from "./workspace-agent-composition.js";
 import { createWorkspaceImageEditCompositionBundle } from "./workspace-ai-composition.js";
-import { createWorkspaceProjectHomeCompositionBundle } from "./workspace-project-home-composition.js?v=20260628-lightweight-prompt-1";
+import { createWorkspaceProjectHomeCompositionBundle } from "./workspace-project-home-composition.js?v=20260628-boot-inline-1";
 import {
   createWorkspaceCompositionStateBundle
 } from "./workspace-state-composition.js";
-import { launchWorkspaceAppComposition } from "./workspace-launch-composition.js?v=20260628-lightweight-prompt-1";
+import { launchWorkspaceAppComposition } from "./workspace-launch-composition.js?v=20260628-boot-inline-1";
 export function startWorkspaceApp(documentRoot = globalThis.document) {
   if (!documentRoot) {
     throw new Error("startWorkspaceApp requires a document root");
@@ -407,7 +407,7 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
     }
   });
 
-  return launchWorkspaceAppComposition({
+  const runtime = launchWorkspaceAppComposition({
     workspaceAppScope,
     workspaceElements,
     constants: {
@@ -476,6 +476,9 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
       bindPromptShortcuts: uiDeps.bindPromptShortcuts
     }
   });
+  runtime.ready = projectHomeRuntime.ready;
+  runtime.syncRemoteProjects = projectHomeRuntime.syncRemoteProjects;
+  return runtime;
 }
 
 function normalizeAssetLookupTitle(value = "") {
@@ -485,4 +488,3 @@ function normalizeAssetLookupTitle(value = "") {
     .trim()
     .toLowerCase();
 }
-

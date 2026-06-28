@@ -1,5 +1,5 @@
-import { createWorkspaceAppLaunchConfig } from "./workspace-app-launch-config.js?v=20260628-lightweight-prompt-1";
-import { launchWorkspaceRuntimeFromCompatibilityLayer } from "./workspace-runtime-launcher.js?v=20260628-lightweight-prompt-1";
+import { createWorkspaceAppLaunchConfig } from "./workspace-app-launch-config.js?v=20260628-boot-inline-1";
+import { launchWorkspaceRuntimeFromCompatibilityLayer } from "./workspace-runtime-launcher.js?v=20260628-boot-inline-1";
 
 export function launchWorkspaceAppRuntime({
   workspaceAppScope,

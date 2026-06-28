@@ -1,6 +1,6 @@
-import { launchAppRuntimeFromState } from "./app-runtime-bootstrap.js?v=20260628-lightweight-prompt-1";
+import { launchAppRuntimeFromState } from "./app-runtime-bootstrap.js?v=20260628-boot-inline-1";
 import { createWorkspaceLauncherContext } from "./launcher-context.js";
-import { createWorkspaceLauncherSafeBindings } from "./launcher-safe-bindings.js?v=20260628-lightweight-prompt-1";
+import { createWorkspaceLauncherSafeBindings } from "./launcher-safe-bindings.js?v=20260628-boot-inline-1";
 
 export function launchWorkspaceRuntimeFromCompatibilityLayer({
   state = {},

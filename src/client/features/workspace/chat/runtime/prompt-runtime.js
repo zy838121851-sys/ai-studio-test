@@ -1,4 +1,4 @@
-import { bindPromptShortcuts, bindPromptSubmit } from "../workflows/prompt-workflow.js?v=20260628-lightweight-prompt-1";
+import { bindPromptShortcuts, bindPromptSubmit } from "../workflows/prompt-workflow.js?v=20260628-boot-inline-1";
 
 export function createPromptSubmitRuntimePayload(runtime = {}) {
   return {

@@ -962,6 +962,48 @@ body:not([data-view="canvas"]) .app {
   opacity: 0.62;
 }
 
+body.app-booting {
+  background: #fff;
+}
+
+body.app-ready .app {
+  opacity: 1;
+  transition: opacity 0.18s ease;
+}
+
+body.app-booting #authEntry,
+body.app-booting #homeHistory {
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.app-booting .home-prompt > * {
+  visibility: hidden;
+}
+
+body.app-booting .home-prompt::after {
+  content: "";
+  grid-column: 1 / -1;
+  grid-row: 1;
+  align-self: center;
+  justify-self: stretch;
+  height: 18px;
+  margin: 0 78px 0 56px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(229, 233, 240, 0.58), rgba(245, 247, 250, 0.88), rgba(229, 233, 240, 0.58));
+  background-size: 220% 100%;
+  animation: homeBootSkeleton 1.1s ease-in-out infinite;
+}
+
+@keyframes homeBootSkeleton {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
 .home-stage {
   position: relative;
   z-index: 1;
