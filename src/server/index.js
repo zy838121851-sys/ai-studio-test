@@ -104,6 +104,7 @@ export function createServer() {
     });
     app.use("/src/client", express.static(join(rootDir, "src", "client"), staticOptions));
     app.use("/styles", express.static(join(rootDir, "styles"), staticOptions));
+    app.use("/assets/styles", express.static(join(rootDir, "styles"), staticOptions));
     app.use("/public", express.static(join(rootDir, "public"), staticOptions));
     app.use("/vendor/three", express.static(join(rootDir, "node_modules", "three"), staticOptions));
   }
