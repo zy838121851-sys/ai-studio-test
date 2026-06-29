@@ -85,6 +85,10 @@ export function createServer() {
   if (useBuiltClient) {
     app.use(express.static(distDir, builtStaticOptions));
   }
+  // 兼容线上生产环境的样式路径
+  app.use("/styles", express.static(join(rootDir, "styles"), staticOptions));
+  app.use("/assets/styles", express.static(join(rootDir, "styles"), staticOptions));
+
   app.get(["/", "/index.html"], (_req, res) => {
     noStoreStatic(res);
     res.sendFile(getClientIndexPath({ rootDir, distIndexPath, useBuiltClient }));
