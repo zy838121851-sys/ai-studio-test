@@ -1,5 +1,7 @@
 import { randomUUID } from "node:crypto";
-import { execute, query, queryOne, sqlValue } from "../db/sqlite.js";
+import { prepare, transaction } from "../db/sqlite.js";
+import { countSnapshotNodes, sanitizeCanvasSnapshotJson } from "./snapshot-safety.service.js";
+import { ensureUserWorkspace, ensureUserWorkspaceWithDb } from "./workspace.service.js";
 
 function normalizeTitle(title) {
   const clean = String(title || "").replace(/\s+/g, " ").trim();
@@ -32,10 +34,10 @@ function publicProject(row, { includeSnapshot = false } = {}) {
   if (!row) return null;
   const project = {
     id: row.id,
-    userId: row.user_id,
+    userId: row.owner_user_id || row.user_id,
     title: row.title || "Fresh Ideas",
     prompt: row.prompt || "",
-    thumbnail: normalizeProjectThumbnail(row.thumbnail),
+    thumbnail: normalizeProjectThumbnail(row.thumbnail_url || row.thumbnail),
     itemCount: Number(row.item_count || 0),
     createdAt: Number(row.created_at || 0),
     updatedAt: Number(row.updated_at || 0),
@@ -43,175 +45,272 @@ function publicProject(row, { includeSnapshot = false } = {}) {
     deletedAt: row.deleted_at ? Number(row.deleted_at) : null
   };
   if (includeSnapshot) {
-    project.canvasSnapshotJson = row.canvas_snapshot_json || "";
+    project.canvasSnapshotJson = row.snapshot_json || "";
   }
   return project;
 }
 
 function projectSelect(includeSnapshot = false) {
   return `
-    id,
-    user_id,
-    title,
-    prompt,
-    thumbnail,
-    item_count,
-    ${includeSnapshot ? "canvas_snapshot_json," : ""}
-    created_at,
-    updated_at,
-    last_opened_at,
-    deleted_at
+    p.id,
+    p.owner_user_id,
+    p.title,
+    p.prompt,
+    p.thumbnail_url,
+    p.item_count,
+    ${includeSnapshot ? "s.snapshot_json," : ""}
+    p.created_at,
+    p.updated_at,
+    p.last_opened_at,
+    p.deleted_at
   `;
 }
 
 export function listProjects(userId) {
-  return query(`
+  const scope = ensureUserWorkspace(userId);
+  return prepare(`
     SELECT ${projectSelect(false)}
-    FROM projects
-    WHERE user_id = ${sqlValue(userId)}
-      AND deleted_at IS NULL
-    ORDER BY COALESCE(last_opened_at, updated_at) DESC, updated_at DESC;
-  `).map((row) => publicProject(row));
+    FROM projects p
+    WHERE p.workspace_id = ?
+      AND p.owner_user_id = ?
+      AND p.deleted_at IS NULL
+    ORDER BY COALESCE(p.last_opened_at, p.updated_at) DESC, p.updated_at DESC;
+  `).all(scope.workspaceId, userId).map((row) => publicProject(row));
 }
 
 export function getProject(userId, id, { touchLastOpened = false } = {}) {
+  const scope = ensureUserWorkspace(userId);
   const now = Date.now();
   if (touchLastOpened) {
-    execute(`
+    prepare(`
       UPDATE projects
-      SET last_opened_at = ${now}
-      WHERE id = ${sqlValue(id)}
-        AND user_id = ${sqlValue(userId)}
+      SET last_opened_at = ?
+      WHERE id = ?
+        AND workspace_id = ?
+        AND owner_user_id = ?
         AND deleted_at IS NULL;
-    `);
+    `).run(now, id, scope.workspaceId, userId);
   }
-
-  return publicProject(queryOne(`
-    SELECT ${projectSelect(true)}
-    FROM projects
-    WHERE id = ${sqlValue(id)}
-      AND user_id = ${sqlValue(userId)}
-      AND deleted_at IS NULL
-    LIMIT 1;
-  `), { includeSnapshot: true });
+  return publicProject(readProject(userId, id, scope.workspaceId), { includeSnapshot: true });
 }
 
 export function createProject(userId, input = {}) {
-  const now = Date.now();
-  const project = {
-    id: ensureProjectId(input.id),
-    userId,
-    title: normalizeTitle(input.title),
-    prompt: normalizeText(input.prompt),
-    thumbnail: normalizeProjectThumbnail(input.thumbnail),
-    itemCount: normalizeItemCount(input.itemCount),
-    canvasSnapshotJson: normalizeText(input.canvasSnapshotJson),
-    createdAt: now,
-    updatedAt: now,
-    lastOpenedAt: now
-  };
+  return transaction((db) => {
+    const scope = ensureUserWorkspaceWithDb(db, userId);
+    const now = Date.now();
+    const project = {
+      id: ensureProjectId(input.id),
+      userId,
+      workspaceId: scope.workspaceId,
+      title: normalizeTitle(input.title),
+      prompt: normalizeText(input.prompt),
+      thumbnail: normalizeProjectThumbnail(input.thumbnail),
+      itemCount: normalizeItemCount(input.itemCount),
+      canvasSnapshotJson: input.canvasSnapshotJson === undefined
+        ? ""
+        : sanitizeCanvasSnapshotJson(input.canvasSnapshotJson),
+      createdAt: now,
+      updatedAt: now,
+      lastOpenedAt: now
+    };
 
-  execute(`
-    INSERT INTO projects (
-      id,
-      user_id,
-      title,
-      prompt,
-      thumbnail,
-      item_count,
-      canvas_snapshot_json,
-      created_at,
-      updated_at,
-      last_opened_at,
-      deleted_at
-    )
-    VALUES (
-      ${sqlValue(project.id)},
-      ${sqlValue(project.userId)},
-      ${sqlValue(project.title)},
-      ${sqlValue(project.prompt)},
-      ${sqlValue(project.thumbnail)},
-      ${project.itemCount},
-      ${sqlValue(project.canvasSnapshotJson)},
-      ${project.createdAt},
-      ${project.updatedAt},
-      ${project.lastOpenedAt},
-      NULL
+    db.prepare(`
+      INSERT INTO projects (
+        id, workspace_id, owner_user_id, title, prompt, thumbnail_url,
+        item_count, current_snapshot_id, created_at, updated_at,
+        last_opened_at, deleted_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?, ?, ?, NULL);
+    `).run(
+      project.id,
+      project.workspaceId,
+      project.userId,
+      project.title,
+      project.prompt,
+      project.thumbnail,
+      project.itemCount,
+      project.createdAt,
+      project.updatedAt,
+      project.lastOpenedAt
     );
-  `);
 
-  return project;
+    if (project.canvasSnapshotJson) {
+      const snapshotId = insertProjectSnapshot(db, {
+        projectId: project.id,
+        workspaceId: project.workspaceId,
+        userId,
+        snapshotJson: project.canvasSnapshotJson,
+        createdAt: now
+      });
+      db.prepare("UPDATE projects SET current_snapshot_id = ? WHERE id = ?;").run(snapshotId, project.id);
+    }
+
+    return publicProject(readProjectWithDb(db, userId, project.id, project.workspaceId), { includeSnapshot: true });
+  });
 }
 
 export function updateProject(userId, id, input = {}) {
-  const existing = getProject(userId, id);
-  if (!existing) return null;
+  return transaction((db) => {
+    const scope = ensureUserWorkspaceWithDb(db, userId);
+    const existing = publicProject(readProjectWithDb(db, userId, id, scope.workspaceId), { includeSnapshot: true });
+    if (!existing) return null;
 
-  const next = {
-    title: input.title === undefined ? existing.title : normalizeTitle(input.title),
-    prompt: input.prompt === undefined ? existing.prompt : normalizeText(input.prompt),
-    thumbnail: input.thumbnail === undefined ? existing.thumbnail : normalizeProjectThumbnail(input.thumbnail),
-    itemCount: input.itemCount === undefined ? existing.itemCount : normalizeItemCount(input.itemCount),
-    canvasSnapshotJson: input.canvasSnapshotJson === undefined
-      ? existing.canvasSnapshotJson
-      : normalizeText(input.canvasSnapshotJson),
-    updatedAt: Date.now()
-  };
+    const now = Date.now();
+    const next = {
+      title: input.title === undefined ? existing.title : normalizeTitle(input.title),
+      prompt: input.prompt === undefined ? existing.prompt : normalizeText(input.prompt),
+      thumbnail: input.thumbnail === undefined ? existing.thumbnail : normalizeProjectThumbnail(input.thumbnail),
+      itemCount: input.itemCount === undefined ? existing.itemCount : normalizeItemCount(input.itemCount)
+    };
 
-  execute(`
-    UPDATE projects
-    SET title = ${sqlValue(next.title)},
-        prompt = ${sqlValue(next.prompt)},
-        thumbnail = ${sqlValue(next.thumbnail)},
-        item_count = ${next.itemCount},
-        canvas_snapshot_json = ${sqlValue(next.canvasSnapshotJson)},
-        updated_at = ${next.updatedAt}
-    WHERE id = ${sqlValue(id)}
-      AND user_id = ${sqlValue(userId)}
-      AND deleted_at IS NULL;
-  `);
+    let snapshotId = undefined;
+    if (input.canvasSnapshotJson !== undefined) {
+      const snapshotJson = sanitizeCanvasSnapshotJson(input.canvasSnapshotJson);
+      snapshotId = snapshotJson
+        ? insertProjectSnapshot(db, {
+          projectId: id,
+          workspaceId: scope.workspaceId,
+          userId,
+          snapshotJson,
+          createdAt: now
+        })
+        : null;
+    }
 
-  return getProject(userId, id);
+    db.prepare(`
+      UPDATE projects
+      SET title = ?,
+          prompt = ?,
+          thumbnail_url = ?,
+          item_count = ?,
+          current_snapshot_id = COALESCE(?, current_snapshot_id),
+          updated_at = ?
+      WHERE id = ?
+        AND workspace_id = ?
+        AND owner_user_id = ?
+        AND deleted_at IS NULL;
+    `).run(
+      next.title,
+      next.prompt,
+      next.thumbnail,
+      next.itemCount,
+      snapshotId === undefined ? null : snapshotId,
+      now,
+      id,
+      scope.workspaceId,
+      userId
+    );
+    if (snapshotId === null) {
+      db.prepare(`
+        UPDATE projects
+        SET current_snapshot_id = NULL
+        WHERE id = ?
+          AND workspace_id = ?
+          AND owner_user_id = ?;
+      `).run(id, scope.workspaceId, userId);
+    }
+
+    return publicProject(readProjectWithDb(db, userId, id, scope.workspaceId), { includeSnapshot: true });
+  });
 }
 
 export function saveProjectCanvas(userId, id, input = {}) {
-  const existing = getProject(userId, id);
-  if (!existing) return null;
+  return transaction((db) => {
+    const scope = ensureUserWorkspaceWithDb(db, userId);
+    const existing = publicProject(readProjectWithDb(db, userId, id, scope.workspaceId), { includeSnapshot: true });
+    if (!existing) return null;
 
-  const now = Date.now();
-  const title = input.title === undefined ? existing.title : normalizeTitle(input.title);
-  const thumbnail = input.thumbnail === undefined ? existing.thumbnail : normalizeProjectThumbnail(input.thumbnail);
-  const prompt = input.prompt === undefined ? existing.prompt : normalizeText(input.prompt);
-  const itemCount = input.itemCount === undefined ? existing.itemCount : normalizeItemCount(input.itemCount);
-  const canvasSnapshotJson = normalizeText(input.canvasSnapshotJson);
+    const now = Date.now();
+    const title = input.title === undefined ? existing.title : normalizeTitle(input.title);
+    const thumbnail = input.thumbnail === undefined ? existing.thumbnail : normalizeProjectThumbnail(input.thumbnail);
+    const prompt = input.prompt === undefined ? existing.prompt : normalizeText(input.prompt);
+    const itemCount = input.itemCount === undefined ? existing.itemCount : normalizeItemCount(input.itemCount);
+    const canvasSnapshotJson = sanitizeCanvasSnapshotJson(input.canvasSnapshotJson);
+    const snapshotId = canvasSnapshotJson
+      ? insertProjectSnapshot(db, {
+        projectId: id,
+        workspaceId: scope.workspaceId,
+        userId,
+        snapshotJson: canvasSnapshotJson,
+        createdAt: now
+      })
+      : null;
 
-  execute(`
-    UPDATE projects
-    SET title = ${sqlValue(title)},
-        prompt = ${sqlValue(prompt)},
-        thumbnail = ${sqlValue(thumbnail)},
-        item_count = ${itemCount},
-        canvas_snapshot_json = ${sqlValue(canvasSnapshotJson)},
-        updated_at = ${now}
-    WHERE id = ${sqlValue(id)}
-      AND user_id = ${sqlValue(userId)}
-      AND deleted_at IS NULL;
-  `);
+    db.prepare(`
+      UPDATE projects
+      SET title = ?,
+          prompt = ?,
+          thumbnail_url = ?,
+          item_count = ?,
+          current_snapshot_id = ?,
+          updated_at = ?
+      WHERE id = ?
+        AND workspace_id = ?
+        AND owner_user_id = ?
+        AND deleted_at IS NULL;
+    `).run(title, prompt, thumbnail, itemCount, snapshotId, now, id, scope.workspaceId, userId);
 
-  return getProject(userId, id);
+    return publicProject(readProjectWithDb(db, userId, id, scope.workspaceId), { includeSnapshot: true });
+  });
 }
 
 export function softDeleteProject(userId, id) {
-  const existing = getProject(userId, id);
-  if (!existing) return null;
-  const now = Date.now();
-  execute(`
-    UPDATE projects
-    SET deleted_at = ${now},
-        updated_at = ${now}
-    WHERE id = ${sqlValue(id)}
-      AND user_id = ${sqlValue(userId)}
-      AND deleted_at IS NULL;
-  `);
-  return { ...existing, deletedAt: now, updatedAt: now };
+  return transaction((db) => {
+    const scope = ensureUserWorkspaceWithDb(db, userId);
+    const existing = publicProject(readProjectWithDb(db, userId, id, scope.workspaceId), { includeSnapshot: true });
+    if (!existing) return null;
+    const now = Date.now();
+    db.prepare(`
+      UPDATE projects
+      SET deleted_at = ?,
+          updated_at = ?
+      WHERE id = ?
+        AND workspace_id = ?
+        AND owner_user_id = ?
+        AND deleted_at IS NULL;
+    `).run(now, now, id, scope.workspaceId, userId);
+    return { ...existing, deletedAt: now, updatedAt: now };
+  });
+}
+
+function readProject(userId, id, workspaceId) {
+  return prepare(readProjectSql()).get(id, workspaceId, userId);
+}
+
+function readProjectWithDb(db, userId, id, workspaceId) {
+  return db.prepare(readProjectSql()).get(id, workspaceId, userId);
+}
+
+function readProjectSql() {
+  return `
+    SELECT ${projectSelect(true)}
+    FROM projects p
+    LEFT JOIN project_snapshots s
+      ON s.id = p.current_snapshot_id
+    WHERE p.id = ?
+      AND p.workspace_id = ?
+      AND p.owner_user_id = ?
+      AND p.deleted_at IS NULL
+    LIMIT 1;
+  `;
+}
+
+function insertProjectSnapshot(db, { projectId, workspaceId, userId, snapshotJson, createdAt }) {
+  const id = randomUUID();
+  db.prepare(`
+    INSERT INTO project_snapshots (
+      id, project_id, workspace_id, schema_version, snapshot_json,
+      node_count, created_by_user_id, created_at
+    )
+    VALUES (?, ?, ?, 1, ?, ?, ?, ?);
+  `).run(
+    id,
+    projectId,
+    workspaceId,
+    snapshotJson,
+    countSnapshotNodes(snapshotJson),
+    userId,
+    createdAt || Date.now()
+  );
+  return id;
 }

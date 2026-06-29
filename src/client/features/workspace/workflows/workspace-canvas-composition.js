@@ -247,6 +247,7 @@ export function createWorkspaceCanvasCompositionBundle({
     }));
     deleteSelectedNodeBase();
     dispatchImageGeneratorDeleted(nodes);
+    dispatchVideoGeneratorDeleted(nodes);
     recordUndoAction({
       type: "delete-nodes",
       undo: () => {
@@ -287,6 +288,14 @@ export function createWorkspaceCanvasCompositionBundle({
     if (!generatorNodes.length) return;
     document.dispatchEvent(new CustomEvent("canvas:image-generator-deleted", {
       detail: { nodes: generatorNodes }
+    }));
+  }
+
+  function dispatchVideoGeneratorDeleted(nodes = []) {
+    const videoNodes = Array.from(nodes || []).filter((node) => node?.matches?.(".node-video"));
+    if (!videoNodes.length) return;
+    document.dispatchEvent(new CustomEvent("canvas:video-generator-deleted", {
+      detail: { nodes: videoNodes }
     }));
   }
 

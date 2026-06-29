@@ -5,6 +5,7 @@ export function createGenerationNodeWorkflow({
     createGenerationPreviewNode = () => null,
     addNode = () => null,
     replacePreviewNodeWithImage = () => null,
+    replacePreviewNodeWithModel = () => null,
     replacePreviewNodeWithVideo = () => null,
     markGeneratedNodeContext = () => {},
     recordCanvasEvent = () => {},
@@ -98,6 +99,42 @@ export function createGenerationNodeWorkflow({
     return node;
   }
 
+  function replacePreviewWithModel(previewNode, {
+    title,
+    desc,
+    url,
+    width,
+    aspectRatio,
+    prompt = "",
+    sourceNode = null,
+    actionType = "model3d_generation",
+    model = ""
+  }) {
+    const node = replacePreviewNodeWithModel({
+      previewNode,
+      addNode,
+      applyGeneratedContext: markGeneratedNodeContext,
+      recordGenerationCreated: (node, eventData) => {
+        recordCanvasEvent("generation_created", {
+          nodeId: node.dataset.nodeId,
+          sourceId: eventData.sourceNode?.dataset?.nodeId || "",
+          actionType: eventData.actionType,
+          model: eventData.model
+        });
+      },
+      title,
+      desc,
+      url,
+      width,
+      aspectRatio,
+      prompt,
+      sourceNode,
+      actionType,
+      model
+    });
+    return node;
+  }
+
   function addSourceBadge(node, sourceNode, label = "来源") {
     addSourceBadgeElement(node, sourceNode, {
       label,
@@ -108,6 +145,7 @@ export function createGenerationNodeWorkflow({
   return {
     addGenerationPreview,
     replacePreviewWithImage,
+    replacePreviewWithModel,
     replacePreviewWithVideo,
     addSourceBadge
   };

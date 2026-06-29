@@ -120,6 +120,20 @@ try {
   assert(calls[0].provider === "apimart", "Default image model should call APIMart, not Qwen");
   assert(calls[0].input.model === "gpt-image-2", "APIMart provider should receive the provider model");
 
+  calls.length = 0;
+  const normalizedSizeResult = await generateImage({
+    model: DEFAULT_IMAGE_MODEL,
+    prompt: "normalize arbitrary image size",
+    images: ["data:image/png;base64,abc"],
+    size: "1648*2048"
+  });
+  assert(normalizedSizeResult.sizeNormalization?.providerSize === "auto", "Arbitrary APIMart image dimensions should normalize to provider size auto");
+  assert(normalizedSizeResult.sizeNormalization?.providerResolution === "2K", "Arbitrary APIMart image dimensions should keep a 2K resolution target");
+  assert(calls.length === 1, "Normalized size check should call exactly one provider");
+  assert(calls[0].input.size === "2K", "APIMart provider should receive the safe normalized input size");
+  assert(calls[0].input.sizeNormalization?.providerSize === "auto", "APIMart provider should receive sizeNormalization details");
+  assert(calls[0].input.sizeNormalization?.providerSize !== "103:128", "APIMart provider must not receive arbitrary reduced ratios");
+
   const apimartImageMappings = [
     ["gpt-image-2", "gpt-image-2"],
     ["nano-banana-pro", "gemini-3-pro-image-preview"],
@@ -201,11 +215,11 @@ try {
   });
   try {
     const { port } = server.address();
-    const response = await fetch(`http://127.0.0.1:${port}/api/chat`, {
+    const response = await fetch(`http://127.0.0.1:${port}/api/ai/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: DEFAULT_IMAGE_MODEL,
+        modelId: DEFAULT_IMAGE_MODEL,
         prompt: "route through api",
         images: [],
         size: "2K"
@@ -218,6 +232,10 @@ try {
     assert(payload.providerModel === "gpt-image-2", "Route response should expose providerModel");
     assert(payload.resolvedModel === "gpt-image-2", "Route response should expose resolvedModel");
     assert(!payload.providerCalls?.length, "Route response should hide APIMart providerCalls");
+    assert(payload.jobId, "Route response should expose the AI job id");
+    assert(payload.job?.outputAssetIds?.length > 0, "Route response should persist output assets through the job flow");
+    assert(payload.sizeNormalization?.providerSize === "auto", "Route response should expose provider size normalization");
+    assert(payload.sizeNormalization?.providerResolution === "2K", "Route response should expose provider resolution normalization");
     assert(calls.length === 1 && calls[0].provider === "apimart", "Route should call APIMart exactly once");
 
     const restoreBadVolcengine = registerAIProvider({
@@ -243,11 +261,11 @@ try {
     });
     try {
       calls.length = 0;
-      const badResponse = await fetch(`http://127.0.0.1:${port}/api/chat`, {
+      const badResponse = await fetch(`http://127.0.0.1:${port}/api/ai/generate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: DEFAULT_IMAGE_MODEL,
+          modelId: DEFAULT_IMAGE_MODEL,
           prompt: "must be blocked",
           images: ["data:image/png;base64,abc"],
           size: "2K"

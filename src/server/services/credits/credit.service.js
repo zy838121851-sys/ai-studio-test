@@ -1,11 +1,13 @@
 import { randomUUID } from "node:crypto";
 import { prepare, transaction } from "../../db/sqlite.js";
 import { DEFAULT_SIGNUP_CREDITS } from "../../db/credits-migration.js";
+import { ensureUserWorkspaceWithDb } from "../workspace.service.js";
 
 export function getCreditBalance(userId) {
   const account = getCreditAccount(userId);
   return toPublicBalance(account || {
     user_id: userId,
+    owner_user_id: userId,
     balance_credits: 0,
     reserved_credits: 0
   });
@@ -32,28 +34,44 @@ export function ensureCreditAccount(userId, {
   requestId = `initial-grant:${userId}`
 } = {}) {
   return transaction((db) => {
-    const existing = db.prepare("SELECT * FROM credit_accounts WHERE user_id = ? LIMIT 1;").get(userId);
-    if (existing) return toPublicBalance(existing);
+    const account = getOrCreateZeroAccount(db, userId);
+    const grant = db.prepare(`
+      SELECT id
+      FROM credit_transactions
+      WHERE billing_account_id = ?
+        AND type = 'grant'
+        AND request_id = ?
+      LIMIT 1;
+    `).get(account.id, requestId);
+    if (grant) return toPublicBalance({ ...account, user_id: userId });
+
+    const credits = Math.ceil(Number(initialCredits || 0));
+    if (!Number.isFinite(credits) || credits <= 0) {
+      return toPublicBalance({ ...account, user_id: userId });
+    }
+
     const now = Date.now();
-    const credits = toCredits(initialCredits);
+    const balance = Number(account.balance_credits || 0) + credits;
+    const reserved = Number(account.reserved_credits || 0);
     db.prepare(`
-      INSERT INTO credit_accounts (user_id, balance_credits, reserved_credits, created_at, updated_at)
-      VALUES (?, ?, 0, ?, ?);
-    `).run(userId, credits, now, now);
-    db.prepare(`
-      INSERT INTO credit_transactions (
-        id, user_id, type, amount_credits, balance_after, reserved_after,
-        provider, model, task, billing_type, credits_reserved, credits_charged,
-        reason, request_id, status, created_at
-      )
-      VALUES (?, ?, 'grant', ?, ?, 0, '', '', '', '', 0, 0, ?, ?, 'charged', ?);
-    `).run(randomUUID(), userId, credits, credits, reason, requestId, now);
-    return {
+      UPDATE billing_accounts
+      SET balance_credits = ?,
+          updated_at = ?
+      WHERE id = ?;
+    `).run(balance, now, account.id);
+    insertTransaction(db, {
+      account,
       userId,
-      balanceCredits: credits,
-      reservedCredits: 0,
-      availableCredits: credits
-    };
+      type: "grant",
+      amountCredits: credits,
+      balanceAfter: balance,
+      reservedAfter: reserved,
+      reason,
+      requestId,
+      status: "charged",
+      createdAt: now
+    });
+    return { userId, balanceCredits: balance, reservedCredits: reserved, availableCredits: balance - reserved };
   });
 }
 
@@ -65,11 +83,13 @@ export function addCredits(userId, { amount, reason = "admin_adjust", requestId 
     const balance = Number(account.balance_credits || 0) + credits;
     const reserved = Number(account.reserved_credits || 0);
     db.prepare(`
-      UPDATE credit_accounts
-      SET balance_credits = ?, updated_at = ?
-      WHERE user_id = ?;
-    `).run(balance, now, userId);
+      UPDATE billing_accounts
+      SET balance_credits = ?,
+          updated_at = ?
+      WHERE id = ?;
+    `).run(balance, now, account.id);
     insertTransaction(db, {
+      account,
       userId,
       type: "admin_adjust",
       amountCredits: credits,
@@ -84,14 +104,23 @@ export function addCredits(userId, { amount, reason = "admin_adjust", requestId 
   });
 }
 
-export function reserveCredits({ userId, amount, provider = "", model = "", task = "", billingType = "", reason = "", requestId = randomUUID() } = {}) {
+export function reserveCredits({
+  userId,
+  amount,
+  provider = "",
+  model = "",
+  task = "",
+  billingType = "",
+  reason = "",
+  requestId = randomUUID()
+} = {}) {
   return transaction((db) => {
     const account = getOrCreateZeroAccount(db, userId);
     const credits = toCredits(amount);
     const balance = Number(account.balance_credits || 0);
     const reserved = Number(account.reserved_credits || 0);
     if (balance - reserved < credits) {
-      const error = new Error("积分不足");
+      const error = new Error("绉垎涓嶈冻");
       error.status = 402;
       error.code = "INSUFFICIENT_CREDITS";
       throw error;
@@ -99,11 +128,13 @@ export function reserveCredits({ userId, amount, provider = "", model = "", task
     const now = Date.now();
     const nextReserved = reserved + credits;
     db.prepare(`
-      UPDATE credit_accounts
-      SET reserved_credits = ?, updated_at = ?
-      WHERE user_id = ?;
-    `).run(nextReserved, now, userId);
+      UPDATE billing_accounts
+      SET reserved_credits = ?,
+          updated_at = ?
+      WHERE id = ?;
+    `).run(nextReserved, now, account.id);
     insertTransaction(db, {
+      account,
       userId,
       type: "reserve",
       amountCredits: credits,
@@ -133,7 +164,8 @@ export function chargeReservedCredits({
   billingType = "",
   usage = {},
   reason = "",
-  requestId = ""
+  requestId = "",
+  aiJobId = ""
 } = {}) {
   return transaction((db) => {
     const account = getRequiredAccount(db, userId);
@@ -146,11 +178,14 @@ export function chargeReservedCredits({
     const nextBalance = balance - chargeCredits;
     const nextReserved = Math.max(0, reserved - reservedReduction);
     db.prepare(`
-      UPDATE credit_accounts
-      SET balance_credits = ?, reserved_credits = ?, updated_at = ?
-      WHERE user_id = ?;
-    `).run(nextBalance, nextReserved, now, userId);
+      UPDATE billing_accounts
+      SET balance_credits = ?,
+          reserved_credits = ?,
+          updated_at = ?
+      WHERE id = ?;
+    `).run(nextBalance, nextReserved, now, account.id);
     insertTransaction(db, {
+      account,
       userId,
       type: "charge",
       amountCredits: chargeCredits,
@@ -167,6 +202,7 @@ export function chargeReservedCredits({
       creditsCharged: chargeCredits,
       reason,
       requestId,
+      aiJobId,
       status: "charged",
       createdAt: now
     });
@@ -183,7 +219,8 @@ export function releaseReservedCredits({
   billingType = "",
   reason = "",
   requestId = "",
-  status = "released"
+  status = "released",
+  aiJobId = ""
 } = {}) {
   const credits = Math.max(0, Math.ceil(Number(amount || 0)));
   if (!credits) return getCreditBalance(userId);
@@ -193,11 +230,13 @@ export function releaseReservedCredits({
     const balance = Number(account.balance_credits || 0);
     const nextReserved = Math.max(0, Number(account.reserved_credits || 0) - credits);
     db.prepare(`
-      UPDATE credit_accounts
-      SET reserved_credits = ?, updated_at = ?
-      WHERE user_id = ?;
-    `).run(nextReserved, now, userId);
+      UPDATE billing_accounts
+      SET reserved_credits = ?,
+          updated_at = ?
+      WHERE id = ?;
+    `).run(nextReserved, now, account.id);
     insertTransaction(db, {
+      account,
       userId,
       type: "release",
       amountCredits: credits,
@@ -210,6 +249,7 @@ export function releaseReservedCredits({
       creditsReserved: credits,
       reason,
       requestId,
+      aiJobId,
       status,
       createdAt: now
     });
@@ -218,22 +258,43 @@ export function releaseReservedCredits({
 }
 
 function getCreditAccount(userId) {
-  return prepare("SELECT * FROM credit_accounts WHERE user_id = ? LIMIT 1;").get(userId);
+  return prepare(`
+    SELECT
+      ba.*,
+      wm.user_id AS user_id
+    FROM workspace_memberships wm
+    JOIN workspaces w
+      ON w.id = wm.workspace_id
+      AND w.deleted_at IS NULL
+    JOIN billing_accounts ba
+      ON ba.workspace_id = w.id
+    WHERE wm.user_id = ?
+      AND wm.deleted_at IS NULL
+    ORDER BY CASE WHEN w.type = 'personal' THEN 0 ELSE 1 END, wm.created_at ASC
+    LIMIT 1;
+  `).get(userId);
 }
 
 function getOrCreateZeroAccount(db, userId) {
-  const existing = db.prepare("SELECT * FROM credit_accounts WHERE user_id = ? LIMIT 1;").get(userId);
-  if (existing) return existing;
-  const now = Date.now();
-  db.prepare(`
-    INSERT INTO credit_accounts (user_id, balance_credits, reserved_credits, created_at, updated_at)
-    VALUES (?, 0, 0, ?, ?);
-  `).run(userId, now, now);
-  return { user_id: userId, balance_credits: 0, reserved_credits: 0, created_at: now, updated_at: now };
+  const scope = ensureUserWorkspaceWithDb(db, userId);
+  const account = db.prepare(`
+    SELECT
+      ba.*,
+      ? AS user_id
+    FROM billing_accounts ba
+    WHERE ba.id = ?
+    LIMIT 1;
+  `).get(userId, scope.billingAccountId);
+  if (!account) {
+    const error = new Error("Billing account not found");
+    error.status = 500;
+    throw error;
+  }
+  return account;
 }
 
 function getRequiredAccount(db, userId) {
-  const account = db.prepare("SELECT * FROM credit_accounts WHERE user_id = ? LIMIT 1;").get(userId);
+  const account = getOrCreateZeroAccount(db, userId);
   if (!account) {
     const error = new Error("Credit account not found. Run credits migration first.");
     error.status = 500;
@@ -243,16 +304,20 @@ function getRequiredAccount(db, userId) {
 }
 
 function insertTransaction(db, input) {
+  const account = input.account;
   db.prepare(`
     INSERT INTO credit_transactions (
-      id, user_id, type, amount_credits, balance_after, reserved_after,
-      provider, model, task, billing_type, input_tokens, output_tokens,
-      total_tokens, credits_reserved, credits_charged, reason, request_id,
-      status, created_at
+      id, billing_account_id, workspace_id, user_id, type, amount_credits,
+      balance_after, reserved_after, provider, model, task, billing_type,
+      input_tokens, output_tokens, total_tokens, credits_reserved,
+      credits_charged, reason, request_id, idempotency_key, ai_job_id,
+      metadata_json, status, created_at
     )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
   `).run(
     randomUUID(),
+    account.id,
+    account.workspace_id,
     input.userId,
     input.type,
     Math.ceil(Number(input.amountCredits || 0)),
@@ -269,6 +334,9 @@ function insertTransaction(db, input) {
     Math.ceil(Number(input.creditsCharged || 0)),
     input.reason || "",
     input.requestId || "",
+    input.idempotencyKey || input.requestId || "",
+    input.aiJobId || null,
+    stringifyMetadata(input.metadata),
     input.status || "",
     input.createdAt || Date.now()
   );
@@ -278,7 +346,7 @@ function toPublicBalance(row) {
   const balanceCredits = Math.ceil(Number(row.balance_credits || 0));
   const reservedCredits = Math.ceil(Number(row.reserved_credits || 0));
   return {
-    userId: row.user_id,
+    userId: row.user_id || row.owner_user_id,
     balanceCredits,
     reservedCredits,
     availableCredits: balanceCredits - reservedCredits
@@ -324,4 +392,12 @@ function toCredits(value) {
 
 function nullableInteger(value) {
   return value === null || value === undefined ? null : Math.ceil(Number(value || 0));
+}
+
+function stringifyMetadata(value = {}) {
+  try {
+    return JSON.stringify(value || {});
+  } catch {
+    return "{}";
+  }
 }

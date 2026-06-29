@@ -32,6 +32,11 @@ async function requestJson(path, options = {}) {
   if (!response.ok) {
     const error = new Error(data.message || `Request failed: ${response.status}`);
     error.status = response.status;
+    error.errorCode = data.errorCode || data.failureCode || "";
+    error.errorMessage = data.errorMessage || data.failureMessage || data.message || "";
+    error.failureCode = data.failureCode || data.errorCode || "";
+    error.failureMessage = data.failureMessage || data.errorMessage || data.message || "";
+    error.stage = data.stage || "";
     throw error;
   }
   return data;

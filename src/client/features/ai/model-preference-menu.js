@@ -1,9 +1,12 @@
 const TYPE_LABELS = {
+  "3d": "3D",
   image: "图像",
   video: "视频"
 };
 
 const GROUP_ORDER = ["图像模型", "视频模型", "其他模型"];
+
+const TYPE_ORDER = ["image", "video", "3d"];
 
 export function renderModelPreferenceMenu({
   menu,
@@ -55,7 +58,7 @@ export function renderModelPreferenceMenu({
 
   const tabs = document.createElement("div");
   tabs.className = "model-preference-tabs";
-  ["image", "video"].forEach((type) => {
+  TYPE_ORDER.forEach((type) => {
     const tab = document.createElement("button");
     tab.type = "button";
     tab.textContent = TYPE_LABELS[type];
@@ -193,7 +196,7 @@ function getVisibleModels(models = [], allowVideo = true) {
 function getAvailableTypes(models = [], allowVideo = true) {
   const types = new Set(models.map(getModelType));
   if (!allowVideo) return ["image"];
-  return ["image", "video"].filter((type) => types.has(type));
+  return TYPE_ORDER.filter((type) => types.has(type));
 }
 
 function resolveActiveType(menu, select, models, availableTypes) {
@@ -231,7 +234,10 @@ function groupSortIndex(group) {
 }
 
 function getModelType(model = {}) {
-  return model?.type === "video" ? "video" : "image";
+  const type = String(model?.modality || model?.type || "").trim().toLowerCase();
+  if (type === "video") return "video";
+  if (type === "3d" || type === "model3d") return "3d";
+  return "image";
 }
 
 function buildDescription(model = {}) {
@@ -241,6 +247,7 @@ function buildDescription(model = {}) {
 }
 
 function getModelTags(model = {}) {
+  if (Array.isArray(model.badges) && model.badges.length) return model.badges.slice(0, 5);
   const tags = [];
   if (Number(model.estimatedSeconds) > 0) tags.push(`${Number(model.estimatedSeconds)}s`);
   if (Number(model.credits) > 0) {

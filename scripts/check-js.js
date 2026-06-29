@@ -2,7 +2,7 @@ import { readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
 
-const roots = ["server.js", "app.js", "scripts", "src"];
+const roots = ["server.js", "app.js", "vite.config.js", "scripts", "src"];
 
 function collectJsFiles(target) {
   const stat = statSync(target);

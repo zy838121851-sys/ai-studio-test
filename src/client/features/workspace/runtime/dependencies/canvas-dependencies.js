@@ -46,6 +46,8 @@ export {
   renderImageTextInputs as renderImageTextInputList,
   renderNodeTemplate,
   replacePreviewNodeWithImage,
+  replacePreviewNodeWithModel,
+  replacePreviewNodeWithVideo,
   replaceSelectedNodeElements,
   setActiveRailButton,
   setActiveRailPanelButton,

@@ -1,4 +1,5 @@
 import express from "express";
+import { existsSync } from "node:fs";
 import { extname, join } from "node:path";
 import { env } from "./config/env.js";
 import { validateRuntimeEnvironment } from "./config/runtime.js";
@@ -27,6 +28,9 @@ export function createServer() {
 
   const app = express();
   const rootDir = process.cwd();
+  const distDir = join(rootDir, "dist");
+  const distIndexPath = join(distDir, "index.html");
+  const useBuiltClient = env.nodeEnv === "production" && existsSync(distIndexPath);
   const staticOptions = {
     dotfiles: "deny",
     index: false,
@@ -37,8 +41,21 @@ export function createServer() {
       res.setHeader("Expires", "0");
     }
   };
+  const builtStaticOptions = {
+    dotfiles: "deny",
+    index: false,
+    fallthrough: true,
+    setHeaders: (res, filePath) => {
+      if (isBuiltAssetPath(filePath)) {
+        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        return;
+      }
+      noStoreStatic(res);
+    }
+  };
 
   app.use(express.json({ limit: "25mb" }));
+  app.use(securityHeaders);
   app.use(attachAuth);
 
   const noStoreApi = (_req, res, next) => {
@@ -65,25 +82,31 @@ export function createServer() {
   app.use("/data", (_req, res) => {
     res.status(404).end();
   });
+  if (useBuiltClient) {
+    app.use(express.static(distDir, builtStaticOptions));
+  }
   app.get(["/", "/index.html"], (_req, res) => {
     noStoreStatic(res);
-    res.sendFile(join(rootDir, "index.html"));
+    res.sendFile(getClientIndexPath({ rootDir, distIndexPath, useBuiltClient }));
   });
-  app.get("/app.js", (_req, res) => {
-    noStoreStatic(res);
-    res.type("application/javascript").sendFile(join(rootDir, "app.js"));
-  });
-  app.get("/styles.css", (_req, res) => {
-    noStoreStatic(res);
-    res.type("text/css").sendFile(join(rootDir, "styles.css"));
-  });
-  app.get("/src/main.js", (_req, res) => {
-    noStoreStatic(res);
-    res.type("application/javascript").sendFile(join(rootDir, "src", "main.js"));
-  });
-  app.use("/src/client", express.static(join(rootDir, "src", "client"), staticOptions));
-  app.use("/styles", express.static(join(rootDir, "styles"), staticOptions));
-  app.use("/public", express.static(join(rootDir, "public"), staticOptions));
+  if (!useBuiltClient) {
+    app.get("/app.js", (_req, res) => {
+      noStoreStatic(res);
+      res.type("application/javascript").sendFile(join(rootDir, "app.js"));
+    });
+    app.get("/styles.css", (_req, res) => {
+      noStoreStatic(res);
+      res.type("text/css").sendFile(join(rootDir, "styles.css"));
+    });
+    app.get("/src/main.js", (_req, res) => {
+      noStoreStatic(res);
+      res.type("application/javascript").sendFile(join(rootDir, "src", "main.js"));
+    });
+    app.use("/src/client", express.static(join(rootDir, "src", "client"), staticOptions));
+    app.use("/styles", express.static(join(rootDir, "styles"), staticOptions));
+    app.use("/public", express.static(join(rootDir, "public"), staticOptions));
+    app.use("/vendor/three", express.static(join(rootDir, "node_modules", "three"), staticOptions));
+  }
   app.get("*", (req, res, next) => {
     if (
       req.method === "GET"
@@ -91,7 +114,7 @@ export function createServer() {
       && req.accepts("html")
     ) {
       noStoreStatic(res);
-      res.sendFile(join(rootDir, "index.html"));
+      res.sendFile(getClientIndexPath({ rootDir, distIndexPath, useBuiltClient }));
       return;
     }
     next();
@@ -101,10 +124,36 @@ export function createServer() {
   return app;
 }
 
+function securityHeaders(_req, res, next) {
+  res.setHeader("X-Content-Type-Options", "nosniff");
+  res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("Content-Security-Policy", [
+    "default-src 'self'",
+    "base-uri 'self'",
+    "object-src 'none'",
+    "frame-ancestors 'self'",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    "style-src 'self' 'unsafe-inline'",
+    "img-src 'self' data: blob: https: http:",
+    "media-src 'self' data: blob: https: http:",
+    "connect-src 'self' https: http:"
+  ].join("; "));
+  next();
+}
+
 function noStoreStatic(res) {
   res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
   res.setHeader("Pragma", "no-cache");
   res.setHeader("Expires", "0");
+}
+
+function getClientIndexPath({ rootDir, distIndexPath, useBuiltClient }) {
+  return useBuiltClient ? distIndexPath : join(rootDir, "index.html");
+}
+
+function isBuiltAssetPath(filePath = "") {
+  return String(filePath || "").split(/[\\/]/).includes("assets");
 }
 
 function isAppNavigationPath(pathname = "") {

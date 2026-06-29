@@ -119,12 +119,15 @@ export function createDirectorActionWorkflow({
         : (productImage ? getQwenImageSizeForElement(productImage) : "");
       const modelPrompt = buildDirectorPrompt(productNode, action);
       const model = resolveImageModelId(getChatModel(), "chat");
-      const result = await postJsonRequest("/api/chat", buildChatImagePayload({
+      let result = await postJsonRequest("/api/ai/generate", buildChatImagePayload({
         model,
         prompt: modelPrompt,
         images,
         size: outputSize
       }));
+      if (!result?.imageUrl && result?.jobId) {
+        result = await waitForDirectorGenerationJob(result.jobId, { fallback: result });
+      }
       if (result.imageUrl) {
         const resultModel = result.requestedModel || result.model || model;
         const modelUsage = formatModelUsage(result, resultModel);
@@ -165,4 +168,61 @@ export function createDirectorActionWorkflow({
   return {
     runDirectorAction
   };
+}
+
+async function waitForDirectorGenerationJob(jobId, {
+  attempts = 180,
+  delayMs = 2000,
+  fallback = {},
+  missingUrlRetries = 4
+} = {}) {
+  let lastPayload = { jobId, ...fallback };
+  let missingUrlAttempts = 0;
+  for (let index = 0; index < attempts; index += 1) {
+    await delay(delayMs);
+    const response = await fetch(`/api/ai/jobs/${encodeURIComponent(jobId)}`, {
+      credentials: "include"
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (response.status === 429) {
+      await delay(getRetryAfterDelayMs(response, delayMs * 2));
+      continue;
+    }
+    if (!response.ok) throw new Error(payload?.failureMessage || payload?.errorMessage || payload?.message || `Job request failed: ${response.status}`);
+    lastPayload = { ...fallback, ...payload };
+    if (["succeeded", "failed", "cancelled", "timeout", "save_failed"].includes(payload?.status)) {
+      if (payload.status !== "succeeded") throw new Error(payload.failureMessage || payload.errorMessage || payload.error || payload.status);
+      const imageUrl = getDirectorResultImageUrl(lastPayload);
+      if (!imageUrl) {
+        missingUrlAttempts += 1;
+        if (missingUrlAttempts <= missingUrlRetries) continue;
+        throw new Error(lastPayload.failureMessage || lastPayload.errorMessage || lastPayload.error || "Generation completed without an image URL");
+      }
+      return { ...lastPayload, imageUrl };
+    }
+  }
+  throw new Error(`Generation is still running. Job ID: ${lastPayload.jobId || jobId}`);
+}
+
+function getDirectorResultImageUrl(result = {}) {
+  if (result.imageUrl) return result.imageUrl;
+  if (Array.isArray(result.imageUrls) && result.imageUrls[0]) return result.imageUrls[0];
+  const output = Array.isArray(result.outputs)
+    ? result.outputs.find((item) => {
+      const type = String(item?.type || "").toLowerCase();
+      const mimeType = String(item?.mimeType || item?.mime_type || "").toLowerCase();
+      return item?.url && (type === "image" || mimeType.startsWith("image/") || (!type && !mimeType));
+    })
+    : null;
+  return output?.url || "";
+}
+
+function delay(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getRetryAfterDelayMs(response, fallbackMs = 4000) {
+  const value = Number.parseInt(response?.headers?.get?.("Retry-After") || "", 10);
+  if (Number.isFinite(value) && value > 0) return value * 1000;
+  return fallbackMs;
 }

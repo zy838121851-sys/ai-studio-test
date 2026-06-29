@@ -304,7 +304,7 @@
 }
 
 .message.thinking li::before {
-  content: "鈼?;
+  content: "-";
   margin-right: 6px;
 }
 
@@ -313,7 +313,7 @@
 }
 
 .message.thinking li.active::before {
-  content: "鈼?;
+  content: ">";
 }
 
 .message.thinking li.done {
@@ -321,7 +321,7 @@
 }
 
 .message.thinking li.done::before {
-  content: "鈼?;
+  content: "✓";
 }
 
 .message.thinking li.failed {

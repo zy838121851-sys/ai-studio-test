@@ -420,12 +420,13 @@ export function createNodeDragWorkflow({
       node?.classList?.contains("node-image")
       || node?.classList?.contains("node-loading-image")
       || node?.classList?.contains("node-image-generator")
+      || node?.classList?.contains("node-video")
     );
   }
 
   function getResizableFrame(node) {
     if (!isImageFrameResizableNode(node)) return null;
-    return node.querySelector(".image-frame, .image-generator-frame");
+    return node.querySelector(".image-frame, .image-generator-frame, .video-file-preview");
   }
 
   function isGeneratorPanelInteraction(node, target) {
@@ -451,7 +452,7 @@ export function createNodeDragWorkflow({
   }
 
   function snapshotNodeStyle(node) {
-    const frame = node?.querySelector?.(".image-frame, .image-generator-frame, .model-viewer");
+    const frame = node?.querySelector?.(".image-frame, .image-generator-frame, .video-file-preview, .model-viewer");
     return {
       node,
       style: node?.getAttribute("style") || "",
@@ -492,7 +493,7 @@ export function createNodeDragWorkflow({
     snapshots.forEach(({ node, style, frameAspectRatio }) => {
       if (!node?.isConnected) return;
       node.setAttribute("style", style);
-      const frame = node.querySelector?.(".image-frame, .image-generator-frame, .model-viewer");
+      const frame = node.querySelector?.(".image-frame, .image-generator-frame, .video-file-preview, .model-viewer");
       if (frame && frameAspectRatio !== undefined) frame.style.aspectRatio = frameAspectRatio;
       if (!node.classList.contains("node-director")) positionDirectorCard(node);
       if (node.classList.contains("node-image")) positionCanvasSuggestionBubble(node);
@@ -507,11 +508,11 @@ export function createNodeDragWorkflow({
     const changed = beforeSnapshots
       .filter(({ node, style, frameAspectRatio }) => {
         if (!node?.isConnected) return false;
-        const frame = node.querySelector?.(".image-frame, .image-generator-frame, .model-viewer");
+        const frame = node.querySelector?.(".image-frame, .image-generator-frame, .video-file-preview, .model-viewer");
         return node.getAttribute("style") !== style || (frame?.style?.aspectRatio || "") !== frameAspectRatio;
       })
       .map(({ node, style, frameAspectRatio }) => {
-        const frame = node.querySelector?.(".image-frame, .image-generator-frame, .model-viewer");
+        const frame = node.querySelector?.(".image-frame, .image-generator-frame, .video-file-preview, .model-viewer");
         return {
         node,
         beforeStyle: style,

@@ -116,30 +116,21 @@ export function renderNodeTemplate({
     `;
   }
 
-  if (kind === "video" && media.url) {
-    return `
-      <div class="node-label">视频</div>
-      <video class="media-preview video-file-preview" src="${media.url}" controls></video>
-      <h3>${safeTitle}</h3>
-      <p>${safeDesc}</p>
-    `;
-  }
-
   if (kind === "video") {
-    return `
-      <div class="node-label">视频预览</div>
-      <div class="video-preview">
-        <span class="play">▶</span>
-        <i></i>
-      </div>
-      <p>${safeDesc}</p>
-    `;
+    return renderVideoTemplate(media, safeTitle);
   }
 
   return `
     <div class="node-label">2D 页面</div>
     <h3>${safeTitle}</h3>
     <p>${safeDesc}</p>
+  `;
+}
+
+function renderVideoTemplate(media = {}, safeTitle = "") {
+  const safeUrl = escapeHtml(media.url || "");
+  return `
+    <video class="media-preview video-file-preview" src="${safeUrl}" controls playsinline preload="metadata" aria-label="${safeTitle || "Video"}"></video>
   `;
 }
 

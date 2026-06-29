@@ -5,6 +5,7 @@ import {
   DEFAULT_UPSCALE_MODEL,
   getModelConfig
 } from "./model-catalog.service.js";
+import { normalizeImageGenerationSize } from "./image-size-normalization.service.js";
 import {
   buildAnalyzeImagePrompt,
   buildCanvasAgentPrompt,
@@ -69,11 +70,19 @@ function normalizeExtractedTexts(value, rawText = "") {
 export async function generateImage({ model = DEFAULT_IMAGE_MODEL, prompt, images = [], size, requestId } = {}) {
   const requestedModel = String(model || "").trim() || DEFAULT_IMAGE_MODEL;
   const route = resolveImageGenerationRoute(requestedModel, "generateImage");
+  const sizeNormalization = normalizeImageGenerationSize({
+    providerId: route.providerId,
+    modelId: route.requestedModel,
+    providerModel: route.providerModel,
+    size,
+    defaultSize: route.config?.defaultSize
+  });
   const result = await route.provider.generateImage({
     model: route.providerModel,
     prompt,
     images,
-    size,
+    size: sizeNormalization.normalizedSize || size,
+    sizeNormalization,
     requestId
   });
   return {
@@ -83,6 +92,7 @@ export async function generateImage({ model = DEFAULT_IMAGE_MODEL, prompt, image
     resolvedModel: route.resolvedModel,
     provider: route.providerId,
     providerModel: route.providerModel,
+    sizeNormalization: result.sizeNormalization || sizeNormalization,
     providerCalls: normalizeProviderCalls(result.providerCalls, {
       provider: route.providerId,
       model: route.providerModel,

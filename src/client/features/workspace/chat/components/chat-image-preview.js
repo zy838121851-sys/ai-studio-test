@@ -1,5 +1,6 @@
 const chatPreviewUrls = new WeakMap();
 const chatPreviewIds = new WeakMap();
+const chatPreviewFilesById = new Map();
 let chatPreviewIdSeed = 0;
 
 function getChatPreviewId(file) {
@@ -21,6 +22,10 @@ function getChatPreviewUrl(file) {
   return next;
 }
 
+export function getChatPreviewAttachmentFile(attachmentId = "") {
+  return chatPreviewFilesById.get(String(attachmentId || "")) || null;
+}
+
 export function renderChatImagePreviewList({
   container,
   files = [],
@@ -30,8 +35,15 @@ export function renderChatImagePreviewList({
   if (!container) return;
   container.innerHTML = "";
   container.classList.toggle("open", files.length > 0);
+  const activeAttachmentIds = new Set();
   files.forEach((file, index) => {
     const attachmentId = getChatPreviewId(file);
+    if (attachmentId) {
+      activeAttachmentIds.add(attachmentId);
+      if (file instanceof Blob) {
+        chatPreviewFilesById.set(attachmentId, file);
+      }
+    }
     const item = document.createElement("button");
     item.type = "button";
     item.title = "移除图片";
@@ -43,6 +55,11 @@ export function renderChatImagePreviewList({
     item.addEventListener("click", () => onRemove?.(index));
     container.appendChild(item);
   });
+  for (const attachmentId of chatPreviewFilesById.keys()) {
+    if (!activeAttachmentIds.has(attachmentId)) {
+      chatPreviewFilesById.delete(attachmentId);
+    }
+  }
 }
 
 export function addImageFilesToPreview({

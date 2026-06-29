@@ -43,6 +43,7 @@ export function findIdentity(provider, identifier) {
     JOIN users ON users.id = user_identities.user_id
     WHERE user_identities.provider = ${sqlValue(clean.provider)}
       AND user_identities.identifier = ${sqlValue(clean.identifier)}
+      AND users.deleted_at IS NULL
     LIMIT 1;
   `);
 }
@@ -54,6 +55,7 @@ export function publicUser(row) {
     email: publicEmail(row.email),
     phone: row.phone || "",
     name: row.name || "",
+    avatarUrl: row.avatar_url || "",
     createdAt: row.created_at
   };
 }
@@ -81,21 +83,23 @@ export function createUserWithIdentity({
   const identityId = randomUUID();
   const normalizedEmail = clean.provider === "email"
     ? clean.identifier
-    : (String(email || "").trim().toLowerCase() || internalEmail(clean.provider, clean.identifier));
+    : String(email || "").trim().toLowerCase();
   const normalizedPhone = clean.provider === "phone" ? clean.identifier : String(phone || "").trim();
   const fallbackName = name || displayName || normalizedEmail || normalizedPhone || `${clean.provider} user`;
 
   execute(`
-    INSERT INTO users (id, email, phone, name, password_hash, password_salt, created_at, updated_at)
+    INSERT INTO users (id, email, phone, name, avatar_url, password_hash, password_salt, created_at, updated_at, deleted_at)
     VALUES (
       ${sqlValue(userId)},
       ${sqlValue(normalizedEmail)},
       ${sqlValue(normalizedPhone)},
       ${sqlValue(fallbackName)},
+      ${sqlValue(avatarUrl)},
       '',
       '',
       ${now},
-      ${now}
+      ${now},
+      NULL
     );
 
     INSERT INTO user_identities (
@@ -121,23 +125,16 @@ export function createUserWithIdentity({
       ${now}
     );
   `);
-  grantInitialCreditsIfAvailable(userId);
+  ensureCreditAccount(userId);
 
-  return {
+  return publicUser({
     id: userId,
     email: normalizedEmail,
     phone: normalizedPhone,
     name: fallbackName,
-    createdAt: now
-  };
-}
-
-function grantInitialCreditsIfAvailable(userId) {
-  try {
-    ensureCreditAccount(userId);
-  } catch (error) {
-    if (!/no such table: credit_accounts/i.test(error?.message || "")) throw error;
-  }
+    avatar_url: avatarUrl,
+    created_at: now
+  });
 }
 
 export function findOrCreateIdentityUser(input = {}) {

@@ -27,6 +27,7 @@ export function createWorkspaceCanvasGenerationAppRuntime({
       createGenerationPreviewNode: services.createGenerationPreviewNode,
       addNode: services.addNode,
       replacePreviewNodeWithImage: services.replacePreviewNodeWithImage,
+      replacePreviewNodeWithModel: services.replacePreviewNodeWithModel,
       replacePreviewNodeWithVideo: services.replacePreviewNodeWithVideo,
       markGeneratedNodeContext: services.markGeneratedNodeContext,
       recordCanvasEvent: services.recordCanvasEvent,

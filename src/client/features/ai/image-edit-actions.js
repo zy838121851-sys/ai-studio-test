@@ -378,11 +378,11 @@ async function waitForImageEditJob(jobId, {
       await delay(retryDelay);
       continue;
     }
-    if (!response.ok) throw new Error(payload?.message || `Job request failed: ${response.status}`);
+    if (!response.ok) throw new Error(payload?.failureMessage || payload?.errorMessage || payload?.message || `Job request failed: ${response.status}`);
     lastPayload = { ...fallback, ...payload };
     logImageEditJobPoll(lastPayload);
     if (["succeeded", "failed", "cancelled", "timeout", "save_failed"].includes(payload?.status)) {
-      if (payload.status !== "succeeded") throw new Error(payload.error || payload.status);
+      if (payload.status !== "succeeded") throw new Error(payload.failureMessage || payload.errorMessage || payload.error || payload.status);
       const resultUrls = expectedType === "video"
         ? getResultVideoUrls(lastPayload)
         : getResultImageUrls(lastPayload);
@@ -459,7 +459,7 @@ function getMissingImageEditResultMessage(result = {}, expectedType = "image") {
   const fallback = expectedType === "video"
     ? "Model returned without a video URL"
     : "Model returned without an image URL";
-  const message = String(result?.message || fallback).trim();
+  const message = String(result?.failureMessage || result?.errorMessage || result?.error || result?.message || fallback).trim();
   const details = [
     result?.jobId ? `jobId=${result.jobId}` : "",
     result?.status ? `status=${result.status}` : "",

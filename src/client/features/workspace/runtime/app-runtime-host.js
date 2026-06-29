@@ -9,6 +9,7 @@ import { bindPromptRuntime } from "../chat/runtime/prompt-runtime.js";
 import { bindHomeLibraryRuntime } from "../home/runtime/home-library-runtime.js?v=20260628-boot-inline-1";
 import { bindFooterRuntime } from "../interactions/footer-runtime.js";
 import { bindTaskBarRuntime } from "../taskbar/task-bar-runtime.js";
+import { bindTaskLogRuntime } from "../task-log/task-log-runtime.js";
 import { bindCompatibilityBridge } from "./compatibility-bridge.js?v=20260628-boot-inline-1";
 import { buildAppRuntimeInputs } from "./app-runtime-inputs.js";
 import { initializeWorkspaceRuntimeView } from "./workspace-startup.js";
@@ -17,6 +18,7 @@ import { bootstrapWorkspaceVisualState } from "./workspace-visual-state.js";
 export function initializeAppRuntime(runtime) {
   bootstrapWorkspaceVisualState(runtime);
   bindTaskBarRuntime(runtime);
+  bindTaskLogRuntime(runtime);
 
   runtime.homeWorkflow?.bindHomeControls?.();
   bindHomeLibraryRuntime(runtime);

@@ -17,23 +17,40 @@ import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import { assertPublicHttpUrl } from "../security/network.js";
 import { billFixedTask } from "../services/credits/billing.service.js";
 import {
+  chargeReservedCredits,
   releaseReservedCredits,
   reserveCredits
 } from "../services/credits/credit.service.js";
 import { quoteFixedCredits } from "../services/credits/pricing.service.js";
 import {
+  completeModel3DJob,
   completeAIJob,
   createAIJob,
+  failModel3DJob,
+  failAIJob,
+  getAIJobByRemoteTaskId,
+  getAIJobDetails,
+  listAIJobs,
+  markAIJobCreditsCharged,
   refreshAIJob,
-  scheduleAIJobRefresh
+  scheduleAIJobRefresh,
+  updateAIJobLogData,
+  updateAIJobProgress,
+  updateAIJobDispatchResult
 } from "../services/ai-job.service.js";
 import { getAsset } from "../services/asset.service.js";
 import {
+  DEFAULT_3D_MODEL,
   DEFAULT_IMAGE_MODEL,
   getModelConfig,
   isApimartModel,
   listImageModels
 } from "../services/model-catalog.service.js";
+import {
+  createImageToModelTask,
+  createTextToModelTask,
+  getTask as getTripoTask
+} from "../services/ai/providers/tripo.service.js";
 import { randomUUID } from "node:crypto";
 
 const aiLimiter = createRateLimiter({
@@ -70,12 +87,106 @@ export function createAIRouter() {
 
   router.use(requireAuth);
 
+  router.post("/ai/3d/text-to-model", aiLimiter, asyncHandler(async (req, res) => {
+    const result = await createTripo3DJob(req, {
+      mode: "text",
+      prompt: req.body?.prompt
+    });
+    res.json(result);
+  }));
+
+  router.post("/ai/3d/image-to-model", aiLimiter, asyncHandler(async (req, res) => {
+    const result = await createTripo3DJob(req, {
+      mode: "image",
+      imageUrl: req.body?.imageUrl || req.body?.image_url || req.body?.url || req.body?.input,
+      imageDataUrl: req.body?.imageDataUrl || req.body?.dataUrl || req.body?.image || "",
+      imageName: req.body?.imageName || req.body?.filename || "",
+      imageMimeType: req.body?.imageMimeType || req.body?.mimeType || ""
+    });
+    res.json(result);
+  }));
+
+  router.get("/ai/3d/tasks/:taskId", jobPollLimiter, asyncHandler(async (req, res) => {
+    const remoteTaskId = String(req.params.taskId || "").trim();
+    const job = getAIJobByRemoteTaskId(req.auth.user.id, remoteTaskId);
+    if (!job) {
+      res.status(404).json({ message: "3D task not found" });
+      return;
+    }
+    const startedAt = Number(job.createdAt || Date.now());
+    const remote = await getTripoTask(remoteTaskId);
+    let currentJob = job;
+    const responseData = {
+      provider: "tripo",
+      remote,
+      checkedAt: Date.now()
+    };
+    if (remote.status === "success") {
+      const existingAssets = getJobOutputAssets(req.auth.user.id, job);
+      const needsLocalModelSave = hasRemoteFallbackModelOutput(existingAssets);
+      currentJob = await completeModel3DJob(req.auth.user.id, job.id, {
+        outputs: remote.modelUrl
+          ? [{
+            url: remote.modelUrl,
+            mimeType: "model/gltf-binary",
+            allowRemoteFallback: true
+          }]
+          : [],
+        responseData,
+        durationMs: Date.now() - startedAt,
+        force: needsLocalModelSave
+      });
+    } else if (["failed", "cancelled", "banned"].includes(remote.status)) {
+      currentJob = failModel3DJob(req.auth.user.id, job.id, {
+        status: remote.status === "banned" ? "failed" : remote.status,
+        errorCode: remote.errorCode || remote.status,
+        errorMessage: remote.errorMessage || `Tripo task ${remote.status}`,
+        responseData,
+        durationMs: Date.now() - startedAt,
+        refundTodo: true
+      });
+    } else {
+      updateAIJobLogData(req.auth.user.id, job.id, { responseData });
+      currentJob = updateAIJobProgress(req.auth.user.id, job.id, {
+        status: remote.status === "running" ? "running" : "queued",
+        progress: remote.progress
+      });
+    }
+    const assets = getJobOutputAssets(req.auth.user.id, currentJob);
+    const localModel = assets.find((asset) => asset.type === "model3d" && asset.filePath) || null;
+    const firstModel = assets.find((asset) => asset.type === "model3d") || null;
+    res.json({
+      ok: true,
+      provider: "tripo",
+      taskId: remote.taskId || remoteTaskId,
+      jobId: currentJob?.id || job.id,
+      status: remote.status,
+      progress: remote.progress,
+      modelUrl: localModel?.url || remote.modelUrl || firstModel?.url || "",
+      localModelUrl: localModel?.url || "",
+      renderedImageUrl: remote.renderedImageUrl || "",
+      errorMessage: remote.errorMessage || currentJob?.failureMessage || "",
+      job: toClientJob(currentJob),
+      billing: {
+        creditsReserved: currentJob?.creditsReserved || 0,
+        creditsCharged: currentJob?.creditsCharged || 0,
+        status: currentJob?.creditsCharged > 0 ? "charged" : (currentJob?.status || "")
+      }
+    });
+  }));
+
   router.post("/ai/generate", aiLimiter, asyncHandler(async (req, res) => {
     const modelId = String(req.body?.modelId || req.body?.model || DEFAULT_IMAGE_MODEL).trim() || DEFAULT_IMAGE_MODEL;
     const modelConfig = getModelConfig(modelId);
     if (!modelConfig) {
       const error = new Error(`Unsupported model: ${modelId}`);
       error.status = 400;
+      throw error;
+    }
+    if (getModelModality(modelConfig) === "3d") {
+      const error = new Error("3D models must use /api/ai/3d/text-to-model or /api/ai/3d/image-to-model");
+      error.status = 400;
+      error.code = "USE_3D_GENERATION_API";
       throw error;
     }
     if (!isApimartModel(modelId)) {
@@ -106,28 +217,60 @@ export function createAIRouter() {
     const type = modelConfig.type === "video" ? "video" : "image";
     const task = type === "video" ? "video_generation" : "image_generation";
     const requestId = randomUUID();
+    const images = normalizeImages(req.body?.images);
+    const videoOptions = type === "video"
+      ? validateVideoOptions(modelConfig, req.body?.videoOptions || {})
+      : {};
     const quote = quoteFixedCredits({
       provider: modelConfig.providerId,
       model: modelConfig.id,
       task,
       count: 1
     });
-    const reservation = reserveCredits({
-      userId: req.auth.user.id,
-      amount: quote.totalCredits,
-      provider: modelConfig.providerId,
-      model: modelConfig.id,
-      task,
-      billingType: "fixed",
-      reason: task,
-      requestId
-    });
+    const startedAt = Date.now();
+    let reservation = null;
+    let job = null;
 
     try {
-      const images = normalizeImages(req.body?.images);
-      const videoOptions = type === "video"
-        ? validateVideoOptions(modelConfig, req.body?.videoOptions || {})
-        : {};
+      reservation = reserveCredits({
+        userId: req.auth.user.id,
+        amount: quote.totalCredits,
+        provider: modelConfig.providerId,
+        model: modelConfig.id,
+        task,
+        billingType: "fixed",
+        reason: task,
+        requestId
+      });
+      job = createAIJob({
+        id: requestId,
+        userId: req.auth.user.id,
+        provider: modelConfig.providerId,
+        vendor: modelConfig.vendor || "",
+        modelId: modelConfig.id,
+        providerModel: modelConfig.providerModel || modelConfig.id,
+        remoteTaskId: "",
+        type,
+        status: "queued",
+        progress: 0,
+        prompt,
+        inputAssetIds: req.body?.inputAssetIds || [],
+        creditsReserved: reservation.amountCredits,
+        requestData: buildGenerationRequestLog({
+          route: "/api/ai/generate",
+          requestId,
+          modelConfig,
+          type,
+          task,
+          prompt,
+          images,
+          size: req.body?.size,
+          videoOptions,
+          inputAssetIds: req.body?.inputAssetIds || [],
+          quote,
+          reservation
+        })
+      });
       const result = type === "video"
         ? await generateVideo({
           model: modelConfig.id,
@@ -154,28 +297,29 @@ export function createAIRouter() {
       const immediateOutputUrl = type === "video"
         ? (result.videoUrl || result.imageUrl || "")
         : (result.imageUrl || "");
-      const job = createAIJob({
-        id: requestId,
-        userId: req.auth.user.id,
-        provider: modelConfig.providerId,
-        vendor: modelConfig.vendor || "",
-        modelId: modelConfig.id,
-        providerModel: modelConfig.providerModel || modelConfig.id,
-        remoteTaskId: result.remoteTaskId || result.taskId || requestId,
+      const responseLog = buildGenerationResponseLog(result, {
+        modelConfig,
         type,
+        immediateOutputUrl
+      });
+      job = updateAIJobDispatchResult(req.auth.user.id, job.id, {
+        remoteTaskId: result.remoteTaskId || result.taskId || "",
+        providerModel: result.providerModel || result.resolvedModel || result.model || modelConfig.providerModel || modelConfig.id,
         status: getInitialAIJobStatus(result),
         progress: immediateOutputUrl ? 90 : 5,
-        prompt,
-        inputAssetIds: req.body?.inputAssetIds || [],
-        creditsReserved: reservation.amountCredits
+        responseData: responseLog
       });
       if (immediateOutputUrl) {
         const completed = await completeAIJob(req.auth.user.id, job.id, {
-          outputs: [{ url: immediateOutputUrl, mimeType: type === "video" ? "video/mp4" : "image/png" }]
+          outputs: [{ url: immediateOutputUrl, mimeType: type === "video" ? "video/mp4" : "image/png" }],
+          responseData: responseLog,
+          durationMs: Date.now() - startedAt
         });
         if (completed?.status !== "succeeded") {
+          const failure = toClientFailure(completed, "OUTPUT_SAVE_FAILED");
           res.status(500).json({
-            message: completed?.errorMessage || "Generated output could not be saved locally",
+            message: failure.failureMessage || "Generated output could not be saved locally",
+            ...failure,
             job: toClientJob(completed),
             jobId: completed?.id,
             model: modelConfig.id
@@ -197,6 +341,9 @@ export function createAIRouter() {
           asset: toClientAsset(firstAsset),
           model: modelConfig.id,
           requestedModel: modelConfig.id,
+          providerModel: result.providerModel || result.resolvedModel || result.model || modelConfig.providerModel || modelConfig.id,
+          resolvedModel: result.resolvedModel || result.providerModel || result.model || modelConfig.providerModel || modelConfig.id,
+          sizeNormalization: toClientSizeNormalization(result.sizeNormalization),
           billing: {
             creditsReserved: reservation.amountCredits,
             creditsCharged: completed?.creditsCharged || 0,
@@ -212,7 +359,11 @@ export function createAIRouter() {
           message: "Generation completed",
           job: toClientJob(completed),
           jobId: completed?.id,
-          model: modelConfig.id
+          model: modelConfig.id,
+          requestedModel: modelConfig.id,
+          providerModel: completed?.providerModel || modelConfig.providerModel || modelConfig.id,
+          resolvedModel: completed?.providerModel || modelConfig.providerModel || modelConfig.id,
+          sizeNormalization: toClientSizeNormalization(result.sizeNormalization)
         });
         return;
       }
@@ -221,6 +372,10 @@ export function createAIRouter() {
         job: toClientJob(job),
         jobId: job.id,
         model: modelConfig.id,
+        requestedModel: modelConfig.id,
+        providerModel: result.providerModel || result.resolvedModel || result.model || modelConfig.providerModel || modelConfig.id,
+        resolvedModel: result.resolvedModel || result.providerModel || result.model || modelConfig.providerModel || modelConfig.id,
+        sizeNormalization: toClientSizeNormalization(result.sizeNormalization),
         billing: {
           creditsReserved: reservation.amountCredits,
           creditsCharged: 0,
@@ -228,27 +383,55 @@ export function createAIRouter() {
         }
       });
     } catch (error) {
-      releaseReservedCredits({
-        userId: req.auth.user.id,
-        amount: reservation.amountCredits,
-        provider: modelConfig.providerId,
-        model: modelConfig.id,
-        task,
-        billingType: "fixed",
-        reason: error?.message || "provider_failed",
-        requestId,
-        status: "failed"
-      });
+      const failure = classifyAIError(error, { path: req.path });
+      if (job?.id) {
+        error.aiJob = failAIJob(req.auth.user.id, job.id, {
+          status: jobStatusForError(error),
+          errorCode: error?.code || failure.failureCode,
+          errorMessage: failure.failureMessage,
+          responseData: buildGenerationFailureLog(error, failure),
+          durationMs: Date.now() - startedAt
+        });
+      } else if (reservation?.amountCredits) {
+        releaseReservedCredits({
+          userId: req.auth.user.id,
+          amount: reservation.amountCredits,
+          provider: modelConfig.providerId,
+          model: modelConfig.id,
+          task,
+          billingType: "fixed",
+          reason: error?.message || "provider_failed",
+          requestId,
+          status: "failed"
+        });
+      }
       throw error;
     }
   }));
 
+  router.get("/ai/jobs", jobPollLimiter, asyncHandler(async (req, res) => {
+    const result = listAIJobs(req.auth.user.id, {
+      limit: req.query.limit,
+      offset: req.query.offset,
+      q: req.query.q,
+      type: req.query.type,
+      status: req.query.status,
+      dateFrom: req.query.dateFrom,
+      dateTo: req.query.dateTo
+    });
+    res.json({
+      ...result,
+      serverTime: Date.now()
+    });
+  }));
+
   router.get("/ai/jobs/:jobId", jobPollLimiter, asyncHandler(async (req, res) => {
-    const job = await refreshAIJob(req.auth.user.id, req.params.jobId);
-    if (!job) {
+    const refreshed = await refreshAIJob(req.auth.user.id, req.params.jobId);
+    if (!refreshed) {
       res.status(404).json({ message: "Job not found" });
       return;
     }
+    const job = getAIJobDetails(req.auth.user.id, req.params.jobId) || refreshed;
     const assets = getJobOutputAssets(req.auth.user.id, job);
     const firstAsset = assets[0] || null;
     res.json({
@@ -258,13 +441,27 @@ export function createAIRouter() {
       status: job.status,
       progress: job.progress,
       updatedAt: job.updatedAt,
+      createdAt: job.createdAt,
+      completedAt: job.completedAt,
+      durationMs: job.durationMs,
       outputCount: assets.length,
       outputs: assets.map(toClientAsset),
       imageUrls: assets.filter((asset) => asset.type === "image").map((asset) => asset.url),
       videoUrls: assets.filter((asset) => asset.type === "video").map((asset) => asset.url),
       imageUrl: firstAsset?.type === "image" ? firstAsset.url : "",
       videoUrl: firstAsset?.type === "video" ? firstAsset.url : "",
-      error: job.errorMessage || ""
+      error: job.failureMessage || job.errorMessage || "",
+      errorCode: job.errorCode || "",
+      errorMessage: job.errorMessage || "",
+      failureCode: job.failureCode || job.errorCode || "",
+      failureMessage: job.failureMessage || job.errorMessage || "",
+      requestData: job.requestData || {},
+      responseData: job.responseData || {},
+      billing: {
+        creditsReserved: job.creditsReserved || 0,
+        creditsCharged: job.creditsCharged || 0,
+        status: job.status === "succeeded" ? "charged" : job.status
+      }
     });
   }));
 
@@ -311,6 +508,7 @@ export function createAIRouter() {
       providerModel: result.providerModel || result.resolvedModel || result.model,
       providerCalls: isApimartModel(requestedModel) ? [] : (result.providerCalls || []),
       referenceCount: result.referenceCount,
+      sizeNormalization: toClientSizeNormalization(result.sizeNormalization),
       billing: toClientBilling(result.billing)
     });
   }));
@@ -655,6 +853,196 @@ function normalizeImages(images) {
   return Array.isArray(images) ? images.filter(Boolean) : [];
 }
 
+async function createTripo3DJob(req, {
+  mode = "text",
+  prompt = "",
+  imageUrl = "",
+  imageDataUrl = "",
+  imageName = "",
+  imageMimeType = ""
+} = {}) {
+  const userId = req.auth.user.id;
+  const modelId = String(req.body?.modelId || req.body?.model || DEFAULT_3D_MODEL).trim() || DEFAULT_3D_MODEL;
+  const modelConfig = getModelConfig(modelId);
+  if (!modelConfig || getModelModality(modelConfig) !== "3d" || modelConfig.providerId !== "tripo") {
+    const error = new Error(`Unsupported 3D model: ${modelId}`);
+    error.status = 400;
+    error.code = "UNSUPPORTED_3D_MODEL";
+    throw error;
+  }
+  const capabilities = modelConfig.capabilities || {};
+  if (mode === "text" && capabilities.textTo3D !== true) {
+    const error = new Error(`${modelConfig.label || modelConfig.id} does not support text to 3D`);
+    error.status = 400;
+    error.code = "TEXT_TO_3D_UNSUPPORTED";
+    throw error;
+  }
+  if (mode === "image" && capabilities.imageTo3D !== true) {
+    const error = new Error(`${modelConfig.label || modelConfig.id} does not support image to 3D`);
+    error.status = 400;
+    error.code = "IMAGE_TO_3D_UNSUPPORTED";
+    throw error;
+  }
+  const cleanPrompt = String(prompt || "").trim();
+  const cleanImageUrl = String(imageUrl || "").trim();
+  const cleanImageDataUrl = String(imageDataUrl || "").trim();
+  const cleanImageName = String(imageName || "").trim();
+  const cleanImageMimeType = String(imageMimeType || "").trim();
+  if (mode === "text" && !cleanPrompt) {
+    const error = new Error("Missing prompt");
+    error.status = 400;
+    error.code = "PROMPT_REQUIRED";
+    throw error;
+  }
+  if (mode === "image" && !isValidTripoImageInput(cleanImageUrl, cleanImageDataUrl)) {
+    const error = new Error("Image-to-3D requires an http/https URL, Tripo file token, or uploaded image data.");
+    error.status = 400;
+    error.code = "TRIPO_IMAGE_INPUT_REQUIRED";
+    throw error;
+  }
+
+  const requestId = randomUUID();
+  const startedAt = Date.now();
+  const task = mode === "image" ? "tripo_image_to_3d_standard" : "tripo_text_to_3d_standard";
+  const quote = quoteFixedCredits({
+    provider: "tripo",
+    model: modelConfig.id,
+    task,
+    count: 1
+  });
+  const reservation = reserveCredits({
+    userId,
+    amount: quote.totalCredits,
+    provider: "tripo",
+    model: modelConfig.id,
+    task,
+    billingType: "fixed",
+    reason: task,
+    requestId
+  });
+  let job = createAIJob({
+    id: requestId,
+    userId,
+    provider: "tripo",
+    vendor: "tripo",
+    modelId: modelConfig.id,
+    providerModel: modelConfig.apiModel || modelConfig.providerModel || modelConfig.id,
+    remoteTaskId: "",
+    type: "model3d",
+    status: "queued",
+    progress: 0,
+    prompt: cleanPrompt || "Image to 3D",
+    creditsReserved: reservation.amountCredits,
+    requestData: buildTripo3DRequestLog({
+      route: `/api/ai/3d/${mode === "image" ? "image-to-model" : "text-to-model"}`,
+      requestId,
+      modelConfig,
+      mode,
+      prompt: cleanPrompt,
+      imageUrl: cleanImageUrl,
+      imageDataUrl: cleanImageDataUrl,
+      imageName: cleanImageName,
+      imageMimeType: cleanImageMimeType,
+      texture: req.body?.texture !== false,
+      task,
+      quote,
+      reservation
+    })
+  });
+  let taskCreated = null;
+  let chargedCredits = 0;
+  try {
+    taskCreated = mode === "image"
+      ? await createImageToModelTask({
+        imageUrl: cleanImageUrl,
+        imageDataUrl: cleanImageDataUrl,
+        imageName: cleanImageName,
+        imageMimeType: cleanImageMimeType,
+        apiModel: modelConfig.apiModel || modelConfig.providerModel,
+        texture: req.body?.texture !== false,
+        defaultParams: modelConfig.defaultParams || {},
+        requestId
+      })
+      : await createTextToModelTask({
+        prompt: cleanPrompt,
+        apiModel: modelConfig.apiModel || modelConfig.providerModel,
+        texture: req.body?.texture !== false,
+        defaultParams: modelConfig.defaultParams || {},
+        requestId
+      });
+    const charge = chargeReservedCredits({
+      userId,
+      reservedAmount: reservation.amountCredits,
+      chargeAmount: reservation.amountCredits,
+      provider: "tripo",
+      model: modelConfig.id,
+      task,
+      billingType: "fixed",
+      reason: "tripo_task_created",
+      requestId,
+      aiJobId: job.id
+    });
+    chargedCredits = charge.chargedCredits || 0;
+    markAIJobCreditsCharged(userId, job.id, chargedCredits);
+    job = updateAIJobDispatchResult(userId, job.id, {
+      remoteTaskId: taskCreated.taskId,
+      providerModel: taskCreated.providerModel || modelConfig.apiModel || modelConfig.providerModel || modelConfig.id,
+      status: taskCreated.status === "running" ? "running" : "queued",
+      progress: taskCreated.status === "running" ? 10 : 0,
+      responseData: buildTripo3DResponseLog(taskCreated, {
+        modelConfig,
+        mode,
+        chargedCredits,
+        status: "created",
+        inputType: taskCreated.inputType || ""
+      })
+    });
+    return {
+      ok: true,
+      provider: "tripo",
+      taskId: taskCreated.taskId,
+      jobId: job.id,
+      status: "queued",
+      billing: {
+        creditsReserved: reservation.amountCredits,
+        creditsCharged: chargedCredits,
+        status: "charged"
+      }
+    };
+  } catch (error) {
+    if (!chargedCredits && reservation?.amountCredits) {
+      releaseReservedCredits({
+        userId,
+        amount: reservation.amountCredits,
+        provider: "tripo",
+        model: modelConfig.id,
+        task,
+        billingType: "fixed",
+        reason: error?.message || "tripo_task_create_failed",
+        requestId,
+        aiJobId: job?.id || "",
+        status: "failed"
+      });
+    }
+    if (job?.id) {
+      failModel3DJob(userId, job.id, {
+        status: "failed",
+        errorCode: error?.code || "TRIPO_TASK_CREATE_FAILED",
+        errorMessage: error?.message || "Tripo task creation failed",
+        responseData: {
+          status: "failed",
+          stage: taskCreated ? "charge" : "task_create",
+          provider: "tripo",
+          providerPayload: error?.providerPayload || undefined
+        },
+        durationMs: Date.now() - startedAt,
+        refundTodo: Boolean(chargedCredits)
+      });
+    }
+    throw error;
+  }
+}
+
 function validateVideoOptions(modelConfig = {}, input = {}) {
   const allowed = modelConfig.allowedOptions || {};
   const output = {};
@@ -690,7 +1078,251 @@ function sanitizeGenerationResult(result = {}, modelConfig = {}) {
     requestedModel: result.requestedModel || modelConfig.id || result.model,
     resolvedModel: result.resolvedModel || result.model,
     referenceCount: result.referenceCount,
+    sizeNormalization: toClientSizeNormalization(result.sizeNormalization),
     billing: toClientBilling(result.billing)
+  };
+}
+
+function buildGenerationRequestLog({
+  route = "/api/ai/generate",
+  requestId = "",
+  modelConfig = {},
+  type = "image",
+  task = "",
+  prompt = "",
+  images = [],
+  size = "",
+  videoOptions = {},
+  inputAssetIds = [],
+  quote = {},
+  reservation = {}
+} = {}) {
+  return {
+    route,
+    requestId,
+    provider: modelConfig.providerId || "",
+    vendor: modelConfig.vendor || "",
+    modelId: modelConfig.id || "",
+    providerModel: modelConfig.providerModel || modelConfig.id || "",
+    type,
+    task,
+    prompt,
+    requestedSize: size || "",
+    videoOptions: type === "video" ? videoOptions : undefined,
+    imageCount: Array.isArray(images) ? images.length : 0,
+    images: summarizeReferenceImages(images),
+    inputAssetIds: Array.isArray(inputAssetIds) ? inputAssetIds.filter(Boolean) : [],
+    quote: {
+      totalCredits: quote.totalCredits || 0,
+      unitCredits: quote.unitCredits || quote.fixedCredits || undefined
+    },
+    billing: {
+      creditsReserved: reservation.amountCredits || 0,
+      status: "reserved"
+    },
+    createdAt: Date.now()
+  };
+}
+
+function buildTripo3DRequestLog({
+  route = "",
+  requestId = "",
+  modelConfig = {},
+  mode = "text",
+  prompt = "",
+  imageUrl = "",
+  imageDataUrl = "",
+  imageName = "",
+  imageMimeType = "",
+  texture = true,
+  task = "",
+  quote = {},
+  reservation = {}
+} = {}) {
+  return {
+    route,
+    requestId,
+    provider: "tripo",
+    vendor: "tripo",
+    modelId: modelConfig.id || "",
+    apiModel: modelConfig.apiModel || modelConfig.providerModel || "",
+    type: "model3d",
+    modality: "3d",
+    mode,
+    task,
+    prompt,
+    imageUrl: /^https?:\/\//i.test(String(imageUrl || "")) ? summarizePublicUrl(imageUrl) : "",
+    imageInput: summarizeTripoImageInput({ imageUrl, imageDataUrl, imageName, imageMimeType }),
+    texture: Boolean(texture),
+    defaultParams: modelConfig.defaultParams || undefined,
+    quote: {
+      totalCredits: quote.totalCredits || 0,
+      unitCredits: quote.unitCredits || undefined
+    },
+    billing: {
+      creditsReserved: reservation.amountCredits || 0,
+      status: "reserved"
+    },
+    createdAt: Date.now()
+  };
+}
+
+function buildGenerationResponseLog(result = {}, {
+  modelConfig = {},
+  type = "image",
+  immediateOutputUrl = ""
+} = {}) {
+  const outputs = [
+    ...(Array.isArray(result.outputs) ? result.outputs : []),
+    ...(result.imageUrl ? [{ type: "image", url: result.imageUrl }] : []),
+    ...(result.videoUrl ? [{ type: "video", url: result.videoUrl }] : [])
+  ];
+  return {
+    provider: result.provider || modelConfig.providerId || "",
+    model: result.model || "",
+    requestedModel: result.requestedModel || modelConfig.id || "",
+    resolvedModel: result.resolvedModel || "",
+    providerModel: result.providerModel || result.resolvedModel || result.model || modelConfig.providerModel || "",
+    remoteTaskId: result.remoteTaskId || result.taskId || "",
+    status: result.status || (immediateOutputUrl ? "succeeded" : "queued"),
+    type,
+    referenceCount: result.referenceCount ?? undefined,
+    referenceImageNormalization: result.referenceImageNormalization || undefined,
+    sizeNormalization: toClientSizeNormalization(result.sizeNormalization),
+    providerCalls: result.providerCalls || [],
+    outputCount: outputs.length || (immediateOutputUrl ? 1 : 0),
+    imageUrl: Boolean(result.imageUrl),
+    videoUrl: Boolean(result.videoUrl),
+    outputs: outputs.map((output) => ({
+      type: output.type || type,
+      mimeType: output.mimeType || "",
+      url: output.url || ""
+    })),
+    receivedAt: Date.now()
+  };
+}
+
+function buildTripo3DResponseLog(result = {}, {
+  modelConfig = {},
+  mode = "text",
+  chargedCredits = 0,
+  status = "",
+  inputType = ""
+} = {}) {
+  return {
+    provider: "tripo",
+    modelId: modelConfig.id || "",
+    apiModel: modelConfig.apiModel || modelConfig.providerModel || "",
+    mode,
+    inputType: inputType || result.inputType || "",
+    inputSummary: result.inputSummary || undefined,
+    status: status || result.status || "",
+    remoteTaskId: result.taskId || "",
+    progress: result.progress ?? undefined,
+    modelUrl: Boolean(result.modelUrl),
+    localModelUrl: Boolean(result.localModelUrl),
+    renderedImageUrl: Boolean(result.renderedImageUrl),
+    errorCode: result.errorCode || "",
+    errorMessage: result.errorMessage || "",
+    raw: result.raw || undefined,
+    billing: {
+      creditsCharged: chargedCredits,
+      status: chargedCredits > 0 ? "charged" : ""
+    },
+    receivedAt: Date.now()
+  };
+}
+
+function buildGenerationFailureLog(error = {}, failure = {}) {
+  return {
+    status: "failed",
+    stage: failure.stage || "",
+    failureCode: failure.failureCode || error.code || "",
+    failureMessage: failure.failureMessage || error.message || "AI request failed",
+    providerStatus: error.status || 500,
+    providerCode: error.code || "",
+    providerMessage: error.message || String(error),
+    failedAt: Date.now()
+  };
+}
+
+function getModelModality(modelConfig = {}) {
+  return String(modelConfig.modality || modelConfig.type || "image").trim().toLowerCase();
+}
+
+function isValidTripoImageInput(imageUrl = "", imageDataUrl = "") {
+  const cleanUrl = String(imageUrl || "").trim();
+  if (/^https?:\/\//i.test(cleanUrl)) return true;
+  if (/^(file_token:)?[A-Za-z0-9_-]{10,}$/i.test(cleanUrl)) return true;
+  return /^data:image\/[a-zA-Z0-9.+-]+;base64,/i.test(String(imageDataUrl || "").trim());
+}
+
+function summarizeTripoImageInput({
+  imageUrl = "",
+  imageDataUrl = "",
+  imageName = "",
+  imageMimeType = ""
+} = {}) {
+  const cleanUrl = String(imageUrl || "").trim();
+  if (/^https?:\/\//i.test(cleanUrl)) {
+    return { source: "url", value: summarizePublicUrl(cleanUrl) };
+  }
+  if (/^(file_token:)?[A-Za-z0-9_-]{10,}$/i.test(cleanUrl)) {
+    return { source: "file_token", value: "[file_token]" };
+  }
+  const match = String(imageDataUrl || "").match(/^data:([^;,]+);base64,(.*)$/s);
+  if (match) {
+    return {
+      source: "data-url",
+      name: String(imageName || "").slice(0, 120),
+      mimeType: imageMimeType || match[1],
+      byteLength: Math.ceil((match[2]?.length || 0) * 0.75)
+    };
+  }
+  return { source: imageUrl || imageDataUrl ? "unknown" : "" };
+}
+
+function summarizePublicUrl(url = "") {
+  const text = String(url || "");
+  return text.length > 180 ? `${text.slice(0, 120)}...` : text;
+}
+
+function summarizeReferenceImages(images = []) {
+  return (Array.isArray(images) ? images : []).map((value, index) => {
+    const text = String(value || "");
+    const dataUrlMatch = text.match(/^data:([^;,]+);base64,(.*)$/s);
+    if (dataUrlMatch) {
+      return {
+        index,
+        source: "data-url",
+        mimeType: dataUrlMatch[1],
+        byteLength: Math.ceil((dataUrlMatch[2]?.length || 0) * 0.75)
+      };
+    }
+    return {
+      index,
+      source: /^https?:\/\//i.test(text) ? "url" : "unknown",
+      value: /^https?:\/\//i.test(text) ? text : Boolean(text)
+    };
+  });
+}
+
+function jobStatusForError(error = {}) {
+  const message = String(error?.message || "");
+  if (/timeout|timed out/i.test(message)) return "timeout";
+  if (/save|output/i.test(message)) return "save_failed";
+  return "failed";
+}
+
+function toClientSizeNormalization(value = null) {
+  if (!value || typeof value !== "object") return undefined;
+  return {
+    requestedSize: value.requestedSize || "",
+    normalizedSize: value.normalizedSize || "",
+    providerSize: value.providerSize || "",
+    providerResolution: value.providerResolution || "",
+    changed: Boolean(value.changed),
+    reason: value.reason || ""
   };
 }
 
@@ -721,6 +1353,7 @@ function toClientJob(job = {}) {
   return {
     id: job.id,
     modelId: job.modelId,
+    providerModel: job.providerModel || "",
     vendor: job.vendor,
     type: job.type,
     status: job.status,
@@ -732,11 +1365,14 @@ function toClientJob(job = {}) {
     remoteTaskId: job.remoteTaskId || "",
     errorCode: job.errorCode || "",
     errorMessage: job.errorMessage || "",
+    failureCode: job.failureCode || job.errorCode || "",
+    failureMessage: job.failureMessage || job.errorMessage || "",
     creditsReserved: job.creditsReserved || 0,
     creditsCharged: job.creditsCharged || 0,
     createdAt: job.createdAt,
     updatedAt: job.updatedAt,
-    completedAt: job.completedAt
+    completedAt: job.completedAt,
+    durationMs: job.durationMs ?? null
   };
 }
 
@@ -744,6 +1380,14 @@ function getJobOutputAssets(userId, job = {}) {
   return Array.from(job.outputAssetIds || [])
     .map((assetId) => getAsset(userId, assetId))
     .filter(Boolean);
+}
+
+function hasRemoteFallbackModelOutput(assets = []) {
+  return Array.from(assets || []).some((asset) => (
+    asset?.type === "model3d"
+    && !asset.filePath
+    && /^https?:\/\//i.test(String(asset.url || ""))
+  ));
 }
 
 function toClientAsset(asset = {}) {
@@ -781,11 +1425,55 @@ function asyncHandler(handler) {
     try {
       await handler(req, res);
     } catch (error) {
+      const failure = classifyAIError(error, { path: req.path });
+      const errorJob = error.aiJob || error.job || null;
       logError("AI request failed", error, {
         method: req.method,
-        path: req.path
+        path: req.path,
+        failureCode: failure.failureCode,
+        stage: failure.stage
       });
-      res.status(error.status || 500).json({ message: error.message });
+      res.status(error.status || 500).json({
+        message: failure.failureMessage,
+        errorCode: failure.failureCode,
+        errorMessage: failure.failureMessage,
+        failureCode: failure.failureCode,
+        failureMessage: failure.failureMessage,
+        stage: failure.stage,
+        ...(errorJob ? { job: toClientJob(errorJob), jobId: errorJob.id } : {})
+      });
     }
   };
+}
+
+function toClientFailure(job = {}, fallbackCode = "AI_JOB_FAILED") {
+  const failureCode = job?.failureCode || job?.errorCode || fallbackCode;
+  const failureMessage = job?.failureMessage || job?.errorMessage || "AI job failed";
+  return {
+    errorCode: job?.errorCode || failureCode,
+    errorMessage: job?.errorMessage || failureMessage,
+    failureCode,
+    failureMessage
+  };
+}
+
+function classifyAIError(error = {}, { path = "" } = {}) {
+  const status = Number(error.status || 500);
+  const message = error.message || "AI request failed";
+  const rawCode = String(error.code || "").trim();
+  if (status === 401) return { failureCode: "LOGIN_REQUIRED", failureMessage: message, stage: "auth" };
+  if (status === 402 || rawCode === "INSUFFICIENT_CREDITS") {
+    return { failureCode: "INSUFFICIENT_CREDITS", failureMessage: message, stage: "billing" };
+  }
+  if (status === 404) {
+    return {
+      failureCode: String(path).includes("/ai/jobs/") ? "JOB_NOT_FOUND" : "PROJECT_NOT_FOUND",
+      failureMessage: message,
+      stage: String(path).includes("/ai/jobs/") ? "jobPoll" : "conversation"
+    };
+  }
+  if (status === 400) return { failureCode: rawCode || "INVALID_REQUEST", failureMessage: message, stage: "request" };
+  if (/timeout|timed out/i.test(message)) return { failureCode: rawCode || "JOB_TIMEOUT", failureMessage: message, stage: "jobPoll" };
+  if (/save|output/i.test(message)) return { failureCode: rawCode || "OUTPUT_SAVE_FAILED", failureMessage: message, stage: "outputPersist" };
+  return { failureCode: rawCode || "PROVIDER_FAILED", failureMessage: message, stage: "provider" };
 }

@@ -1,6 +1,7 @@
 import { env } from "../config/env.js";
 
 export const DEFAULT_IMAGE_MODEL = "gpt-image-2";
+export const DEFAULT_3D_MODEL = "tripo-v31";
 export const DEFAULT_EXPAND_MODEL = "wan2.7-image-pro";
 export const DEFAULT_UPSCALE_MODEL = "wanx2.1-imageedit";
 
@@ -9,6 +10,8 @@ const VIDEO_GROUP = "视频模型";
 
 const IMAGE_SURFACES = ["home", "chat", "generator"];
 const VIDEO_SURFACES = ["home", "chat"];
+const TRIPO_GROUP = "3D模型";
+const MODEL_3D_SURFACES = ["home", "chat"];
 const EDIT_SURFACES = ["imageEdit"];
 const ALL_IMAGE_SURFACES = [...IMAGE_SURFACES, ...EDIT_SURFACES];
 
@@ -189,6 +192,68 @@ const MODEL_CATALOG = [
     credits: 22,
     estimatedSeconds: 120,
     allowedOptions: klingOptions({ generateAudio: true })
+  }),
+  tripoModel({
+    id: DEFAULT_3D_MODEL,
+    label: "Tripo v3.1",
+    name: "Tripo v3.1",
+    apiModel: "v3.1-20260211",
+    providerModel: "v3.1-20260211",
+    description: "高质量 3D 模型生成，适合潮玩、产品、角色、概念模型",
+    badges: ["10-120s", "20-30积分", "文生3D", "图生3D", "GLB"],
+    supports: ["文生3D", "图生3D", "GLB"],
+    capabilities: {
+      textTo3D: true,
+      imageTo3D: true,
+      texture: true,
+      rig: false
+    },
+    priority: 210,
+    credits: 30,
+    estimatedSeconds: 120,
+    isDefault: true
+  }),
+  tripoModel({
+    id: "tripo-p1",
+    label: "Tripo P1",
+    name: "Tripo P1",
+    apiModel: "P1-20260311",
+    providerModel: "P1-20260311",
+    description: "低面数 / 游戏资产方向，适合网页预览、移动端、游戏模型",
+    badges: ["低面数", "图生3D", "可绑骨", "GLB"],
+    supports: ["低面数", "图生3D", "GLB"],
+    capabilities: {
+      textTo3D: false,
+      imageTo3D: true,
+      texture: true,
+      rig: true
+    },
+    defaultParams: {
+      face_limit: 5000
+    },
+    priority: 220,
+    credits: 45,
+    estimatedSeconds: 120
+  }),
+  tripoModel({
+    id: "tripo-turbo",
+    label: "Tripo Turbo",
+    name: "Tripo Turbo",
+    apiModel: "Turbo-v1.0-20250506",
+    providerModel: "Turbo-v1.0-20250506",
+    description: "快速预览模型，适合先出草模、快速试方向",
+    badges: ["更快", "草模预览", "文生3D", "图生3D"],
+    supports: ["文生3D", "图生3D", "草模预览"],
+    capabilities: {
+      textTo3D: true,
+      imageTo3D: true,
+      texture: true,
+      rig: false
+    },
+    priority: 230,
+    credits: 30,
+    estimatedSeconds: 60,
+    visible: false
   })
 ];
 
@@ -256,6 +321,24 @@ function apimartVideo(input = {}) {
     isOfficialDirect: false,
     isExperimental: true,
     showProviderBadge: false,
+    ...input
+  };
+}
+
+function tripoModel(input = {}) {
+  return {
+    provider: "tripo",
+    providerId: "tripo",
+    vendor: "tripo",
+    type: "3d",
+    modality: "3d",
+    displayGroup: TRIPO_GROUP,
+    surfaces: MODEL_3D_SURFACES,
+    maxOutputs: 1,
+    outputFormat: "glb",
+    isOfficialDirect: false,
+    isExperimental: false,
+    showProviderBadge: true,
     ...input
   };
 }
@@ -338,9 +421,13 @@ function toPublicModel(model) {
   } = model;
   return {
     ...publicModel,
-    capabilities: [...(model.capabilities || [])],
+    provider: providerId || provider || "",
+    modality: model.modality || model.type || "image",
+    capabilities: Array.isArray(model.capabilities) ? [...model.capabilities] : { ...(model.capabilities || {}) },
     surfaces: [...(model.surfaces || [])],
     supports: [...(model.supports || [])],
+    badges: Array.isArray(model.badges) ? [...model.badges] : undefined,
+    defaultParams: model.defaultParams ? { ...model.defaultParams } : undefined,
     allowedOptions: model.allowedOptions ? { ...model.allowedOptions } : undefined
   };
 }

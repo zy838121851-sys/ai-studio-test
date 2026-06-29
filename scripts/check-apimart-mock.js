@@ -19,9 +19,19 @@ function assert(condition, message) {
 }
 
 function assertNoPublicApimart(payload, label) {
-  const text = JSON.stringify(payload);
+  const text = JSON.stringify(stripDebugPayload(payload));
   assert(!/provider"\s*:\s*"apimart/i.test(text), `${label} leaked provider apimart`);
   assert(!/via apimart|gateway|proxy|中转/i.test(text), `${label} leaked forbidden provider wording`);
+}
+
+function stripDebugPayload(value) {
+  if (Array.isArray(value)) return value.map(stripDebugPayload);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => !["requestData", "responseData", "providerCalls"].includes(key))
+      .map(([key, item]) => [key, stripDebugPayload(item)])
+  );
 }
 
 initializeDatabase();
@@ -98,6 +108,7 @@ try {
   const video = await postJson(`${baseUrl}/api/ai/generate`, {
     modelId: "seedance-2",
     prompt: "mock video",
+    images: ["data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII="],
     videoOptions: {
       duration: 5,
       size: "16:9",
@@ -112,7 +123,23 @@ try {
   const videoJob = await getJson(`${baseUrl}/api/ai/jobs/${video.jobId}`);
   assert(videoJob.status === "succeeded", "Video mock job should finish");
   assert(videoJob.videoUrl?.startsWith("/uploads/"), "Video job output should be local");
+  assert(videoJob.requestData?.imageCount === 1, "Video request log should keep reference image count");
+  assert(videoJob.responseData?.referenceImageNormalization?.finalUrlCount === 1, "Video response log should include normalized reference count");
+  assert(!JSON.stringify(videoJob.requestData).includes("base64,"), "Video request log should not leak base64 reference data");
   assertNoPublicApimart(videoJob, "video job response");
+
+  const invalidReference = await fetch(`${baseUrl}/api/ai/generate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      modelId: "seedance-2",
+      prompt: "invalid reference",
+      images: ["not-a-supported-video-reference"]
+    })
+  });
+  const invalidReferencePayload = await invalidReference.json();
+  assert(invalidReference.status === 400, `Invalid video reference expected 400, got ${invalidReference.status}`);
+  assert(invalidReferencePayload.failureCode === "INVALID_VIDEO_REFERENCE_IMAGE", "Invalid video reference should expose a clear failure code");
 
   const after = getCreditBalance("apimart-user").balanceCredits;
   assert(after === before - 12 - 12 - 12 - 8 - 18, "Successful mock jobs should charge configured credits");

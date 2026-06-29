@@ -9,10 +9,12 @@ import {
   getQwenImageSizeForElement
 } from "../../../ai/image-generator.js";
 import {
+  DEFAULT_3D_MODEL,
   formatModelUsage,
   getModelType,
   resolveImageModelId
 } from "../../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
+import { getChatPreviewAttachmentFile } from "../components/chat-image-preview.js?v=20260627-chat-agent-2";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
 const CONVERSATION_THINKING_STEPS = [
@@ -101,6 +103,10 @@ function createAgentDebugRecord(input = {}) {
     executeGeneration: false,
     pendingPreviewCreated: false,
     generationStarted: false,
+    generationStage: "idle",
+    stageHistory: [],
+    failureCode: "",
+    failureMessage: "",
     generatePayload: null,
     generateResult: null,
     error: ""
@@ -114,6 +120,20 @@ function logAgentDebug(record, label, data = {}) {
     runId: record?.runId || "",
     ...payload
   });
+}
+
+function setAgentGenerationStage(record, stage, data = {}) {
+  if (!record || !stage) return;
+  record.generationStage = stage;
+  if (!Array.isArray(record.stageHistory)) record.stageHistory = [];
+  record.stageHistory.push({
+    stage,
+    at: Date.now(),
+    ...sanitizeDebugValue(data)
+  });
+  if (record.stageHistory.length > 40) record.stageHistory.splice(0, record.stageHistory.length - 40);
+  logAgentDebug(record, `stage.${stage}`, data);
+  updateAgentDebugPanel(record);
 }
 
 function logMessageDoneGenerationDecision(record, data = {}) {
@@ -194,6 +214,10 @@ function updateAgentDebugPanel(record) {
     streamAbortReason: record.streamAbortReason,
     streamParseError: record.streamParseError,
     generationStarted: record.generationStarted,
+    generationStage: record.generationStage,
+    stageHistory: record.stageHistory,
+    failureCode: record.failureCode,
+    failureMessage: record.failureMessage,
     streamFinished: record.streamFinished,
     streamError: record.streamError,
     streamTimeout: record.streamTimeout,
@@ -381,6 +405,9 @@ function summarizeGenerationResult(result = {}) {
     })) : [],
     jobId: result.jobId || result.job?.id || "",
     status: result.status || result.job?.status || "",
+    failureCode: result.failureCode || result.errorCode || result.job?.failureCode || result.job?.errorCode || "",
+    failureMessage: result.failureMessage || result.errorMessage || result.error || result.job?.failureMessage || result.job?.errorMessage || "",
+    sizeNormalization: result.sizeNormalization || null,
     message: result.message || result.error || ""
   };
 }
@@ -709,6 +736,7 @@ export function bindPromptSubmit({
   addChatBlocks = null,
   addGenerationPreview,
   replacePreviewWithImage,
+  replacePreviewWithModel = null,
   replacePreviewWithVideo = null,
   updateActiveProject,
   saveCurrentProject = null,
@@ -751,6 +779,22 @@ export function bindPromptSubmit({
     promptForm: resolvedPromptForm,
     addChat,
     addChatImage
+  });
+  bindImageTo3DRequests({
+    root: resolvedPromptForm.ownerDocument || document,
+    canvasViewport: resolvedCanvasViewport,
+    viewportPointToWorld,
+    addChat,
+    updateChat,
+    addGenerationPreview,
+    replacePreviewWithModel,
+    postJsonRequest,
+    chatModelSelect: resolvedChatModelSelect,
+    updateActiveProject,
+    getActiveProject,
+    makeProjectTitle,
+    saveCurrentProjectAfterGeneration,
+    notify: (message) => addChat("assistant", message)
   });
 
   resolvedPromptForm.addEventListener("submit", async (event) => {
@@ -858,7 +902,7 @@ export function bindPromptSubmit({
       videoUrls: [],
       model,
       modelUsage: "",
-      generationType: getModelType(model) === "video" ? "video" : "image",
+      generationType: getModelType(model) === "3d" ? "3d" : (getModelType(model) === "video" ? "video" : "image"),
       taskType: "",
       size: "",
       jobId: "",
@@ -999,8 +1043,166 @@ export function bindPromptSubmit({
         sources: imageAttachments.map((item) => item.source || "unknown")
       });
       updateAgentDebugPanel(agentDebug);
+      setAgentGenerationStage(agentDebug, "saveProject", {
+        projectId: getActiveProject?.()?.id || ""
+      });
+      const projectReady = await ensureActiveProjectReadyForGeneration({
+        saveCurrentProject,
+        getActiveProject,
+        debugRecord: agentDebug
+      });
+      if (!projectReady.ok) {
+        agentDebug.error = projectReady.message;
+        logAgentDebug(agentDebug, "project.persistence.failed", {
+          message: projectReady.message
+        });
+        updateAgentDebugPanel(agentDebug);
+        throw new Error(projectReady.message);
+      }
+      if (getModelType(model) === "3d") {
+        if (typeof addGenerationPreview !== "function" || typeof replacePreviewWithModel !== "function") {
+          throw new Error("3D canvas generation workflow is unavailable.");
+        }
+        const tripoReference = imageAttachments[0] || null;
+        const isImageTo3D = Boolean(tripoReference?.dataUrl);
+        if (!isImageTo3D && model === "tripo-p1") {
+          throw new Error("Tripo P1 only supports image-to-3D. Please upload a reference image first.");
+        }
+        generationStarted = true;
+        agentDebug.generationStarted = true;
+        agentDebug.generationType = "3d";
+        agentDebug.intent = "generate_3d";
+        agentDebug.taskType = isImageTo3D ? "image_to_3d" : "text_to_3d";
+        agentDebug.shouldGenerate = true;
+        agentDebug.executeGeneration = true;
+        agentDebug.messageDoneHandled = true;
+        agentBlocksState.generationType = "3d";
+        agentBlocksState.resultStatus = "pending";
+        agentBlocksState.optimizedPrompt = prompt;
+        refreshAgentBlocks();
+        setAgentGenerationStage(agentDebug, "generateRequest", {
+          model,
+          generationType: "3d"
+        });
+        progress = addChat("assistant", "创建 3D 任务中...");
+        progress?.classList?.add("loading");
+        const target = viewportPointToWorld(
+          resolvedCanvasViewport.getBoundingClientRect().left + resolvedCanvasViewport.clientWidth / 2,
+          resolvedCanvasViewport.getBoundingClientRect().top + resolvedCanvasViewport.clientHeight / 2
+        );
+        const placement = getGenerationPlacement(generationMetrics, target);
+        previewNodes = createPromptPreviewBatch({
+          addGenerationPreview,
+          placement,
+          generationMetrics,
+          files,
+          count: 1,
+          outputType: "3d"
+        });
+        previewNode = previewNodes[0];
+        if (!previewNode) throw new Error("Unable to create pending 3D preview.");
+        agentDebug.previewCreationAttempted = true;
+        agentDebug.pendingPreviewCreated = true;
+        agentDebug.generatePayload = {
+          modelId: model,
+          generationType: "3d",
+          prompt,
+          taskType: isImageTo3D ? "image_to_3d" : "text_to_3d",
+          imageCount: isImageTo3D ? 1 : 0,
+          texture: true
+        };
+        if (isImageTo3D) {
+          agentDebug.generatePayload.image = summarizeReferenceImages([tripoReference])[0] || null;
+        }
+        agentDebug.generatePayloadBuilt = true;
+        agentDebug.generateRequestStarted = true;
+        updateAgentDebugPanel(agentDebug);
+        const createPayload = isImageTo3D
+          ? {
+            prompt,
+            modelId: model,
+            imageDataUrl: tripoReference.dataUrl,
+            imageName: tripoReference.name || "reference.png",
+            imageMimeType: tripoReference.type || "",
+            texture: true
+          }
+          : {
+            prompt,
+            modelId: model,
+            texture: true
+          };
+        const createResult = await postJsonRequest(
+          isImageTo3D ? "/api/ai/3d/image-to-model" : "/api/ai/3d/text-to-model",
+          createPayload
+        );
+        agentDebug.generateResult = {
+          taskId: createResult.taskId || "",
+          status: createResult.status || "",
+          provider: createResult.provider || "tripo"
+        };
+        agentBlocksState.jobId = createResult.taskId || "";
+        updateChat(progress, "3D 模型生成中 0%");
+        setAgentGenerationStage(agentDebug, "jobPoll", {
+          taskId: createResult.taskId || "",
+          status: createResult.status || "queued"
+        });
+        const finalResult = await waitForTripo3DTask(createResult.taskId, {
+          onProgress: (payload) => {
+            const percent = Math.max(0, Math.min(99, Math.round(Number(payload?.progress || 0))));
+            updateChat(progress, `3D 模型生成中 ${percent}%`);
+            updatePromptPreviewStatus(previewNode, `3D model generation ${percent}%...`);
+            setAgentGenerationStage(agentDebug, "jobPoll", {
+              taskId: payload?.taskId || createResult.taskId || "",
+              status: payload?.status || "running",
+              progress: percent
+            });
+            updateAgentDebugPanel(agentDebug);
+          }
+        });
+        const modelUrl = finalResult.localModelUrl || finalResult.modelUrl || "";
+        if (!modelUrl) throw new Error("3D 模型生成完成，但没有返回模型地址。");
+        updateChat(progress, "3D 模型生成完成\n正在添加到画布...");
+        setAgentGenerationStage(agentDebug, "outputPersist", {
+          taskId: finalResult.taskId || createResult.taskId || "",
+          outputCount: 1
+        });
+        const modelNode = replacePreviewWithModel(previewNode, {
+          title: "Tripo 3D Model",
+          desc: "Generated 3D model from your prompt.",
+          url: modelUrl,
+          width: previewNode?.offsetWidth || 360,
+          aspectRatio: "1 / 1",
+          prompt,
+          actionType: isImageTo3D ? "image_to_3d" : "text_to_3d",
+          model
+        });
+        if (getPendingHomeGenerationFocus()) {
+          setPendingHomeGenerationFocus(false);
+          centerViewOnNode(modelNode, 1);
+        }
+        updateActiveProject({
+          title: getActiveProject()?.title || makeProjectTitle(prompt),
+          prompt,
+          thumbnail: finalResult.renderedImageUrl || modelUrl,
+          itemCount: (getActiveProject()?.itemCount || 0) + 1
+        });
+        await saveCurrentProjectAfterGeneration?.();
+        onProjectTitleRefresh();
+        progress?.classList?.remove("loading");
+        updateChat(progress, "3D 模型生成完成");
+        updateThinking(thinking, CONVERSATION_THINKING_STEPS.length, true);
+        setAgentGenerationStage(agentDebug, "done", {
+          taskId: finalResult.taskId || createResult.taskId || "",
+          outputCount: 1
+        });
+        window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
+        return;
+      }
+      setAgentGenerationStage(agentDebug, "conversation", {
+        projectId: projectReady.projectId
+      });
       const conversationResult = await runConversationAgent({
-        projectId: getActiveProject()?.id,
+        projectId: projectReady.projectId,
         prompt,
         model,
         images,
@@ -1231,6 +1433,10 @@ export function bindPromptSubmit({
       });
       logAgentDebug(agentDebug, "generate.request", agentDebug.generatePayload);
       updateAgentDebugPanel(agentDebug);
+      setAgentGenerationStage(agentDebug, "generateRequest", {
+        model,
+        generationType: videoModel ? "video" : "image"
+      });
       agentDebug.generateRequestStarted = true;
       logMessageDoneGenerationDecision(agentDebug, {
         stage: "request.started",
@@ -1245,6 +1451,11 @@ export function bindPromptSubmit({
         : await waitForAIJob(result.jobId, {
           onProgress: (payload) => {
             if (activeChatAgentRunId !== agentDebug.runId) return;
+            setAgentGenerationStage(agentDebug, "jobPoll", {
+              jobId: payload?.jobId || result.jobId,
+              status: payload?.status || "running",
+              progress: payload?.progress || 0
+            });
             const status = payload?.status || "running";
             const progressValue = Number(payload?.progress || 0);
             const suffix = progressValue > 0 ? ` (${Math.min(99, progressValue)}%)` : "";
@@ -1265,6 +1476,10 @@ export function bindPromptSubmit({
       }
       agentDebug.generateResult = summarizeGenerationResult(finalResult);
       logAgentDebug(agentDebug, "generate.response.final", agentDebug.generateResult);
+      setAgentGenerationStage(agentDebug, "outputPersist", {
+        jobId: finalResult.jobId || finalResult.job?.id || "",
+        outputCount: getResultUrls(finalResult).length
+      });
       updateAgentDebugPanel(agentDebug);
       const resultModel = finalResult.requestedModel || finalResult.model || model;
       warnIfModelMismatch(model, resultModel, finalResult);
@@ -1300,10 +1515,11 @@ export function bindPromptSubmit({
         });
         await saveCurrentProjectAfterGeneration?.();
         onProjectTitleRefresh();
+        videoUrls.length = 0;
         if (typeof addChatBlocks === "function") {
           progress?.remove?.();
           progress = null;
-          agentBlocksState.videoUrls = videoUrls;
+          agentBlocksState.videoUrls = [];
           agentBlocksState.imageUrls = [];
           agentBlocksState.model = resultModel;
           agentBlocksState.modelUsage = modelUsage;
@@ -1312,7 +1528,7 @@ export function bindPromptSubmit({
           agentBlocksState.optimizedPrompt = generationPrompt;
           agentBlocksState.size = generationMetrics.outputSize || "";
           agentBlocksState.jobId = finalResult.jobId || finalResult.job?.id || "";
-          agentBlocksState.resultStatus = "succeeded";
+          agentBlocksState.resultStatus = "idle";
           agentBlocksState.summary = buildAgentCompletionSummary({
             hasReference: imageAttachments.length > 0,
             generationType: "video"
@@ -1384,6 +1600,10 @@ export function bindPromptSubmit({
       }
 
       updateThinking(thinking, 5, true);
+      setAgentGenerationStage(agentDebug, "done", {
+        jobId: finalResult.jobId || finalResult.job?.id || "",
+        outputCount: getResultUrls(finalResult).length
+      });
     } catch (error) {
       if (activeChatAgentRunId !== agentDebug.runId) {
         logAgentDebug(agentDebug, "run.stale_error_ignored", {
@@ -1392,7 +1612,14 @@ export function bindPromptSubmit({
         });
         return;
       }
-      agentDebug.error = error.message || String(error);
+      const failure = classifyGenerationClientError(error, agentDebug);
+      agentDebug.error = failure.failureMessage;
+      agentDebug.failureCode = failure.failureCode;
+      agentDebug.failureMessage = failure.failureMessage;
+      setAgentGenerationStage(agentDebug, failure.stage || "failed", {
+        failureCode: failure.failureCode,
+        failureMessage: failure.failureMessage
+      });
       if (agentDebug.previewCreationAttempted && !agentDebug.pendingPreviewCreated && !agentDebug.previewCreationError) {
         agentDebug.previewCreationError = agentDebug.error;
       }
@@ -1422,13 +1649,125 @@ export function bindPromptSubmit({
         refreshAgentBlocks();
       }
       updateThinking(thinking, 0, true);
+      const visibleFailureMessage = failure.stage === "attachments"
+        ? failure.failureMessage
+        : (agentDebug.generationType === "3d"
+          ? `3D 模型生成失败：${failure.failureMessage}`
+          : `Generation failed: ${failure.failureMessage}`);
       if (progress) {
-        updateChat(progress, `Generation failed: ${error.message}`);
+        updateChat(progress, visibleFailureMessage);
       } else {
-        addChat("assistant", `Conversation failed: ${error.message}`);
+        addChat("assistant", visibleFailureMessage);
       }
     }
   });
+}
+
+function bindImageTo3DRequests({
+  root = document,
+  canvasViewport,
+  viewportPointToWorld,
+  addChat,
+  updateChat,
+  addGenerationPreview,
+  replacePreviewWithModel,
+  postJsonRequest,
+  chatModelSelect,
+  updateActiveProject,
+  getActiveProject,
+  makeProjectTitle,
+  saveCurrentProjectAfterGeneration,
+  notify = () => {}
+} = {}) {
+  if (!root || root.__aiStudioImageTo3DBound) return;
+  root.__aiStudioImageTo3DBound = true;
+  root.addEventListener("canvas:image-to-3d-requested", async (event) => {
+    const node = event.detail?.node;
+    const imageUrl = getPublicImageUrlFromNode(node);
+    if (!imageUrl) {
+      notify("当前图片还没有可访问地址，暂时无法图生 3D。请先上传到素材库或等待后续文件上传能力接入。");
+      return;
+    }
+    if (typeof addGenerationPreview !== "function" || typeof replacePreviewWithModel !== "function") {
+      notify("3D 生成工作流暂不可用。");
+      return;
+    }
+    const modelId = getModelType(chatModelSelect?.dataset?.selectedModelId || chatModelSelect?.value) === "3d"
+      ? (chatModelSelect.dataset.selectedModelId || chatModelSelect.value)
+      : DEFAULT_3D_MODEL;
+    let progress = null;
+    let previewNode = null;
+    try {
+      progress = addChat("assistant", "创建 3D 任务中...");
+      progress?.classList?.add("loading");
+      const target = viewportPointToWorld(
+        canvasViewport.getBoundingClientRect().left + canvasViewport.clientWidth / 2,
+        canvasViewport.getBoundingClientRect().top + canvasViewport.clientHeight / 2
+      );
+      previewNode = addGenerationPreview({
+        title: "Tripo 3D Model",
+        desc: "Waiting for 3D model result...",
+        x: target.x,
+        y: target.y,
+        width: 360,
+        aspectRatio: "1 / 1"
+      });
+      const created = await postJsonRequest("/api/ai/3d/image-to-model", {
+        imageUrl,
+        modelId,
+        texture: true
+      });
+      updateChat(progress, "3D 模型生成中 0%");
+      const finalResult = await waitForTripo3DTask(created.taskId, {
+        onProgress: (payload) => {
+          const percent = Math.max(0, Math.min(99, Math.round(Number(payload?.progress || 0))));
+          updateChat(progress, `3D 模型生成中 ${percent}%`);
+          updatePromptPreviewStatus(previewNode, `3D model generation ${percent}%...`);
+        }
+      });
+      const modelUrl = finalResult.localModelUrl || finalResult.modelUrl || "";
+      if (!modelUrl) throw new Error("3D 模型生成完成，但没有返回模型地址。");
+      updateChat(progress, "3D 模型生成完成\n正在添加到画布...");
+      const modelNode = replacePreviewWithModel(previewNode, {
+        title: "Tripo 3D Model",
+        desc: "Generated 3D model from your image.",
+        url: modelUrl,
+        width: previewNode?.offsetWidth || 360,
+        aspectRatio: "1 / 1",
+        prompt: "Image to 3D",
+        sourceNode: node,
+        actionType: "image_to_3d",
+        model: modelId
+      });
+      updateActiveProject?.({
+        title: getActiveProject?.()?.title || makeProjectTitle?.("Image to 3D") || "3D Project",
+        prompt: getActiveProject?.()?.prompt || "Image to 3D",
+        thumbnail: finalResult.renderedImageUrl || modelUrl,
+        itemCount: (getActiveProject?.()?.itemCount || 0) + 1
+      });
+      await saveCurrentProjectAfterGeneration?.();
+      progress?.classList?.remove("loading");
+      updateChat(progress, "3D 模型生成完成");
+      modelNode?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
+      window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
+    } catch (error) {
+      previewNode?.classList?.add("generation-failed");
+      updatePromptPreviewStatus(previewNode, "Generation failed, please try again.");
+      const message = `3D 模型生成失败：${error?.message || String(error)}`;
+      if (progress) updateChat(progress, message);
+      else notify(message);
+    }
+  });
+}
+
+function getPublicImageUrlFromNode(node) {
+  const image = node?.querySelector?.(".image-frame img, img");
+  const candidates = [
+    node?.dataset?.objectUrl,
+    image?.currentSrc,
+    image?.src
+  ].map((value) => String(value || "").trim()).filter(Boolean);
+  return candidates.find((value) => /^https?:\/\//i.test(value)) || "";
 }
 
 async function runConversationAgent({
@@ -1817,11 +2156,51 @@ async function ensureConversation(projectId, { reset = false } = {}) {
     body: JSON.stringify({ projectId: cleanProjectId, reset })
   });
   const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload?.message || `Conversation request failed: ${response.status}`);
+  if (!response.ok) {
+    if (response.status === 404) conversationIdsByProject.delete(cleanProjectId);
+    const error = new Error(payload?.message || `Conversation request failed: ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
   const conversation = payload.conversation;
   if (!conversation?.id) throw new Error("Conversation response did not include an id");
   conversationIdsByProject.set(cleanProjectId, conversation.id);
   return conversation;
+}
+
+async function ensureActiveProjectReadyForGeneration({
+  saveCurrentProject,
+  getActiveProject,
+  debugRecord = null
+} = {}) {
+  const beforeProjectId = getActiveProject?.()?.id || "";
+  if (typeof saveCurrentProject !== "function") {
+    return { ok: true, projectId: beforeProjectId };
+  }
+  try {
+    logAgentDebug(debugRecord, "project.persistence.start", { projectId: beforeProjectId });
+    const saved = await saveCurrentProject({
+      pendingText: "正在保存当前项目...",
+      successText: "项目已保存，开始生成",
+      failureText: "项目保存失败，无法开始生成"
+    });
+    const projectId = getActiveProject?.()?.id || beforeProjectId;
+    if (!saved || !projectId) {
+      return {
+        ok: false,
+        projectId,
+        message: "项目保存失败，无法开始生成"
+      };
+    }
+    logAgentDebug(debugRecord, "project.persistence.ready", { projectId });
+    return { ok: true, projectId };
+  } catch (error) {
+    return {
+      ok: false,
+      projectId: getActiveProject?.()?.id || beforeProjectId,
+      message: error?.message || "项目保存失败，无法开始生成"
+    };
+  }
 }
 
 function recordStreamEvent(debugRecord, eventType = "") {
@@ -2266,10 +2645,16 @@ async function collectReferenceImages({
   }
 
   if (!attachments.length && !files.length && domPreviewAttachments.length) {
-    const domReferences = await readDomPreviewReferences(debugRecord);
+    const domReferences = await readDomPreviewReferences({
+      debugRecord,
+      readFileAsDataUrl
+    });
     attachments.push(...domReferences);
     if (!attachments.length) {
-      throw new Error("Chat preview attachments were visible but could not be read.");
+      const error = new Error("参考图读取失败，请重新上传参考图。");
+      error.failureCode = "REFERENCE_ATTACHMENT_UNREADABLE";
+      error.stage = "attachments";
+      throw error;
     }
   }
 
@@ -2295,11 +2680,40 @@ async function collectReferenceImages({
   };
 }
 
-async function readDomPreviewReferences(debugRecord = null, root = globalThis.document) {
+async function readDomPreviewReferences({
+  debugRecord = null,
+  readFileAsDataUrl = null,
+  root = globalThis.document
+} = {}) {
   const items = Array.from(root?.querySelectorAll?.(".chat-image-preview button") || []);
   const references = [];
   for (const [index, button] of items.entries()) {
     const image = button.querySelector("img");
+    const attachmentId = button.dataset.attachmentId || "";
+    const registeredFile = getChatPreviewAttachmentFile(attachmentId);
+    if (registeredFile && typeof readFileAsDataUrl === "function") {
+      try {
+        const dataUrl = await readFileAsDataUrl(registeredFile);
+        if (!dataUrl) throw new Error("empty dataURL");
+        references.push({
+          type: registeredFile.type || button.dataset.attachmentType || inferMimeTypeFromDataUrl(dataUrl) || "image",
+          name: registeredFile.name || button.dataset.attachmentName || image?.alt || `Reference ${index + 1}`,
+          source: "upload",
+          attachmentId,
+          dataUrl
+        });
+        continue;
+      } catch (error) {
+        logAgentDebug(debugRecord, "attachments.dom_registry_failed", {
+          index,
+          attachmentId,
+          name: registeredFile.name || button.dataset.attachmentName || image?.alt || "",
+          type: registeredFile.type || button.dataset.attachmentType || "",
+          size: Number(registeredFile.size || button.dataset.attachmentSize || 0),
+          error: error.message || String(error)
+        });
+      }
+    }
     const source = image?.currentSrc || image?.src || "";
     if (!source) continue;
     try {
@@ -2309,13 +2723,13 @@ async function readDomPreviewReferences(debugRecord = null, root = globalThis.do
         type: button.dataset.attachmentType || inferMimeTypeFromDataUrl(dataUrl) || "image",
         name: button.dataset.attachmentName || image?.alt || `Reference ${index + 1}`,
         source: "upload",
-        attachmentId: button.dataset.attachmentId || "",
+        attachmentId,
         dataUrl
       });
     } catch (error) {
       logAgentDebug(debugRecord, "attachments.dom_preview_failed", {
         index,
-        attachmentId: button.dataset.attachmentId || "",
+        attachmentId,
         name: button.dataset.attachmentName || image?.alt || "",
         src: summarizeDataUrl(source),
         error: error.message || String(error)
@@ -2397,13 +2811,17 @@ function createPromptPreviewBatch({
   return Array.from({ length: safeCount }, (_, index) => {
     const desc = safeCount > 1
       ? `Waiting for result ${index + 1}/${safeCount}...`
-      : (outputType === "video"
+      : (outputType === "3d"
+        ? "Waiting for 3D model result..."
+        : outputType === "video"
         ? "Waiting for video result..."
         : generationMetrics.sourceNode
         ? "Generating from the selected image"
         : (files.length ? "Generating from reference images" : "Generating from prompt"));
     return addGenerationPreview({
-      title: outputType === "video"
+      title: outputType === "3d"
+        ? "Tripo 3D Model"
+        : outputType === "video"
         ? "Generated Video.mp4"
         : (safeCount > 1 ? `Generated Image ${index + 1}.png` : "Generated Image.png"),
       desc,
@@ -2448,6 +2866,13 @@ function getResultVideoUrls(result = {}) {
   return Array.from(new Set(urls.filter(Boolean)));
 }
 
+function getResultUrls(result = {}) {
+  return Array.from(new Set([
+    ...getResultImageUrls(result),
+    ...getResultVideoUrls(result)
+  ]));
+}
+
 function isMidjourneyModel(model = "") {
   return String(model || "").trim().toLowerCase() === "midjourney";
 }
@@ -2471,15 +2896,100 @@ async function waitForAIJob(jobId, { attempts = 180, delayMs = 2000, onProgress 
       await delay(retryDelay);
       continue;
     }
-    if (!response.ok) throw new Error(payload?.message || `Job request failed: ${response.status}`);
+    if (!response.ok) {
+      const error = new Error(payload?.failureMessage || payload?.errorMessage || payload?.message || `Job request failed: ${response.status}`);
+      error.status = response.status;
+      error.failureCode = payload?.failureCode || payload?.errorCode || "";
+      error.failureMessage = payload?.failureMessage || payload?.errorMessage || payload?.message || "";
+      error.stage = payload?.stage || "jobPoll";
+      throw error;
+    }
     lastPayload = payload;
     if (["succeeded", "failed", "cancelled", "timeout", "save_failed"].includes(payload?.status)) {
-      if (payload.status !== "succeeded") throw new Error(payload.error || payload.status);
+      if (payload.status !== "succeeded") {
+        const error = new Error(payload.failureMessage || payload.errorMessage || payload.error || payload.status);
+        error.failureCode = payload.failureCode || payload.errorCode || payload.status?.toUpperCase?.() || "AI_JOB_FAILED";
+        error.failureMessage = payload.failureMessage || payload.errorMessage || payload.error || payload.status;
+        error.stage = payload.status === "save_failed" ? "outputPersist" : "jobPoll";
+        throw error;
+      }
       return payload;
     }
     onProgress?.(payload);
   }
   throw new Error(`Generation is still running. Job ID: ${lastPayload.jobId || jobId}`);
+}
+
+async function waitForTripo3DTask(taskId, { attempts = 180, delayMs = 2000, onProgress = null } = {}) {
+  const id = String(taskId || "").trim();
+  if (!id) throw new Error("Missing 3D task id");
+  let lastPayload = { taskId: id };
+  for (let index = 0; index < attempts; index += 1) {
+    await delay(delayMs);
+    const response = await fetch(`/api/ai/3d/tasks/${encodeURIComponent(id)}`, {
+      credentials: "include"
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      const error = new Error(payload?.errorMessage || payload?.message || `3D task request failed: ${response.status}`);
+      error.status = response.status;
+      error.failureCode = payload?.failureCode || payload?.errorCode || "";
+      error.failureMessage = payload?.errorMessage || payload?.message || "";
+      error.stage = "jobPoll";
+      throw error;
+    }
+    lastPayload = {
+      ...payload,
+      taskId: payload.taskId || id
+    };
+    onProgress?.(lastPayload);
+    const status = String(payload.status || "").toLowerCase();
+    if (status === "success") return lastPayload;
+    if (["failed", "cancelled", "canceled", "banned"].includes(status)) {
+      const error = new Error(payload.errorMessage || `3D task ${status}`);
+      error.failureCode = payload.failureCode || payload.errorCode || status.toUpperCase();
+      error.failureMessage = payload.errorMessage || `3D task ${status}`;
+      error.stage = "jobPoll";
+      throw error;
+    }
+  }
+  throw new Error("3D 模型生成超时，请稍后在任务日志中查看结果。");
+}
+
+function classifyGenerationClientError(error = {}, debugRecord = {}) {
+  const status = Number(error.status || 0);
+  const message = error.failureMessage || error.errorMessage || error.message || String(error);
+  const explicitCode = error.failureCode || error.errorCode || "";
+  if (
+    explicitCode === "REFERENCE_ATTACHMENT_UNREADABLE"
+    || /Chat preview attachments|reference image|参考图读取失败/i.test(message)
+  ) {
+    return buildClientFailure("REFERENCE_ATTACHMENT_UNREADABLE", "参考图读取失败，请重新上传参考图。", "attachments");
+  }
+  if (status === 401) return buildClientFailure("LOGIN_REQUIRED", message, "auth");
+  if (status === 402 || explicitCode === "INSUFFICIENT_CREDITS") {
+    return buildClientFailure("INSUFFICIENT_CREDITS", message, "billing");
+  }
+  if (status === 404 || /Project not found|Conversation request failed: 404/i.test(message)) {
+    return buildClientFailure(explicitCode || "PROJECT_NOT_FOUND", message, "conversation");
+  }
+  if (/项目保存失败|Project save|save current project|无法开始生成/i.test(message)) {
+    return buildClientFailure(explicitCode || "PROJECT_SAVE_FAILED", message, "saveProject");
+  }
+  if (/still running|timeout|timed out/i.test(message)) {
+    return buildClientFailure(explicitCode || "JOB_TIMEOUT", message, "jobPoll");
+  }
+  if (/output|save_failed|save failed|保存/i.test(message)) {
+    return buildClientFailure(explicitCode || "OUTPUT_SAVE_FAILED", message, "outputPersist");
+  }
+  if (debugRecord?.generateRequestStarted) {
+    return buildClientFailure(explicitCode || "PROVIDER_FAILED", message, error.stage || "generateRequest");
+  }
+  return buildClientFailure(explicitCode || "CONVERSATION_FAILED", message, error.stage || debugRecord?.generationStage || "conversation");
+}
+
+function buildClientFailure(failureCode, failureMessage, stage) {
+  return { failureCode, failureMessage, stage };
 }
 
 function delay(ms) {

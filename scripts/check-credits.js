@@ -62,7 +62,7 @@ try {
   await checkAdminCommands({ dbPath: process.env.DB_PATH, findUserByEmail, addCredits, getCreditBalance });
 
   const fractionalRows = query(`
-    SELECT balance_credits, reserved_credits FROM credit_accounts
+    SELECT balance_credits, reserved_credits FROM billing_accounts
     WHERE balance_credits != CAST(balance_credits AS INTEGER)
        OR reserved_credits != CAST(reserved_credits AS INTEGER);
   `);
@@ -209,7 +209,12 @@ async function checkTokenBilling({ userId, execute, sqlValue, getCreditBalance, 
 }
 
 async function checkMissingAndInsufficientPricing({ userId, execute, getCreditBalance, billFixedTask }) {
-  execute(`UPDATE credit_accounts SET balance_credits = 1, reserved_credits = 0 WHERE user_id = '${userId}';`);
+  execute(`
+    UPDATE billing_accounts
+    SET balance_credits = 1,
+        reserved_credits = 0
+    WHERE owner_user_id = '${userId}';
+  `);
   let calls = 0;
   try {
     await billFixedTask({
@@ -224,7 +229,7 @@ async function checkMissingAndInsufficientPricing({ userId, execute, getCreditBa
     });
     throw new Error("Expected insufficient credits");
   } catch (error) {
-    assert(error.message === "积分不足", "Insufficient credits should block the request");
+    assert(error.code === "INSUFFICIENT_CREDITS", "Insufficient credits should block the request");
   }
   assert(calls === 0, "Provider must not be called when credits are insufficient");
 

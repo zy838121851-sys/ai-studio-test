@@ -22,6 +22,7 @@ export function createCanvasGenerationRuntimeInputs({
       createGenerationPreviewNode: services.createGenerationPreviewNode,
       addNode: (...args) => canvasSurfaceRuntime.addNode(...args),
       replacePreviewNodeWithImage: services.replacePreviewNodeWithImage,
+      replacePreviewNodeWithModel: services.replacePreviewNodeWithModel,
       replacePreviewNodeWithVideo: services.replacePreviewNodeWithVideo,
       markGeneratedNodeContext: services.markGeneratedNodeContext,
       recordCanvasEvent: actions.recordCanvasEvent,

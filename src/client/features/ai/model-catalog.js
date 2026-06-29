@@ -5,6 +5,7 @@ import {
 } from "./model-preference-menu.js?v=20260627-library-bulk-select-1";
 
 export const DEFAULT_IMAGE_MODEL = "gpt-image-2";
+export const DEFAULT_3D_MODEL = "tripo-v31";
 
 const FALLBACK_MODELS = [
   {
@@ -87,7 +88,7 @@ export function getCachedImageModels(surface) {
 }
 
 export function getModelType(modelId) {
-  return getModelById(modelId)?.type || "image";
+  return normalizeModelType(getModelById(modelId));
 }
 
 export function resolveImageModelId(modelId, surface) {
@@ -201,13 +202,16 @@ function hydrateNativeSelect(select, surface) {
       option.textContent = getModelLabel(model, getMenuSurface(surface));
       option.title = getModelOptionTitle(model);
       option.dataset.modelLabel = model.label || model.id;
-      option.dataset.modelType = model.type || "image";
+      option.dataset.modelType = normalizeModelType(model);
+      option.dataset.modelModality = normalizeModelType(model);
+      option.dataset.modelProvider = model.provider || "";
       container.append(option);
     });
     select.append(container);
   });
   select.value = models.some((model) => model.id === current) ? current : DEFAULT_IMAGE_MODEL;
   select.dataset.selectedModelId = select.value;
+  applySelectedModelDataset(select);
   setSelectedModel(surface, select.value);
   if (!select.value && select.options.length) select.selectedIndex = 0;
   select.__modelPreferenceModels = models;
@@ -218,6 +222,7 @@ function hydrateNativeSelect(select, surface) {
       select.dataset.modelUserSelected = "true";
       select.dataset.modelAuto = "false";
       select.dataset.selectedModelId = select.value;
+      applySelectedModelDataset(select);
       setSelectedModel(surface, select.value);
       syncModelSelectionAcrossSurfaces(select.value, select);
     });
@@ -242,6 +247,7 @@ function syncModelSelectionAcrossSurfaces(modelId, sourceSelect) {
       select.dataset.modelUserSelected = "true";
       select.dataset.modelAuto = "false";
       select.dataset.selectedModelId = id;
+      applySelectedModelDataset(select);
       setSelectedModel(surface, id);
       select.__compactSelectRebuild?.();
       select.__compactSelectSync?.();
@@ -267,7 +273,7 @@ function filterModelsForSurface(models, surface) {
 function groupModels(models = []) {
   const groups = new Map();
   models.forEach((model) => {
-    const key = model.displayGroup || (model.type === "video" ? "视频模型" : "图像模型");
+    const key = model.displayGroup || fallbackModelGroup(model);
     if (!groups.has(key)) groups.set(key, []);
     groups.get(key).push(model);
   });
@@ -277,8 +283,25 @@ function groupModels(models = []) {
 function getModelLabel(model, surface) {
   if (!model) return "";
   if (surface === "home") return model.label || model.id;
-  const typeLabel = model.type === "video" ? "视频" : "图像";
+  const type = normalizeModelType(model);
+  const typeLabel = type === "video" ? "视频" : (type === "3d" ? "3D" : "图像");
   return `${model.label || model.id} · ${typeLabel}`;
+}
+
+function fallbackModelGroup(model = {}) {
+  const type = normalizeModelType(model);
+  if (type === "video") return "视频模型";
+  if (type === "3d") return "3D模型";
+  return "图像模型";
+}
+
+function applySelectedModelDataset(select) {
+  if (!select) return;
+  const model = getModelById(select.value);
+  const type = normalizeModelType(model);
+  select.dataset.selectedModality = type;
+  select.dataset.selectedProvider = model?.provider || "";
+  select.dataset.modelType = type;
 }
 
 function syncHomeButtonLabel(select, button, menu) {
@@ -295,4 +318,11 @@ function syncHomeButtonLabel(select, button, menu) {
 function getModelById(modelId) {
   const id = String(modelId || "").trim();
   return getCatalogModels().find((model) => model.id === id) || FALLBACK_MODELS.find((model) => model.id === id) || null;
+}
+
+function normalizeModelType(model = {}) {
+  const type = String(model?.modality || model?.type || "").trim().toLowerCase();
+  if (type === "video") return "video";
+  if (type === "3d" || type === "model3d") return "3d";
+  return "image";
 }

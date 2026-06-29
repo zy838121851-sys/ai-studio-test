@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { prepare, transaction } from "../db/sqlite.js";
+import { ensureUserWorkspace, ensureUserWorkspaceWithDb } from "./workspace.service.js";
 
 const MAX_TEXT_LENGTH = 12000;
 const MAX_JSON_LENGTH = 240000;
@@ -70,14 +71,24 @@ function toPublicMessage(row) {
 }
 
 export function getConversationProject(userId, projectId) {
+  const scope = ensureUserWorkspace(userId);
   return prepare(`
-    SELECT id, user_id, title, prompt, thumbnail, item_count, updated_at, deleted_at
+    SELECT
+      id,
+      owner_user_id AS user_id,
+      title,
+      prompt,
+      thumbnail_url AS thumbnail,
+      item_count,
+      updated_at,
+      deleted_at
     FROM projects
     WHERE id = ?
-      AND user_id = ?
+      AND workspace_id = ?
+      AND owner_user_id = ?
       AND deleted_at IS NULL
     LIMIT 1;
-  `).get(projectId, userId) || null;
+  `).get(projectId, scope.workspaceId, userId) || null;
 }
 
 export function getOrCreateProjectConversation(userId, projectId, input = {}) {
@@ -88,52 +99,58 @@ export function getOrCreateProjectConversation(userId, projectId, input = {}) {
     throw error;
   }
 
-  const project = getConversationProject(userId, cleanProjectId);
-  if (!project) {
-    const error = new Error("Project not found");
-    error.status = 404;
-    throw error;
-  }
+  return transaction((db) => {
+    const scope = ensureUserWorkspaceWithDb(db, userId);
+    const project = getConversationProjectWithDb(db, userId, scope.workspaceId, cleanProjectId);
+    if (!project) {
+      const error = new Error("Project not found");
+      error.status = 404;
+      throw error;
+    }
 
-  const existing = prepare(`
-    SELECT *
-    FROM chat_conversations
-    WHERE user_id = ?
-      AND project_id = ?
-      AND deleted_at IS NULL
-    ORDER BY updated_at DESC
-    LIMIT 1;
-  `).get(userId, cleanProjectId);
-  if (existing) return toPublicConversation(existing);
+    const existing = db.prepare(`
+      SELECT *
+      FROM chat_conversations
+      WHERE workspace_id = ?
+        AND user_id = ?
+        AND project_id = ?
+        AND deleted_at IS NULL
+      ORDER BY updated_at DESC
+      LIMIT 1;
+    `).get(scope.workspaceId, userId, cleanProjectId);
+    if (existing) return toPublicConversation(existing);
 
-  const createdAt = now();
-  const id = randomUUID();
-  const title = normalizeText(input.title || project.title || "Project chat", 120);
-  prepare(`
-    INSERT INTO chat_conversations (
-      id, user_id, project_id, title, summary, created_at, updated_at, deleted_at
-    )
-    VALUES (?, ?, ?, ?, '', ?, ?, NULL);
-  `).run(id, userId, cleanProjectId, title, createdAt, createdAt);
+    const createdAt = now();
+    const id = randomUUID();
+    const title = normalizeText(input.title || project.title || "Project chat", 120);
+    db.prepare(`
+      INSERT INTO chat_conversations (
+        id, workspace_id, user_id, project_id, title, summary, created_at, updated_at, deleted_at
+      )
+      VALUES (?, ?, ?, ?, ?, '', ?, ?, NULL);
+    `).run(id, scope.workspaceId, userId, cleanProjectId, title, createdAt, createdAt);
 
-  return toPublicConversation(prepare(`
-    SELECT *
-    FROM chat_conversations
-    WHERE id = ?
-    LIMIT 1;
-  `).get(id));
+    return toPublicConversation(db.prepare(`
+      SELECT *
+      FROM chat_conversations
+      WHERE id = ?
+      LIMIT 1;
+    `).get(id));
+  });
 }
 
 export function archiveProjectConversation(userId, projectId) {
+  const scope = ensureUserWorkspace(userId);
   const timestamp = now();
   prepare(`
     UPDATE chat_conversations
     SET deleted_at = ?,
         updated_at = ?
-    WHERE user_id = ?
+    WHERE workspace_id = ?
+      AND user_id = ?
       AND project_id = ?
       AND deleted_at IS NULL;
-  `).run(timestamp, timestamp, userId, projectId);
+  `).run(timestamp, timestamp, scope.workspaceId, userId, projectId);
 }
 
 export function listProjectConversations(userId, projectId, { limit = 40 } = {}) {
@@ -143,6 +160,7 @@ export function listProjectConversations(userId, projectId, { limit = 40 } = {})
     error.status = 400;
     throw error;
   }
+  const scope = ensureUserWorkspace(userId);
   const project = getConversationProject(userId, cleanProjectId);
   if (!project) {
     const error = new Error("Project not found");
@@ -153,22 +171,25 @@ export function listProjectConversations(userId, projectId, { limit = 40 } = {})
   return prepare(`
     SELECT *
     FROM chat_conversations
-    WHERE user_id = ?
+    WHERE workspace_id = ?
+      AND user_id = ?
       AND project_id = ?
     ORDER BY updated_at DESC
     LIMIT ?;
-  `).all(userId, cleanProjectId, safeLimit).map(toPublicConversation);
+  `).all(scope.workspaceId, userId, cleanProjectId, safeLimit).map(toPublicConversation);
 }
 
 export function getConversationForUser(userId, conversationId) {
+  const scope = ensureUserWorkspace(userId);
   return toPublicConversation(prepare(`
     SELECT *
     FROM chat_conversations
     WHERE id = ?
+      AND workspace_id = ?
       AND user_id = ?
       AND deleted_at IS NULL
     LIMIT 1;
-  `).get(conversationId, userId));
+  `).get(conversationId, scope.workspaceId, userId));
 }
 
 export function restoreProjectConversation(userId, conversationId) {
@@ -180,26 +201,21 @@ export function restoreProjectConversation(userId, conversationId) {
   }
 
   return transaction((db) => {
+    const scope = ensureUserWorkspaceWithDb(db, userId);
     const selected = db.prepare(`
       SELECT *
       FROM chat_conversations
       WHERE id = ?
+        AND workspace_id = ?
         AND user_id = ?
       LIMIT 1;
-    `).get(cleanConversationId, userId);
+    `).get(cleanConversationId, scope.workspaceId, userId);
     if (!selected) {
       const error = new Error("Conversation not found");
       error.status = 404;
       throw error;
     }
-    const project = db.prepare(`
-      SELECT id
-      FROM projects
-      WHERE id = ?
-        AND user_id = ?
-        AND deleted_at IS NULL
-      LIMIT 1;
-    `).get(selected.project_id, userId);
+    const project = getConversationProjectWithDb(db, userId, scope.workspaceId, selected.project_id);
     if (!project) {
       const error = new Error("Project not found");
       error.status = 404;
@@ -212,8 +228,9 @@ export function restoreProjectConversation(userId, conversationId) {
         UPDATE chat_conversations
         SET updated_at = ?
         WHERE id = ?
+          AND workspace_id = ?
           AND user_id = ?;
-      `).run(timestamp, selected.id, userId);
+      `).run(timestamp, selected.id, scope.workspaceId, userId);
       return toPublicConversation(db.prepare(`
         SELECT *
         FROM chat_conversations
@@ -226,11 +243,12 @@ export function restoreProjectConversation(userId, conversationId) {
     while (db.prepare(`
       SELECT 1
       FROM chat_conversations
-      WHERE user_id = ?
+      WHERE workspace_id = ?
+        AND user_id = ?
         AND project_id = ?
         AND deleted_at = ?
       LIMIT 1;
-    `).get(userId, selected.project_id, archiveTimestamp)) {
+    `).get(scope.workspaceId, userId, selected.project_id, archiveTimestamp)) {
       archiveTimestamp += 1;
     }
 
@@ -238,18 +256,20 @@ export function restoreProjectConversation(userId, conversationId) {
       UPDATE chat_conversations
       SET deleted_at = ?,
           updated_at = ?
-      WHERE user_id = ?
+      WHERE workspace_id = ?
+        AND user_id = ?
         AND project_id = ?
         AND deleted_at IS NULL;
-    `).run(archiveTimestamp, archiveTimestamp, userId, selected.project_id);
+    `).run(archiveTimestamp, archiveTimestamp, scope.workspaceId, userId, selected.project_id);
 
     db.prepare(`
       UPDATE chat_conversations
       SET deleted_at = NULL,
           updated_at = ?
       WHERE id = ?
+        AND workspace_id = ?
         AND user_id = ?;
-    `).run(timestamp, selected.id, userId);
+    `).run(timestamp, selected.id, scope.workspaceId, userId);
 
     return toPublicConversation(db.prepare(`
       SELECT *
@@ -310,18 +330,33 @@ export function appendConversationMessage({
   }
 
   return transaction((db) => {
+    const conversation = db.prepare(`
+      SELECT *
+      FROM chat_conversations
+      WHERE id = ?
+        AND user_id = ?
+        AND deleted_at IS NULL
+      LIMIT 1;
+    `).get(conversationId, userId);
+    if (!conversation) {
+      const error = new Error("Conversation not found");
+      error.status = 404;
+      throw error;
+    }
+
     db.prepare(`
       INSERT INTO chat_messages (
-        id, conversation_id, user_id, project_id, role, status,
+        id, conversation_id, workspace_id, user_id, project_id, role, status,
         content_json, attachments_json, tool_calls_json, thinking_steps_json,
         decision_summary, created_at, updated_at, completed_at
       )
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
     `).run(
       id,
       conversationId,
+      conversation.workspace_id,
       userId,
-      projectId,
+      projectId || conversation.project_id,
       cleanRole,
       normalizeText(status, 40) || "done",
       stringifyJson(content, {}),
@@ -409,4 +444,24 @@ export function updateConversationSummary(userId, conversationId, summary = "") 
       AND deleted_at IS NULL;
   `).run(normalizeText(summary, 4000), timestamp, conversationId, userId);
   return getConversationForUser(userId, conversationId);
+}
+
+function getConversationProjectWithDb(db, userId, workspaceId, projectId) {
+  return db.prepare(`
+    SELECT
+      id,
+      owner_user_id AS user_id,
+      title,
+      prompt,
+      thumbnail_url AS thumbnail,
+      item_count,
+      updated_at,
+      deleted_at
+    FROM projects
+    WHERE id = ?
+      AND workspace_id = ?
+      AND owner_user_id = ?
+      AND deleted_at IS NULL
+    LIMIT 1;
+  `).get(projectId, workspaceId, userId) || null;
 }

@@ -65,6 +65,12 @@ export function createNodeControlsManager({
         });
         return;
       }
+      if (action === "generate-3d") {
+        node.ownerDocument?.dispatchEvent(new CustomEvent("canvas:image-to-3d-requested", {
+          detail: { node }
+        }));
+        return;
+      }
       if (action === "crop") return startImageCrop(node);
       if (action === "upscale-menu") {
         setToolbarUpscaleSize(currentToolbar, currentToolbar.dataset.upscaleSize || "2k");
@@ -156,7 +162,7 @@ export function createNodeControlsManager({
       ensureImageToolbar(node);
       ensureImageCornerActions(node);
     }
-    if (node.classList.contains("node-image-generator")) return;
+    if (node.classList.contains("node-image-generator") || node.classList.contains("node-video")) return;
     if (node.querySelector(".node-expand")) return;
     const button = document.createElement("button");
     button.type = "button";

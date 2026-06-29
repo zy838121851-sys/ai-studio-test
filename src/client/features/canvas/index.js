@@ -78,6 +78,7 @@ export {
   createGenerationPreviewNode,
   createWorkspaceNode,
   replacePreviewNodeWithImage,
+  replacePreviewNodeWithModel,
   replacePreviewNodeWithVideo
 } from "./node-creation.js";
 export { addSourceBadgeElement } from "./source-badge.js";

@@ -15,15 +15,17 @@ function publicUser(row) {
     email: publicEmail(row.email),
     phone: row.phone || "",
     name: row.name || "",
+    avatarUrl: row.avatar_url || "",
     createdAt: row.created_at
   };
 }
 
 export function findUserByEmail(email) {
   return queryOne(`
-    SELECT id, email, name, password_hash, password_salt, created_at
+    SELECT id, email, phone, name, avatar_url, password_hash, password_salt, created_at
     FROM users
-    WHERE email = ${sqlValue(normalizeEmail(email))}
+    WHERE lower(email) = ${sqlValue(normalizeEmail(email))}
+      AND deleted_at IS NULL
     LIMIT 1;
   `);
 }
@@ -50,32 +52,52 @@ export function createUser({ email, password, name = "" } = {}) {
   const { hash, salt } = hashPassword(password);
   const id = randomUUID();
   execute(`
-    INSERT INTO users (id, email, name, password_hash, password_salt, created_at, updated_at)
+    INSERT INTO users (id, email, phone, name, avatar_url, password_hash, password_salt, created_at, updated_at, deleted_at)
     VALUES (
       ${sqlValue(id)},
       ${sqlValue(normalizedEmail)},
+      '',
       ${sqlValue(String(name || "").trim())},
+      '',
       ${sqlValue(hash)},
       ${sqlValue(salt)},
+      ${now},
+      ${now},
+      NULL
+    );
+
+    INSERT OR IGNORE INTO user_identities (
+      id,
+      user_id,
+      provider,
+      identifier,
+      display_name,
+      avatar_url,
+      verified_at,
+      created_at,
+      updated_at
+    )
+    VALUES (
+      ${sqlValue(`email-password-${id}`)},
+      ${sqlValue(id)},
+      'email',
+      ${sqlValue(normalizedEmail)},
+      ${sqlValue(String(name || "").trim())},
+      '',
+      ${now},
       ${now},
       ${now}
     );
   `);
-  grantInitialCreditsIfAvailable(id);
+  ensureCreditAccount(id);
   return publicUser({
     id,
     email: normalizedEmail,
+    phone: "",
     name: String(name || "").trim(),
+    avatar_url: "",
     created_at: now
   });
-}
-
-function grantInitialCreditsIfAvailable(userId) {
-  try {
-    ensureCreditAccount(userId);
-  } catch (error) {
-    if (!/no such table: credit_accounts/i.test(error?.message || "")) throw error;
-  }
 }
 
 export function authenticateUser({ email, password } = {}) {

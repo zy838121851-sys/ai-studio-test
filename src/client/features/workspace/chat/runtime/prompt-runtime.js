@@ -18,6 +18,7 @@ export function createPromptSubmitRuntimePayload(runtime = {}) {
     addChatBlocks: runtime.addChatBlocks,
     addGenerationPreview: runtime.addGenerationPreview,
     replacePreviewWithImage: runtime.replacePreviewWithImage,
+    replacePreviewWithModel: runtime.replacePreviewWithModel,
     replacePreviewWithVideo: runtime.replacePreviewWithVideo,
     updateActiveProject: runtime.updateActiveProject,
     saveCurrentProject: runtime.saveCurrentProject,

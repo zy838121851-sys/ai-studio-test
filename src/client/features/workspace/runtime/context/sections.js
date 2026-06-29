@@ -198,6 +198,7 @@ export function buildRuntimeActionsSections(deps = {}) {
         addChatBlocks: deps.addChatBlocks,
         addGenerationPreview: deps.addGenerationPreview,
         replacePreviewWithImage: deps.replacePreviewWithImage,
+        replacePreviewWithModel: deps.replacePreviewWithModel,
         replacePreviewWithVideo: deps.replacePreviewWithVideo,
         updateActiveProject: deps.updateActiveProject,
         saveCurrentProject: deps.saveCurrentProject,

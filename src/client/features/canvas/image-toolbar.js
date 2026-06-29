@@ -27,6 +27,10 @@ export function createImageToolbar(onAction) {
         <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="7" height="14" rx="2" /><rect x="13" y="5" width="7" height="14" rx="2" /><path d="M12 4v16" /></svg>
         <span class="image-toolbar-label">&#23545;&#27604;&#22270;&#29255;</span>
       </button>
+      <button type="button" title="&#29983;&#25104; 3D &#27169;&#22411;" aria-label="&#29983;&#25104; 3D &#27169;&#22411;" data-toolbar-action="generate-3d">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z" /><path d="M12 12l8-4.5" /><path d="M12 12v9" /><path d="M12 12L4 7.5" /></svg>
+        <span class="image-toolbar-label">3D</span>
+      </button>
     </div>
     <div class="image-toolbar-upscale-controls" role="group" aria-label="&#39640;&#28165;&#23610;&#23544;">
       <button class="image-toolbar-size-option selected" type="button" data-toolbar-action="upscale-size" data-upscale-size="2k" aria-pressed="true">2K</button>

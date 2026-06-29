@@ -15,7 +15,7 @@ function assert(condition, message) {
 
 try {
   const { createServer } = await import("../src/server/index.js");
-  const { execute, closeDatabase, initializeDatabase } = await import("../src/server/db/sqlite.js");
+  const { execute, closeDatabase, initializeDatabase, sqlValue } = await import("../src/server/db/sqlite.js");
   closeDatabaseRef = closeDatabase;
   const { runCreditsMigration } = await import("../src/server/db/credits-migration.js");
   const { createUser } = await import("../src/server/auth/user.service.js");
@@ -103,7 +103,12 @@ try {
   assert(getCreditBalance(user.id).balanceCredits === beforeFailure.balanceCredits, "Provider failure must not deduct credits");
   assert(getCreditBalance(user.id).reservedCredits === 0, "Provider failure should release reserved credits");
 
-  execute(`UPDATE credit_accounts SET balance_credits = 1, reserved_credits = 0 WHERE user_id = '${user.id}';`);
+  execute(`
+    UPDATE billing_accounts
+    SET balance_credits = 1,
+        reserved_credits = 0
+    WHERE owner_user_id = ${sqlValue(user.id)};
+  `);
   let insufficientCalls = 0;
   try {
     await billFixedTask({
@@ -119,7 +124,7 @@ try {
     });
     throw new Error("Expected insufficient credits");
   } catch (error) {
-    assert(error.message === "积分不足", "Insufficient credits should block billing");
+    assert(error.code === "INSUFFICIENT_CREDITS", "Insufficient credits should block billing");
   }
   assert(insufficientCalls === 0, "Provider must not be called when credits are insufficient");
 

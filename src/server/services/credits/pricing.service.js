@@ -28,6 +28,10 @@ const DEFAULT_PRICING = [
     image_editing: 8,
     video_generation: 20
   }),
+  ...fixedFallbacks("tripo", {
+    tripo_text_to_3d_standard: 30,
+    tripo_image_to_3d_standard: 45
+  }),
   ...fixedModels("qwen", "image_generation", {
     "qwen-image-2.0": 12,
     "qwen-image-plus": 12,
@@ -100,6 +104,15 @@ const DEFAULT_PRICING = [
     "kling": 22,
     "kling-v3": 22,
     "kling-v3-omni": 22
+  }),
+  ...fixedModels("tripo", "tripo_text_to_3d_standard", {
+    "tripo-v31": 30,
+    "tripo-turbo": 30
+  }),
+  ...fixedModels("tripo", "tripo_image_to_3d_standard", {
+    "tripo-v31": 45,
+    "tripo-p1": 45,
+    "tripo-turbo": 45
   })
 ];
 

@@ -167,6 +167,7 @@ export function launchWorkspaceAppRuntime({
       renderChatImagePreview: canvasGenerationRuntime.renderChatImagePreview,
       addGenerationPreview: canvasGenerationRuntime.addGenerationPreview,
       replacePreviewWithImage: canvasGenerationRuntime.replacePreviewWithImage,
+      replacePreviewWithModel: canvasGenerationRuntime.replacePreviewWithModel,
       replacePreviewWithVideo: canvasGenerationRuntime.replacePreviewWithVideo,
       updateActiveProject: projectHomeRuntime.updateActiveProject,
       saveCurrentProject: projectHomeRuntime.saveCurrentProject,

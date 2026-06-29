@@ -1,4 +1,5 @@
-﻿  padding: 10px 18px 10px 12px !important;
+﻿.project-header {
+  padding: 10px 18px 10px 12px !important;
   gap: 12px;
   border-radius: 22px !important;
   background: rgba(255, 255, 255, 0.78) !important;
@@ -428,3 +429,4 @@ body[data-theme="light"] .history-controls {
 
 body[data-theme="light"] .zoom-stepper button,
 body[data-theme="light"] .history-controls button {
+}

@@ -6,6 +6,7 @@ import {
   shouldUseApimartMock,
   uploadApimartImage
 } from "./apimart.client.js";
+import { normalizeApimartImageSize } from "../../image-size-normalization.service.js";
 
 const MOCK_IMAGE_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
 
@@ -16,13 +17,19 @@ export async function callApimartImage({
   size = "1024*1024",
   requestId = randomUUID(),
   operation = "generateImage",
-  extraBody = null
+  extraBody = null,
+  sizeNormalization = null
 } = {}) {
+  const resolvedSizeNormalization = resolveApimartSizeNormalization({
+    model,
+    size,
+    sizeNormalization
+  });
   if (shouldUseApimartMock()) {
-    return mockImageResult({ model, prompt, images, requestId, operation });
+    return mockImageResult({ model, prompt, images, requestId, operation, sizeNormalization: resolvedSizeNormalization });
   }
 
-  const imageOptions = normalizeApimartImageOptions(size);
+  const imageOptions = toApimartImageOptions(resolvedSizeNormalization);
   if (isMidjourneyModel(model)) {
     const imageUrls = await normalizeMidjourneyReferenceImages(images, { requestId });
     const body = {
@@ -39,7 +46,8 @@ export async function callApimartImage({
       model,
       images,
       requestId,
-      endpoint: APIMART_MIDJOURNEY_IMAGE_ENDPOINT
+      endpoint: APIMART_MIDJOURNEY_IMAGE_ENDPOINT,
+      sizeNormalization: resolvedSizeNormalization
     });
   }
 
@@ -47,10 +55,10 @@ export async function callApimartImage({
     model,
     prompt,
     size: imageOptions.size,
-    resolution: imageOptions.resolution,
     n: 1,
     ...(extraBody && typeof extraBody === "object" ? extraBody : {})
   };
+  if (imageOptions.resolution) body.resolution = imageOptions.resolution;
   if (images.length) body.image_urls = images;
 
   const payload = await requestApimart(APIMART_IMAGE_ENDPOINT, {
@@ -63,7 +71,8 @@ export async function callApimartImage({
     images,
     requestId,
     endpoint: APIMART_IMAGE_ENDPOINT,
-    operation
+    operation,
+    sizeNormalization: resolvedSizeNormalization
   });
 }
 
@@ -127,6 +136,23 @@ function isMidjourneyModel(model = "") {
   return String(model || "").trim().toLowerCase() === "midjourney";
 }
 
+function resolveApimartSizeNormalization({ model, size, sizeNormalization } = {}) {
+  if (sizeNormalization?.providerSize) return sizeNormalization;
+  return normalizeApimartImageSize({
+    modelId: model,
+    providerModel: model,
+    size,
+    defaultSize: "1024*1024"
+  });
+}
+
+function toApimartImageOptions(sizeNormalization = {}) {
+  return {
+    size: sizeNormalization.providerSize || "auto",
+    resolution: sizeNormalization.providerResolution || ""
+  };
+}
+
 async function normalizeMidjourneyReferenceImages(images = [], { requestId } = {}) {
   const refs = Array.isArray(images) ? images.filter(Boolean) : [];
   const output = [];
@@ -146,63 +172,13 @@ async function normalizeMidjourneyReferenceImages(images = [], { requestId } = {
   return output;
 }
 
-function normalizeApimartImageOptions(size = "1024*1024") {
-  const value = String(size || "").trim();
-  if (/^(0\.5K|[1-4]K)$/i.test(value)) {
-    return {
-      size: "auto",
-      resolution: value.toUpperCase()
-    };
-  }
-  if (/^\d+\*\d+$/.test(value)) {
-    const [width, height] = value.split("*").map((part) => Number.parseInt(part, 10));
-    return {
-      size: dimensionsToRatio(width, height),
-      resolution: longEdgeToResolution(Math.max(width || 0, height || 0))
-    };
-  }
-  if (/^\d+\s*:\s*\d+$/.test(value)) {
-    return {
-      size: value.replace(/\s+/g, ""),
-      resolution: "1K"
-    };
-  }
-  return {
-    size: value || "auto",
-    resolution: "1K"
-  };
-}
-
-function dimensionsToRatio(width, height) {
-  if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) return "auto";
-  const divisor = greatestCommonDivisor(width, height);
-  return `${Math.round(width / divisor)}:${Math.round(height / divisor)}`;
-}
-
-function longEdgeToResolution(longEdge) {
-  if (longEdge >= 4096) return "4K";
-  if (longEdge >= 2048) return "2K";
-  if (longEdge <= 768) return "0.5K";
-  return "1K";
-}
-
-function greatestCommonDivisor(a, b) {
-  let x = Math.abs(Math.round(a || 0));
-  let y = Math.abs(Math.round(b || 0));
-  while (y) {
-    const next = x % y;
-    x = y;
-    y = next;
-  }
-  return x || 1;
-}
-
 export function mockImageResult({
   model,
   prompt = "",
   images = [],
   requestId = randomUUID(),
-  operation = "generateImage"
+  operation = "generateImage",
+  sizeNormalization = null
 } = {}) {
   const cleanPrompt = String(prompt || "").toLowerCase();
   if (cleanPrompt.includes("mock-apimart-fail")) {
@@ -220,6 +196,7 @@ export function mockImageResult({
       type: "image",
       model,
       referenceCount: images.length,
+      sizeNormalization,
       providerCalls: [providerCall(model, operation, requestId)]
     };
   }
@@ -232,6 +209,7 @@ export function mockImageResult({
       type: "image",
       model,
       referenceCount: images.length,
+      sizeNormalization,
       providerCalls: [providerCall(model, operation, requestId)]
     };
   }
@@ -244,6 +222,7 @@ export function mockImageResult({
       type: "image",
       model,
       referenceCount: images.length,
+      sizeNormalization,
       providerCalls: [providerCall(model, operation, requestId)]
     };
   }
@@ -257,6 +236,7 @@ export function mockImageResult({
       imageUrl: MOCK_IMAGE_DATA_URL,
       model,
       referenceCount: images.length,
+      sizeNormalization,
       providerCalls: [providerCall(model, operation, requestId)]
     };
   }
@@ -264,6 +244,7 @@ export function mockImageResult({
     imageUrl: MOCK_IMAGE_DATA_URL,
     model,
     referenceCount: images.length,
+    sizeNormalization,
     providerCalls: [providerCall(model, operation, requestId)]
   };
 }
@@ -273,7 +254,8 @@ function normalizeImageResponse(payload = {}, {
   images = [],
   requestId,
   endpoint = APIMART_IMAGE_ENDPOINT,
-  operation = "generateImage"
+  operation = "generateImage",
+  sizeNormalization = null
 } = {}) {
   const data = Array.isArray(payload?.data) ? payload.data[0] : payload?.data;
   const taskId = data?.task_id || data?.taskId || payload?.task_id || payload?.taskId;
@@ -286,6 +268,7 @@ function normalizeImageResponse(payload = {}, {
       type: "image",
       model,
       referenceCount: images.length,
+      sizeNormalization,
       providerCalls: [providerCall(model, operation, requestId, endpoint)]
     };
   }
@@ -293,6 +276,7 @@ function normalizeImageResponse(payload = {}, {
     imageUrl,
     model,
     referenceCount: images.length,
+    sizeNormalization,
     providerCalls: [providerCall(model, operation, requestId, endpoint)]
   };
 }

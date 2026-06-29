@@ -164,6 +164,7 @@ function renderPromptCardV2(block = {}, escapeHtml) {
 function renderGenerationResultV2(block = {}, escapeHtml) {
   const imageUrl = block.imageUrl || block.imageUrls?.[0] || "";
   const videoUrl = block.videoUrl || "";
+  if (block.generationType === "video" && videoUrl) return null;
   const mediaUrl = imageUrl || videoUrl;
   if (!mediaUrl && block.status !== "pending" && block.status !== "failed") return null;
   const card = document.createElement("section");
@@ -234,6 +235,7 @@ function renderAnalysisCard(block = {}, escapeHtml) {
 function renderGenerationResult(block = {}, escapeHtml) {
   const imageUrl = block.imageUrl || block.imageUrls?.[0] || "";
   const videoUrl = block.videoUrl || "";
+  if (block.generationType === "video" && videoUrl) return null;
   const mediaUrl = imageUrl || videoUrl;
   if (!mediaUrl) return null;
   const card = document.createElement("section");

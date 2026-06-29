@@ -106,9 +106,26 @@ function applyNodeSnapshot(node, item) {
   if ((item.kind || item.dataset?.kind) === "image" && node.style.width) {
     node.dataset.manualSize = node.dataset.manualSize || "true";
   }
-  if (item.html && item.kind !== "image") {
-    node.innerHTML = item.html;
+  const itemKind = item.kind || item.dataset?.kind || "";
+  if (item.html && itemKind !== "image" && itemKind !== "video") {
+    node.innerHTML = sanitizeSnapshotHtml(item.html);
   }
+}
+
+function sanitizeSnapshotHtml(html = "") {
+  return String(html || "")
+    .replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, "")
+    .replace(/<(?:iframe|object|embed|base|link|meta)\b[^>]*>[\s\S]*?<\/(?:iframe|object|embed|base|link|meta)\s*>/gi, "")
+    .replace(/<(?:iframe|object|embed|base|link|meta)\b[^>]*\/?>/gi, "")
+    .replace(/\s+on[a-z0-9_-]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+    .replace(/\s+(?:href|src|xlink:href)\s*=\s*(["'])\s*javascript:[\s\S]*?\1/gi, "")
+    .replace(/\s+(?:href|src|xlink:href)\s*=\s*javascript:[^\s>]+/gi, "")
+    .replace(/\s+style\s*=\s*(["'])([\s\S]*?)\1/gi, (_match, quote, value) => {
+      const clean = String(value || "")
+        .replace(/expression\s*\([^)]*\)/gi, "")
+        .replace(/url\s*\(\s*(['"]?)\s*javascript:[^)]+\)/gi, "");
+      return clean.trim() ? ` style=${quote}${clean}${quote}` : "";
+    });
 }
 
 function normalizeSnapshotMedia(item, resolveAssetUrl = null) {

@@ -62,6 +62,7 @@ export function createWorkspaceLauncherWorkspaceContext({
     renderChatImagePreview: actions.renderChatImagePreview,
     addGenerationPreview: actions.addGenerationPreview,
     replacePreviewWithImage: actions.replacePreviewWithImage,
+    replacePreviewWithModel: actions.replacePreviewWithModel,
     replacePreviewWithVideo: actions.replacePreviewWithVideo,
     updateActiveProject: actions.updateActiveProject,
     saveCurrentProject: safeSaveCurrentProject,

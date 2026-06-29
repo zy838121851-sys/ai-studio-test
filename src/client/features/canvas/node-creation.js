@@ -45,7 +45,7 @@ export function createWorkspaceNode({
   }
 
   canvasWorld.appendChild(node);
-  if (kind === "model" && media?.file) initModelViewer(node, media.file);
+  if (kind === "model" && (media?.file || media?.url)) initModelViewer(node, media.file || media.url);
   if (options.select !== false) selectNode(node);
   if (kind === "image-generator" && options.openGeneratorPopover !== false) {
     requestAnimationFrame(() => {
@@ -151,6 +151,46 @@ export function replacePreviewNodeWithVideo({
       url,
       name: title,
       type: "video/mp4"
+    }
+  });
+
+  applyNodePreviewSize(node, { width, aspectRatio });
+  applyGeneratedContext(node, { prompt, sourceNode, actionType, model });
+  recordGenerationCreated(node, { sourceNode, actionType, model });
+  node.dataset.objectUrl = url;
+  node.dataset.uploadPersisted = "true";
+  return node;
+}
+
+export function replacePreviewNodeWithModel({
+  previewNode,
+  addNode,
+  applyGeneratedContext,
+  recordGenerationCreated,
+  title,
+  desc,
+  url,
+  width,
+  aspectRatio,
+  prompt = "",
+  sourceNode = null,
+  actionType = "model3d_generation",
+  model = ""
+}) {
+  const x = parseFloat(previewNode.style.left || "0");
+  const y = parseFloat(previewNode.style.top || "0");
+  previewNode.remove();
+
+  const node = addNode({
+    kind: "model",
+    title,
+    desc,
+    x,
+    y,
+    media: {
+      url,
+      name: title,
+      type: "model/gltf-binary"
     }
   });
 

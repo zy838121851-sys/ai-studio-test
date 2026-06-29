@@ -3,6 +3,7 @@ import { createPromptGenerationWorkflow } from "../../ai/workflows/prompt-genera
 import { createGenerationNodeWorkflow } from "../workflows/generation-node-workflow.js";
 import { createGenerationUploadWorkflow } from "../workflows/generation-upload-workflow.js";
 import { createImageGeneratorWorkflow } from "../workflows/image-generator-workflow.js?v=20260627-library-bulk-select-1";
+import { createVideoGeneratorWorkflow } from "../workflows/video-generator-workflow.js";
 import { createModelViewerWorkflow } from "../workflows/model-viewer-workflow.js";
 
 export function createCanvasGenerationBootstrap({
@@ -16,6 +17,7 @@ export function createCanvasGenerationBootstrap({
       createGenerationPreviewNode: services.createGenerationPreviewNode,
       addNode: services.addNode,
       replacePreviewNodeWithImage: services.replacePreviewNodeWithImage,
+      replacePreviewNodeWithModel: services.replacePreviewNodeWithModel,
       replacePreviewNodeWithVideo: services.replacePreviewNodeWithVideo,
       markGeneratedNodeContext: services.markGeneratedNodeContext,
       recordCanvasEvent: services.recordCanvasEvent,
@@ -112,12 +114,27 @@ export function createCanvasGenerationBootstrap({
     }
   });
 
+  const videoGeneratorWorkflow = createVideoGeneratorWorkflow({
+    elements: {
+      canvasWorld: elements.canvasWorld,
+      canvasViewport: elements.canvasViewport
+    },
+    services: {
+      addGenerationPreview: generationNodeWorkflow.addGenerationPreview,
+      postJsonRequest: services.postJsonRequest,
+      replacePreviewWithVideo: generationNodeWorkflow.replacePreviewWithVideo,
+      saveCurrentProjectAfterGeneration: services.saveCurrentProjectAfterGeneration,
+      selectNode: services.selectNode
+    }
+  });
+
   return {
     ...generationNodeWorkflow,
     ...modelViewerWorkflow,
     ...directorCardWorkflow,
     ...promptGenerationWorkflow,
     ...generationUploadWorkflow,
-    ...imageGeneratorWorkflow
+    ...imageGeneratorWorkflow,
+    ...videoGeneratorWorkflow
   };
 }
