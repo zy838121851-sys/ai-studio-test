@@ -40,7 +40,7 @@ export const env = {
   showOfficialModels: envFlag("SHOW_OFFICIAL_MODELS", false),
   showApimartBrand: envFlag("SHOW_APIMART_BRAND", false),
   maxUploadBytes: Number(process.env.MAX_UPLOAD_BYTES || 25 * 1024 * 1024),
-  maxModelUploadBytes: Number(process.env.MAX_MODEL_UPLOAD_BYTES || 100 * 1024 * 1024),
+  maxModelUploadBytes: Number(process.env.MAX_MODEL_UPLOAD_BYTES || 200 * 1024 * 1024),
   maxProxyImageBytes: Number(process.env.MAX_PROXY_IMAGE_BYTES || 10 * 1024 * 1024),
   uploadDir: process.env.UPLOAD_DIR || join(process.cwd(), "uploads"),
   appBaseUrl: process.env.APP_BASE_URL || `http://localhost:${process.env.PORT || 3000}`,

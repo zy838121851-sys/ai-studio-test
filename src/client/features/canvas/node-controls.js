@@ -156,11 +156,40 @@ export function createNodeControlsManager({
     node.appendChild(button);
   };
 
+  const ensureModelCornerActions = (node) => {
+    if (node.querySelector(".node-download")) return;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "node-download node-model-download";
+    button.title = "下载模型";
+    button.setAttribute("aria-label", "下载模型");
+    button.innerHTML = `
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 3v12" />
+        <path d="M7 10l5 5 5-5" />
+        <path d="M5 21h14" />
+      </svg>
+    `;
+    button.addEventListener("pointerdown", (event) => event.stopPropagation());
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      downloadModelNode(node, {
+        getNodeTitle,
+        notify
+      });
+    });
+    node.appendChild(button);
+  };
+
   const ensureNodeControls = (node) => {
     const isImageNode = node.classList.contains("node-image");
     if (isImageNode) {
       ensureImageToolbar(node);
       ensureImageCornerActions(node);
+    }
+    if (node.classList.contains("node-model")) {
+      ensureModelCornerActions(node);
     }
     if (node.classList.contains("node-image-generator") || node.classList.contains("node-video")) return;
     if (node.querySelector(".node-expand")) return;
@@ -195,6 +224,106 @@ export function createNodeControlsManager({
     ensureResizeHandles,
     ensureNodeControls
   };
+}
+
+function downloadModelNode(node, {
+  getNodeTitle = () => "",
+  notify = (message) => window.alert(message)
+} = {}) {
+  const source = resolveModelDownloadSource(node);
+  if (!source.url) {
+    notify("当前模型没有可下载文件");
+    return;
+  }
+  const link = document.createElement("a");
+  link.href = source.url;
+  link.download = buildModelDownloadName({
+    title: getNodeTitle(node),
+    sourceName: source.name,
+    url: source.url,
+    type: source.type
+  });
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  if (source.revoke) {
+    window.setTimeout(() => URL.revokeObjectURL(source.url), 1000);
+  }
+}
+
+function resolveModelDownloadSource(node) {
+  const persistedUrl = String(node?.dataset?.objectUrl || "").trim();
+  if (persistedUrl) {
+    return {
+      url: persistedUrl,
+      name: filenameFromUrl(persistedUrl),
+      type: inferModelMimeType(persistedUrl),
+      revoke: false
+    };
+  }
+  const file = node?._sourceFile;
+  if (file instanceof File || file instanceof Blob) {
+    return {
+      url: URL.createObjectURL(file),
+      name: file.name || "",
+      type: file.type || "",
+      revoke: true
+    };
+  }
+  return { url: "", name: "", type: "", revoke: false };
+}
+
+function buildModelDownloadName({
+  title = "",
+  sourceName = "",
+  url = "",
+  type = ""
+} = {}) {
+  const extension = inferModelExtension(sourceName || url || type);
+  const base = sanitizeFileBaseName(title || stripExtension(sourceName) || "model");
+  return `${base || "model"}.${extension}`;
+}
+
+function inferModelExtension(value = "") {
+  const source = String(value || "").toLowerCase();
+  const match = source.match(/\.([a-z0-9]+)(?:[?#].*)?$/);
+  if (match && ["glb", "gltf", "obj", "stl"].includes(match[1])) return match[1];
+  if (source.includes("gltf-binary") || source.includes("glb")) return "glb";
+  if (source.includes("gltf")) return "gltf";
+  if (source.includes("wavefront") || source.includes("obj")) return "obj";
+  if (source.includes("stl")) return "stl";
+  return "glb";
+}
+
+function inferModelMimeType(value = "") {
+  const extension = inferModelExtension(value);
+  if (extension === "glb") return "model/gltf-binary";
+  if (extension === "gltf") return "model/gltf+json";
+  if (extension === "obj") return "model/obj";
+  if (extension === "stl") return "model/stl";
+  return "";
+}
+
+function filenameFromUrl(url = "") {
+  try {
+    const pathname = new URL(url, window.location.href).pathname;
+    return decodeURIComponent(pathname.split("/").pop() || "");
+  } catch {
+    return String(url || "").split(/[\\/]/).pop() || "";
+  }
+}
+
+function stripExtension(value = "") {
+  return String(value || "").replace(/\.[a-z0-9]+(?:[?#].*)?$/i, "");
+}
+
+function sanitizeFileBaseName(value = "") {
+  return String(value || "")
+    .trim()
+    .replace(/[\\/:*?"<>|]+/g, "-")
+    .replace(/\s+/g, " ")
+    .replace(/^\.+/, "")
+    .slice(0, 96);
 }
 
 function setToolbarUpscaleSize(toolbar, size = "2k") {

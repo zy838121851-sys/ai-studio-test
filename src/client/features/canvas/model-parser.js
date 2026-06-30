@@ -2,7 +2,7 @@ export const MAX_RENDER_FACES = 60000;
 export const MAX_PARSE_FACES = 60000;
 export const MAX_VERTEX_COUNT = 120000;
 export const MAX_ASCII_MODEL_BYTES = 8 * 1024 * 1024;
-export const MAX_PREVIEW_MODEL_BYTES = 100 * 1024 * 1024;
+export const MAX_PREVIEW_MODEL_BYTES = 200 * 1024 * 1024;
 
 const GLB_MAGIC = 0x46546c67;
 const JSON_CHUNK = 0x4e4f534a;

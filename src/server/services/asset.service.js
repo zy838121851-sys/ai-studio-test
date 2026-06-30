@@ -259,7 +259,9 @@ export function createUploadedAsset(userId, { file, fields = {} } = {}) {
     error.status = 400;
     throw error;
   }
-  assertAllowedUpload(file.mimeType, file.buffer.length);
+  const assetType = fields.type || normalizeAssetType("", file.mimeType);
+  const maxBytes = assetType === "model3d" ? env.maxModelUploadBytes : env.maxUploadBytes;
+  assertAllowedUpload(file.mimeType, file.buffer.length, { maxBytes });
   ensureUploadDir();
   const id = randomUUID();
   const originalName = normalizeText(file.filename) || `asset-${id}`;
@@ -274,7 +276,7 @@ export function createUploadedAsset(userId, { file, fields = {} } = {}) {
     id,
     projectId: fields.projectId,
     collectionId: fields.collectionId,
-    type: fields.type || normalizeAssetType("", file.mimeType),
+    type: assetType,
     source: fields.source || "upload",
     title: fields.title || originalName,
     collection: fields.collection,

@@ -158,9 +158,15 @@ function readRequestBuffer(req) {
   return new Promise((resolve, reject) => {
     const chunks = [];
     let total = 0;
+    let preview = Buffer.alloc(0);
+    let maxBytes = env.maxUploadBytes;
     req.on("data", (chunk) => {
       total += chunk.length;
-      if (total > env.maxUploadBytes) {
+      if (preview.length < MULTIPART_SNIFF_BYTES) {
+        preview = Buffer.concat([preview, chunk]).subarray(0, MULTIPART_SNIFF_BYTES);
+        if (isLikelyModel3DUpload(preview)) maxBytes = env.maxModelUploadBytes;
+      }
+      if (total > maxBytes) {
         const error = new Error("Upload is too large");
         error.status = 413;
         reject(error);
@@ -172,6 +178,15 @@ function readRequestBuffer(req) {
     req.on("end", () => resolve(Buffer.concat(chunks)));
     req.on("error", reject);
   });
+}
+
+const MULTIPART_SNIFF_BYTES = 64 * 1024;
+
+function isLikelyModel3DUpload(buffer) {
+  const text = buffer.toString("latin1");
+  return /name="type"\s*(?:\r?\n){2}model3d(?:\r?\n|--)/i.test(text)
+    || /content-type:\s*(?:model\/gltf-binary|model\/gltf\+json)\b/i.test(text)
+    || /filename="[^"]+\.(?:glb|gltf|obj|stl)"/i.test(text);
 }
 
 function splitMultipartBuffer(buffer, boundary) {

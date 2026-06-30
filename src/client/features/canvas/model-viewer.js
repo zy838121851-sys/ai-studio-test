@@ -85,7 +85,7 @@ async function initThreeModelViewer(node, canvas, file, buffer, detected, {
   controls.enableDamping = true;
   controls.dampingFactor = 0.08;
   controls.enablePan = false;
-  controls.mouseButtons.LEFT = THREE.MOUSE.ROTATE;
+  controls.mouseButtons.LEFT = null;
   controls.mouseButtons.RIGHT = THREE.MOUSE.ROTATE;
   controls.touches.ONE = THREE.TOUCH.ROTATE;
   controls.touches.TWO = THREE.TOUCH.DOLLY_ROTATE;
@@ -694,6 +694,7 @@ function initLightweightModelViewerPreview(node, file, buffer, detected, {
   };
 
   const handlePointerDown = (event) => {
+    if (event.button !== 2) return;
     event.preventDefault();
     event.stopPropagation();
     hideAddNodeMenu?.();
