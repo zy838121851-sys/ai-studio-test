@@ -1,0 +1,138 @@
+# AI Studio Current Architecture Baseline
+
+Date: 2026-06-30
+
+This document records the non-behavioral governance baseline for AI Studio. It
+is intentionally descriptive only: governance work must not change existing
+features, UI appearance, or interaction behavior unless explicitly requested.
+
+## Governance Constraints
+
+- Preserve current product behavior.
+- Do not intentionally change UI layout, styling, copy, or interaction flows.
+- Prefer behavior-equivalent refactors, documentation, verification, and release
+  readiness work.
+- Protect existing unrelated worktree changes; at this baseline, `styles/task-log.css`
+  already has user/worktree edits and is out of scope.
+- Every implementation batch should pass `npm run check` and `npm run build`.
+
+## Runtime Entrypoints
+
+Client boot path:
+
+```text
+app.js -> src/main.js -> src/client/main.js -> src/client/core/app-init.js
+```
+
+Current app initialization in `app-init.js`:
+
+- Registers mock and server AI providers, then selects the server provider.
+- Mounts the workspace app through `mountWorkspaceApp`.
+- Initializes model catalog, auth entry, credit quote badges, canvas controller,
+  agent event system, suggestion engine, asset panel, and agent panel.
+- Exposes the runtime on `window.AIStudio`.
+
+Server boot path:
+
+```text
+server.js -> src/server/index.js -> createServer() / startServer()
+```
+
+Current server initialization:
+
+- Validates runtime environment.
+- Initializes SQLite and credit migrations.
+- Attaches auth middleware.
+- Mounts API routers for health, auth, credits, conversations, AI, uploads,
+  assets, asset collections, and projects.
+- Serves built assets from `dist` in production when available.
+
+## Codebase Size Snapshot
+
+Current source footprint, excluding `node_modules` and `dist`:
+
+| Area | Files | Lines |
+| --- | ---: | ---: |
+| `src/client` | 286 | 35,884 |
+| `src/server` | 54 | 12,068 |
+| `styles` | 28 | 15,360 |
+| `scripts` | 38 | 3,728 |
+| other | 1 | 1 |
+
+Largest files at baseline:
+
+| Lines | Path |
+| ---: | --- |
+| 3,103 | `styles/workspace-layout.css` |
+| 2,922 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
+| 2,660 | `styles/legacy-assets.css` |
+| 2,427 | `styles/legacy-node.css` |
+| 1,669 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
+| 1,665 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
+| 1,579 | `styles/legacy-theme-sync.css` |
+| 1,426 | `src/server/routes/ai.routes.js` |
+| 1,411 | `styles/legacy-canvas.css` |
+| 1,255 | `src/server/services/conversation-orchestrator.service.js` |
+
+## Static Reachability Snapshot
+
+Static ESM import graph from `app.js` and `server.js`:
+
+- JavaScript files scanned: 341
+- Reachable from runtime entrypoints: 336
+- Static unreachable candidates: 5
+
+Unreachable candidates require manual verification before deletion:
+
+- `src/client/features/workspace/interactions/global-interactions.js`
+- `src/client/features/workspace/interactions/app-interactions.js`
+- `src/client/features/projects/index.js`
+- `src/client/features/workspace/index.js`
+- `src/client/features/projects/display.js`
+
+CSS reachability from `styles.css` previously showed almost all CSS loaded via
+imports, with `styles/legacy.css` as a low-risk unused shim candidate. Deleting
+any CSS must be verified visually because class reachability is not captured by
+ESM import analysis.
+
+## SaaS Foundation Status
+
+Already present:
+
+- Auth/session foundation with protected routes and `req.auth.user`.
+- Workspace, project, snapshot, asset, conversation, AI job, credit transaction,
+  and model pricing tables.
+- Health endpoint with database integrity information.
+- Production environment checks for base URL, mock provider flags, Railway
+  volume paths, DB path, and upload path.
+- Basic security headers and protected upload serving.
+- Provider seams for AI model services.
+
+Known release-readiness gaps:
+
+- CSP still allows `unsafe-inline` and `unsafe-eval`.
+- Rate limiting uses an in-memory Map, which is not suitable for multi-instance
+  production.
+- Uploads are local filesystem based; future SaaS release should use an object
+  storage adapter.
+- AI job handling needs a durable queue/worker seam before higher-scale use.
+- Billing currently has credit ledger foundations but no external payment/order
+  provider seam.
+- API input validation and response schemas are not centralized.
+- Automated tests are mostly script-based checks rather than a full API/UI test
+  suite.
+
+## Governance Priorities
+
+1. Baseline and verification: keep this document current while preserving
+   behavior.
+2. Publish blockers: fix source encoding/copy corruption without changing UI
+   intent or interaction.
+3. Frontend boundary cleanup: reduce compatibility bridge reliance and pure
+   forwarding modules only after proving replacement paths.
+4. Style governance: move legacy CSS by feature while preserving rendered output.
+5. Backend extension seams: add adapters for storage, rate limit, job queue,
+   billing, and audit logging without enabling new product capabilities.
+6. Performance and package size: lazy-load heavy optional surfaces such as 3D and
+   video workflows when behavior can be kept identical.
+7. Tests and release gates: expand automated coverage around existing behavior.
