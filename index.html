@@ -334,6 +334,7 @@
         </header>
 
         <section class="task-log-panel" aria-label="任务日志列表">
+          <!-- Filter controls contract: task-log-runtime.js reads these ids for list queries. -->
           <div class="task-log-toolbar">
             <label class="task-log-control task-log-search">
               <span class="visually-hidden">搜索任务 ID</span>
@@ -371,6 +372,7 @@
             </label>
           </div>
 
+          <!-- Table shell contract: keep columns and #taskLogRows stable for runtime rendering. -->
           <div class="task-log-table-wrap">
             <table class="task-log-table">
               <thead>
@@ -392,6 +394,7 @@
             </table>
           </div>
 
+          <!-- Pagination contract: runtime mutates range text, buttons, and page-size select. -->
           <footer class="task-log-footer">
             <span id="taskLogRange">显示第 0 - 0 条 共 0 条</span>
             <div class="task-log-pagination">
