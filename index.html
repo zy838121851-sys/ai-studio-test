@@ -385,6 +385,7 @@
                   <th scope="col">操作</th>
                 </tr>
               </thead>
+              <!-- Runtime rows root: task-log-runtime.js delegates row actions from #taskLogRows. -->
               <tbody id="taskLogRows">
                 <tr><td colspan="8">正在加载任务日志...</td></tr>
               </tbody>
@@ -409,6 +410,7 @@
         </section>
 
         <div class="task-log-modal" id="taskLogModal" role="dialog" aria-modal="true" aria-label="任务详情" hidden>
+          <!-- Detail modal contract: preserve native hidden state and [data-task-log-close] actions. -->
           <div class="task-log-modal-backdrop" data-task-log-close></div>
           <article class="task-log-modal-card">
             <header class="task-log-modal-header">
