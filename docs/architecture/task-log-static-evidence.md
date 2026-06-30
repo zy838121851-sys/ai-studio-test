@@ -9,6 +9,9 @@ deleting files.
 
 Date: 2026-06-30
 
+Last refreshed: 2026-06-30 after task-log template contract comments were added
+to `index.html`.
+
 Branch at capture:
 
 ```text
@@ -55,6 +58,7 @@ docs/architecture/task-log-split-assessment.md
 docs/architecture/task-log-selector-parity.md
 docs/architecture/task-log-smoke-test.md
 docs/architecture/task-log-template-extraction-plan.md
+docs/architecture/task-log-governance-index.md
 ```
 
 ## Current DOM Evidence
@@ -65,22 +69,29 @@ Current static task-log area in `index.html`:
 | ---: | --- |
 | 320 | Existing structure comment for the task-log route shell. |
 | 321 | `#profileView.profile-view.app-view.simple-page-view`. |
+| 325 | Existing structure comment for the task-log template candidate. |
 | 326 | `#taskLogPage.simple-page-shell.task-log-page`. |
 | 333 | `#taskLogRefresh.task-log-refresh`. |
-| 340 | `#taskLogSearch`. |
-| 344 | `#taskLogDateFrom`. |
-| 348 | `#taskLogDateTo`. |
-| 352 | `#taskLogType`. |
-| 361 | `#taskLogStatus`. |
-| 388 | `#taskLogRows`. |
-| 395 | `#taskLogRange`. |
-| 397 | `#taskLogPrev`. |
-| 398 | `#taskLogNext`. |
-| 401 | `#taskLogLimit`. |
-| 411 | `#taskLogModal.task-log-modal[hidden]`. |
-| 412 | `.task-log-modal-backdrop[data-task-log-close]`. |
-| 419 | Close button with `[data-task-log-close]`. |
-| 421 | `#taskLogDetailBody.task-log-detail-body`. |
+| 337 | Filter controls contract comment. |
+| 341 | `#taskLogSearch`. |
+| 345 | `#taskLogDateFrom`. |
+| 349 | `#taskLogDateTo`. |
+| 353 | `#taskLogType`. |
+| 362 | `#taskLogStatus`. |
+| 375 | Table shell contract comment. |
+| 390 | Runtime rows root comment. |
+| 391 | `#taskLogRows`. |
+| 397 | Pagination contract comment. |
+| 399 | `#taskLogRange`. |
+| 401 | `#taskLogPrev`. |
+| 402 | `#taskLogNext`. |
+| 405 | `#taskLogLimit`. |
+| 415 | `#taskLogModal.task-log-modal[hidden]`. |
+| 416 | Detail modal contract comment. |
+| 417 | `.task-log-modal-backdrop[data-task-log-close]`. |
+| 424 | Close button with `[data-task-log-close]`. |
+| 426 | `#taskLogDetailBody.task-log-detail-body`. |
+| 430 | Existing closing comment for the task-log template candidate. |
 
 Boundary conclusion:
 
@@ -90,6 +101,9 @@ Boundary conclusion:
   candidates.
 - The shared `nav.home-nav` and `[data-brand-menu]` shell must not be moved in
   the first task-log extraction.
+- The current `index.html` comments define route shell, template candidate,
+  filter controls, table shell, row root, pagination, and modal contract
+  boundaries. They are documentation only and do not authorize moving DOM.
 
 ## Runtime Binding Evidence
 
@@ -110,7 +124,7 @@ src/client/features/workspace/runtime/app-runtime-host.js:21
 One-time binding guard:
 
 ```text
-task-log-runtime.js:17-18
+task-log-runtime.js:19-20
 elements.page.dataset.taskLogBound === "true"
 elements.page.dataset.taskLogBound = "true"
 ```
@@ -118,7 +132,7 @@ elements.page.dataset.taskLogBound = "true"
 Visibility trigger:
 
 ```text
-task-log-runtime.js:40
+task-log-runtime.js:44
 documentRoot.body?.dataset.view === "space"
 elements.profileView?.classList.contains("active")
 ```
@@ -126,14 +140,14 @@ elements.profileView?.classList.contains("active")
 Route-state observer:
 
 ```text
-task-log-runtime.js:95
+task-log-runtime.js:101
 new MutationObserver(syncVisibility)
 ```
 
 Cleanup resets the binding guard:
 
 ```text
-task-log-runtime.js:105
+task-log-runtime.js:111
 elements.page.dataset.taskLogBound = ""
 ```
 
@@ -164,7 +178,7 @@ elements.page.dataset.taskLogBound = ""
 Evidence location:
 
 ```text
-src/client/features/workspace/task-log/task-log-runtime.js:112-128
+src/client/features/workspace/task-log/task-log-runtime.js:117-135
 ```
 
 All of those nodes must exist before `bindTaskLogRuntime(runtime)` runs in a
@@ -211,7 +225,7 @@ document.body data-view MutationObserver triggers route visibility sync
 Evidence location:
 
 ```text
-src/client/features/workspace/task-log/task-log-runtime.js:49-97
+src/client/features/workspace/task-log/task-log-runtime.js:57-101
 ```
 
 ## Route Shell Evidence
@@ -249,9 +263,9 @@ GET /api/ai/jobs/:jobId
 Client evidence:
 
 ```text
-task-log-runtime.js:146
-task-log-runtime.js:221
-task-log-runtime.js:234
+task-log-runtime.js:153
+task-log-runtime.js:228
+task-log-runtime.js:241
 ```
 
 Server route evidence:
