@@ -20,12 +20,27 @@ Use this checklist before and after any future change that touches:
 
 This checklist depends on:
 
+- `docs/architecture/task-log-governance-index.md`
+- `docs/architecture/task-log-static-evidence.md`
+- `docs/architecture/task-log-selector-evidence.md`
 - `docs/architecture/index-template-map.md`
 - `docs/architecture/dom-dependency-map.md`
 - `docs/architecture/runtime-event-map.md`
 - `docs/architecture/style-entry-map.md`
 - `docs/architecture/feature-template-split-checklist.md`
 - `docs/architecture/task-log-api-contract.md`
+
+Current evidence baseline:
+
+- `task-log-static-evidence.md` was last refreshed on 2026-06-30 after
+  task-log template contract comments were added to `index.html`.
+- `task-log-selector-evidence.md` contains a 2026-06-30 selector snapshot for
+  the current worktree.
+- Both snapshots record `styles/task-log.css` as an unrelated existing worktree
+  change that must remain unstaged unless a future task explicitly owns it.
+- The selector snapshot is evidence for planning and verification only; it does
+  not authorize moving markup, renaming selectors, migrating CSS, or changing
+  task-log API fields.
 
 ## Non-Negotiable Guardrails
 
@@ -72,6 +87,17 @@ rg -n "body\\[data-view=\"space\"\\]|\\.profile-view|\\.task-log|\\[hidden\\]|\\
 
 Stop if any selector dependency is unclear.
 
+Refresh static evidence before proceeding when any of these changed after the
+latest snapshot:
+
+- `index.html` task-log/profile-space markup.
+- `src/client/features/workspace/task-log/task-log-runtime.js`.
+- `styles/task-log.css`.
+- `src/server/routes/ai.routes.js`.
+- `src/server/services/ai-job.service.js`.
+- Any proposed task would move markup, change selectors, change event roots,
+  touch CSS, or change task-log API fields.
+
 ## DOM Contract Checks
 
 Task-log DOM must keep these roots:
@@ -111,10 +137,22 @@ data-task-log-close
 State contract:
 
 - `#profileView` remains a routed `.app-view`.
+- `#profileView` is the profile/space route shell, not the inner task-log
+  island. A first task-log extraction must not move it.
 - Task-log visibility remains tied to `body[data-view="space"]` and
   `#profileView.active`.
 - `#taskLogModal` keeps native `hidden` as the modal closed state.
 - `#taskLogPage.dataset.taskLogBound` remains the duplicate-binding guard.
+
+First extraction boundary, if a future task reaches that stage:
+
+- The only candidate is the inner task-log island under `#profileView`, after
+  fresh selector evidence and browser smoke verification.
+- The move must preserve ids, classes, `data-*`, ARIA attributes, native
+  `hidden`, DOM order needed by runtime queries, and generated row/action
+  selector compatibility.
+- No selector rename, CSS migration, API shape change, or interaction change may
+  be combined with the first extraction.
 
 ## API Contract Checks
 
@@ -305,12 +343,12 @@ mounted database/upload volume unless data corruption is suspected.
 
 ## Recommended Next Task After This Checklist
 
-The next safe task-log governance step is documentation or annotation only:
+The next safe task-log governance step is annotation-only:
 
-1. Add a task-log extraction readiness note that maps exact `index.html` line
-   ranges to future ownership.
-2. Or add a tiny test-plan document for future API integration tests.
+1. Add or refresh small structure comments in `task-log-runtime.js` only if
+   they explain existing contracts and do not change code flow.
+2. Or add a documentation-only smoke/evidence refresh if any task-log source
+   file changed after the current snapshots.
 
 Do not start a task-log template extraction until the selector searches and
 browser smoke path above can be executed cleanly.
-
