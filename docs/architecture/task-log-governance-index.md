@@ -70,6 +70,22 @@ If a future task involves template extraction, also read:
 | `task-log-template-mount-seam.md` | Future seam | Proposes a first mount seam while preserving current DOM timing and selectors. |
 | `task-log-verification-checklist.md` | Completion gate | Lists guardrails, static preflight, DOM/API/browser/style checks. |
 
+## Current Use Matrix
+
+Use this matrix to decide whether a document can be treated as current evidence
+or only as a planning aid.
+
+| Document type | Current source | Use as evidence? | Notes |
+| --- | --- | --- | --- |
+| Static DOM/runtime proof | `task-log-static-evidence.md` | Yes, if unchanged since its refresh date | Refresh when `index.html`, task-log runtime, task-log CSS, or AI job routes/services change. |
+| Frozen selector/template contract | `task-log-template-contract.md` | Yes, for guardrails | It defines what must remain stable, but does not authorize a split. |
+| Runtime flow map | `task-log-runtime-map.md` | Yes, for flow review | Use with static proof before any runtime comment or code batch. |
+| Selector evidence | `task-log-selector-evidence.md` | No, template only | It currently defines commands and review gates. Run and capture fresh output before selector-sensitive work. |
+| Selector parity | `task-log-selector-parity.md` | Checklist only | Use after selector evidence is refreshed; do not treat it as proof by itself. |
+| Smoke plan | `task-log-smoke-test.md` | Manual verification guide | Required for future template split or behavior-equivalent code movement. |
+| Extraction plan / mount seam | `task-log-template-extraction-plan.md`, `task-log-template-mount-seam.md` | Planning only | They are future implementation guides and still require live evidence before edits. |
+| API contract/test plan | `task-log-api-contract.md`, `task-log-api-test-plan.md` | Contract and future test plan | Use before backend/API task-log work; not needed for selector-only documentation. |
+
 ## Current Guardrails
 
 - Keep `#profileView`, `#taskLogPage`, `#taskLogRows`, `#taskLogModal`, and
@@ -103,10 +119,10 @@ For low-risk documentation-only updates, cite existing documents and run
 
 Use this order unless new evidence changes risk:
 
-1. Documentation-only: refresh `task-log-static-evidence.md` if the DOM or
-   runtime has changed since its snapshot.
-2. Documentation-only: convert `task-log-selector-evidence.md` from template
+1. Documentation-only: convert `task-log-selector-evidence.md` from template
    into a dated selector snapshot for the current worktree.
+2. Documentation-only: refresh `task-log-verification-checklist.md` with the
+   current gates from the latest static evidence and selector snapshot.
 3. Comment-only: add missing structural comments to task-log runtime functions,
    without changing code flow.
 4. Verification-only: add or refine task-log smoke instructions without editing
