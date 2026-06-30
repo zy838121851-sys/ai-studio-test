@@ -11,6 +11,8 @@ const STATUS_LABELS = {
   cancelled: "已取消"
 };
 
+// Contract: #taskLogPage must exist before binding, and dataset.taskLogBound
+// prevents duplicate listeners when workspace runtime is mounted again.
 export function bindTaskLogRuntime(runtime = {}) {
   const documentRoot = runtime.documentRoot || globalThis.document;
   const elements = collectTaskLogElements(documentRoot);
@@ -36,6 +38,8 @@ export function bindTaskLogRuntime(runtime = {}) {
       refresh();
     }, 240);
   };
+  // Visibility is owned by workspace routing: body[data-view="space"] and
+  // #profileView.active must stay stable during any future template split.
   const syncVisibility = () => {
     const visible = documentRoot.body?.dataset.view === "space" || elements.profileView?.classList.contains("active");
     if (visible && !state.loaded) refresh();
@@ -70,6 +74,7 @@ export function bindTaskLogRuntime(runtime = {}) {
     state.offset += state.limit;
     refresh();
   });
+  // Row actions are delegated from #taskLogRows because rows are regenerated.
   elements.rows?.addEventListener("click", (event) => {
     const copyButton = event.target.closest("[data-task-log-copy]");
     const detailButton = event.target.closest("[data-task-log-detail]");
@@ -82,6 +87,7 @@ export function bindTaskLogRuntime(runtime = {}) {
       openTaskOutput(elements, outputButton.dataset.taskLogOutput || "");
     }
   });
+  // Modal actions rely on native hidden state and [data-task-log-*] buttons.
   elements.modal?.addEventListener("click", (event) => {
     const closeButton = event.target.closest("[data-task-log-close]");
     const copyButton = event.target.closest("[data-task-log-copy]");
@@ -107,6 +113,7 @@ export function bindTaskLogRuntime(runtime = {}) {
   };
 }
 
+// Selector parity list: preserve these ids/classes before bindTaskLogRuntime().
 function collectTaskLogElements(root = document) {
   return {
     profileView: root.querySelector("#profileView"),
