@@ -2,8 +2,8 @@
 
 Date: 2026-06-30
 
-This document defines the selector evidence that must be refreshed before any
-future task-log template extraction or runtime cleanup. It is documentation
+This document records the current selector evidence for task-log governance and
+keeps the reusable evidence commands for future refreshes. It is documentation
 only. It does not change DOM, CSS, JavaScript, API behavior, database schema, or
 deployment config.
 
@@ -14,9 +14,78 @@ workspace routing, CSS visibility, and runtime event delegation. Before moving
 or rewriting any task-log markup, the current selector dependencies must be
 proved from the live checkout.
 
-This document is an evidence template, not a current-state proof. Search output
-must be regenerated in the implementation branch immediately before any future
-task-log DOM, CSS, or runtime change.
+This document now includes a 2026-06-30 current worktree snapshot. Search output
+must still be regenerated in the implementation branch immediately before any
+future task-log DOM, CSS, runtime, or API-sensitive change.
+
+## Current Snapshot
+
+Snapshot date: 2026-06-30
+
+Branch at capture:
+
+```text
+codex/saas-governance-baseline
+```
+
+Worktree preflight:
+
+```text
+git status --short --branch
+## codex/saas-governance-baseline...origin/codex/saas-governance-baseline [ahead 1]
+ M styles/task-log.css
+
+git diff --name-only
+styles/task-log.css
+```
+
+The existing `styles/task-log.css` change remains unrelated and out of scope.
+It must not be staged or committed by task-log selector documentation batches.
+
+Commands run for this snapshot:
+
+```bash
+rg -n "taskLog|data-task-log|profileView|data-view=\"space\"|dataset\\.view" index.html src/client styles
+rg -n "#taskLogPage|#taskLogRows|#taskLogModal|#taskLogDetailBody|#taskLogRefresh|#taskLogSearch|#taskLogDateFrom|#taskLogDateTo|#taskLogType|#taskLogStatus|#taskLogRange|#taskLogPrev|#taskLogNext|#taskLogLimit" index.html src/client styles
+rg -n "body\\[data-view=\"space\"\\]|\\.profile-view|\\.task-log|\\[hidden\\]|\\.hidden|\\.loading|disabled|taskLogBound" index.html src/client styles
+rg -n "addEventListener\\(|closest\\(|MutationObserver|taskLogBound|openTaskDetail|openTaskOutput|loadJobs|startAutoRefresh|stopAutoRefresh" src/client/features/workspace/task-log index.html
+rg -n "task-log|profile-view|data-view=\"space\"|taskLog" styles index.html src/client/features/workspace/task-log
+rg -n "/api/ai/jobs|jobId|remoteTaskId|outputs|imageUrls|videoUrls|billing|requestData|responseData" src/client/features/workspace/task-log src/server/routes src/server/services docs/architecture
+```
+
+Snapshot summary:
+
+| Evidence area | Current result | Governance conclusion |
+| --- | --- | --- |
+| Worktree preflight | Only `styles/task-log.css` was modified before this documentation change. | Leave it unhandled, unstaged, and out of scope. |
+| Broad references | `#profileView` appears in `index.html`, workspace routing/runtime files, project workflow references, and task-log runtime. | `#profileView` is a shared routed shell and must not move in the first task-log extraction. |
+| Root/control ids | `task-log-runtime.js` directly queries every task-log id at lines around `120-135`; `styles/task-log.css` directly targets `#taskLogPage.task-log-page`. | Every locked id must exist before `bindTaskLogRuntime()` runs. |
+| Visibility/state | The broad search includes cross-feature noise for `hidden`, `disabled`, and `loading`; task-log-specific hits are `body[data-view="space"] .profile-view`, `#profileView.active`, native `hidden`, `dataset.taskLogBound`, `.loading`, and disabled pagination/output states. | Treat these as behavior contracts, not presentation-only details. |
+| Runtime binding | `task-log-runtime.js` binds refresh/filter/pagination controls, delegates row clicks from `#taskLogRows`, delegates modal actions from `#taskLogModal`, observes route visibility with `MutationObserver`, and resets `dataset.taskLogBound` on cleanup. | Event roots and one-time binding guard must stay stable. |
+| Auto-refresh symbols | No exact `startAutoRefresh` or `stopAutoRefresh` symbol exists in the current runtime. | Future docs/code should describe the current interval/visibility pattern instead of inventing those function names. |
+| CSS contract | `styles/task-log.css` owns `body[data-view="space"] .profile-view`, `#taskLogPage.task-log-page`, `.task-log-*` rows, buttons, modal, output preview, and responsive rules. | Do not rename task-log classes or touch CSS in the same batch as selector work. |
+| API coupling | Runtime calls `/api/ai/jobs` and `/api/ai/jobs/:jobId`, displays `remoteTaskId || job.id`, and uses local `job.id` for detail/output actions. Detail rendering consumes `outputs`, `imageUrls`, `videoUrls`, `billing`, `requestData`, and `responseData`. | Keep the API shape aligned with `task-log-api-contract.md`; no API migration belongs in a selector/template batch. |
+
+Locked current conclusion:
+
+- `#profileView` is not an inner task-log island; it is the routed
+  profile/space shell.
+- The first future extraction can only target the inner task-log island after
+  fresh selector evidence and smoke verification.
+- No selector rename is supported by this snapshot.
+- No CSS migration is supported by this snapshot.
+- No API shape change is supported by this snapshot.
+- This snapshot is evidence for planning, not authorization to split markup.
+
+Refresh this snapshot if any of these change:
+
+- `index.html` task-log/profile-space markup.
+- `src/client/features/workspace/task-log/task-log-runtime.js`.
+- `styles/task-log.css`.
+- `src/server/routes/ai.routes.js`.
+- `src/server/services/ai-job.service.js`.
+- Any future task proposes moving markup, changing selectors, changing event
+  roots, touching CSS, or changing task-log API fields.
 
 ## Scope
 
