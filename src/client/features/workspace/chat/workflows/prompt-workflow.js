@@ -2352,7 +2352,7 @@ async function restoreProjectConversation({ projectId, conversationId = "", addC
     if (message.role === "assistant" && Array.isArray(message.attachments)) {
       message.attachments
         .filter((item) => item?.type === "image" && item.url)
-        .forEach((item) => addChatImage("assistant", item.url, item.caption || "鐢熸垚鍥剧墖"));
+        .forEach((item) => addChatImage("assistant", item.url, item.caption || "生成图片"));
     }
     if (text) addChat(message.role === "user" ? "user" : "assistant", text);
   });
