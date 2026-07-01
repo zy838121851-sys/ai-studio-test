@@ -6,6 +6,7 @@ import { createOAuthStart, getOAuthStateStatus, handleOAuthCallback, markOAuthSt
 import { getAuthProviderStatus } from "../auth/provider-status.service.js";
 import { sendVerificationCode, verifyCodeAndGetUser } from "../auth/verification.service.js";
 import { sendCaughtErrorResponse } from "../lib/http-error-response.js";
+import { getOptionalRequestUser } from "../lib/request-auth.js";
 import { getRequestBody, getRequestQuery, getRouteParam, requestAccepts } from "../lib/route-request.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import { recordAuditEvent } from "../services/audit.service.js";
@@ -194,7 +195,7 @@ export function createAuthRouter() {
   });
 
   router.get("/auth/me", (req, res) => {
-    res.json({ user: req.auth?.user || null });
+    res.json({ user: getOptionalRequestUser(req) });
   });
 
   router.get("/auth/providers", (_req, res) => {
