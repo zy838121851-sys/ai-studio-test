@@ -76,6 +76,38 @@ const FORBIDDEN_STATIC_PACKAGE_IMPORTS = [
     label: "OrbitControls"
   }
 ];
+const HEAVY_DYNAMIC_IMPORT_OWNERS = [
+  {
+    specifier: "three",
+    label: "Three.js",
+    ownerPath: "src/client/features/canvas/model-viewer.js"
+  },
+  {
+    specifier: "three/examples/jsm/loaders/GLTFLoader.js",
+    label: "GLTFLoader",
+    ownerPath: "src/client/features/canvas/model-viewer.js"
+  },
+  {
+    specifier: "three/examples/jsm/controls/OrbitControls.js",
+    label: "OrbitControls",
+    ownerPath: "src/client/features/canvas/model-viewer.js"
+  },
+  {
+    specifier: "/vendor/three/build/three.module.js",
+    label: "Three.js vendor fallback",
+    ownerPath: "src/client/features/canvas/model-viewer.js"
+  },
+  {
+    specifier: "/vendor/three/examples/jsm/loaders/GLTFLoader.js",
+    label: "GLTFLoader vendor fallback",
+    ownerPath: "src/client/features/canvas/model-viewer.js"
+  },
+  {
+    specifier: "/vendor/three/examples/jsm/controls/OrbitControls.js",
+    label: "OrbitControls vendor fallback",
+    ownerPath: "src/client/features/canvas/model-viewer.js"
+  }
+];
 
 const errors = [];
 
@@ -167,6 +199,18 @@ function parseStaticSpecifiers(text) {
   return specifiers;
 }
 
+function parseDynamicSpecifiers(text) {
+  const specifiers = [];
+  const dynamicImportPattern = /\bimport\s*\(\s*(?:\/\*[\s\S]*?\*\/\s*)?["']([^"']+)["']\s*\)/g;
+  let match;
+
+  while ((match = dynamicImportPattern.exec(text))) {
+    specifiers.push(match[1]);
+  }
+
+  return specifiers;
+}
+
 function normalizeImportTarget(importerAbsPath, specifier) {
   if (!specifier.startsWith(".") && !specifier.startsWith("/")) return null;
 
@@ -211,6 +255,23 @@ function assertNoRuntimeStaticImportsToHeavyPackages() {
   }
 }
 
+function assertHeavyPackagesOnlyLoadedByOwners() {
+  const heavyDynamicOwners = new Map(
+    HEAVY_DYNAMIC_IMPORT_OWNERS.map((item) => [item.specifier, item])
+  );
+
+  for (const filePath of walkJsFiles(CLIENT_DIR)) {
+    const relPath = relativePath(filePath);
+    const text = fs.readFileSync(filePath, "utf8");
+
+    for (const specifier of parseDynamicSpecifiers(text)) {
+      const owner = heavyDynamicOwners.get(specifier);
+      if (!owner || relPath === owner.ownerPath) continue;
+      fail(`${relPath} dynamically imports ${owner.label}; route it through ${owner.ownerPath}`);
+    }
+  }
+}
+
 for (const expectation of ENTRY_EXPECTATIONS) {
   for (const snippet of expectation.required) {
     assertFileContains(expectation.filePath, snippet);
@@ -226,6 +287,7 @@ for (const split of LAZY_SPLITS) {
 
 assertNoRuntimeStaticImportsToLazyModules();
 assertNoRuntimeStaticImportsToHeavyPackages();
+assertHeavyPackagesOnlyLoadedByOwners();
 
 if (errors.length > 0) {
   console.error("Lazy workflow split check failed:");
