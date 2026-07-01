@@ -28,6 +28,12 @@ const LAZY_SPLITS = [
     modulePath: "src/client/features/canvas/workflows/video-generator-workflow.js",
     loaderPath: "src/client/features/canvas/workflows/video-generator-workflow-loader.js",
     dynamicSpecifier: "./video-generator-workflow.js"
+  },
+  {
+    label: "model viewer workflow",
+    modulePath: "src/client/features/canvas/workflows/model-viewer-workflow.js",
+    loaderPath: "src/client/features/canvas/workflows/model-viewer-workflow-loader.js",
+    dynamicSpecifier: "./model-viewer-workflow.js"
   }
 ];
 
@@ -37,13 +43,15 @@ const ENTRY_EXPECTATIONS = [
     required: [
       "from \"./model-viewer-loader.js\"",
       "from \"./workflows/image-edit-workflow-loader.js\"",
-      "from \"./workflows/image-generator-workflow-loader.js\""
+      "from \"./workflows/image-generator-workflow-loader.js\"",
+      "from \"./workflows/model-viewer-workflow-loader.js\""
     ],
     forbidden: [
       "from \"./model-viewer.js\"",
       "from \"./workflows/image-edit-workflow.js\"",
       "from \"./workflows/image-generator-workflow.js\"",
-      "from \"./workflows/video-generator-workflow.js\""
+      "from \"./workflows/video-generator-workflow.js\"",
+      "from \"./workflows/model-viewer-workflow.js\""
     ]
   },
   {
@@ -59,11 +67,13 @@ const ENTRY_EXPECTATIONS = [
     filePath: "src/client/features/canvas/runtime/canvas-generation-bootstrap.js",
     required: [
       "from \"../workflows/image-generator-workflow-loader.js\"",
-      "from \"../workflows/video-generator-workflow-loader.js\""
+      "from \"../workflows/video-generator-workflow-loader.js\"",
+      "from \"../workflows/model-viewer-workflow-loader.js\""
     ],
     forbidden: [
       "from \"../workflows/image-generator-workflow.js\"",
-      "from \"../workflows/video-generator-workflow.js\""
+      "from \"../workflows/video-generator-workflow.js\"",
+      "from \"../workflows/model-viewer-workflow.js\""
     ]
   }
 ];

@@ -108,7 +108,7 @@ export { createGenerationNodeWorkflow } from "./workflows/generation-node-workfl
 export { createGenerationUploadWorkflow } from "./workflows/generation-upload-workflow.js";
 export { createImageEditWorkflow } from "./workflows/image-edit-workflow-loader.js";
 export { createImageGeneratorWorkflow } from "./workflows/image-generator-workflow-loader.js";
-export { createModelViewerWorkflow } from "./workflows/model-viewer-workflow.js";
+export { createModelViewerWorkflow } from "./workflows/model-viewer-workflow-loader.js";
 export { createNodeDragWorkflow } from "./workflows/node-drag-workflow.js";
 export { createSelectionWorkflow } from "./workflows/selection-workflow.js";
 export { createTextEditWorkflow } from "./workflows/text-edit-workflow.js";

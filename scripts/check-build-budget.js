@@ -10,6 +10,7 @@ const BUDGETS = {
   imageEditWorkflowBytes: 10 * 1024,
   imageGeneratorWorkflowBytes: 35 * 1024,
   modelViewerBytes: 30 * 1024,
+  modelViewerWorkflowBytes: 2 * 1024,
   videoGeneratorWorkflowBytes: 18 * 1024,
   threeJsBytes: 750 * 1024,
   gltfLoaderBytes: 50 * 1024,
@@ -87,7 +88,12 @@ const imageGeneratorWorkflow = findRequiredChunk(
 const modelViewer = findRequiredChunk(
   files,
   "model viewer",
-  (file) => /^model-viewer-[A-Za-z0-9_-]+\.js$/.test(file.name)
+  (file) => /^model-viewer-(?!workflow-)[A-Za-z0-9_-]+\.js$/.test(file.name)
+);
+const modelViewerWorkflow = findRequiredChunk(
+  files,
+  "model viewer workflow",
+  (file) => /^model-viewer-workflow-[A-Za-z0-9_-]+\.js$/.test(file.name)
 );
 const videoGeneratorWorkflow = findRequiredChunk(
   files,
@@ -125,6 +131,7 @@ checkBudget("app CSS", appCss.bytes, BUDGETS.appCssBytes);
 checkBudget("image edit workflow", imageEditWorkflow.bytes, BUDGETS.imageEditWorkflowBytes);
 checkBudget("image generator workflow", imageGeneratorWorkflow.bytes, BUDGETS.imageGeneratorWorkflowBytes);
 checkBudget("model viewer", modelViewer.bytes, BUDGETS.modelViewerBytes);
+checkBudget("model viewer workflow", modelViewerWorkflow.bytes, BUDGETS.modelViewerWorkflowBytes);
 checkBudget("video generator workflow", videoGeneratorWorkflow.bytes, BUDGETS.videoGeneratorWorkflowBytes);
 checkBudget("Three.js vendor", threeJs.bytes, BUDGETS.threeJsBytes);
 checkBudget("GLTFLoader vendor", gltfLoader.bytes, BUDGETS.gltfLoaderBytes);

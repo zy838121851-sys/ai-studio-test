@@ -16,6 +16,7 @@ const LAZY_RUNTIME_MARKERS = [
   "/src/client/features/canvas/model-viewer.js",
   "/src/client/features/canvas/workflows/image-edit-workflow.js",
   "/src/client/features/canvas/workflows/image-generator-workflow.js",
+  "/src/client/features/canvas/workflows/model-viewer-workflow.js",
   "/src/client/features/canvas/workflows/video-generator-workflow.js",
   "/vendor/three/"
 ];

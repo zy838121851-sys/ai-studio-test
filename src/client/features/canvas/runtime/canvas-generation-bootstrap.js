@@ -4,7 +4,7 @@ import { createGenerationNodeWorkflow } from "../workflows/generation-node-workf
 import { createGenerationUploadWorkflow } from "../workflows/generation-upload-workflow.js";
 import { createImageGeneratorWorkflow } from "../workflows/image-generator-workflow-loader.js";
 import { createVideoGeneratorWorkflow } from "../workflows/video-generator-workflow-loader.js";
-import { createModelViewerWorkflow } from "../workflows/model-viewer-workflow.js";
+import { createModelViewerWorkflow } from "../workflows/model-viewer-workflow-loader.js";
 
 export function createCanvasGenerationBootstrap({
   elements = {},
