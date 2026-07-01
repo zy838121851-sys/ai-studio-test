@@ -1,8 +1,9 @@
 import { logInfo, logWarn } from "../../lib/logger.js";
+import { getRequestClientAddress } from "../../lib/route-request.js";
 
 function requestMetadata(req = {}) {
   return {
-    ip: req.ip || req.socket?.remoteAddress || "unknown",
+    ip: getRequestClientAddress(req),
     userAgent: req.get?.("user-agent") || ""
   };
 }
