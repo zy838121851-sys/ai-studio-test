@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { Buffer } from "node:buffer";
 import { env } from "../../../config/env.js";
+import { createHttpError } from "../../../lib/input-validation.js";
 
 const TEXT_TO_MODEL_ENDPOINT = "/generation/text-to-model";
 const IMAGE_TO_MODEL_ENDPOINT = "/generation/image-to-model";
@@ -22,8 +23,7 @@ export async function createTextToModelTask({
 } = {}) {
   const cleanPrompt = String(prompt || "").trim();
   if (!cleanPrompt) {
-    const error = new Error("Missing prompt");
-    error.status = 400;
+    const error = createHttpError("Missing prompt", 400);
     error.code = "TRIPO_PROMPT_REQUIRED";
     throw error;
   }
@@ -90,8 +90,7 @@ export async function createImageToModelTask({
 export async function getTask(taskId, { requestId = randomUUID() } = {}) {
   const id = String(taskId || "").trim();
   if (!id) {
-    const error = new Error("Missing Tripo task id");
-    error.status = 400;
+    const error = createHttpError("Missing Tripo task id", 400);
     error.code = "TRIPO_TASK_ID_REQUIRED";
     throw error;
   }
@@ -112,8 +111,7 @@ export async function downloadModelIfNeeded(modelUrl, taskId, {
     signal: AbortSignal.timeout(timeoutMs)
   });
   if (!response.ok) {
-    const error = new Error(`Unable to download Tripo model: ${response.status}`);
-    error.status = 502;
+    const error = createHttpError(`Unable to download Tripo model: ${response.status}`, 502);
     error.code = "TRIPO_MODEL_DOWNLOAD_FAILED";
     throw error;
   }
@@ -135,8 +133,7 @@ async function requestTripo(path, {
   timeoutMs = 45000
 } = {}) {
   if (!env.tripoApiKey) {
-    const error = new Error("Tripo API key is not configured");
-    error.status = 503;
+    const error = createHttpError("Tripo API key is not configured", 503);
     error.code = "TRIPO_KEY_MISSING";
     throw error;
   }
@@ -154,8 +151,7 @@ async function requestTripo(path, {
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || Number(payload?.code || 0) >= 400) {
-    const error = new Error(payload?.message || payload?.error?.message || `Tripo request failed: ${response.status}`);
-    error.status = response.status || 502;
+    const error = createHttpError(payload?.message || payload?.error?.message || `Tripo request failed: ${response.status}`, response.status || 502);
     error.code = payload?.code || payload?.error?.code || "TRIPO_REQUEST_FAILED";
     error.providerPayload = payload;
     throw error;
@@ -179,8 +175,7 @@ async function uploadTripoImage(dataUrl, {
   });
   const token = extractFileToken(payload);
   if (!token) {
-    const error = new Error("Tripo upload did not return a file token");
-    error.status = 502;
+    const error = createHttpError("Tripo upload did not return a file token", 502);
     error.code = "TRIPO_FILE_TOKEN_MISSING";
     error.providerPayload = payload;
     throw error;
@@ -233,8 +228,7 @@ async function normalizeTripoImageInput({
       }
     };
   }
-  const error = new Error("Invalid 3D reference image. Use an http/https URL, Tripo file token, or image data URL.");
-  error.status = 400;
+  const error = createHttpError("Invalid 3D reference image. Use an http/https URL, Tripo file token, or image data URL.", 400);
   error.code = "TRIPO_IMAGE_INPUT_REQUIRED";
   throw error;
 }
@@ -249,8 +243,7 @@ function normalizeCreatedTask(payload = {}) {
       || ""
   ).trim();
   if (!taskId) {
-    const error = new Error("Tripo did not return a task id");
-    error.status = 502;
+    const error = createHttpError("Tripo did not return a task id", 502);
     error.code = "TRIPO_TASK_ID_MISSING";
     error.providerPayload = payload;
     throw error;
@@ -266,8 +259,7 @@ function normalizeCreatedTask(payload = {}) {
 function normalizeTripoModel(value = "") {
   const model = String(value || env.tripoDefaultModel || "").trim();
   if (VALID_TRIPO_MODELS.has(model)) return model;
-  const error = new Error(`Invalid Tripo model '${model}'. Allowed values: ${Array.from(VALID_TRIPO_MODELS).join(", ")}`);
-  error.status = 400;
+  const error = createHttpError(`Invalid Tripo model '${model}'. Allowed values: ${Array.from(VALID_TRIPO_MODELS).join(", ")}`, 400);
   error.code = "TRIPO_INVALID_MODEL";
   throw error;
 }
@@ -321,16 +313,14 @@ function sanitizeDefaultParams(defaultParams = {}) {
 function dataUrlToImageUpload(dataUrl = "", filename = "reference.png") {
   const match = String(dataUrl || "").match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/s);
   if (!match) {
-    const error = new Error("Only image data URLs can be uploaded to Tripo");
-    error.status = 400;
+    const error = createHttpError("Only image data URLs can be uploaded to Tripo", 400);
     error.code = "TRIPO_IMAGE_DATA_URL_REQUIRED";
     throw error;
   }
   const mimeType = match[1];
   const buffer = Buffer.from(match[2], "base64");
   if (!buffer.length) {
-    const error = new Error("Reference image is empty");
-    error.status = 400;
+    const error = createHttpError("Reference image is empty", 400);
     error.code = "TRIPO_IMAGE_EMPTY";
     throw error;
   }
