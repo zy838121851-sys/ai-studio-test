@@ -97,6 +97,39 @@ export function getTripo3DProviderModel(modelConfig = {}, { fallbackToId = true 
   return modelConfig.apiModel || modelConfig.providerModel || (fallbackToId ? modelConfig.id : undefined);
 }
 
+export function buildTripo3DDispatchParams({
+  mode = "text",
+  prompt = "",
+  imageUrl = "",
+  imageDataUrl = "",
+  imageName = "",
+  imageMimeType = "",
+  apiModel,
+  texture = true,
+  defaultParams = {},
+  requestId = ""
+} = {}) {
+  if (mode === "image") {
+    return {
+      imageUrl,
+      imageDataUrl,
+      imageName,
+      imageMimeType,
+      apiModel,
+      texture,
+      defaultParams,
+      requestId
+    };
+  }
+  return {
+    prompt,
+    apiModel,
+    texture,
+    defaultParams,
+    requestId
+  };
+}
+
 export function normalizeTripo3DJobInput(body = {}, { mode = "text" } = {}) {
   const isImageMode = mode === "image";
   const imageUrl = isImageMode

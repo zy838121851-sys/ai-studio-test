@@ -31,6 +31,7 @@ import {
   assertResolvedProviderMatchesModel,
   assertTripo3DModelConfig,
   assertTripo3DRequiredInput,
+  buildTripo3DDispatchParams,
   getInitialAIJobStatus,
   getModelModality,
   getTripo3DJobMetadata,
@@ -903,7 +904,8 @@ async function createTripo3DJob(req, {
   let chargedCredits = 0;
   try {
     taskCreated = mode === "image"
-      ? await createImageToModelTask({
+      ? await createImageToModelTask(buildTripo3DDispatchParams({
+        mode,
         imageUrl: cleanImageUrl,
         imageDataUrl: cleanImageDataUrl,
         imageName: cleanImageName,
@@ -912,14 +914,15 @@ async function createTripo3DJob(req, {
         texture,
         defaultParams: modelConfig.defaultParams || {},
         requestId
-      })
-      : await createTextToModelTask({
+      }))
+      : await createTextToModelTask(buildTripo3DDispatchParams({
+        mode,
         prompt: cleanPrompt,
         apiModel: taskApiModel,
         texture,
         defaultParams: modelConfig.defaultParams || {},
         requestId
-      });
+      }));
     const charge = chargeReservedCredits({
       userId,
       reservedAmount: reservation.amountCredits,

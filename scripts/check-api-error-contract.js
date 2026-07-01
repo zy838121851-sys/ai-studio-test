@@ -26,6 +26,7 @@ import {
   assertResolvedProviderMatchesModel,
   assertTripo3DModelConfig,
   assertTripo3DRequiredInput,
+  buildTripo3DDispatchParams,
   getInitialAIJobStatus,
   getModelModality,
   getTripo3DJobMetadata,
@@ -732,6 +733,41 @@ function assertAIRouteHelpers() {
   assert(getTripo3DProviderModel({
     id: "model-id"
   }, { fallbackToId: false }) === undefined, "Tripo task API model should preserve missing provider model");
+
+  assertDeepEqual(buildTripo3DDispatchParams({
+    mode: "text",
+    prompt: "make a chair",
+    apiModel: "api-model",
+    texture: false,
+    defaultParams: { draft: true },
+    requestId: "request-1"
+  }), {
+    prompt: "make a chair",
+    apiModel: "api-model",
+    texture: false,
+    defaultParams: { draft: true },
+    requestId: "request-1"
+  }, "Tripo text dispatch params should preserve provider input shape");
+  assertDeepEqual(buildTripo3DDispatchParams({
+    mode: "image",
+    imageUrl: "file_token:abcdefghij",
+    imageDataUrl: "data:image/png;base64,AAAA",
+    imageName: "input.png",
+    imageMimeType: "image/png",
+    apiModel: "api-model",
+    texture: true,
+    defaultParams: { draft: true },
+    requestId: "request-2"
+  }), {
+    imageUrl: "file_token:abcdefghij",
+    imageDataUrl: "data:image/png;base64,AAAA",
+    imageName: "input.png",
+    imageMimeType: "image/png",
+    apiModel: "api-model",
+    texture: true,
+    defaultParams: { draft: true },
+    requestId: "request-2"
+  }, "Tripo image dispatch params should preserve provider input shape");
 
   const text3DInput = normalizeTripo3DJobInput({
     prompt: "  make a chair  ",
