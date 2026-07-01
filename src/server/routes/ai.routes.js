@@ -1,10 +1,6 @@
 import { Router } from "express";
 import {
-  analyzeImage,
-  extractImageText,
-  generateImage,
-  generateSuggestions,
-  prepareAction
+  generateImage
 } from "../services/ai.service.js";
 import { env } from "../config/env.js";
 import { createAIAsyncHandler } from "../lib/ai-error-response.js";
@@ -51,6 +47,12 @@ import {
   createFixedBillingGeneration,
   createGenerationJob
 } from "../services/ai/generation-creation.service.js";
+import {
+  createCanvasAgentSuggestion,
+  createImageAnalysis,
+  createImageTextExtraction,
+  createPreparedAction
+} from "../services/ai/assistant-action.service.js";
 import {
   createExpandedImageEdit,
   createFixedQwenImageEdit,
@@ -375,59 +377,27 @@ export function createAIRouter() {
   }));
 
   router.post("/extract-image-text", aiLimiter, asyncHandler(async (req, res) => {
-    const result = await extractImageText(req.body);
-    res.json({
-      message: "Image text extracted",
-      model: env.dashscopeVisionModel,
-      provider: result.provider || "qwen",
-      providerModel: result.providerModel || env.dashscopeVisionModel,
-      providerCalls: result.providerCalls || [],
-      texts: result.texts,
-      text: result.text
-    });
+    const extraction = await createImageTextExtraction({ body: req.body });
+    res.json(extraction.body);
   }));
 
   router.post("/analyze-image", aiLimiter, asyncHandler(async (req, res) => {
-    const result = await billFixedTask({
+    const analysis = await createImageAnalysis({
       userId: req.auth.user.id,
-      provider: "qwen",
-      model: env.dashscopeVisionModel,
-      task: "vision_analysis",
-      count: 1,
-      reason: "vision_analysis",
-      callProvider: () => analyzeImage(req.body)
+      body: req.body
     });
-    res.json({
-      message: "Image analyzed",
-      model: env.dashscopeVisionModel,
-      provider: result.provider || "qwen",
-      providerModel: result.providerModel || env.dashscopeVisionModel,
-      providerCalls: result.providerCalls || [],
-      billing: toClientBilling(result.billing),
-      analysis: result.analysis,
-      text: result.text
-    });
+    res.json(analysis.body);
   }));
 
   router.post("/prepare-action", aiLimiter, asyncHandler(async (req, res) => {
-    const result = await prepareAction(req.body);
-    res.json({
-      message: "Action prepared",
-      action: result.action,
-      text: result.text,
-      providerCalls: result.providerCalls || []
-    });
+    const action = await createPreparedAction({ body: req.body });
+    res.json(action.body);
   }));
 
   router.post("/canvas-agent", aiLimiter, asyncHandler(async (req, res) => {
     if (!req.body?.canvasState) throw new Error("Missing canvasState");
-    const result = await generateSuggestions({ canvasState: req.body.canvasState, model: req.body.model });
-    res.json({
-      message: "Canvas suggestion ready",
-      suggestion: result.analysis,
-      text: result.text,
-      providerCalls: result.providerCalls || []
-    });
+    const suggestion = await createCanvasAgentSuggestion({ body: req.body });
+    res.json(suggestion.body);
   }));
 
   router.get("/image-proxy", imageProxyLimiter, asyncHandler(async (req, res) => {
