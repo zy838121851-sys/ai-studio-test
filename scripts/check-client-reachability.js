@@ -11,6 +11,23 @@ const DEPRECATED_CLIENT_MODULES = [
   "src/client/features/workspace/runtime/launcher-safe-bindings.js",
   "src/client/features/workspace/runtime/workspace-app-state.js"
 ];
+const ENTRY_IMPORT_EXPECTATIONS = [
+  {
+    filePath: "app.js",
+    required: ["./src/client/main.js"],
+    forbidden: ["./src/main.js"]
+  },
+  {
+    filePath: "src/client/main.js",
+    required: ["./core/app-init.js"],
+    forbidden: ["../features/workspace/index.js", "../features/workspace/runtime/index.js"]
+  },
+  {
+    filePath: "src/client/core/app-init.js",
+    required: ["../features/workspace/workflows/workspace-app-mount.js"],
+    forbidden: ["../features/workspace/index.js", "../features/workspace/runtime/index.js"]
+  }
+];
 
 const errors = [];
 
@@ -68,6 +85,30 @@ function parseImportSpecifiers(source) {
   return specifiers;
 }
 
+function readSource(filePath) {
+  return fs.readFileSync(path.resolve(ROOT, filePath), "utf8");
+}
+
+function normalizeImportSpecifiers(source) {
+  return parseImportSpecifiers(source).map(stripImportQuery);
+}
+
+function checkEntryImportExpectations() {
+  for (const expectation of ENTRY_IMPORT_EXPECTATIONS) {
+    const specifiers = normalizeImportSpecifiers(readSource(expectation.filePath));
+    for (const required of expectation.required) {
+      if (!specifiers.includes(required)) {
+        errors.push(`${expectation.filePath} must import ${required}`);
+      }
+    }
+    for (const forbidden of expectation.forbidden) {
+      if (specifiers.includes(forbidden)) {
+        errors.push(`${expectation.filePath} must not import ${forbidden}`);
+      }
+    }
+  }
+}
+
 function buildReachabilityGraph() {
   const allFiles = new Set([
     ...collectJsFiles(CLIENT_DIR),
@@ -99,6 +140,7 @@ function buildReachabilityGraph() {
 }
 
 const { allFiles, reachable } = buildReachabilityGraph();
+checkEntryImportExpectations();
 const deprecatedClientFiles = DEPRECATED_CLIENT_MODULES
   .filter((filePath) => fs.existsSync(path.resolve(ROOT, filePath)));
 const unreachableClientFiles = Array.from(allFiles)
