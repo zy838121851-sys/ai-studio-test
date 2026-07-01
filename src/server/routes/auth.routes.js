@@ -33,6 +33,10 @@ function handleAuthError(res, error) {
   });
 }
 
+function sendOAuthHtmlError(res, error) {
+  res.status(error.status || 500).send(error.message || "OAuth login failed");
+}
+
 export function createAuthRouter() {
   const router = Router();
 
@@ -181,7 +185,7 @@ export function createAuthRouter() {
       res.redirect(result.redirectTo || "/");
     } catch (error) {
       if (requestAccepts(req, "html")) {
-        res.status(error.status || 500).send(error.message || "OAuth login failed");
+        sendOAuthHtmlError(res, error);
         return;
       }
       handleAuthError(res, error);
