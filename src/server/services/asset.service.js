@@ -1,14 +1,12 @@
 import { randomUUID } from "node:crypto";
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { basename, extname, join, relative, resolve } from "node:path";
+import { basename, extname } from "node:path";
 import { env } from "../config/env.js";
 import { prepare, transaction } from "../db/sqlite.js";
+import { localStorageProvider } from "../providers/storage/local-storage.provider.js";
 import { getAssetCollection } from "./asset-collection.service.js";
 import { getProject } from "./project.service.js";
 import { ensureUserWorkspace, ensureUserWorkspaceWithDb } from "./workspace.service.js";
 
-const UPLOAD_DIR = env.uploadDir;
-const UPLOAD_ROOT = resolve(UPLOAD_DIR);
 const ASSET_TYPES = new Set(["image", "model3d", "video", "document", "other"]);
 const ALLOWED_UPLOAD_MIME_TYPES = new Set([
   "image/jpeg",
@@ -21,10 +19,6 @@ const ALLOWED_UPLOAD_MIME_TYPES = new Set([
   "model/gltf+json",
   "application/octet-stream"
 ]);
-
-function ensureUploadDir() {
-  if (!existsSync(UPLOAD_DIR)) mkdirSync(UPLOAD_DIR, { recursive: true });
-}
 
 function normalizeText(value) {
   return String(value || "").trim();
@@ -244,13 +238,7 @@ export function getAssetByUploadUrl(userId, uploadUrl = "") {
 
 export function resolveUploadAssetPath(asset = {}) {
   const filePath = normalizeText(asset?.filePath);
-  if (!filePath) return "";
-  const absolutePath = resolve(process.cwd(), filePath);
-  const uploadRootWithSeparator = UPLOAD_ROOT.endsWith("\\") || UPLOAD_ROOT.endsWith("/")
-    ? UPLOAD_ROOT
-    : `${UPLOAD_ROOT}${process.platform === "win32" ? "\\" : "/"}`;
-  if (absolutePath !== UPLOAD_ROOT && !absolutePath.startsWith(uploadRootWithSeparator)) return "";
-  return absolutePath;
+  return localStorageProvider.resolveStoredPath(filePath);
 }
 
 export function createUploadedAsset(userId, { file, fields = {} } = {}) {
@@ -262,15 +250,11 @@ export function createUploadedAsset(userId, { file, fields = {} } = {}) {
   const assetType = fields.type || normalizeAssetType("", file.mimeType);
   const maxBytes = assetType === "model3d" ? env.maxModelUploadBytes : env.maxUploadBytes;
   assertAllowedUpload(file.mimeType, file.buffer.length, { maxBytes });
-  ensureUploadDir();
   const id = randomUUID();
   const originalName = normalizeText(file.filename) || `asset-${id}`;
   const safeExt = getSafeExtension(originalName, file.mimeType);
   const fileName = `${Date.now()}-${id}${safeExt}`;
-  const absolutePath = join(UPLOAD_DIR, fileName);
-  writeFileSync(absolutePath, file.buffer);
-
-  const publicPath = `/uploads/${fileName}`;
+  const stored = localStorageProvider.saveBuffer(fileName, file.buffer);
   const dimensions = readImageDimensions(file.buffer, file.mimeType);
   return insertAsset(userId, {
     id,
@@ -280,9 +264,9 @@ export function createUploadedAsset(userId, { file, fields = {} } = {}) {
     source: fields.source || "upload",
     title: fields.title || originalName,
     collection: fields.collection,
-    filePath: relative(process.cwd(), absolutePath).replaceAll("\\", "/"),
-    url: publicPath,
-    thumbnailUrl: publicPath,
+    filePath: stored.filePath,
+    url: stored.url,
+    thumbnailUrl: stored.url,
     mimeType: file.mimeType,
     sizeBytes: file.buffer.length,
     width: fields.width ?? dimensions.width,
@@ -363,12 +347,9 @@ export function createGeneratedAssetFromBuffer(userId, {
   const assetType = type || normalizeAssetType("", mimeType);
   const maxBytes = assetType === "model3d" ? env.maxModelUploadBytes : env.maxUploadBytes;
   assertAllowedUpload(mimeType, buffer.length, { maxBytes });
-  ensureUploadDir();
   const id = randomUUID();
   const fileName = `${Date.now()}-${id}${getExtensionFromMime(mimeType)}`;
-  const absolutePath = join(UPLOAD_DIR, fileName);
-  writeFileSync(absolutePath, buffer);
-  const publicPath = `/uploads/${fileName}`;
+  const stored = localStorageProvider.saveBuffer(fileName, buffer);
   const dimensions = mimeType.startsWith("image/")
     ? readImageDimensions(buffer, mimeType)
     : { width: null, height: null };
@@ -379,9 +360,9 @@ export function createGeneratedAssetFromBuffer(userId, {
     type: assetType,
     source,
     title,
-    filePath: relative(process.cwd(), absolutePath).replaceAll("\\", "/"),
-    url: publicPath,
-    thumbnailUrl: publicPath,
+    filePath: stored.filePath,
+    url: stored.url,
+    thumbnailUrl: stored.url,
     mimeType,
     sizeBytes: buffer.length,
     width: width ?? dimensions.width,
@@ -657,20 +638,18 @@ function saveDataUrlToUpload(id, dataUrl) {
     error.status = 400;
     throw error;
   }
-  ensureUploadDir();
   const mimeType = match[1] || "application/octet-stream";
   const isBase64 = Boolean(match[2]);
   const body = match[3] || "";
   const buffer = isBase64 ? Buffer.from(body, "base64") : Buffer.from(decodeURIComponent(body));
   assertAllowedUpload(mimeType, buffer.length);
   const fileName = `${Date.now()}-${id}${getExtensionFromMime(mimeType)}`;
-  const absolutePath = join(UPLOAD_DIR, fileName);
-  writeFileSync(absolutePath, buffer);
+  const stored = localStorageProvider.saveBuffer(fileName, buffer);
   return {
     buffer,
     mimeType,
-    filePath: relative(process.cwd(), absolutePath).replaceAll("\\", "/"),
-    url: `/uploads/${fileName}`,
+    filePath: stored.filePath,
+    url: stored.url,
     sizeBytes: buffer.length
   };
 }
