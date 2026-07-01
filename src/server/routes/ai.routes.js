@@ -12,7 +12,6 @@ import { env } from "../config/env.js";
 import { createAIAsyncHandler } from "../lib/ai-error-response.js";
 import { toClientSizeNormalization } from "../lib/ai-job-log-payload.js";
 import {
-  buildDeferredImageEditResult,
   toClientAsset,
   toClientBilling,
   toClientJob
@@ -21,7 +20,6 @@ import {
   assertResolvedProviderMatchesModel,
   buildTripo3DDispatchResultParams,
   buildTripo3DRemoteFailureParams,
-  getInitialAIJobStatus,
   getModelModality,
   hasRemoteFallbackModelOutput,
   isFixedQwenImageEditAction,
@@ -36,21 +34,15 @@ import { assertPublicHttpUrl } from "../security/network.js";
 import { billFixedTask } from "../services/credits/billing.service.js";
 import {
   completeModel3DJob,
-  completeAIJob,
-  createAIJob,
   failModel3DJob,
-  failAIJob,
   getAIJobByRemoteTaskId,
   getAIJobDetails,
   getAIJobOutputAssets,
   listAIJobs,
   refreshAIJob,
-  scheduleAIJobRefresh,
-  updateAIJobLogData,
   updateAIJobProgress,
-  updateAIJobDispatchResult
+  updateAIJobLogData
 } from "../services/ai-job.service.js";
-import { getAsset } from "../services/asset.service.js";
 import {
   DEFAULT_IMAGE_MODEL,
   getModelConfig,
@@ -62,7 +54,8 @@ import {
   createGenerationJob
 } from "../services/ai/generation-creation.service.js";
 import {
-  createFixedQwenImageEdit
+  createFixedQwenImageEdit,
+  createModelImageEdit
 } from "../services/ai/image-edit-creation.service.js";
 import { createTripo3DJob } from "../services/ai/tripo-3d-creation.service.js";
 import {
@@ -387,78 +380,14 @@ export function createAIRouter() {
       res.json(edit.body);
       return;
     }
-    const result = await billFixedTask({
+    const edit = await createModelImageEdit({
       userId: req.auth.user.id,
-      provider: getModelConfig(model)?.providerId,
       model,
-      task: "image_editing",
-      count: 1,
-      reason: "image_editing",
-      callProvider: async ({ reservation, requestId }) => {
-        const editResult = await generateImage({
-          model,
-          prompt,
-          images: referenceImages,
-          size,
-          requestId
-        });
-        const remoteTaskId = editResult.remoteTaskId || editResult.taskId;
-        if (!remoteTaskId) return editResult;
-        const modelConfig = getModelConfig(model);
-        const job = createAIJob({
-          id: requestId,
-          userId: req.auth.user.id,
-          provider: modelConfig?.providerId || editResult.provider || "",
-          vendor: modelConfig?.vendor || "",
-          modelId: model,
-          providerModel: editResult.providerModel || editResult.resolvedModel || editResult.model || modelConfig?.providerModel || model,
-          remoteTaskId,
-          type: "image",
-          status: getInitialAIJobStatus(editResult),
-          progress: editResult.imageUrl ? 90 : (editResult.status === "running" ? 50 : 5),
-          prompt,
-          creditsReserved: reservation.amountCredits
-        });
-        if (editResult.imageUrl) {
-          const completed = await completeAIJob(req.auth.user.id, job.id, {
-            outputs: [{ url: editResult.imageUrl, mimeType: "image/png" }]
-          });
-          const firstAsset = completed?.outputAssetIds?.[0]
-            ? getAsset(req.auth.user.id, completed.outputAssetIds[0])
-            : null;
-          return buildDeferredImageEditResult(editResult, completed || job, firstAsset, reservation);
-        }
-        scheduleAIJobRefresh(req.auth.user.id, job.id);
-        if (editResult.status === "succeeded") {
-          const completed = await refreshAIJob(req.auth.user.id, job.id);
-          const firstAsset = completed?.outputAssetIds?.[0]
-            ? getAsset(req.auth.user.id, completed.outputAssetIds[0])
-            : null;
-          return buildDeferredImageEditResult(editResult, completed || job, firstAsset, reservation);
-        }
-        return buildDeferredImageEditResult(editResult, job, null, reservation);
-      }
+      prompt,
+      referenceImages,
+      size
     });
-    res.json({
-      message: result.imageUrl ? "Image updated" : "Model returned without an image URL",
-      imageUrl: result.imageUrl,
-      imageUrls: result.imageUrls || [],
-      outputs: result.outputs || [],
-      model: result.model,
-      requestedModel: result.requestedModel,
-      resolvedModel: result.resolvedModel || result.model,
-      provider: isApimartModel(model) ? undefined : (result.provider || getModelConfig(model)?.providerId),
-      providerModel: result.providerModel || result.resolvedModel || result.model,
-      providerCalls: isApimartModel(model) ? [] : (result.providerCalls || []),
-      referenceCount: result.referenceCount,
-      job: result.job,
-      jobId: result.jobId,
-      remoteTaskId: result.remoteTaskId || result.taskId || "",
-      status: result.status || result.job?.status || "",
-      outputCount: result.outputCount || 0,
-      asset: result.asset,
-      billing: toClientBilling(result.billing)
-    });
+    res.json(edit.body);
   }));
 
   router.post("/extract-image-text", aiLimiter, asyncHandler(async (req, res) => {

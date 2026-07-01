@@ -1,11 +1,26 @@
-import { toClientAsset, toClientBilling, toClientJob } from "../../lib/ai-response-dto.js";
-import { generateFixedQwenImageEdit } from "../ai.service.js";
+import {
+  buildDeferredImageEditResult,
+  toClientAsset,
+  toClientBilling,
+  toClientJob
+} from "../../lib/ai-response-dto.js";
+import { getInitialAIJobStatus } from "../../lib/ai-route-helpers.js";
+import {
+  generateFixedQwenImageEdit,
+  generateImage
+} from "../ai.service.js";
 import {
   completeAIJob,
-  createAIJob
+  createAIJob,
+  refreshAIJob,
+  scheduleAIJobRefresh
 } from "../ai-job.service.js";
 import { getAsset } from "../asset.service.js";
 import { billFixedTask } from "../credits/billing.service.js";
+import {
+  getModelConfig,
+  isApimartModel
+} from "../model-catalog.service.js";
 
 export async function createFixedQwenImageEdit({
   userId = "",
@@ -85,6 +100,89 @@ export async function createFixedQwenImageEdit({
       referenceCount: result.referenceCount,
       job: result.job,
       jobId: result.jobId,
+      billing: toClientBilling(result.billing)
+    }
+  };
+}
+
+export async function createModelImageEdit({
+  userId = "",
+  model = "",
+  prompt = "",
+  referenceImages = [],
+  size
+} = {}) {
+  const result = await billFixedTask({
+    userId,
+    provider: getModelConfig(model)?.providerId,
+    model,
+    task: "image_editing",
+    count: 1,
+    reason: "image_editing",
+    callProvider: async ({ reservation, requestId }) => {
+      const editResult = await generateImage({
+        model,
+        prompt,
+        images: referenceImages,
+        size,
+        requestId
+      });
+      const remoteTaskId = editResult.remoteTaskId || editResult.taskId;
+      if (!remoteTaskId) return editResult;
+      const modelConfig = getModelConfig(model);
+      const job = createAIJob({
+        id: requestId,
+        userId,
+        provider: modelConfig?.providerId || editResult.provider || "",
+        vendor: modelConfig?.vendor || "",
+        modelId: model,
+        providerModel: editResult.providerModel || editResult.resolvedModel || editResult.model || modelConfig?.providerModel || model,
+        remoteTaskId,
+        type: "image",
+        status: getInitialAIJobStatus(editResult),
+        progress: editResult.imageUrl ? 90 : (editResult.status === "running" ? 50 : 5),
+        prompt,
+        creditsReserved: reservation.amountCredits
+      });
+      if (editResult.imageUrl) {
+        const completed = await completeAIJob(userId, job.id, {
+          outputs: [{ url: editResult.imageUrl, mimeType: "image/png" }]
+        });
+        const firstAsset = completed?.outputAssetIds?.[0]
+          ? getAsset(userId, completed.outputAssetIds[0])
+          : null;
+        return buildDeferredImageEditResult(editResult, completed || job, firstAsset, reservation);
+      }
+      scheduleAIJobRefresh(userId, job.id);
+      if (editResult.status === "succeeded") {
+        const completed = await refreshAIJob(userId, job.id);
+        const firstAsset = completed?.outputAssetIds?.[0]
+          ? getAsset(userId, completed.outputAssetIds[0])
+          : null;
+        return buildDeferredImageEditResult(editResult, completed || job, firstAsset, reservation);
+      }
+      return buildDeferredImageEditResult(editResult, job, null, reservation);
+    }
+  });
+  return {
+    body: {
+      message: result.imageUrl ? "Image updated" : "Model returned without an image URL",
+      imageUrl: result.imageUrl,
+      imageUrls: result.imageUrls || [],
+      outputs: result.outputs || [],
+      model: result.model,
+      requestedModel: result.requestedModel,
+      resolvedModel: result.resolvedModel || result.model,
+      provider: isApimartModel(model) ? undefined : (result.provider || getModelConfig(model)?.providerId),
+      providerModel: result.providerModel || result.resolvedModel || result.model,
+      providerCalls: isApimartModel(model) ? [] : (result.providerCalls || []),
+      referenceCount: result.referenceCount,
+      job: result.job,
+      jobId: result.jobId,
+      remoteTaskId: result.remoteTaskId || result.taskId || "",
+      status: result.status || result.job?.status || "",
+      outputCount: result.outputCount || 0,
+      asset: result.asset,
       billing: toClientBilling(result.billing)
     }
   };
