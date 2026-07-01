@@ -1,5 +1,5 @@
 import { createRuntimeStateAccessors } from "./runtime-state-accessors.js";
-import { createRuntimeActionsContext } from "../actions-context.js";
+import { createRuntimeChatContext } from "../../chat/runtime/chat-context.js?v=20260628-boot-inline-1";
 import { createRuntimeBindingsContext } from "../bindings-context.js";
 import { createRuntimeUIContext } from "../ui-context.js?v=20260627-library-bulk-select-1";
 import { createRuntimeCoreContext } from "./core-context.js";
@@ -47,4 +47,10 @@ export function buildRuntimeContext({
     bindings,
     actions
   });
+}
+
+function createRuntimeActionsContext(deps = {}) {
+  const { chatContext, ...rest } = deps;
+
+  return { ...createRuntimeChatContext(chatContext), ...rest };
 }
