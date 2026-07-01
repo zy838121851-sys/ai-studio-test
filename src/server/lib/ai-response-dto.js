@@ -66,6 +66,46 @@ export function buildCompletedGenerationResponse({
   };
 }
 
+export function buildRefreshedGenerationResponse({
+  completed = {},
+  modelConfig = {},
+  result = {}
+} = {}) {
+  return {
+    message: "Generation completed",
+    job: toClientJob(completed),
+    jobId: completed?.id,
+    model: modelConfig.id,
+    requestedModel: modelConfig.id,
+    providerModel: completed?.providerModel || modelConfig.providerModel || modelConfig.id,
+    resolvedModel: completed?.providerModel || modelConfig.providerModel || modelConfig.id,
+    sizeNormalization: toClientSizeNormalization(result.sizeNormalization)
+  };
+}
+
+export function buildQueuedGenerationResponse({
+  job = {},
+  modelConfig = {},
+  result = {},
+  reservation = {}
+} = {}) {
+  return {
+    message: "Generation job created",
+    job: toClientJob(job),
+    jobId: job.id,
+    model: modelConfig.id,
+    requestedModel: modelConfig.id,
+    providerModel: result.providerModel || result.resolvedModel || result.model || modelConfig.providerModel || modelConfig.id,
+    resolvedModel: result.resolvedModel || result.providerModel || result.model || modelConfig.providerModel || modelConfig.id,
+    sizeNormalization: toClientSizeNormalization(result.sizeNormalization),
+    billing: {
+      creditsReserved: reservation.amountCredits,
+      creditsCharged: 0,
+      status: "reserved"
+    }
+  };
+}
+
 export function toClientJob(job = {}) {
   if (!job) return null;
   return {

@@ -18,6 +18,8 @@ import {
 import {
   buildCompletedGenerationResponse,
   buildDeferredImageEditResult,
+  buildQueuedGenerationResponse,
+  buildRefreshedGenerationResponse,
   sanitizeGenerationResult,
   toClientAsset,
   toClientBilling,
@@ -627,6 +629,34 @@ function assertAIResponseDtos() {
   assert(videoResponse.videoUrl === "/uploads/output.mp4", "Completed generation DTO should expose persisted video URL");
   assert(videoResponse.providerModel === "video-provider-fallback", "Completed generation DTO should fall back to model providerModel");
   assert(videoResponse.resolvedModel === "video-provider-fallback", "Completed generation DTO should preserve resolved model fallback");
+
+  const refreshedResponse = buildRefreshedGenerationResponse({
+    completed: { ...job, providerModel: "completed-provider-model" },
+    modelConfig: { id: "gpt-image-2", providerModel: "provider-fallback" },
+    result: { sizeNormalization: { requested: "1024x1024", final: "1024x1024" } }
+  });
+  assert(refreshedResponse.message === "Generation completed", "Refreshed generation DTO should preserve completed message");
+  assert(refreshedResponse.jobId === "job-1", "Refreshed generation DTO should expose completed job id");
+  assert(refreshedResponse.providerModel === "completed-provider-model", "Refreshed generation DTO should prefer completed provider model");
+  assert(refreshedResponse.resolvedModel === "completed-provider-model", "Refreshed generation DTO should preserve resolved completed provider model");
+
+  const queuedResponse = buildQueuedGenerationResponse({
+    job,
+    modelConfig: { id: "gpt-image-2", providerModel: "provider-fallback" },
+    result: {
+      providerModel: "provider-result",
+      resolvedModel: "resolved-result",
+      sizeNormalization: { requested: "1024x1024", final: "1024x1024" }
+    },
+    reservation: { amountCredits: 8 }
+  });
+  assert(queuedResponse.message === "Generation job created", "Queued generation DTO should preserve created message");
+  assert(queuedResponse.jobId === "job-1", "Queued generation DTO should expose queued job id");
+  assert(queuedResponse.providerModel === "provider-result", "Queued generation DTO should prefer provider result model");
+  assert(queuedResponse.resolvedModel === "resolved-result", "Queued generation DTO should prefer resolved result model");
+  assert(queuedResponse.billing.creditsReserved === 8, "Queued generation DTO should preserve reserved credits");
+  assert(queuedResponse.billing.creditsCharged === 0, "Queued generation DTO should keep queued charge at zero");
+  assert(queuedResponse.billing.status === "reserved", "Queued generation DTO should keep reserved billing status");
 }
 
 async function assertAIRouteHelpers() {
