@@ -735,8 +735,11 @@ async function waitForPendingCanvasUploads(canvasWorld) {
 function snapshotNeedsUrlRepair(snapshotJson = "") {
   const snapshot = parseSnapshotJson(snapshotJson);
   return Array.isArray(snapshot?.nodes) && snapshot.nodes.some((node) => (
-    isMediaSnapshotNode(node)
-    && (!hasStableMediaUrl(node?.media?.url) || containsTransientUrl(node))
+    isLoadingSnapshotNode(node)
+    || (
+      isMediaSnapshotNode(node)
+      && (!hasStableMediaUrl(node?.media?.url) || containsTransientUrl(node))
+    )
   ));
 }
 
@@ -763,6 +766,15 @@ function isMediaSnapshotNode(node = {}) {
   return kind === "image"
     || kind === "video"
     || /<(?:img|video)\b/i.test(html);
+}
+
+function isLoadingSnapshotNode(node = {}) {
+  const kind = String(node.kind || node.dataset?.kind || "").toLowerCase();
+  const className = String(node.className || "");
+  const html = String(node.html || "");
+  return kind === "loading-image"
+    || /\bnode-loading-image\b/.test(className)
+    || /\bgeneration-frame\b/.test(html);
 }
 
 function hasStableMediaUrl(url = "") {

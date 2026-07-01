@@ -6,18 +6,20 @@ export function createProjectSavePatch({
   resolveAssetUrl = null
 } = {}) {
   const nodes = Array.from(canvasWorld?.querySelectorAll(".node-card") || []);
+  const restorableNodes = nodes.filter(isRestorableCanvasNode);
   const selectedImage = getStableNodeMediaUrl(selectedNode, resolveAssetUrl);
   const firstImage = getStableNodeMediaUrl(canvasWorld?.querySelector(".node-image"), resolveAssetUrl);
   return {
     title: projectTitleElement?.textContent?.trim() || project?.title || "Fresh Ideas",
     thumbnail: selectedImage || firstImage || stableUrl(project?.thumbnail) || "",
-    itemCount: nodes.length,
+    itemCount: restorableNodes.length,
     canvasSnapshotJson: serializeCanvasSnapshot({ canvasWorld, resolveAssetUrl })
   };
 }
 
 export function serializeCanvasSnapshot({ canvasWorld, resolveAssetUrl = null } = {}) {
   const nodes = Array.from(canvasWorld?.querySelectorAll(".node-card") || [])
+    .filter(isRestorableCanvasNode)
     .map((node) => snapshotCanvasNode(node, resolveAssetUrl))
     .filter(Boolean);
   return JSON.stringify({
@@ -39,6 +41,7 @@ export function restoreCanvasSnapshotJson({
 
   let restoredCount = 0;
   snapshot.nodes.forEach((item) => {
+    if (!isRestorableSnapshotItem(item)) return;
     const media = normalizeSnapshotMedia(item, resolveAssetUrl);
     const node = addNode({
       kind: item.kind || item.dataset?.kind || "image",
@@ -63,7 +66,7 @@ export function restoreCanvasSnapshotJson({
 }
 
 function snapshotCanvasNode(node, resolveAssetUrl = null) {
-  if (!node) return null;
+  if (!isRestorableCanvasNode(node)) return null;
   const image = node.querySelector(".image-frame img");
   const video = node.querySelector("video");
   const editor = node.querySelector(".canvas-text-editor");
@@ -101,7 +104,9 @@ function applyNodeSnapshot(node, item) {
   if (item.style) node.setAttribute("style", item.style);
   Object.entries(item.dataset || {}).forEach(([key, value]) => {
     if (key === "objectUrl" && isTransientUrl(value)) return;
-    node.dataset[key] = value;
+    const nextValue = key === "objectUrl" ? normalizePersistentMediaUrl(value) : value;
+    if (key === "objectUrl" && !nextValue) return;
+    node.dataset[key] = nextValue;
   });
   if ((item.kind || item.dataset?.kind) === "image" && node.style.width) {
     node.dataset.manualSize = node.dataset.manualSize || "true";
@@ -159,6 +164,10 @@ function sanitizeSnapshotDataset(dataset = {}, resolveAssetUrl = null, title = "
     const resolved = resolvePersistentUrl(resolveAssetUrl, { title, url: next.objectUrl });
     if (resolved) next.objectUrl = resolved;
     else delete next.objectUrl;
+  } else if (next.objectUrl) {
+    const normalized = normalizePersistentMediaUrl(next.objectUrl);
+    if (normalized) next.objectUrl = normalized;
+    else delete next.objectUrl;
   }
   return next;
 }
@@ -211,12 +220,60 @@ function decodeHtmlAttribute(value = "") {
 }
 
 function stableUrl(url = "") {
-  const value = String(url || "").trim();
-  return value && !isTransientUrl(value) ? value : "";
+  return normalizePersistentMediaUrl(url);
 }
 
 function isTransientUrl(url = "") {
   return String(url || "").startsWith("blob:");
+}
+
+export function normalizePersistentMediaUrl(url = "") {
+  const value = String(url || "").trim();
+  if (!value || isTransientUrl(value)) return "";
+  if (value.startsWith("/") || value.startsWith("data:")) return value;
+  try {
+    const parsed = new URL(value);
+    if (
+      /^https?:$/i.test(parsed.protocol)
+      && parsed.pathname.startsWith("/uploads/")
+      && (isLocalUploadHost(parsed.hostname) || isCurrentOrigin(parsed))
+    ) {
+      return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    }
+  } catch {
+    return value;
+  }
+  return value;
+}
+
+export function isRestorableSnapshotItem(item = {}) {
+  const kind = String(item?.kind || item?.dataset?.kind || "").trim().toLowerCase();
+  const className = String(item?.className || "");
+  const html = String(item?.html || "");
+  return kind !== "loading-image"
+    && !/\bnode-loading-image\b/.test(className)
+    && !/\bgeneration-frame\b/.test(html);
+}
+
+function isRestorableCanvasNode(node) {
+  if (!node) return false;
+  const kind = String(node.dataset?.kind || kindFromClass(node) || "").trim().toLowerCase();
+  return kind !== "loading-image"
+    && !node.classList?.contains?.("node-loading-image")
+    && !node.querySelector?.(".generation-frame");
+}
+
+function isLocalUploadHost(hostname = "") {
+  const host = String(hostname || "").toLowerCase();
+  return host === "localhost" || host === "127.0.0.1" || host === "::1" || host === "[::1]";
+}
+
+function isCurrentOrigin(url) {
+  try {
+    return Boolean(globalThis.location?.origin && url.origin === globalThis.location.origin);
+  } catch {
+    return false;
+  }
 }
 
 function resolvePersistentUrl(resolveAssetUrl, details = {}) {
