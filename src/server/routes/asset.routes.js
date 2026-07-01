@@ -2,7 +2,7 @@ import { Router } from "express";
 import { env } from "../config/env.js";
 import { sendCaughtErrorResponse, sendErrorResponse } from "../lib/http-error-response.js";
 import { getRequestContext } from "../lib/request-auth.js";
-import { getRequestBody, getRequestQuery, getRouteParam } from "../lib/route-request.js";
+import { getRequestBody, getRequestHeader, getRequestQuery, getRouteParam } from "../lib/route-request.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import { recordAuditEvent } from "../services/audit.service.js";
@@ -155,7 +155,7 @@ export function createAssetRouter() {
 }
 
 async function parseMultipartForm(req) {
-  const contentType = req.headers["content-type"] || "";
+  const contentType = getRequestHeader(req, "content-type") || "";
   const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
   if (!boundaryMatch) {
     const error = new Error("multipart/form-data is required");
