@@ -1,4 +1,5 @@
 import { createLocalJobQueue } from "../src/server/providers/queue/local-job-queue.provider.js";
+import { isJobActive, scheduleUniqueJob } from "../src/server/services/job-queue.service.js";
 
 function assert(condition, message) {
   if (!condition) {
@@ -77,5 +78,15 @@ await tick();
 
 assert(rescheduledCalls === 1, "Rescheduled jobs should run");
 assert(queue.isActive("job:1") === false, "Completed rescheduled jobs should be inactive");
+
+let serviceCalls = 0;
+assert(scheduleUniqueJob("service:job", () => {
+  serviceCalls += 1;
+}) === true, "Job queue service should schedule through the provider");
+
+await tick();
+
+assert(serviceCalls === 1, "Job queue service scheduled tasks should run");
+assert(isJobActive("service:job") === false, "Job queue service should expose active state");
 
 console.log("Job queue provider checks passed.");
