@@ -1,6 +1,7 @@
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { classifyAIError, toClientFailure } from "../src/server/lib/ai-error-response.js";
 
 const tempRoot = mkdtempSync(join(tmpdir(), "ai-studio-api-error-contract-"));
 process.env.DB_PATH = join(tempRoot, "api-error-contract.sqlite");
@@ -16,6 +17,7 @@ const restoreConsole = suppressAuditLogs();
 
 try {
   assertNoInlineMessageErrorResponses();
+  assertAIErrorClassification();
 
   const { createServer } = await import("../src/server/index.js");
   const { closeDatabase } = await import("../src/server/db/sqlite.js");
@@ -175,6 +177,60 @@ function assertRichAIErrorContract(response, { label, status, failureCode, failu
   assert(response.body.stage === stage, `${label} expected stage "${stage}", got "${response.body.stage}"`);
   assert(response.body.jobId, `${label} should return the failed local job id`);
   assert(response.body.job?.id === response.body.jobId, `${label} should return a job matching jobId`);
+}
+
+function assertAIErrorClassification() {
+  assertDeepEqual(
+    classifyAIError(errorWith({ status: 401, message: "Authentication required" }), { path: "/ai/generate" }),
+    { failureCode: "LOGIN_REQUIRED", failureMessage: "Authentication required", stage: "auth" },
+    "401 AI errors should classify as auth failures"
+  );
+  assertDeepEqual(
+    classifyAIError(errorWith({ status: 402, message: "Insufficient credits" }), { path: "/ai/generate" }),
+    { failureCode: "INSUFFICIENT_CREDITS", failureMessage: "Insufficient credits", stage: "billing" },
+    "402 AI errors should classify as billing failures"
+  );
+  assertDeepEqual(
+    classifyAIError(errorWith({ status: 404, message: "Job not found" }), { path: "/ai/jobs/missing" }),
+    { failureCode: "JOB_NOT_FOUND", failureMessage: "Job not found", stage: "jobPoll" },
+    "AI job 404 errors should classify as job polling failures"
+  );
+  assertDeepEqual(
+    classifyAIError(errorWith({ status: 400, code: "BAD_IMAGE", message: "Bad image" }), { path: "/image-proxy" }),
+    { failureCode: "BAD_IMAGE", failureMessage: "Bad image", stage: "request" },
+    "400 AI errors should preserve explicit request failure codes"
+  );
+  assertDeepEqual(
+    classifyAIError(errorWith({ message: "Provider timed out" }), { path: "/ai/generate" }),
+    { failureCode: "JOB_TIMEOUT", failureMessage: "Provider timed out", stage: "jobPoll" },
+    "timeout AI errors should classify as job polling failures"
+  );
+  assertDeepEqual(
+    classifyAIError(errorWith({ message: "Generated output could not be saved locally" }), { path: "/ai/generate" }),
+    { failureCode: "OUTPUT_SAVE_FAILED", failureMessage: "Generated output could not be saved locally", stage: "outputPersist" },
+    "output persistence errors should classify as output persistence failures"
+  );
+  assertDeepEqual(
+    toClientFailure({ errorCode: "PROVIDER_FAILED", errorMessage: "provider exploded" }, "AI_JOB_FAILED"),
+    {
+      errorCode: "PROVIDER_FAILED",
+      errorMessage: "provider exploded",
+      failureCode: "PROVIDER_FAILED",
+      failureMessage: "provider exploded"
+    },
+    "AI job failures should preserve stored error details"
+  );
+}
+
+function errorWith({ status, code, message } = {}) {
+  const error = new Error(message);
+  if (status !== undefined) error.status = status;
+  if (code !== undefined) error.code = code;
+  return error;
+}
+
+function assertDeepEqual(actual, expected, message) {
+  assert(JSON.stringify(actual) === JSON.stringify(expected), `${message}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
 }
 
 function assertNoInlineMessageErrorResponses() {
