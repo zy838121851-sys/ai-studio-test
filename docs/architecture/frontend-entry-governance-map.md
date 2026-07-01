@@ -3,8 +3,8 @@
 Date: 2026-07-01
 
 This document records the current frontend entry chain and the safest next
-entry-governance moves. It is documentation only and does not change runtime
-behavior, UI, interaction, routing, server routes, styles, or dependencies.
+entry-governance moves. It does not authorize UI, interaction, routing, server
+route, style, dependency, or deletion changes.
 
 ## Scope
 
@@ -37,7 +37,6 @@ The current source boot path is:
 ```text
 index.html
 -> app.js
--> src/main.js
 -> src/client/main.js
 -> src/client/core/app-init.js
 -> mountWorkspaceApp(document)
@@ -47,13 +46,17 @@ Current entry files:
 
 ```js
 // app.js
-import "./src/main.js?v=20260628-boot-inline-1";
+import "./src/client/main.js?v=20260628-boot-inline-1";
 ```
 
 ```js
 // src/main.js
 import "./client/main.js?v=20260627-generator-job-recovery-2";
 ```
+
+`src/main.js` is kept as a compatibility forwarding file. It is not currently
+used by `app.js`, and it must not be deleted without a separate deletion-proof
+batch.
 
 ```js
 // src/client/main.js
@@ -79,9 +82,8 @@ In the non-built development path, `src/server/index.js` currently serves:
 /src/client   -> src/client/*
 ```
 
-This means a future entry shortening from `app.js -> src/main.js` to
-`app.js -> src/client/main.js` is mechanically possible without adding a new
-server static route, because `/src/client` is already served.
+This means the current `app.js -> src/client/main.js` source entry works without
+adding a new server static route, because `/src/client` is already served.
 
 Do not remove `/src/main.js` in the same batch. It is a compatibility route and
 docs still reference it.
@@ -131,7 +133,7 @@ same.
 
 ## Pure Forwarding Candidates
 
-### Candidate A: `src/main.js`
+### Completed A: bypass `src/main.js` from `app.js`
 
 Current role:
 
@@ -139,14 +141,14 @@ Current role:
 - Has no app logic, state, DOM binding, or side effects except importing the
   client entry.
 
-Potential future move:
+Current source entry:
 
 ```js
 // app.js
 import "./src/client/main.js?v=20260628-boot-inline-1";
 ```
 
-Why this is the safest first code cleanup:
+Why this was the safest first code cleanup:
 
 - It shortens the public boot path by one hop.
 - It keeps `app.js` as the browser-facing source entry.
@@ -154,12 +156,11 @@ Why this is the safest first code cleanup:
 - It does not touch `app-init.js`, workspace runtime, compatibility bridge, DOM,
   CSS, or server routes.
 
-Required companion updates in that future batch:
+Compatibility rules after this cleanup:
 
-- Update `docs/architecture/current-state.md` boot path.
-- Update any architecture docs that explicitly assert the old boot path.
 - Leave `src/main.js` and `/src/main.js` route in place as compatibility until a
   later deletion-proof batch.
+- Update architecture docs when they explicitly assert the public boot path.
 
 Rollback:
 
@@ -224,10 +225,10 @@ These areas have broader runtime or deployment coupling.
 
 The next safest code batch is:
 
-1. Change only `app.js` to import `./src/client/main.js?...` directly.
-2. Update only the architecture docs that explicitly list the boot path.
-3. Do not delete `src/main.js`.
-4. Do not change `src/server/index.js`.
+1. Audit `src/client/features/workspace/runtime/index.js` import consumers.
+2. Decide whether `app-init.js` can import a narrower workspace mount entry.
+3. Do not change `workspace-app-mount.js` compatibility bridge behavior.
+4. Do not delete any broad barrel or forwarding file.
 5. Run `npm run check`.
 6. Run `npm run build`.
 7. Confirm `git diff --name-only` contains only the intended files.

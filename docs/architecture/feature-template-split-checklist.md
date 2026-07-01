@@ -260,7 +260,7 @@ The first template extraction for any feature must satisfy these rules:
 - Event listeners still bind once.
 - Existing CSS selectors still match.
 - Existing public boot path still starts from
-  `app.js -> src/main.js -> src/client/main.js -> src/client/core/app-init.js`.
+  `app.js -> src/client/main.js -> src/client/core/app-init.js`.
 - `npm run check` and `npm run build` pass.
 
 ## Do Not Combine With Template Split

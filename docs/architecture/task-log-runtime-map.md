@@ -31,7 +31,6 @@ Current client boot still follows:
 
 ```text
 app.js
--> src/main.js
 -> src/client/main.js
 -> src/client/core/app-init.js
 -> mountWorkspaceApp()

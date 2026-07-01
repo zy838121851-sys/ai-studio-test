@@ -21,7 +21,7 @@ features, UI appearance, or interaction behavior unless explicitly requested.
 Client boot path:
 
 ```text
-app.js -> src/main.js -> src/client/main.js -> src/client/core/app-init.js
+app.js -> src/client/main.js -> src/client/core/app-init.js
 ```
 
 Current app initialization in `app-init.js`:
