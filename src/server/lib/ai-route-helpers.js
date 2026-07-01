@@ -5,6 +5,18 @@ export function getInitialAIJobStatus(result = {}) {
   return status || "queued";
 }
 
+export function hasRemoteFallbackModelOutput(assets = []) {
+  return Array.from(assets || []).some((asset) => (
+    asset?.type === "model3d"
+    && !asset.filePath
+    && /^https?:\/\//i.test(String(asset.url || ""))
+  ));
+}
+
+export function isFixedQwenImageEditAction(actionType = "") {
+  return new Set(["remove_background", "text_edit"]).has(String(actionType || "").trim());
+}
+
 export function getModelModality(modelConfig = {}) {
   return String(modelConfig.modality || modelConfig.type || "image").trim().toLowerCase();
 }

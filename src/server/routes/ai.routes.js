@@ -30,6 +30,8 @@ import {
 import {
   getInitialAIJobStatus,
   getModelModality,
+  hasRemoteFallbackModelOutput,
+  isFixedQwenImageEditAction,
   isValidTripoImageInput,
   jobStatusForError,
   normalizeImages,
@@ -823,10 +825,6 @@ export function createAIRouter() {
   return router;
 }
 
-function isFixedQwenImageEditAction(actionType = "") {
-  return new Set(["remove_background", "text_edit"]).has(String(actionType || "").trim());
-}
-
 function assertResolvedProviderMatchesModel({ modelConfig, result } = {}) {
   if (modelConfig?.providerId !== "volcengine") return;
   const provider = String(result?.provider || "").trim();
@@ -1068,14 +1066,6 @@ function getJobOutputAssets(userId, job = {}) {
   return Array.from(job.outputAssetIds || [])
     .map((assetId) => getAsset(userId, assetId))
     .filter(Boolean);
-}
-
-function hasRemoteFallbackModelOutput(assets = []) {
-  return Array.from(assets || []).some((asset) => (
-    asset?.type === "model3d"
-    && !asset.filePath
-    && /^https?:\/\//i.test(String(asset.url || ""))
-  ));
 }
 
 function asyncHandler(handler) {

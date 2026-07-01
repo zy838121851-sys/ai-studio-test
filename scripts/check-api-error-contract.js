@@ -19,6 +19,8 @@ import {
 import {
   getInitialAIJobStatus,
   getModelModality,
+  hasRemoteFallbackModelOutput,
+  isFixedQwenImageEditAction,
   isValidTripoImageInput,
   jobStatusForError,
   normalizeImages,
@@ -421,6 +423,14 @@ function assertAIRouteHelpers() {
   assert(getModelModality({ modality: "3D", type: "image" }) === "3d", "Model modality should prefer modality over type");
   assert(getModelModality({ type: "video" }) === "video", "Model modality should fall back to type");
   assert(getModelModality({}) === "image", "Model modality should default to image");
+
+  assert(isFixedQwenImageEditAction("remove_background") === true, "Fixed Qwen helper should recognize background removal");
+  assert(isFixedQwenImageEditAction(" text_edit ") === true, "Fixed Qwen helper should trim action types");
+  assert(isFixedQwenImageEditAction("upscale") === false, "Fixed Qwen helper should reject unrelated action types");
+
+  assert(hasRemoteFallbackModelOutput([{ type: "model3d", url: "https://example.test/model.glb" }]) === true, "Remote model output helper should detect remote 3D fallback assets");
+  assert(hasRemoteFallbackModelOutput([{ type: "model3d", url: "https://example.test/model.glb", filePath: "/uploads/model.glb" }]) === false, "Remote model output helper should ignore persisted local model assets");
+  assert(hasRemoteFallbackModelOutput([{ type: "image", url: "https://example.test/image.png" }]) === false, "Remote model output helper should ignore non-model assets");
 
   assert(isValidTripoImageInput("https://example.test/input.png", "") === true, "Tripo image input should accept public URLs");
   assert(isValidTripoImageInput("file_token:abcdefghij", "") === true, "Tripo image input should accept prefixed file tokens");
