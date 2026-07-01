@@ -241,6 +241,13 @@ export function resolveUploadAssetPath(asset = {}) {
   return localStorageProvider.resolveStoredPath(filePath);
 }
 
+export function resolveExistingUploadAssetPath(asset = {}) {
+  const filePath = normalizeText(asset?.filePath);
+  return localStorageProvider.storedPathExists(filePath)
+    ? localStorageProvider.resolveStoredPath(filePath)
+    : "";
+}
+
 export function createUploadedAsset(userId, { file, fields = {} } = {}) {
   if (!file?.buffer?.length) {
     const error = new Error("File is required");

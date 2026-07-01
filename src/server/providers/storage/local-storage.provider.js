@@ -49,10 +49,16 @@ export function createLocalStorageProvider({
     return absolutePath;
   }
 
+  function storedPathExists(filePath = "") {
+    const absolutePath = resolveStoredPath(filePath);
+    return Boolean(absolutePath && existsSync(absolutePath));
+  }
+
   return {
     ensureReady,
     saveBuffer,
-    resolveStoredPath
+    resolveStoredPath,
+    storedPathExists
   };
 }
 

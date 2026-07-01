@@ -36,10 +36,12 @@ try {
 
   const resolvedStoredPath = storage.resolveStoredPath(stored.filePath);
   assert(resolvedStoredPath === stored.absolutePath, "Stored filePath should resolve back to its absolute path");
+  assert(storage.storedPathExists(stored.filePath), "Existing stored filePath should report as present");
 
   assert(storage.resolveStoredPath("") === "", "Blank stored paths should not resolve");
   assert(storage.resolveStoredPath("package.json") === "", "Paths outside upload root should not resolve");
   assert(storage.resolveStoredPath(`../${basename(outsideFile)}`) === "", "Traversal paths should not resolve");
+  assert(!storage.storedPathExists("package.json"), "Paths outside upload root should not report as present");
 
   assertThrows(
     () => storage.saveBuffer("../escape.txt", Buffer.from("bad")),
