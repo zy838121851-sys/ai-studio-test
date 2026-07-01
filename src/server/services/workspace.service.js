@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { prepare, transaction } from "../db/sqlite.js";
+import { createHttpError } from "../lib/input-validation.js";
 
 export function ensureUserWorkspace(userId, { name = "" } = {}) {
   return transaction((db) => ensureUserWorkspaceWithDb(db, userId, { name }));
@@ -39,9 +40,7 @@ export function getBillingAccountForUser(userId) {
 export function ensureUserWorkspaceWithDb(db, userId, { name = "" } = {}) {
   const cleanUserId = String(userId || "").trim();
   if (!cleanUserId) {
-    const error = new Error("User id is required");
-    error.status = 400;
-    throw error;
+    throw createHttpError("User id is required", 400);
   }
 
   const user = db.prepare(`
@@ -52,9 +51,7 @@ export function ensureUserWorkspaceWithDb(db, userId, { name = "" } = {}) {
     LIMIT 1;
   `).get(cleanUserId);
   if (!user) {
-    const error = new Error("User not found");
-    error.status = 404;
-    throw error;
+    throw createHttpError("User not found", 404);
   }
 
   const existing = db.prepare(`
