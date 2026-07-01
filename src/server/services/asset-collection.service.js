@@ -1,10 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { prepare, transaction } from "../db/sqlite.js";
+import { requireText } from "../lib/input-validation.js";
 import { ensureUserWorkspace, ensureUserWorkspaceWithDb } from "./workspace.service.js";
-
-function normalizeText(value) {
-  return String(value || "").trim();
-}
 
 function userIdFromPrincipal(principal) {
   return typeof principal === "string" ? principal : principal?.userId;
@@ -89,12 +86,7 @@ export function getAssetCollection(principal, id) {
 
 export function createAssetCollection(principal, input = {}) {
   const userId = userIdFromPrincipal(principal);
-  const name = normalizeText(input.name);
-  if (!name) {
-    const error = new Error("Collection name is required");
-    error.status = 400;
-    throw error;
-  }
+  const name = requireText(input.name, "Collection name is required");
   return transaction((db) => {
     const scope = ensureUserWorkspaceWithDb(db, userId);
     const now = Date.now();
@@ -111,12 +103,7 @@ export function createAssetCollection(principal, input = {}) {
 
 export function updateAssetCollection(principal, id, input = {}) {
   const userId = userIdFromPrincipal(principal);
-  const name = normalizeText(input.name);
-  if (!name) {
-    const error = new Error("Collection name is required");
-    error.status = 400;
-    throw error;
-  }
+  const name = requireText(input.name, "Collection name is required");
   return transaction((db) => {
     const scope = ensureUserWorkspaceWithDb(db, userId);
     const existing = getAssetCollection(userId, id);
