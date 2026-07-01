@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createAIAsyncHandler } from "../lib/ai-error-response.js";
 import { sendErrorResponse } from "../lib/http-error-response.js";
-import { getRequestQuery, getRouteParam } from "../lib/route-request.js";
+import { getRequestBody, getRequestQuery, getRouteParam } from "../lib/route-request.js";
 import { getRequestUserId } from "../lib/request-auth.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
@@ -64,18 +64,20 @@ export function createAIRouter() {
   router.use(requireAuth);
 
   router.post("/ai/3d/text-to-model", aiLimiter, asyncHandler(async (req, res) => {
+    const body = getRequestBody(req);
     const result = await createTripo3DJob({
       userId: getRequestUserId(req),
-      body: req.body,
+      body,
       mode: "text"
     });
     res.json(result);
   }));
 
   router.post("/ai/3d/image-to-model", aiLimiter, asyncHandler(async (req, res) => {
+    const body = getRequestBody(req);
     const result = await createTripo3DJob({
       userId: getRequestUserId(req),
-      body: req.body,
+      body,
       mode: "image"
     });
     res.json(result);
@@ -95,11 +97,12 @@ export function createAIRouter() {
   }));
 
   router.post("/ai/generate", aiLimiter, asyncHandler(async (req, res) => {
-    const { modelId, modelConfig, apimartModel } = resolveGenerationModelRequest(req.body);
+    const body = getRequestBody(req);
+    const { modelId, modelConfig, apimartModel } = resolveGenerationModelRequest(body);
     if (!apimartModel) {
       const generation = await createFixedBillingGeneration({
         userId: getRequestUserId(req),
-        body: req.body,
+        body,
         modelId,
         modelConfig
       });
@@ -109,7 +112,7 @@ export function createAIRouter() {
 
     const generation = await createGenerationJob({
       userId: getRequestUserId(req),
-      body: req.body,
+      body,
       modelConfig,
       path: req.path
     });
@@ -140,42 +143,48 @@ export function createAIRouter() {
   }));
 
   router.post("/chat", aiLimiter, asyncHandler(async (req, res) => {
+    const body = getRequestBody(req);
     const generation = await createChatImageGeneration({
       userId: getRequestUserId(req),
-      body: req.body
+      body
     });
     res.json(generation.body);
   }));
 
   router.post("/image-edit", aiLimiter, asyncHandler(async (req, res) => {
+    const body = getRequestBody(req);
     const edit = await createImageEdit({
       userId: getRequestUserId(req),
-      body: req.body
+      body
     });
     res.json(edit.body);
   }));
 
   router.post("/extract-image-text", aiLimiter, asyncHandler(async (req, res) => {
-    const extraction = await createImageTextExtraction({ body: req.body });
+    const body = getRequestBody(req);
+    const extraction = await createImageTextExtraction({ body });
     res.json(extraction.body);
   }));
 
   router.post("/analyze-image", aiLimiter, asyncHandler(async (req, res) => {
+    const body = getRequestBody(req);
     const analysis = await createImageAnalysis({
       userId: getRequestUserId(req),
-      body: req.body
+      body
     });
     res.json(analysis.body);
   }));
 
   router.post("/prepare-action", aiLimiter, asyncHandler(async (req, res) => {
-    const action = await createPreparedAction({ body: req.body });
+    const body = getRequestBody(req);
+    const action = await createPreparedAction({ body });
     res.json(action.body);
   }));
 
   router.post("/canvas-agent", aiLimiter, asyncHandler(async (req, res) => {
-    if (!req.body?.canvasState) throw new Error("Missing canvasState");
-    const suggestion = await createCanvasAgentSuggestion({ body: req.body });
+    const body = getRequestBody(req);
+    if (!body?.canvasState) throw new Error("Missing canvasState");
+    const suggestion = await createCanvasAgentSuggestion({ body });
     res.json(suggestion.body);
   }));
 
