@@ -1,5 +1,5 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { join, relative, resolve } from "node:path";
+import { basename, join, relative, resolve } from "node:path";
 import { env } from "../../config/env.js";
 
 export function createLocalStorageProvider({
@@ -17,14 +17,25 @@ export function createLocalStorageProvider({
     return `${publicPrefix}/${fileName}`;
   }
 
+  function normalizeFileName(fileName = "") {
+    const cleanFileName = String(fileName || "").trim();
+    if (!cleanFileName || cleanFileName !== basename(cleanFileName)) {
+      const error = new Error("Invalid storage file name");
+      error.status = 400;
+      throw error;
+    }
+    return cleanFileName;
+  }
+
   function saveBuffer(fileName, buffer) {
+    const cleanFileName = normalizeFileName(fileName);
     ensureReady();
-    const absolutePath = join(uploadDir, fileName);
+    const absolutePath = join(uploadDir, cleanFileName);
     writeFileSync(absolutePath, buffer);
     return {
       absolutePath,
       filePath: relative(process.cwd(), absolutePath).replaceAll("\\", "/"),
-      url: publicUrlFor(fileName)
+      url: publicUrlFor(cleanFileName)
     };
   }
 
