@@ -1,16 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { prepare, transaction } from "../db/sqlite.js";
+import { normalizeBoundedText } from "../lib/input-validation.js";
 import { ensureUserWorkspace, ensureUserWorkspaceWithDb } from "./workspace.service.js";
 
-const MAX_TEXT_LENGTH = 12000;
 const MAX_JSON_LENGTH = 240000;
 
 function now() {
   return Date.now();
-}
-
-function normalizeText(value = "", maxLength = MAX_TEXT_LENGTH) {
-  return String(value || "").replace(/\s+/g, " ").trim().slice(0, maxLength);
 }
 
 function stringifyJson(value, fallback, maxLength = MAX_JSON_LENGTH) {
@@ -98,7 +94,7 @@ export function getConversationProject(principal, projectId) {
 
 export function getOrCreateProjectConversation(principal, projectId, input = {}) {
   const userId = userIdFromPrincipal(principal);
-  const cleanProjectId = normalizeText(projectId, 120);
+  const cleanProjectId = normalizeBoundedText(projectId, 120);
   if (!cleanProjectId) {
     const error = new Error("Missing projectId");
     error.status = 400;
@@ -128,7 +124,7 @@ export function getOrCreateProjectConversation(principal, projectId, input = {})
 
     const createdAt = now();
     const id = randomUUID();
-    const title = normalizeText(input.title || project.title || "Project chat", 120);
+    const title = normalizeBoundedText(input.title || project.title || "Project chat", 120);
     db.prepare(`
       INSERT INTO chat_conversations (
         id, workspace_id, user_id, project_id, title, summary, created_at, updated_at, deleted_at
@@ -162,7 +158,7 @@ export function archiveProjectConversation(principal, projectId) {
 
 export function listProjectConversations(principal, projectId, { limit = 40 } = {}) {
   const userId = userIdFromPrincipal(principal);
-  const cleanProjectId = normalizeText(projectId, 120);
+  const cleanProjectId = normalizeBoundedText(projectId, 120);
   if (!cleanProjectId) {
     const error = new Error("Missing projectId");
     error.status = 400;
@@ -203,7 +199,7 @@ export function getConversationForUser(principal, conversationId) {
 
 export function restoreProjectConversation(principal, conversationId) {
   const userId = userIdFromPrincipal(principal);
-  const cleanConversationId = normalizeText(conversationId, 120);
+  const cleanConversationId = normalizeBoundedText(conversationId, 120);
   if (!cleanConversationId) {
     const error = new Error("Missing conversationId");
     error.status = 400;
@@ -333,7 +329,7 @@ export function appendConversationMessage({
   id = randomUUID()
 } = {}) {
   const timestamp = now();
-  const cleanRole = normalizeText(role, 40);
+  const cleanRole = normalizeBoundedText(role, 40);
   if (!["user", "assistant", "system", "tool"].includes(cleanRole)) {
     const error = new Error("Invalid message role");
     error.status = 400;
@@ -369,12 +365,12 @@ export function appendConversationMessage({
       userId,
       projectId || conversation.project_id,
       cleanRole,
-      normalizeText(status, 40) || "done",
+      normalizeBoundedText(status, 40) || "done",
       stringifyJson(content, {}),
       stringifyJson(attachments, []),
       stringifyJson(toolCalls, []),
       stringifyJson(thinkingSteps, []),
-      normalizeText(decisionSummary, 2000),
+      normalizeBoundedText(decisionSummary, 2000),
       timestamp,
       timestamp,
       status === "done" ? timestamp : null
@@ -418,12 +414,12 @@ export function completeConversationMessage(userId, messageId, patch = {}) {
       WHERE id = ?
         AND user_id = ?;
     `).run(
-      normalizeText(patch.status || "done", 40),
+      normalizeBoundedText(patch.status || "done", 40),
       stringifyJson(patch.content ?? parseJson(existing.content_json, {}), {}),
       stringifyJson(patch.attachments ?? parseJson(existing.attachments_json, []), []),
       stringifyJson(patch.toolCalls ?? parseJson(existing.tool_calls_json, []), []),
       stringifyJson(patch.thinkingSteps ?? parseJson(existing.thinking_steps_json, []), []),
-      normalizeText(patch.decisionSummary ?? existing.decision_summary, 2000),
+      normalizeBoundedText(patch.decisionSummary ?? existing.decision_summary, 2000),
       timestamp,
       timestamp,
       messageId,
@@ -453,7 +449,7 @@ export function updateConversationSummary(userId, conversationId, summary = "") 
     WHERE id = ?
       AND user_id = ?
       AND deleted_at IS NULL;
-  `).run(normalizeText(summary, 4000), timestamp, conversationId, userId);
+  `).run(normalizeBoundedText(summary, 4000), timestamp, conversationId, userId);
   return getConversationForUser(userId, conversationId);
 }
 
