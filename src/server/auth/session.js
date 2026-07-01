@@ -1,5 +1,6 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { execute, queryOne, sqlValue } from "../db/sqlite.js";
+import { getRequestHeader } from "../lib/route-request.js";
 import { publicEmail } from "./identity.service.js";
 
 export const SESSION_COOKIE_NAME = "ai_studio_session";
@@ -37,7 +38,7 @@ function sessionCookieOptions() {
 }
 
 export function getSessionToken(req) {
-  return parseCookies(req.headers.cookie || "")[SESSION_COOKIE_NAME] || "";
+  return parseCookies(getRequestHeader(req, "cookie") || "")[SESSION_COOKIE_NAME] || "";
 }
 
 export function setSessionCookie(res, token) {
