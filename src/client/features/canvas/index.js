@@ -61,7 +61,7 @@ export {
   rgbToHexColor,
   setTextNodeEditingState
 } from "./text-tool.js";
-export { initModelViewerPreview } from "./model-viewer.js";
+export { initModelViewerPreview } from "./model-viewer-loader.js";
 export {
   findCanvasNodeById,
   getNodeThumbnail,

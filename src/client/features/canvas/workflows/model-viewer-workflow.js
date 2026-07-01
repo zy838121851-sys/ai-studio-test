@@ -13,7 +13,7 @@ export function createModelViewerWorkflow({
         ? await modelUrlToFile(fileOrUrl)
         : fileOrUrl;
       if (!file) return null;
-      return initModelViewerPreview(node, file, {
+      return await initModelViewerPreview(node, file, {
         hideAddNodeMenu,
         selectNode
       });
