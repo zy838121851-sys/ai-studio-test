@@ -1,3 +1,5 @@
+import { createHttpError } from "./input-validation.js";
+
 export function getInitialAIJobStatus(result = {}) {
   if (result.imageUrl || result.videoUrl) return "running";
   const status = String(result.status || "").trim().toLowerCase();
@@ -15,9 +17,7 @@ export function assertResolvedProviderMatchesModel({ modelConfig, result } = {})
   const callSummary = calls
     .map((call) => `${call?.provider || "(none)"}/${call?.model || "(none)"}`)
     .join(", ") || "(no provider calls)";
-  const error = new Error(`Doubao model ${modelConfig.id} resolved to an unexpected provider/model: ${provider || "(none)"} / ${providerModel || "(none)"}; calls: ${callSummary}`);
-  error.status = 500;
-  throw error;
+  throw createHttpError(`Doubao model ${modelConfig.id} resolved to an unexpected provider/model: ${provider || "(none)"} / ${providerModel || "(none)"}; calls: ${callSummary}`, 500);
 }
 
 export function hasRemoteFallbackModelOutput(assets = []) {
@@ -38,21 +38,18 @@ export function getModelModality(modelConfig = {}) {
 
 export function assertTripo3DModelConfig({ modelId = "", modelConfig = {}, mode = "text" } = {}) {
   if (!modelConfig || getModelModality(modelConfig) !== "3d" || modelConfig.providerId !== "tripo") {
-    const error = new Error(`Unsupported 3D model: ${modelId}`);
-    error.status = 400;
+    const error = createHttpError(`Unsupported 3D model: ${modelId}`, 400);
     error.code = "UNSUPPORTED_3D_MODEL";
     throw error;
   }
   const capabilities = modelConfig.capabilities || {};
   if (mode === "text" && capabilities.textTo3D !== true) {
-    const error = new Error(`${modelConfig.label || modelConfig.id} does not support text to 3D`);
-    error.status = 400;
+    const error = createHttpError(`${modelConfig.label || modelConfig.id} does not support text to 3D`, 400);
     error.code = "TEXT_TO_3D_UNSUPPORTED";
     throw error;
   }
   if (mode === "image" && capabilities.imageTo3D !== true) {
-    const error = new Error(`${modelConfig.label || modelConfig.id} does not support image to 3D`);
-    error.status = 400;
+    const error = createHttpError(`${modelConfig.label || modelConfig.id} does not support image to 3D`, 400);
     error.code = "IMAGE_TO_3D_UNSUPPORTED";
     throw error;
   }
@@ -72,14 +69,12 @@ export function assertTripo3DRequiredInput({
   imageDataUrl = ""
 } = {}) {
   if (mode === "text" && !String(prompt || "").trim()) {
-    const error = new Error("Missing prompt");
-    error.status = 400;
+    const error = createHttpError("Missing prompt", 400);
     error.code = "PROMPT_REQUIRED";
     throw error;
   }
   if (mode === "image" && !isValidTripoImageInput(imageUrl, imageDataUrl)) {
-    const error = new Error("Image-to-3D requires an http/https URL, Tripo file token, or uploaded image data.");
-    error.status = 400;
+    const error = createHttpError("Image-to-3D requires an http/https URL, Tripo file token, or uploaded image data.", 400);
     error.code = "TRIPO_IMAGE_INPUT_REQUIRED";
     throw error;
   }
@@ -525,15 +520,11 @@ export function validateVideoOptions(modelConfig = {}, input = {}) {
   const output = {};
   for (const [key, value] of Object.entries(input || {})) {
     if (!(key in allowed)) {
-      const error = new Error(`Unsupported video option: ${key}`);
-      error.status = 400;
-      throw error;
+      throw createHttpError(`Unsupported video option: ${key}`, 400);
     }
     const allowedValues = allowed[key] || [];
     if (allowedValues.length && !allowedValues.includes(value)) {
-      const error = new Error(`Unsupported ${key} for ${modelConfig.label || modelConfig.id}`);
-      error.status = 400;
-      throw error;
+      throw createHttpError(`Unsupported ${key} for ${modelConfig.label || modelConfig.id}`, 400);
     }
     output[key] = value;
   }
