@@ -84,16 +84,7 @@ export function bindTaskLogRuntime(runtime = {}) {
   });
   // Row actions are delegated from #taskLogRows because rows are regenerated.
   elements.rows?.addEventListener("click", (event) => {
-    const copyButton = event.target.closest("[data-task-log-copy]");
-    const detailButton = event.target.closest("[data-task-log-detail]");
-    const outputButton = event.target.closest("[data-task-log-output]");
-    if (copyButton) {
-      copyText(copyButton.dataset.taskLogCopy || "");
-    } else if (detailButton) {
-      openTaskDetail(elements, detailButton.dataset.taskLogDetail || "");
-    } else if (outputButton && !outputButton.disabled) {
-      openTaskOutput(elements, outputButton.dataset.taskLogOutput || "");
-    }
+    handleTaskLogRowClick(event, elements);
   });
   // Modal actions rely on native hidden state and [data-task-log-*] buttons.
   elements.modal?.addEventListener("click", (event) => {
@@ -144,6 +135,19 @@ function scheduleTaskLogFilterRefresh(state, refresh) {
     state.offset = 0;
     refresh();
   }, 240);
+}
+
+function handleTaskLogRowClick(event, elements) {
+  const copyButton = event.target.closest("[data-task-log-copy]");
+  const detailButton = event.target.closest("[data-task-log-detail]");
+  const outputButton = event.target.closest("[data-task-log-output]");
+  if (copyButton) {
+    copyText(copyButton.dataset.taskLogCopy || "");
+  } else if (detailButton) {
+    openTaskDetail(elements, detailButton.dataset.taskLogDetail || "");
+  } else if (outputButton && !outputButton.disabled) {
+    openTaskOutput(elements, outputButton.dataset.taskLogOutput || "");
+  }
 }
 
 // Selector parity list: preserve these ids/classes before bindTaskLogRuntime().
