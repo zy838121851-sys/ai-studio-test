@@ -2,6 +2,25 @@ import { escapeHtml } from "../../../lib/text.js";
 import { ensureTaskLogTemplate } from "./task-log-template.js";
 
 const AUTO_REFRESH_MS = 8000;
+const TASK_LOG_SELECTORS = Object.freeze({
+  profileView: "#profileView",
+  page: "#taskLogPage",
+  refresh: "#taskLogRefresh",
+  search: "#taskLogSearch",
+  dateFrom: "#taskLogDateFrom",
+  dateTo: "#taskLogDateTo",
+  type: "#taskLogType",
+  status: "#taskLogStatus",
+  rows: "#taskLogRows",
+  range: "#taskLogRange",
+  prev: "#taskLogPrev",
+  next: "#taskLogNext",
+  limit: "#taskLogLimit",
+  modal: "#taskLogModal",
+  modalEyebrow: "#taskLogModal .task-log-modal-header p",
+  modalTitle: "#taskLogModal .task-log-modal-header h2",
+  detailBody: "#taskLogDetailBody"
+});
 const STATUS_LABELS = {
   queued: "排队中",
   running: "运行中",
@@ -118,23 +137,23 @@ export function bindTaskLogRuntime(runtime = {}) {
 // Selector parity list: preserve these ids/classes before bindTaskLogRuntime().
 function collectTaskLogElements(root = document) {
   return {
-    profileView: root.querySelector("#profileView"),
-    page: root.querySelector("#taskLogPage"),
-    refresh: root.querySelector("#taskLogRefresh"),
-    search: root.querySelector("#taskLogSearch"),
-    dateFrom: root.querySelector("#taskLogDateFrom"),
-    dateTo: root.querySelector("#taskLogDateTo"),
-    type: root.querySelector("#taskLogType"),
-    status: root.querySelector("#taskLogStatus"),
-    rows: root.querySelector("#taskLogRows"),
-    range: root.querySelector("#taskLogRange"),
-    prev: root.querySelector("#taskLogPrev"),
-    next: root.querySelector("#taskLogNext"),
-    limit: root.querySelector("#taskLogLimit"),
-    modal: root.querySelector("#taskLogModal"),
-    modalEyebrow: root.querySelector("#taskLogModal .task-log-modal-header p"),
-    modalTitle: root.querySelector("#taskLogModal .task-log-modal-header h2"),
-    detailBody: root.querySelector("#taskLogDetailBody")
+    profileView: root.querySelector(TASK_LOG_SELECTORS.profileView),
+    page: root.querySelector(TASK_LOG_SELECTORS.page),
+    refresh: root.querySelector(TASK_LOG_SELECTORS.refresh),
+    search: root.querySelector(TASK_LOG_SELECTORS.search),
+    dateFrom: root.querySelector(TASK_LOG_SELECTORS.dateFrom),
+    dateTo: root.querySelector(TASK_LOG_SELECTORS.dateTo),
+    type: root.querySelector(TASK_LOG_SELECTORS.type),
+    status: root.querySelector(TASK_LOG_SELECTORS.status),
+    rows: root.querySelector(TASK_LOG_SELECTORS.rows),
+    range: root.querySelector(TASK_LOG_SELECTORS.range),
+    prev: root.querySelector(TASK_LOG_SELECTORS.prev),
+    next: root.querySelector(TASK_LOG_SELECTORS.next),
+    limit: root.querySelector(TASK_LOG_SELECTORS.limit),
+    modal: root.querySelector(TASK_LOG_SELECTORS.modal),
+    modalEyebrow: root.querySelector(TASK_LOG_SELECTORS.modalEyebrow),
+    modalTitle: root.querySelector(TASK_LOG_SELECTORS.modalTitle),
+    detailBody: root.querySelector(TASK_LOG_SELECTORS.detailBody)
   };
 }
 
