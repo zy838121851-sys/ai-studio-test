@@ -1,4 +1,4 @@
-const buckets = new Map();
+import { memoryRateLimitStore } from "../providers/rate-limit/memory-rate-limit-store.js";
 
 function clientKey(req, namespace) {
   return `${namespace}:${req.ip || req.socket?.remoteAddress || "unknown"}`;
@@ -8,19 +8,13 @@ export function createRateLimiter({
   namespace,
   windowMs,
   max,
-  message = "Too many requests"
+  message = "Too many requests",
+  store = memoryRateLimitStore
 }) {
   return (req, res, next) => {
     const now = Date.now();
     const key = clientKey(req, namespace);
-    const current = buckets.get(key);
-    if (!current || current.resetAt <= now) {
-      buckets.set(key, { count: 1, resetAt: now + windowMs });
-      next();
-      return;
-    }
-
-    current.count += 1;
+    const current = store.hit(key, now, windowMs);
     if (current.count <= max) {
       next();
       return;
