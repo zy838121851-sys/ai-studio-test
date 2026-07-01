@@ -32,6 +32,7 @@ import {
   buildTripo3DFailJobParams,
   buildTripo3DJobRecordParams,
   buildTripo3DReleaseReservationParams,
+  buildTripo3DReserveCreditsParams,
   buildTripo3DRemoteFailureParams,
   buildTripo3DSuccessResponse,
   getInitialAIJobStatus,
@@ -833,6 +834,23 @@ function assertAIRouteHelpers() {
     progress: 0,
     responseData: { status: "created" }
   }, "Tripo dispatch result params should preserve queued fallback updates");
+
+  assertDeepEqual(buildTripo3DReserveCreditsParams({
+    userId: "user-1",
+    quote: { totalCredits: 12 },
+    modelConfig: { id: "tripo-model" },
+    task: "tripo_text_to_3d_standard",
+    requestId: "request-3"
+  }), {
+    userId: "user-1",
+    amount: 12,
+    provider: "tripo",
+    model: "tripo-model",
+    task: "tripo_text_to_3d_standard",
+    billingType: "fixed",
+    reason: "tripo_text_to_3d_standard",
+    requestId: "request-3"
+  }, "Tripo reserve credits params should preserve fixed billing fields");
 
   assertDeepEqual(buildTripo3DChargeReservationParams({
     userId: "user-1",

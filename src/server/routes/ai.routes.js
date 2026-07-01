@@ -37,6 +37,7 @@ import {
   buildTripo3DFailJobParams,
   buildTripo3DJobRecordParams,
   buildTripo3DReleaseReservationParams,
+  buildTripo3DReserveCreditsParams,
   buildTripo3DRemoteFailureParams,
   buildTripo3DSuccessResponse,
   getInitialAIJobStatus,
@@ -865,16 +866,13 @@ async function createTripo3DJob(req, {
     task,
     count: 1
   });
-  const reservation = reserveCredits({
+  const reservation = reserveCredits(buildTripo3DReserveCreditsParams({
     userId,
-    amount: quote.totalCredits,
-    provider: "tripo",
-    model: modelConfig.id,
+    quote,
+    modelConfig,
     task,
-    billingType: "fixed",
-    reason: task,
     requestId
-  });
+  }));
   let job = createAIJob(buildTripo3DJobRecordParams({
     requestId,
     userId,
