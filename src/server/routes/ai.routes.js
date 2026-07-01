@@ -6,23 +6,14 @@ import {
   generateFixedQwenImageEdit,
   generateImage,
   generateSuggestions,
-  generateVideo,
   prepareAction,
   superResolutionImage
 } from "../services/ai.service.js";
 import { env } from "../config/env.js";
-import { classifyAIError, createAIAsyncHandler, toClientFailure } from "../lib/ai-error-response.js";
-import {
-  buildGenerationFailureLog,
-  buildGenerationRequestLog,
-  buildGenerationResponseLog,
-  toClientSizeNormalization
-} from "../lib/ai-job-log-payload.js";
+import { createAIAsyncHandler } from "../lib/ai-error-response.js";
+import { toClientSizeNormalization } from "../lib/ai-job-log-payload.js";
 import {
   buildDeferredImageEditResult,
-  buildCompletedGenerationResponse,
-  buildQueuedGenerationResponse,
-  buildRefreshedGenerationResponse,
   sanitizeGenerationResult,
   toClientAsset,
   toClientBilling,
@@ -30,21 +21,14 @@ import {
 } from "../lib/ai-response-dto.js";
 import {
   assertResolvedProviderMatchesModel,
-  buildGenerationCompleteJobParams,
-  buildGenerationDispatchResultParams,
-  buildGenerationJobRecordParams,
-  buildGenerationReleaseReservationParams,
-  buildGenerationReserveCreditsParams,
   buildTripo3DDispatchResultParams,
   buildTripo3DRemoteFailureParams,
   getInitialAIJobStatus,
   getModelModality,
   hasRemoteFallbackModelOutput,
   isFixedQwenImageEditAction,
-  jobStatusForError,
   normalizeTripo3DJobInput,
-  normalizeImages,
-  validateVideoOptions
+  normalizeImages
 } from "../lib/ai-route-helpers.js";
 import { logAIModelRoute, logAIProviderRoute } from "../lib/ai-route-logging.js";
 import { sendErrorResponse } from "../lib/http-error-response.js";
@@ -52,11 +36,6 @@ import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import { assertPublicHttpUrl } from "../security/network.js";
 import { billFixedTask } from "../services/credits/billing.service.js";
-import {
-  releaseReservedCredits,
-  reserveCredits
-} from "../services/credits/credit.service.js";
-import { quoteFixedCredits } from "../services/credits/pricing.service.js";
 import {
   completeModel3DJob,
   completeAIJob,
@@ -80,11 +59,11 @@ import {
   isApimartModel,
   listImageModels
 } from "../services/model-catalog.service.js";
+import { createGenerationJob } from "../services/ai/generation-creation.service.js";
 import { createTripo3DJob } from "../services/ai/tripo-3d-creation.service.js";
 import {
   getTask as getTripoTask
 } from "../services/ai/providers/tripo.service.js";
-import { randomUUID } from "node:crypto";
 
 const aiLimiter = createRateLimiter({
   namespace: "ai",
@@ -239,166 +218,16 @@ export function createAIRouter() {
       return;
     }
 
-    const prompt = String(req.body?.prompt || "").trim();
-    if (!prompt && !normalizeImages(req.body?.images).length) {
-      const error = new Error("Missing prompt or reference image");
-      error.status = 400;
-      throw error;
-    }
-    const type = modelConfig.type === "video" ? "video" : "image";
-    const task = type === "video" ? "video_generation" : "image_generation";
-    const requestId = randomUUID();
-    const images = normalizeImages(req.body?.images);
-    const videoOptions = type === "video"
-      ? validateVideoOptions(modelConfig, req.body?.videoOptions || {})
-      : {};
-    const quote = quoteFixedCredits({
-      provider: modelConfig.providerId,
-      model: modelConfig.id,
-      task,
-      count: 1
+    const generation = await createGenerationJob({
+      userId: req.auth.user.id,
+      body: req.body,
+      modelConfig,
+      path: req.path
     });
-    const startedAt = Date.now();
-    let reservation = null;
-    let job = null;
-
-    try {
-      reservation = reserveCredits(buildGenerationReserveCreditsParams({
-        userId: req.auth.user.id,
-        quote,
-        modelConfig,
-        task,
-        requestId
-      }));
-      job = createAIJob(buildGenerationJobRecordParams({
-        requestId,
-        userId: req.auth.user.id,
-        modelConfig,
-        type,
-        prompt,
-        inputAssetIds: req.body?.inputAssetIds || [],
-        creditsReserved: reservation.amountCredits,
-        requestData: buildGenerationRequestLog({
-          route: "/api/ai/generate",
-          requestId,
-          modelConfig,
-          type,
-          task,
-          prompt,
-          images,
-          size: req.body?.size,
-          videoOptions,
-          inputAssetIds: req.body?.inputAssetIds || [],
-          quote,
-          reservation
-        })
-      }));
-      const result = type === "video"
-        ? await generateVideo({
-          model: modelConfig.id,
-          prompt,
-          images,
-          videoOptions,
-          requestId
-        })
-        : await generateImage({
-          model: modelConfig.id,
-          prompt,
-          images,
-          size: req.body?.size,
-          requestId
-        });
-      logAIModelRoute({
-        route: "/api/ai/generate",
-        requestedModel: modelConfig.id,
-        providerModel: result.providerModel || result.resolvedModel || result.model || modelConfig.providerModel,
-        remoteTaskId: result.remoteTaskId || result.taskId || "",
-        type,
-        referenceCount: images.length
-      });
-      const immediateOutputUrl = type === "video"
-        ? (result.videoUrl || result.imageUrl || "")
-        : (result.imageUrl || "");
-      const responseLog = buildGenerationResponseLog(result, {
-        modelConfig,
-        type,
-        immediateOutputUrl
-      });
-      job = updateAIJobDispatchResult(req.auth.user.id, job.id, buildGenerationDispatchResultParams({
-        result,
-        modelConfig,
-        immediateOutputUrl,
-        responseData: responseLog
-      }));
-      if (immediateOutputUrl) {
-        const completed = await completeAIJob(req.auth.user.id, job.id, buildGenerationCompleteJobParams({
-          immediateOutputUrl,
-          type,
-          responseData: responseLog,
-          startedAt
-        }));
-        if (completed?.status !== "succeeded") {
-          const failure = toClientFailure(completed, "OUTPUT_SAVE_FAILED");
-          res.status(500).json({
-            message: failure.failureMessage || "Generated output could not be saved locally",
-            ...failure,
-            job: toClientJob(completed),
-            jobId: completed?.id,
-            model: modelConfig.id
-          });
-          return;
-        }
-        const firstAsset = completed?.outputAssetIds?.[0]
-          ? getAsset(req.auth.user.id, completed.outputAssetIds[0])
-          : null;
-        res.json(buildCompletedGenerationResponse({
-          type,
-          completed,
-          firstAsset,
-          modelConfig,
-          result,
-          reservation
-        }));
-        return;
-      }
-      scheduleAIJobRefresh(req.auth.user.id, job.id);
-      if (result.status === "succeeded") {
-        const completed = await refreshAIJob(req.auth.user.id, job.id);
-        res.json(buildRefreshedGenerationResponse({
-          completed,
-          modelConfig,
-          result
-        }));
-        return;
-      }
-      res.json(buildQueuedGenerationResponse({
-        job,
-        modelConfig,
-        result,
-        reservation
-      }));
-    } catch (error) {
-      const failure = classifyAIError(error, { path: req.path });
-      if (job?.id) {
-        error.aiJob = failAIJob(req.auth.user.id, job.id, {
-          status: jobStatusForError(error),
-          errorCode: error?.code || failure.failureCode,
-          errorMessage: failure.failureMessage,
-          responseData: buildGenerationFailureLog(error, failure),
-          durationMs: Date.now() - startedAt
-        });
-      } else if (reservation?.amountCredits) {
-        releaseReservedCredits(buildGenerationReleaseReservationParams({
-          userId: req.auth.user.id,
-          reservation,
-          modelConfig,
-          task,
-          requestId,
-          error
-        }));
-      }
-      throw error;
+    if (generation.status) {
+      res.status(generation.status);
     }
+    res.json(generation.body);
   }));
 
   router.get("/ai/jobs", jobPollLimiter, asyncHandler(async (req, res) => {
