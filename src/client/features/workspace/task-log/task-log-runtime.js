@@ -64,15 +64,8 @@ export function bindTaskLogRuntime(runtime = {}) {
   const syncVisibility = () => {
     const visible = isTaskLogVisible(documentRoot, elements);
     if (visible && !state.loaded) refresh();
-    if (visible && !state.autoTimer) {
-      state.autoTimer = setInterval(() => {
-        if (!state.loading) refresh();
-      }, AUTO_REFRESH_MS);
-    }
-    if (!visible && state.autoTimer) {
-      clearInterval(state.autoTimer);
-      state.autoTimer = null;
-    }
+    if (visible) startTaskLogAutoRefresh(state, refresh);
+    if (!visible) stopTaskLogAutoRefresh(state);
   };
 
   elements.refresh?.addEventListener("click", refresh);
@@ -136,6 +129,19 @@ export function bindTaskLogRuntime(runtime = {}) {
 
 function isTaskLogVisible(documentRoot, elements) {
   return documentRoot.body?.dataset.view === "space" || elements.profileView?.classList.contains("active");
+}
+
+function startTaskLogAutoRefresh(state, refresh) {
+  if (state.autoTimer) return;
+  state.autoTimer = setInterval(() => {
+    if (!state.loading) refresh();
+  }, AUTO_REFRESH_MS);
+}
+
+function stopTaskLogAutoRefresh(state) {
+  if (!state.autoTimer) return;
+  clearInterval(state.autoTimer);
+  state.autoTimer = null;
 }
 
 // Selector parity list: preserve these ids/classes before bindTaskLogRuntime().
