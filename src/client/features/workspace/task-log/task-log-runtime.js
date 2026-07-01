@@ -69,18 +69,13 @@ export function bindTaskLogRuntime(runtime = {}) {
   elements.type?.addEventListener("change", scheduleFilterRefresh);
   elements.status?.addEventListener("change", scheduleFilterRefresh);
   elements.limit?.addEventListener("change", () => {
-    state.limit = Number(elements.limit.value || 10);
-    state.offset = 0;
-    refresh();
+    handleTaskLogLimitChange(elements, state, refresh);
   });
   elements.prev?.addEventListener("click", () => {
-    state.offset = Math.max(0, state.offset - state.limit);
-    refresh();
+    handleTaskLogPrevClick(state, refresh);
   });
   elements.next?.addEventListener("click", () => {
-    if (state.offset + state.limit >= state.total) return;
-    state.offset += state.limit;
-    refresh();
+    handleTaskLogNextClick(state, refresh);
   });
   // Row actions are delegated from #taskLogRows because rows are regenerated.
   elements.rows?.addEventListener("click", (event) => {
@@ -132,6 +127,23 @@ function scheduleTaskLogFilterRefresh(state, refresh) {
     state.offset = 0;
     refresh();
   }, 240);
+}
+
+function handleTaskLogLimitChange(elements, state, refresh) {
+  state.limit = Number(elements.limit.value || 10);
+  state.offset = 0;
+  refresh();
+}
+
+function handleTaskLogPrevClick(state, refresh) {
+  state.offset = Math.max(0, state.offset - state.limit);
+  refresh();
+}
+
+function handleTaskLogNextClick(state, refresh) {
+  if (state.offset + state.limit >= state.total) return;
+  state.offset += state.limit;
+  refresh();
 }
 
 function handleTaskLogRowClick(event, elements) {
