@@ -1,6 +1,10 @@
 import {
   resolveImageModelId
 } from "../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
+import {
+  isRestorableSnapshotItem,
+  normalizePersistentMediaUrl
+} from "../snapshot.js";
 
 export function createProjectWorkflow(ctx) {
   const { state, projectRuntime, services = {}, elements = {}, ui = {}, chat = {} } = ctx;
@@ -346,6 +350,7 @@ export function createProjectWorkflow(ctx) {
           openGeneratorPopover: false
         }
       }) || 0;
+      let restoredFromThumbnail = false;
       if (!restoredCount && project.thumbnail) {
         const node = addNode({
           kind: "image",
@@ -366,8 +371,9 @@ export function createProjectWorkflow(ctx) {
           prompt: project.prompt,
           actionType: "project_restore"
         });
+        restoredFromThumbnail = Boolean(node);
       }
-      if (restoredCount) {
+      if (restoredCount || restoredFromThumbnail) {
         await persistRestoredSnapshotRepair(project);
       }
       showView("canvas");
@@ -654,10 +660,12 @@ function getImageFilesFromList(files) {
 }
 
 function projectHasRestorableCanvasContent(project = {}) {
-  if (Number(project.itemCount || 0) > 0) return true;
   if (String(project.thumbnail || "").trim()) return true;
   const snapshot = parseSnapshotJson(project.canvasSnapshotJson);
-  return Array.isArray(snapshot?.nodes) && snapshot.nodes.length > 0;
+  if (Array.isArray(snapshot?.nodes)) {
+    return snapshot.nodes.some((node) => isRestorableSnapshotItem(node));
+  }
+  return Number(project.itemCount || 0) > 0;
 }
 
 async function preloadProjectMedia(project = {}, timeoutMs = 420) {
@@ -735,11 +743,8 @@ async function waitForPendingCanvasUploads(canvasWorld) {
 function snapshotNeedsUrlRepair(snapshotJson = "") {
   const snapshot = parseSnapshotJson(snapshotJson);
   return Array.isArray(snapshot?.nodes) && snapshot.nodes.some((node) => (
-    isLoadingSnapshotNode(node)
-    || (
-      isMediaSnapshotNode(node)
-      && (!hasStableMediaUrl(node?.media?.url) || containsTransientUrl(node))
-    )
+    !isRestorableSnapshotItem(node)
+    || (isMediaSnapshotNode(node) && snapshotMediaNeedsRepair(node))
   ));
 }
 
@@ -768,18 +773,26 @@ function isMediaSnapshotNode(node = {}) {
     || /<(?:img|video)\b/i.test(html);
 }
 
-function isLoadingSnapshotNode(node = {}) {
-  const kind = String(node.kind || node.dataset?.kind || "").toLowerCase();
-  const className = String(node.className || "");
-  const html = String(node.html || "");
-  return kind === "loading-image"
-    || /\bnode-loading-image\b/.test(className)
-    || /\bgeneration-frame\b/.test(html);
+function snapshotMediaNeedsRepair(node = {}) {
+  return !hasStableMediaUrl(node?.media?.url)
+    || containsTransientUrl(node)
+    || [
+      node?.media?.url,
+      node?.dataset?.objectUrl,
+      extractSnapshotImageUrl(node?.html)
+    ].some((url) => mediaUrlNeedsNormalization(url));
 }
 
 function hasStableMediaUrl(url = "") {
   const value = String(url || "").trim();
-  return Boolean(value && !value.startsWith("blob:"));
+  return Boolean(value && !value.startsWith("blob:") && normalizePersistentMediaUrl(value) === value);
+}
+
+function mediaUrlNeedsNormalization(url = "") {
+  const value = String(url || "").trim();
+  if (!value || value.startsWith("blob:")) return false;
+  const normalized = normalizePersistentMediaUrl(value);
+  return Boolean(normalized && normalized !== value);
 }
 
 function containsTransientUrl(value) {
