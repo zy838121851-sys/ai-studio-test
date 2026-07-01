@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { prepare, transaction } from "../../db/sqlite.js";
 import { DEFAULT_SIGNUP_CREDITS } from "../../db/credits-migration.js";
+import { localBillingProvider } from "../../providers/billing/local-billing.provider.js";
 import { ensureUserWorkspaceWithDb } from "../workspace.service.js";
 
 export function getCreditBalance(userId) {
@@ -117,6 +118,7 @@ export function reserveCredits({
   return transaction((db) => {
     const account = getOrCreateZeroAccount(db, userId);
     const credits = toCredits(amount);
+    const billing = localBillingProvider.reserve({ account, credits });
     const balance = Number(account.balance_credits || 0);
     const reserved = Number(account.reserved_credits || 0);
     if (balance - reserved < credits) {
@@ -126,7 +128,7 @@ export function reserveCredits({
       throw error;
     }
     const now = Date.now();
-    const nextReserved = reserved + credits;
+    const nextReserved = billing.nextReserved;
     db.prepare(`
       UPDATE billing_accounts
       SET reserved_credits = ?,
@@ -171,12 +173,11 @@ export function chargeReservedCredits({
     const account = getRequiredAccount(db, userId);
     const chargeCredits = toCredits(chargeAmount);
     const reservedCredits = Math.max(0, Math.ceil(Number(reservedAmount || 0)));
+    const billing = localBillingProvider.chargeReserved({ account, chargeCredits, reservedCredits });
     const now = Date.now();
-    const balance = Number(account.balance_credits || 0);
-    const reserved = Number(account.reserved_credits || 0);
-    const reservedReduction = Math.min(reserved, Math.min(reservedCredits || chargeCredits, chargeCredits));
-    const nextBalance = balance - chargeCredits;
-    const nextReserved = Math.max(0, reserved - reservedReduction);
+    const reservedReduction = billing.reservedReduction;
+    const nextBalance = billing.nextBalance;
+    const nextReserved = billing.nextReserved;
     db.prepare(`
       UPDATE billing_accounts
       SET balance_credits = ?,
@@ -226,9 +227,10 @@ export function releaseReservedCredits({
   if (!credits) return getCreditBalance(userId);
   return transaction((db) => {
     const account = getRequiredAccount(db, userId);
+    const billing = localBillingProvider.releaseReserved({ account, credits, status });
     const now = Date.now();
-    const balance = Number(account.balance_credits || 0);
-    const nextReserved = Math.max(0, Number(account.reserved_credits || 0) - credits);
+    const balance = billing.balance;
+    const nextReserved = billing.nextReserved;
     db.prepare(`
       UPDATE billing_accounts
       SET reserved_credits = ?,
