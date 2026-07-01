@@ -1,11 +1,11 @@
 import {
   buildAgentRuntimeActionSources,
   buildAgentRuntimeDependencyActionInputs
-} from "../../agent/runtime/index.js";
+} from "../../agent/runtime/action-runtime.js";
 import {
   buildAICoreRuntimeSources,
   buildAICoreRuntimeDependencyInputs
-} from "../../ai/runtime/index.js";
+} from "../../ai/runtime/ai-core-runtime.js";
 import { buildChatRuntimeDependencyInputs, buildChatRuntimeSources } from "../chat/runtime/chat-runtime.js";
 import { buildHomeRuntimeDependencyInputs, buildHomeRuntimeSources } from "../home/runtime/home-runtime.js?v=20260627-library-bulk-select-1";
 import {
