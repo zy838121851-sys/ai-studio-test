@@ -19,6 +19,11 @@ try {
   const { runCreditsMigration } = await import("../src/server/db/credits-migration.js");
   const { createUser } = await import("../src/server/auth/user.service.js");
   const {
+    calculateCreditReservation,
+    calculateReservedCreditCharge,
+    calculateReservedCreditRelease
+  } = await import("../src/server/services/billing.service.js");
+  const {
     getCreditBalance,
     reserveCredits,
     chargeReservedCredits,
@@ -37,6 +42,30 @@ try {
   const initial = getCreditBalance(user.id);
   assert(initial.balanceCredits === 500, "New user should start with default credits");
   assert(initial.reservedCredits === 0, "New user should start with no reserved credits");
+
+  const serviceReservation = calculateCreditReservation({
+    account: { balance_credits: 500, reserved_credits: 10 },
+    credits: 20
+  });
+  assert(serviceReservation.balance === 500, "Billing service reserve should preserve balance");
+  assert(serviceReservation.nextReserved === 30, "Billing service reserve should add reserved credits");
+
+  const serviceCharge = calculateReservedCreditCharge({
+    account: { balance_credits: 500, reserved_credits: 30 },
+    chargeCredits: 20,
+    reservedCredits: 30
+  });
+  assert(serviceCharge.nextBalance === 480, "Billing service charge should deduct balance");
+  assert(serviceCharge.nextReserved === 10, "Billing service charge should reduce reserved credits");
+  assert(serviceCharge.reservedReduction === 20, "Billing service charge should report reserved reduction");
+
+  const serviceRelease = calculateReservedCreditRelease({
+    account: { balance_credits: 480, reserved_credits: 10 },
+    credits: 5,
+    status: "released"
+  });
+  assert(serviceRelease.balance === 480, "Billing service release should preserve balance");
+  assert(serviceRelease.nextReserved === 5, "Billing service release should reduce reserved credits");
 
   const reservation = reserveCredits({
     userId: user.id,

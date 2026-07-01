@@ -1,7 +1,11 @@
 import { randomUUID } from "node:crypto";
 import { prepare, transaction } from "../../db/sqlite.js";
 import { DEFAULT_SIGNUP_CREDITS } from "../../db/credits-migration.js";
-import { localBillingProvider } from "../../providers/billing/local-billing.provider.js";
+import {
+  calculateCreditReservation,
+  calculateReservedCreditCharge,
+  calculateReservedCreditRelease
+} from "../billing.service.js";
 import { ensureUserWorkspaceWithDb } from "../workspace.service.js";
 
 export function getCreditBalance(userId) {
@@ -118,7 +122,7 @@ export function reserveCredits({
   return transaction((db) => {
     const account = getOrCreateZeroAccount(db, userId);
     const credits = toCredits(amount);
-    const billing = localBillingProvider.reserve({ account, credits });
+    const billing = calculateCreditReservation({ account, credits });
     const balance = Number(account.balance_credits || 0);
     const reserved = Number(account.reserved_credits || 0);
     if (balance - reserved < credits) {
@@ -173,7 +177,7 @@ export function chargeReservedCredits({
     const account = getRequiredAccount(db, userId);
     const chargeCredits = toCredits(chargeAmount);
     const reservedCredits = Math.max(0, Math.ceil(Number(reservedAmount || 0)));
-    const billing = localBillingProvider.chargeReserved({ account, chargeCredits, reservedCredits });
+    const billing = calculateReservedCreditCharge({ account, chargeCredits, reservedCredits });
     const now = Date.now();
     const reservedReduction = billing.reservedReduction;
     const nextBalance = billing.nextBalance;
@@ -227,7 +231,7 @@ export function releaseReservedCredits({
   if (!credits) return getCreditBalance(userId);
   return transaction((db) => {
     const account = getRequiredAccount(db, userId);
-    const billing = localBillingProvider.releaseReserved({ account, credits, status });
+    const billing = calculateReservedCreditRelease({ account, credits, status });
     const now = Date.now();
     const balance = billing.balance;
     const nextReserved = billing.nextReserved;
