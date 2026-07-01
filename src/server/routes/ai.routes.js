@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { createAIAsyncHandler } from "../lib/ai-error-response.js";
 import { sendErrorResponse } from "../lib/http-error-response.js";
-import { getRequestBody, getRequestQuery, getRouteParam } from "../lib/route-request.js";
+import { getRequestBody, getRequestPath, getRequestQuery, getRouteParam } from "../lib/route-request.js";
 import { getRequestUserId } from "../lib/request-auth.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
@@ -114,7 +114,7 @@ export function createAIRouter() {
       userId: getRequestUserId(req),
       body,
       modelConfig,
-      path: req.path
+      path: getRequestPath(req)
     });
     if (generation.status) {
       res.status(generation.status);
