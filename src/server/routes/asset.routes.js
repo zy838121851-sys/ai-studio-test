@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { env } from "../config/env.js";
+import { sendCaughtErrorResponse, sendErrorResponse } from "../lib/http-error-response.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import { localAuditLogger } from "../providers/audit/local-audit-logger.js";
@@ -33,8 +34,10 @@ function auditAssetEvent(req, event, detail = {}) {
 }
 
 function handleAssetError(res, error) {
-  res.status(error.status || 400).json({
-    message: error.status ? error.message : (error.message || "Asset request failed")
+  sendCaughtErrorResponse(res, error, {
+    defaultStatus: 400,
+    defaultMessage: "Asset request failed",
+    useStatusMessageOnly: true
   });
 }
 
@@ -88,7 +91,7 @@ export function createAssetRouter() {
   router.get("/assets/:id", (req, res) => {
     const asset = getAsset(userIdFromRequest(req), req.params.id);
     if (!asset) {
-      res.status(404).json({ message: "Asset not found" });
+      sendErrorResponse(res, 404, "Asset not found");
       return;
     }
     res.json({ asset });
@@ -98,7 +101,7 @@ export function createAssetRouter() {
     try {
       const asset = updateAsset(userIdFromRequest(req), req.params.id, req.body);
       if (!asset) {
-        res.status(404).json({ message: "Asset not found" });
+        sendErrorResponse(res, 404, "Asset not found");
         return;
       }
       res.json({ asset });
@@ -117,7 +120,7 @@ export function createAssetRouter() {
         userId,
         assetId: req.params.id
       });
-      res.status(404).json({ message: "Asset not found" });
+      sendErrorResponse(res, 404, "Asset not found");
       return;
     }
     auditAssetEvent(req, "asset.delete.succeeded", {
@@ -133,7 +136,7 @@ export function createAssetRouter() {
     try {
       const asset = addAssetToProject(userIdFromRequest(req), req.params.id, req.body);
       if (!asset) {
-        res.status(404).json({ message: "Asset not found" });
+        sendErrorResponse(res, 404, "Asset not found");
         return;
       }
       res.json({ asset });
@@ -146,7 +149,7 @@ export function createAssetRouter() {
     try {
       const asset = moveAssetToCollection(userIdFromRequest(req), req.params.id, req.body);
       if (!asset) {
-        res.status(404).json({ message: "Asset not found" });
+        sendErrorResponse(res, 404, "Asset not found");
         return;
       }
       res.json({ asset });

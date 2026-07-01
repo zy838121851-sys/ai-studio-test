@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { sendCaughtErrorResponse, sendErrorResponse } from "../lib/http-error-response.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import {
   archiveProjectConversation,
@@ -15,8 +16,10 @@ function userIdFromRequest(req) {
 }
 
 function sendError(res, error) {
-  res.status(error.status || 400).json({
-    message: error.status ? error.message : (error.message || "Conversation request failed")
+  sendCaughtErrorResponse(res, error, {
+    defaultStatus: 400,
+    defaultMessage: "Conversation request failed",
+    useStatusMessageOnly: true
   });
 }
 
@@ -78,7 +81,7 @@ export function createConversationRouter() {
   router.get("/conversations/:id/messages", (req, res) => {
     const messages = listConversationMessages(userIdFromRequest(req), req.params.id);
     if (!messages) {
-      res.status(404).json({ message: "Conversation not found" });
+      sendErrorResponse(res, 404, "Conversation not found");
       return;
     }
     res.json({ messages });
@@ -96,7 +99,7 @@ export function createConversationRouter() {
   router.post("/conversations/:id/runs", async (req, res) => {
     const conversation = getConversationForUser(userIdFromRequest(req), req.params.id);
     if (!conversation) {
-      res.status(404).json({ message: "Conversation not found" });
+      sendErrorResponse(res, 404, "Conversation not found");
       return;
     }
 
