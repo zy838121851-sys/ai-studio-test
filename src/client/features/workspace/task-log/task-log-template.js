@@ -1,3 +1,20 @@
+const TASK_LOG_MODAL_TEMPLATE = `
+        <div class="task-log-modal" id="taskLogModal" role="dialog" aria-modal="true" aria-label="任务详情" hidden>
+          <!-- Detail modal contract: preserve native hidden state and [data-task-log-close] actions. -->
+          <div class="task-log-modal-backdrop" data-task-log-close></div>
+          <article class="task-log-modal-card">
+            <header class="task-log-modal-header">
+              <div>
+                <p>Task Detail</p>
+                <h2>任务详情</h2>
+              </div>
+              <button type="button" data-task-log-close aria-label="关闭任务详情">×</button>
+            </header>
+            <div class="task-log-detail-body" id="taskLogDetailBody"></div>
+          </article>
+        </div>
+`;
+
 const TASK_LOG_TEMPLATE = `
         <header class="task-log-heading">
           <div>
@@ -87,20 +104,7 @@ const TASK_LOG_TEMPLATE = `
           </footer>
         </section>
 
-        <div class="task-log-modal" id="taskLogModal" role="dialog" aria-modal="true" aria-label="任务详情" hidden>
-          <!-- Detail modal contract: preserve native hidden state and [data-task-log-close] actions. -->
-          <div class="task-log-modal-backdrop" data-task-log-close></div>
-          <article class="task-log-modal-card">
-            <header class="task-log-modal-header">
-              <div>
-                <p>Task Detail</p>
-                <h2>任务详情</h2>
-              </div>
-              <button type="button" data-task-log-close aria-label="关闭任务详情">×</button>
-            </header>
-            <div class="task-log-detail-body" id="taskLogDetailBody"></div>
-          </article>
-        </div>
+${TASK_LOG_MODAL_TEMPLATE}
 `;
 
 export function ensureTaskLogTemplate(root = document) {
