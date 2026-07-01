@@ -1,5 +1,5 @@
 import { createWorkspaceProjectRuntime } from "../../projects/workspace-project-runtime.js?v=20260627-library-bulk-select-1";
-import { createWorkspaceHomeRuntime } from "../home/runtime/home-app-runtime.js";
+import { createHomeFeatureRuntime } from "../home/runtime/home-feature-runtime.js";
 
 export function createWorkspaceProjectHomeRuntime({
   document,
@@ -70,7 +70,7 @@ export function createWorkspaceProjectHomeRuntime({
 
   projectRuntime.ensureDemoProjects?.();
 
-  const homeRuntime = createWorkspaceHomeRuntime({
+  const homeRuntime = createHomeFeatureRuntime({
     elements: {
       homePromptForm: elements.homePromptForm,
       homePromptInput: elements.homePromptInput,
