@@ -10,6 +10,14 @@ export function getRequestHeader(req, name) {
   return req.headers?.[String(name || "").toLowerCase()];
 }
 
+export function getRequestMethod(req) {
+  return req.method;
+}
+
+export function getRequestPath(req) {
+  return req.path;
+}
+
 export function getRouteParam(req, name) {
   return req.params?.[name];
 }
