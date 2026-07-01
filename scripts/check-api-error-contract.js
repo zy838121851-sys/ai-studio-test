@@ -27,6 +27,7 @@ import {
   assertTripo3DModelConfig,
   assertTripo3DRequiredInput,
   buildTripo3DDispatchParams,
+  buildTripo3DDispatchResultParams,
   buildTripo3DJobRecordParams,
   getInitialAIJobStatus,
   getModelModality,
@@ -797,6 +798,36 @@ function assertAIRouteHelpers() {
     prompt: "",
     modelConfig: { id: "tripo-model" }
   }).prompt === "Image to 3D", "Tripo job record params should preserve image prompt fallback");
+
+  assertDeepEqual(buildTripo3DDispatchResultParams({
+    taskCreated: {
+      taskId: "task-1",
+      providerModel: "provider-returned-model",
+      status: "running"
+    },
+    providerModel: "fallback-model",
+    responseData: { status: "created" }
+  }), {
+    remoteTaskId: "task-1",
+    providerModel: "provider-returned-model",
+    status: "running",
+    progress: 10,
+    responseData: { status: "created" }
+  }, "Tripo dispatch result params should preserve running provider updates");
+  assertDeepEqual(buildTripo3DDispatchResultParams({
+    taskCreated: {
+      taskId: "task-2",
+      status: "queued"
+    },
+    providerModel: "fallback-model",
+    responseData: { status: "created" }
+  }), {
+    remoteTaskId: "task-2",
+    providerModel: "fallback-model",
+    status: "queued",
+    progress: 0,
+    responseData: { status: "created" }
+  }, "Tripo dispatch result params should preserve queued fallback updates");
 
   const text3DInput = normalizeTripo3DJobInput({
     prompt: "  make a chair  ",

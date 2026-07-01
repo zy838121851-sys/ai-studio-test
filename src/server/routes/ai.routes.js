@@ -32,6 +32,7 @@ import {
   assertTripo3DModelConfig,
   assertTripo3DRequiredInput,
   buildTripo3DDispatchParams,
+  buildTripo3DDispatchResultParams,
   buildTripo3DJobRecordParams,
   getInitialAIJobStatus,
   getModelModality,
@@ -932,11 +933,9 @@ async function createTripo3DJob(req, {
     });
     chargedCredits = charge.chargedCredits || 0;
     markAIJobCreditsCharged(userId, job.id, chargedCredits);
-    job = updateAIJobDispatchResult(userId, job.id, {
-      remoteTaskId: taskCreated.taskId,
-      providerModel: taskCreated.providerModel || providerModel,
-      status: taskCreated.status === "running" ? "running" : "queued",
-      progress: taskCreated.status === "running" ? 10 : 0,
+    job = updateAIJobDispatchResult(userId, job.id, buildTripo3DDispatchResultParams({
+      taskCreated,
+      providerModel,
       responseData: buildTripo3DResponseLog(taskCreated, {
         modelConfig,
         mode,
@@ -944,7 +943,7 @@ async function createTripo3DJob(req, {
         status: "created",
         inputType: taskCreated.inputType || ""
       })
-    });
+    }));
     return {
       ok: true,
       provider: "tripo",

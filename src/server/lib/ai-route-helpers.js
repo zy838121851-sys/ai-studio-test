@@ -156,6 +156,20 @@ export function buildTripo3DJobRecordParams({
   };
 }
 
+export function buildTripo3DDispatchResultParams({
+  taskCreated = {},
+  providerModel = "",
+  responseData = {}
+} = {}) {
+  return {
+    remoteTaskId: taskCreated.taskId,
+    providerModel: taskCreated.providerModel || providerModel,
+    status: taskCreated.status === "running" ? "running" : "queued",
+    progress: taskCreated.status === "running" ? 10 : 0,
+    responseData
+  };
+}
+
 export function normalizeTripo3DJobInput(body = {}, { mode = "text" } = {}) {
   const isImageMode = mode === "image";
   const imageUrl = isImageMode
