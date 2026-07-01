@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { env } from "../config/env.js";
 import { sendCaughtErrorResponse, sendErrorResponse } from "../lib/http-error-response.js";
+import { createHttpError } from "../lib/input-validation.js";
 import { getRequestContext } from "../lib/request-auth.js";
 import { getRequestBody, getRequestHeader, getRequestQuery, getRouteParam } from "../lib/route-request.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
@@ -158,9 +159,7 @@ async function parseMultipartForm(req) {
   const contentType = getRequestHeader(req, "content-type") || "";
   const boundaryMatch = contentType.match(/boundary=(?:"([^"]+)"|([^;]+))/i);
   if (!boundaryMatch) {
-    const error = new Error("multipart/form-data is required");
-    error.status = 400;
-    throw error;
+    throw createHttpError("multipart/form-data is required", 400);
   }
   const boundary = Buffer.from(`--${boundaryMatch[1] || boundaryMatch[2]}`);
   const buffer = await readRequestBuffer(req);
@@ -198,8 +197,7 @@ function readRequestBuffer(req) {
         if (isLikelyModel3DUpload(preview)) maxBytes = env.maxModelUploadBytes;
       }
       if (total > maxBytes) {
-        const error = new Error("Upload is too large");
-        error.status = 413;
+        const error = createHttpError("Upload is too large", 413);
         reject(error);
         req.destroy();
         return;
