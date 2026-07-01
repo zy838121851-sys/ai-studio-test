@@ -34,6 +34,7 @@ import {
   buildTripo3DDispatchParams,
   buildTripo3DDispatchResultParams,
   buildTripo3DJobRecordParams,
+  buildTripo3DReleaseReservationParams,
   buildTripo3DSuccessResponse,
   getInitialAIJobStatus,
   getModelModality,
@@ -953,18 +954,15 @@ async function createTripo3DJob(req, {
     });
   } catch (error) {
     if (!chargedCredits && reservation?.amountCredits) {
-      releaseReservedCredits({
+      releaseReservedCredits(buildTripo3DReleaseReservationParams({
         userId,
-        amount: reservation.amountCredits,
-        provider: "tripo",
-        model: modelConfig.id,
+        reservation,
+        modelConfig,
         task,
-        billingType: "fixed",
-        reason: error?.message || "tripo_task_create_failed",
+        error,
         requestId,
-        aiJobId: job?.id || "",
-        status: "failed"
-      });
+        job
+      }));
     }
     if (job?.id) {
       failModel3DJob(userId, job.id, {

@@ -29,6 +29,7 @@ import {
   buildTripo3DDispatchParams,
   buildTripo3DDispatchResultParams,
   buildTripo3DJobRecordParams,
+  buildTripo3DReleaseReservationParams,
   buildTripo3DSuccessResponse,
   getInitialAIJobStatus,
   getModelModality,
@@ -847,6 +848,44 @@ function assertAIRouteHelpers() {
       status: "charged"
     }
   }, "Tripo success response should preserve client response shape");
+
+  assertDeepEqual(buildTripo3DReleaseReservationParams({
+    userId: "user-1",
+    reservation: { amountCredits: 12 },
+    modelConfig: { id: "tripo-model" },
+    task: "tripo_text_to_3d_standard",
+    error: { message: "provider failed" },
+    requestId: "request-4",
+    job: { id: "job-4" }
+  }), {
+    userId: "user-1",
+    amount: 12,
+    provider: "tripo",
+    model: "tripo-model",
+    task: "tripo_text_to_3d_standard",
+    billingType: "fixed",
+    reason: "provider failed",
+    requestId: "request-4",
+    aiJobId: "job-4",
+    status: "failed"
+  }, "Tripo release reservation params should preserve failure refund fields");
+  assertDeepEqual(buildTripo3DReleaseReservationParams({
+    reservation: { amountCredits: 8 },
+    modelConfig: { id: "tripo-model" },
+    error: {},
+    job: null
+  }), {
+    userId: "",
+    amount: 8,
+    provider: "tripo",
+    model: "tripo-model",
+    task: "",
+    billingType: "fixed",
+    reason: "tripo_task_create_failed",
+    requestId: "",
+    aiJobId: "",
+    status: "failed"
+  }, "Tripo release reservation params should preserve default failure fallbacks");
 
   const text3DInput = normalizeTripo3DJobInput({
     prompt: "  make a chair  ",

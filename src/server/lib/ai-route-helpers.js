@@ -190,6 +190,29 @@ export function buildTripo3DSuccessResponse({
   };
 }
 
+export function buildTripo3DReleaseReservationParams({
+  userId = "",
+  reservation = {},
+  modelConfig = {},
+  task = "",
+  error = {},
+  requestId = "",
+  job = {}
+} = {}) {
+  return {
+    userId,
+    amount: reservation.amountCredits,
+    provider: "tripo",
+    model: modelConfig.id,
+    task,
+    billingType: "fixed",
+    reason: error?.message || "tripo_task_create_failed",
+    requestId,
+    aiJobId: job?.id || "",
+    status: "failed"
+  };
+}
+
 export function normalizeTripo3DJobInput(body = {}, { mode = "text" } = {}) {
   const isImageMode = mode === "image";
   const imageUrl = isImageMode
