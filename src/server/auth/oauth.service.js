@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { env } from "../config/env.js";
 import { execute, queryOne, sqlValue } from "../db/sqlite.js";
+import { createHttpError } from "../lib/input-validation.js";
 import { findOrCreateIdentityUser, publicUser } from "./identity.service.js";
 
 const OAUTH_STATE_TTL_MS = 10 * 60 * 1000;
@@ -34,14 +35,10 @@ function providerConfig(provider) {
   const clean = String(provider || "").trim().toLowerCase();
   const config = PROVIDERS[clean];
   if (!config) {
-    const error = new Error("Unsupported OAuth provider");
-    error.status = 404;
-    throw error;
+    throw createHttpError("Unsupported OAuth provider", 404);
   }
   if (!config.clientId() || !config.clientSecret()) {
-    const error = new Error(`${clean} OAuth is not configured`);
-    error.status = 503;
-    throw error;
+    throw createHttpError(`${clean} OAuth is not configured`, 503);
   }
   return { provider: clean, config };
 }
@@ -104,9 +101,7 @@ function getPendingOAuthState(provider, state) {
     LIMIT 1;
   `);
   if (!row || Number(row.expires_at || 0) <= now) {
-    const error = new Error("OAuth state is invalid or expired");
-    error.status = 400;
-    throw error;
+    throw createHttpError("OAuth state is invalid or expired", 400);
   }
   return row;
 }
@@ -143,9 +138,7 @@ async function fetchJson(url) {
 export async function handleOAuthCallback(provider, { code, state } = {}) {
   const { provider: cleanProvider, config } = providerConfig(provider);
   if (!code || !state) {
-    const error = new Error("OAuth callback is missing code or state");
-    error.status = 400;
-    throw error;
+    throw createHttpError("OAuth callback is missing code or state", 400);
   }
   const oauthState = getPendingOAuthState(cleanProvider, state);
   const redirectTo = oauthState.redirect_to || "/";
@@ -213,9 +206,7 @@ export function getOAuthStateStatus(provider, state) {
   const cleanProvider = String(provider || "").trim().toLowerCase();
   const cleanState = String(state || "").trim();
   if (!PROVIDERS[cleanProvider] || !cleanState) {
-    const error = new Error("OAuth state is invalid");
-    error.status = 400;
-    throw error;
+    throw createHttpError("OAuth state is invalid", 400);
   }
 
   const now = Date.now();
