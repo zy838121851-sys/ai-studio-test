@@ -16,6 +16,7 @@ import {
   buildTripo3DResponseLog
 } from "../src/server/lib/ai-job-log-payload.js";
 import {
+  buildCompletedGenerationResponse,
   buildDeferredImageEditResult,
   sanitizeGenerationResult,
   toClientAsset,
@@ -591,6 +592,41 @@ function assertAIResponseDtos() {
   assert(deferred.jobId === "job-1", "Deferred image edit DTO should expose jobId");
   assert(deferred.remoteTaskId === "remote-1", "Deferred image edit DTO should prefer job remote task id");
   assert(deferred.billing.status === "charged", "Deferred image edit DTO should mark succeeded jobs as charged");
+
+  const imageResponse = buildCompletedGenerationResponse({
+    type: "image",
+    completed: job,
+    firstAsset: asset,
+    modelConfig: { id: "gpt-image-2", providerModel: "provider-fallback" },
+    result: {
+      providerModel: "provider-result",
+      resolvedModel: "resolved-result",
+      sizeNormalization: { requested: "1024x1024", final: "1024x1024" }
+    },
+    reservation: { amountCredits: 8 }
+  });
+  assert(imageResponse.message === "Image generated", "Completed generation DTO should preserve image message");
+  assert(imageResponse.imageUrl === "/uploads/output.png", "Completed generation DTO should expose persisted image URL");
+  assert(imageResponse.videoUrl === "", "Completed generation DTO should not expose video URL for image assets");
+  assert(imageResponse.outputs.length === 1, "Completed generation DTO should expose one output asset");
+  assert(imageResponse.providerModel === "provider-result", "Completed generation DTO should prefer provider result model");
+  assert(imageResponse.resolvedModel === "resolved-result", "Completed generation DTO should prefer resolved model");
+  assert(imageResponse.billing.creditsReserved === 8, "Completed generation DTO should preserve reserved credits");
+  assert(imageResponse.billing.status === "charged", "Completed generation DTO should mark succeeded jobs as charged");
+
+  const videoResponse = buildCompletedGenerationResponse({
+    type: "video",
+    completed: { ...job, type: "video", creditsCharged: 12 },
+    firstAsset: { ...asset, type: "video", url: "/uploads/output.mp4", mimeType: "video/mp4" },
+    modelConfig: { id: "video-model", providerModel: "video-provider-fallback" },
+    result: {},
+    reservation: { amountCredits: 12 }
+  });
+  assert(videoResponse.message === "Video generated", "Completed generation DTO should preserve video message");
+  assert(videoResponse.imageUrl === "", "Completed generation DTO should not expose image URL for video assets");
+  assert(videoResponse.videoUrl === "/uploads/output.mp4", "Completed generation DTO should expose persisted video URL");
+  assert(videoResponse.providerModel === "video-provider-fallback", "Completed generation DTO should fall back to model providerModel");
+  assert(videoResponse.resolvedModel === "video-provider-fallback", "Completed generation DTO should preserve resolved model fallback");
 }
 
 async function assertAIRouteHelpers() {

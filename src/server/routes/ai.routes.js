@@ -20,6 +20,7 @@ import {
 } from "../lib/ai-job-log-payload.js";
 import {
   buildDeferredImageEditResult,
+  buildCompletedGenerationResponse,
   sanitizeGenerationResult,
   toClientAsset,
   toClientBilling,
@@ -348,27 +349,14 @@ export function createAIRouter() {
         const firstAsset = completed?.outputAssetIds?.[0]
           ? getAsset(req.auth.user.id, completed.outputAssetIds[0])
           : null;
-        res.json({
-          message: type === "video" ? "Video generated" : "Image generated",
-          job: toClientJob(completed),
-          jobId: completed?.id,
-          imageUrl: firstAsset?.type === "image" ? firstAsset.url : "",
-          imageUrls: firstAsset?.type === "image" ? [firstAsset.url] : [],
-          videoUrl: firstAsset?.type === "video" ? firstAsset.url : "",
-          videoUrls: firstAsset?.type === "video" ? [firstAsset.url] : [],
-          outputs: firstAsset ? [toClientAsset(firstAsset)] : [],
-          asset: toClientAsset(firstAsset),
-          model: modelConfig.id,
-          requestedModel: modelConfig.id,
-          providerModel: result.providerModel || result.resolvedModel || result.model || modelConfig.providerModel || modelConfig.id,
-          resolvedModel: result.resolvedModel || result.providerModel || result.model || modelConfig.providerModel || modelConfig.id,
-          sizeNormalization: toClientSizeNormalization(result.sizeNormalization),
-          billing: {
-            creditsReserved: reservation.amountCredits,
-            creditsCharged: completed?.creditsCharged || 0,
-            status: completed?.status === "succeeded" ? "charged" : completed?.status
-          }
-        });
+        res.json(buildCompletedGenerationResponse({
+          type,
+          completed,
+          firstAsset,
+          modelConfig,
+          result,
+          reservation
+        }));
         return;
       }
       scheduleAIJobRefresh(req.auth.user.id, job.id);

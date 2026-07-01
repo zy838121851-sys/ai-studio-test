@@ -35,6 +35,37 @@ export function buildDeferredImageEditResult(result = {}, job = {}, firstAsset =
   };
 }
 
+export function buildCompletedGenerationResponse({
+  type = "image",
+  completed = {},
+  firstAsset = null,
+  modelConfig = {},
+  result = {},
+  reservation = {}
+} = {}) {
+  return {
+    message: type === "video" ? "Video generated" : "Image generated",
+    job: toClientJob(completed),
+    jobId: completed?.id,
+    imageUrl: firstAsset?.type === "image" ? firstAsset.url : "",
+    imageUrls: firstAsset?.type === "image" ? [firstAsset.url] : [],
+    videoUrl: firstAsset?.type === "video" ? firstAsset.url : "",
+    videoUrls: firstAsset?.type === "video" ? [firstAsset.url] : [],
+    outputs: firstAsset ? [toClientAsset(firstAsset)] : [],
+    asset: toClientAsset(firstAsset),
+    model: modelConfig.id,
+    requestedModel: modelConfig.id,
+    providerModel: result.providerModel || result.resolvedModel || result.model || modelConfig.providerModel || modelConfig.id,
+    resolvedModel: result.resolvedModel || result.providerModel || result.model || modelConfig.providerModel || modelConfig.id,
+    sizeNormalization: toClientSizeNormalization(result.sizeNormalization),
+    billing: {
+      creditsReserved: reservation.amountCredits,
+      creditsCharged: completed?.creditsCharged || 0,
+      status: completed?.status === "succeeded" ? "charged" : completed?.status
+    }
+  };
+}
+
 export function toClientJob(job = {}) {
   if (!job) return null;
   return {
