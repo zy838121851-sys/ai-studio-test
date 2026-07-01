@@ -1,5 +1,6 @@
 import { isIP } from "node:net";
 import { lookup } from "node:dns/promises";
+import { createHttpError } from "../lib/input-validation.js";
 
 const PRIVATE_IPV4_RANGES = [
   ["0.0.0.0", 8],
@@ -40,34 +41,24 @@ export async function assertPublicHttpUrl(rawUrl) {
   try {
     parsed = new URL(rawUrl);
   } catch {
-    const error = new Error("Invalid image URL");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Invalid image URL", 400);
   }
 
   if (!["http:", "https:"].includes(parsed.protocol)) {
-    const error = new Error("Invalid image URL");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Invalid image URL", 400);
   }
 
   if (!parsed.hostname || parsed.username || parsed.password) {
-    const error = new Error("Unsupported image URL");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Unsupported image URL", 400);
   }
 
   if (parsed.hostname === "localhost" || parsed.hostname.endsWith(".localhost")) {
-    const error = new Error("Private image URLs are not allowed");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Private image URLs are not allowed", 400);
   }
 
   const addresses = await lookup(parsed.hostname, { all: true, verbatim: true });
   if (!addresses.length || addresses.some((entry) => isBlockedIp(entry.address))) {
-    const error = new Error("Private image URLs are not allowed");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Private image URLs are not allowed", 400);
   }
 
   return parsed.toString();
