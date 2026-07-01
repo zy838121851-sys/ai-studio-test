@@ -16,13 +16,21 @@ import {
   buildTripo3DResponseLogParams,
   buildTripo3DReserveCreditsParams,
   buildTripo3DSuccessResponse,
+  buildTripo3DRemoteFailureParams,
+  hasRemoteFallbackModelOutput,
   runTripo3DDispatch
 } from "../../lib/ai-route-helpers.js";
+import { toClientJob } from "../../lib/ai-response-dto.js";
 import {
+  completeModel3DJob,
   createAIJob,
   failModel3DJob,
+  getAIJobByRemoteTaskId,
+  getAIJobOutputAssets,
   markAIJobCreditsCharged,
-  updateAIJobDispatchResult
+  updateAIJobDispatchResult,
+  updateAIJobLogData,
+  updateAIJobProgress
 } from "../ai-job.service.js";
 import {
   chargeReservedCredits,
@@ -36,7 +44,8 @@ import {
 } from "../model-catalog.service.js";
 import {
   createImageToModelTask,
-  createTextToModelTask
+  createTextToModelTask,
+  getTask as getTripoTask
 } from "./providers/tripo.service.js";
 
 export async function createTripo3DJob({
@@ -176,4 +185,76 @@ export async function createTripo3DJob({
     }
     throw error;
   }
+}
+
+export async function getTripo3DTaskStatus({
+  userId = "",
+  remoteTaskId = ""
+} = {}) {
+  const job = getAIJobByRemoteTaskId(userId, remoteTaskId);
+  if (!job) {
+    return {
+      status: 404,
+      message: "3D task not found"
+    };
+  }
+  const startedAt = Number(job.createdAt || Date.now());
+  const remote = await getTripoTask(remoteTaskId);
+  let currentJob = job;
+  const responseData = {
+    provider: "tripo",
+    remote,
+    checkedAt: Date.now()
+  };
+  if (remote.status === "success") {
+    const existingAssets = getAIJobOutputAssets(userId, job);
+    const needsLocalModelSave = hasRemoteFallbackModelOutput(existingAssets);
+    currentJob = await completeModel3DJob(userId, job.id, {
+      outputs: remote.modelUrl
+        ? [{
+          url: remote.modelUrl,
+          mimeType: "model/gltf-binary",
+          allowRemoteFallback: true
+        }]
+        : [],
+      responseData,
+      durationMs: Date.now() - startedAt,
+      force: needsLocalModelSave
+    });
+  } else if (["failed", "cancelled", "banned"].includes(remote.status)) {
+    currentJob = failModel3DJob(userId, job.id, buildTripo3DRemoteFailureParams({
+      remote,
+      responseData,
+      startedAt
+    }));
+  } else {
+    updateAIJobLogData(userId, job.id, { responseData });
+    currentJob = updateAIJobProgress(userId, job.id, {
+      status: remote.status === "running" ? "running" : "queued",
+      progress: remote.progress
+    });
+  }
+  const assets = getAIJobOutputAssets(userId, currentJob);
+  const localModel = assets.find((asset) => asset.type === "model3d" && asset.filePath) || null;
+  const firstModel = assets.find((asset) => asset.type === "model3d") || null;
+  return {
+    body: {
+      ok: true,
+      provider: "tripo",
+      taskId: remote.taskId || remoteTaskId,
+      jobId: currentJob?.id || job.id,
+      status: remote.status,
+      progress: remote.progress,
+      modelUrl: localModel?.url || remote.modelUrl || firstModel?.url || "",
+      localModelUrl: localModel?.url || "",
+      renderedImageUrl: remote.renderedImageUrl || "",
+      errorMessage: remote.errorMessage || currentJob?.failureMessage || "",
+      job: toClientJob(currentJob),
+      billing: {
+        creditsReserved: currentJob?.creditsReserved || 0,
+        creditsCharged: currentJob?.creditsCharged || 0,
+        status: currentJob?.creditsCharged > 0 ? "charged" : (currentJob?.status || "")
+      }
+    }
+  };
 }

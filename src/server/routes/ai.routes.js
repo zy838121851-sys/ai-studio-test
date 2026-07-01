@@ -5,10 +5,7 @@ import {
   toClientJob
 } from "../lib/ai-response-dto.js";
 import {
-  buildTripo3DDispatchResultParams,
-  buildTripo3DRemoteFailureParams,
   getModelModality,
-  hasRemoteFallbackModelOutput,
   isFixedQwenImageEditAction,
   normalizeTripo3DJobInput,
   normalizeImages
@@ -17,15 +14,10 @@ import { sendErrorResponse } from "../lib/http-error-response.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import {
-  completeModel3DJob,
-  failModel3DJob,
-  getAIJobByRemoteTaskId,
   getAIJobDetails,
   getAIJobOutputAssets,
   listAIJobs,
-  refreshAIJob,
-  updateAIJobProgress,
-  updateAIJobLogData
+  refreshAIJob
 } from "../services/ai-job.service.js";
 import {
   DEFAULT_IMAGE_MODEL,
@@ -51,10 +43,10 @@ import {
   createUpscaledImageEdit
 } from "../services/ai/image-edit-creation.service.js";
 import { proxyImage } from "../services/ai/image-proxy.service.js";
-import { createTripo3DJob } from "../services/ai/tripo-3d-creation.service.js";
 import {
-  getTask as getTripoTask
-} from "../services/ai/providers/tripo.service.js";
+  createTripo3DJob,
+  getTripo3DTaskStatus
+} from "../services/ai/tripo-3d-creation.service.js";
 
 const aiLimiter = createRateLimiter({
   namespace: "ai",
@@ -112,68 +104,15 @@ export function createAIRouter() {
 
   router.get("/ai/3d/tasks/:taskId", jobPollLimiter, asyncHandler(async (req, res) => {
     const remoteTaskId = String(req.params.taskId || "").trim();
-    const job = getAIJobByRemoteTaskId(req.auth.user.id, remoteTaskId);
-    if (!job) {
-      sendErrorResponse(res, 404, "3D task not found");
+    const result = await getTripo3DTaskStatus({
+      userId: req.auth.user.id,
+      remoteTaskId
+    });
+    if (result.status) {
+      sendErrorResponse(res, result.status, result.message);
       return;
     }
-    const startedAt = Number(job.createdAt || Date.now());
-    const remote = await getTripoTask(remoteTaskId);
-    let currentJob = job;
-    const responseData = {
-      provider: "tripo",
-      remote,
-      checkedAt: Date.now()
-    };
-    if (remote.status === "success") {
-      const existingAssets = getAIJobOutputAssets(req.auth.user.id, job);
-      const needsLocalModelSave = hasRemoteFallbackModelOutput(existingAssets);
-      currentJob = await completeModel3DJob(req.auth.user.id, job.id, {
-        outputs: remote.modelUrl
-          ? [{
-            url: remote.modelUrl,
-            mimeType: "model/gltf-binary",
-            allowRemoteFallback: true
-          }]
-          : [],
-        responseData,
-        durationMs: Date.now() - startedAt,
-        force: needsLocalModelSave
-      });
-    } else if (["failed", "cancelled", "banned"].includes(remote.status)) {
-      currentJob = failModel3DJob(req.auth.user.id, job.id, buildTripo3DRemoteFailureParams({
-        remote,
-        responseData,
-        startedAt
-      }));
-    } else {
-      updateAIJobLogData(req.auth.user.id, job.id, { responseData });
-      currentJob = updateAIJobProgress(req.auth.user.id, job.id, {
-        status: remote.status === "running" ? "running" : "queued",
-        progress: remote.progress
-      });
-    }
-    const assets = getAIJobOutputAssets(req.auth.user.id, currentJob);
-    const localModel = assets.find((asset) => asset.type === "model3d" && asset.filePath) || null;
-    const firstModel = assets.find((asset) => asset.type === "model3d") || null;
-    res.json({
-      ok: true,
-      provider: "tripo",
-      taskId: remote.taskId || remoteTaskId,
-      jobId: currentJob?.id || job.id,
-      status: remote.status,
-      progress: remote.progress,
-      modelUrl: localModel?.url || remote.modelUrl || firstModel?.url || "",
-      localModelUrl: localModel?.url || "",
-      renderedImageUrl: remote.renderedImageUrl || "",
-      errorMessage: remote.errorMessage || currentJob?.failureMessage || "",
-      job: toClientJob(currentJob),
-      billing: {
-        creditsReserved: currentJob?.creditsReserved || 0,
-        creditsCharged: currentJob?.creditsCharged || 0,
-        status: currentJob?.creditsCharged > 0 ? "charged" : (currentJob?.status || "")
-      }
-    });
+    res.json(result.body);
   }));
 
   router.post("/ai/generate", aiLimiter, asyncHandler(async (req, res) => {
