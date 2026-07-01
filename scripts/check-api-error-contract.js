@@ -26,6 +26,7 @@ import {
   assertResolvedProviderMatchesModel,
   assertTripo3DModelConfig,
   assertTripo3DRequiredInput,
+  buildGenerationReserveCreditsParams,
   buildTripo3DChargeReservationParams,
   buildTripo3DCreateContext,
   buildTripo3DDispatchParams,
@@ -1010,6 +1011,23 @@ async function assertAIRouteHelpers() {
     reason: "tripo_text_to_3d_standard",
     requestId: "request-3"
   }, "Tripo reserve credits params should preserve fixed billing fields");
+
+  assertDeepEqual(buildGenerationReserveCreditsParams({
+    userId: "user-1",
+    quote: { totalCredits: 12 },
+    modelConfig: { id: "image-model", providerId: "apimart" },
+    task: "image_generation",
+    requestId: "request-generation-1"
+  }), {
+    userId: "user-1",
+    amount: 12,
+    provider: "apimart",
+    model: "image-model",
+    task: "image_generation",
+    billingType: "fixed",
+    reason: "image_generation",
+    requestId: "request-generation-1"
+  }, "Generation reserve credits params should preserve fixed billing fields");
 
   assertDeepEqual(buildTripo3DChargeReservationParams({
     userId: "user-1",

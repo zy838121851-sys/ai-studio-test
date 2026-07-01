@@ -27,6 +27,7 @@ import {
 } from "../lib/ai-response-dto.js";
 import {
   assertResolvedProviderMatchesModel,
+  buildGenerationReserveCreditsParams,
   buildTripo3DDispatchResultParams,
   buildTripo3DRemoteFailureParams,
   getInitialAIJobStatus,
@@ -255,16 +256,13 @@ export function createAIRouter() {
     let job = null;
 
     try {
-      reservation = reserveCredits({
+      reservation = reserveCredits(buildGenerationReserveCreditsParams({
         userId: req.auth.user.id,
-        amount: quote.totalCredits,
-        provider: modelConfig.providerId,
-        model: modelConfig.id,
+        quote,
+        modelConfig,
         task,
-        billingType: "fixed",
-        reason: task,
         requestId
-      });
+      }));
       job = createAIJob({
         id: requestId,
         userId: req.auth.user.id,
