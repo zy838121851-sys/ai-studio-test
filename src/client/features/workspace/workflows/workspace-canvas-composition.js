@@ -4,14 +4,12 @@ import { createWorkspaceCanvasNodeDragCompositionRuntime } from "./workspace-can
 import { createWorkspaceCanvasOperationsCompositionRuntime } from "./workspace-canvas-operations-composition.js";
 import { createWorkspaceCanvasSelectionCompositionRuntime } from "./workspace-canvas-selection-composition.js";
 import { createWorkspaceCanvasSurfaceCompositionRuntime } from "./workspace-canvas-surface-composition.js";
-import {
-  createCanvasGenerationRuntimeInputs,
-  createCanvasInteractionRuntimeInputs,
-  createCanvasNodeDragRuntimeInputs,
-  createCanvasOperationsRuntimeInputs,
-  createCanvasSelectionRuntimeInputs,
-  createCanvasSurfaceRuntimeInputs
-} from "./workspace-canvas-runtime-inputs.js";
+import { createCanvasGenerationRuntimeInputs } from "./workspace-canvas-generation-inputs.js";
+import { createCanvasInteractionRuntimeInputs } from "./workspace-canvas-interaction-inputs.js";
+import { createCanvasNodeDragRuntimeInputs } from "./workspace-canvas-node-drag-inputs.js";
+import { createCanvasOperationsRuntimeInputs } from "./workspace-canvas-operations-inputs.js";
+import { createCanvasSelectionRuntimeInputs } from "./workspace-canvas-selection-inputs.js";
+import { createCanvasSurfaceRuntimeInputs } from "./workspace-canvas-surface-inputs.js";
 
 export function createWorkspaceCanvasCompositionBundle({
   document,
