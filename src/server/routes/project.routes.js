@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { sendCaughtErrorResponse, sendErrorResponse } from "../lib/http-error-response.js";
 import { getRequestContext } from "../lib/request-auth.js";
+import { getRequestBody, getRouteParam } from "../lib/route-request.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { recordAuditEvent } from "../services/audit.service.js";
 import {
@@ -30,7 +31,7 @@ export function createProjectRouter() {
 
   router.post("/projects", (req, res) => {
     try {
-      const project = createProject(getRequestContext(req), req.body);
+      const project = createProject(getRequestContext(req), getRequestBody(req));
       res.status(201).json({ project });
     } catch (error) {
       handleProjectError(res, error);
@@ -38,7 +39,7 @@ export function createProjectRouter() {
   });
 
   router.get("/projects/:id", (req, res) => {
-    const project = getProject(getRequestContext(req), req.params.id, { touchLastOpened: true });
+    const project = getProject(getRequestContext(req), getRouteParam(req, "id"), { touchLastOpened: true });
     if (!project) {
       sendErrorResponse(res, 404, "Project not found");
       return;
@@ -48,7 +49,7 @@ export function createProjectRouter() {
 
   router.patch("/projects/:id", (req, res) => {
     try {
-      const project = updateProject(getRequestContext(req), req.params.id, req.body);
+      const project = updateProject(getRequestContext(req), getRouteParam(req, "id"), getRequestBody(req));
       if (!project) {
         sendErrorResponse(res, 404, "Project not found");
         return;
@@ -61,13 +62,14 @@ export function createProjectRouter() {
 
   router.delete("/projects/:id", (req, res) => {
     const context = getRequestContext(req);
-    const project = softDeleteProject(context, req.params.id);
+    const projectId = getRouteParam(req, "id");
+    const project = softDeleteProject(context, projectId);
     if (!project) {
       recordAuditEvent(req, "project.delete.failed", {
         outcome: "failed",
         status: 404,
         userId: context.userId,
-        projectId: req.params.id
+        projectId
       });
       sendErrorResponse(res, 404, "Project not found");
       return;
@@ -82,7 +84,7 @@ export function createProjectRouter() {
 
   router.post("/projects/:id/save-canvas", (req, res) => {
     try {
-      const project = saveProjectCanvas(getRequestContext(req), req.params.id, req.body);
+      const project = saveProjectCanvas(getRequestContext(req), getRouteParam(req, "id"), getRequestBody(req));
       if (!project) {
         sendErrorResponse(res, 404, "Project not found");
         return;
