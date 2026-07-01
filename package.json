@@ -3,7 +3,7 @@
   "scripts": {
     "start": "node server.js",
     "build": "vite build",
-    "check": "node scripts/check-js.js && npm audit --omit=dev && node scripts/check-oauth-urls.js && node scripts/check-billing-provider.js && node scripts/check-rate-limit-provider.js && node scripts/check-job-queue-provider.js && node scripts/check-audit-logger-provider.js && node scripts/check-storage-provider.js && node scripts/check-api-auth-isolation.js && node scripts/check-api-upload-security.js && node scripts/check-api-ai-job-gate.js && node scripts/check-db.js && node scripts/check-railway-env.js",
+    "check": "node scripts/check-js.js && npm audit --omit=dev && node scripts/check-oauth-urls.js && node scripts/check-billing-provider.js && node scripts/check-rate-limit-provider.js && node scripts/check-job-queue-provider.js && node scripts/check-audit-logger-provider.js && node scripts/check-storage-provider.js && node scripts/check-api-auth-isolation.js && node scripts/check-api-upload-security.js && node scripts/check-api-ai-job-gate.js && node scripts/check-api-credits-ledger.js && node scripts/check-db.js && node scripts/check-railway-env.js",
     "smoke": "node scripts/smoke-test.js",
     "railway:check": "node scripts/check-railway-env.js",
     "auth:check": "node scripts/check-auth-config.js",
