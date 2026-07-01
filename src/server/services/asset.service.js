@@ -2,9 +2,9 @@ import { randomUUID } from "node:crypto";
 import { basename, extname } from "node:path";
 import { env } from "../config/env.js";
 import { prepare, transaction } from "../db/sqlite.js";
-import { localStorageProvider } from "../providers/storage/local-storage.provider.js";
 import { getAssetCollection } from "./asset-collection.service.js";
 import { getProject } from "./project.service.js";
+import { resolveStoredFilePath, saveStoredBuffer, storedFileExists } from "./storage.service.js";
 import { ensureUserWorkspace, ensureUserWorkspaceWithDb } from "./workspace.service.js";
 
 const ASSET_TYPES = new Set(["image", "model3d", "video", "document", "other"]);
@@ -238,13 +238,13 @@ export function getAssetByUploadUrl(userId, uploadUrl = "") {
 
 export function resolveUploadAssetPath(asset = {}) {
   const filePath = normalizeText(asset?.filePath);
-  return localStorageProvider.resolveStoredPath(filePath);
+  return resolveStoredFilePath(filePath);
 }
 
 export function resolveExistingUploadAssetPath(asset = {}) {
   const filePath = normalizeText(asset?.filePath);
-  return localStorageProvider.storedPathExists(filePath)
-    ? localStorageProvider.resolveStoredPath(filePath)
+  return storedFileExists(filePath)
+    ? resolveStoredFilePath(filePath)
     : "";
 }
 
@@ -261,7 +261,7 @@ export function createUploadedAsset(userId, { file, fields = {} } = {}) {
   const originalName = normalizeText(file.filename) || `asset-${id}`;
   const safeExt = getSafeExtension(originalName, file.mimeType);
   const fileName = `${Date.now()}-${id}${safeExt}`;
-  const stored = localStorageProvider.saveBuffer(fileName, file.buffer);
+  const stored = saveStoredBuffer(fileName, file.buffer);
   const dimensions = readImageDimensions(file.buffer, file.mimeType);
   return insertAsset(userId, {
     id,
@@ -356,7 +356,7 @@ export function createGeneratedAssetFromBuffer(userId, {
   assertAllowedUpload(mimeType, buffer.length, { maxBytes });
   const id = randomUUID();
   const fileName = `${Date.now()}-${id}${getExtensionFromMime(mimeType)}`;
-  const stored = localStorageProvider.saveBuffer(fileName, buffer);
+  const stored = saveStoredBuffer(fileName, buffer);
   const dimensions = mimeType.startsWith("image/")
     ? readImageDimensions(buffer, mimeType)
     : { width: null, height: null };
@@ -651,7 +651,7 @@ function saveDataUrlToUpload(id, dataUrl) {
   const buffer = isBase64 ? Buffer.from(body, "base64") : Buffer.from(decodeURIComponent(body));
   assertAllowedUpload(mimeType, buffer.length);
   const fileName = `${Date.now()}-${id}${getExtensionFromMime(mimeType)}`;
-  const stored = localStorageProvider.saveBuffer(fileName, buffer);
+  const stored = saveStoredBuffer(fileName, buffer);
   return {
     buffer,
     mimeType,

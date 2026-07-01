@@ -2,6 +2,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { createLocalStorageProvider } from "../src/server/providers/storage/local-storage.provider.js";
+import { resolveStoredFilePath, storedFileExists } from "../src/server/services/storage.service.js";
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -42,6 +43,8 @@ try {
   assert(storage.resolveStoredPath("package.json") === "", "Paths outside upload root should not resolve");
   assert(storage.resolveStoredPath(`../${basename(outsideFile)}`) === "", "Traversal paths should not resolve");
   assert(!storage.storedPathExists("package.json"), "Paths outside upload root should not report as present");
+  assert(resolveStoredFilePath("package.json") === "", "Storage service should reject paths outside upload root");
+  assert(!storedFileExists("package.json"), "Storage service should not report outside paths as present");
 
   assertThrows(
     () => storage.saveBuffer("../escape.txt", Buffer.from("bad")),
