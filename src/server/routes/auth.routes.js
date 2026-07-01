@@ -6,6 +6,7 @@ import { createOAuthStart, getOAuthStateStatus, handleOAuthCallback, markOAuthSt
 import { getAuthProviderStatus } from "../auth/provider-status.service.js";
 import { sendVerificationCode, verifyCodeAndGetUser } from "../auth/verification.service.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
+import { localAuditLogger } from "../providers/audit/local-audit-logger.js";
 
 const authLimiter = createRateLimiter({
   namespace: "auth",
@@ -24,6 +25,13 @@ const oauthPollLimiter = createRateLimiter({
 function handleAuthError(res, error) {
   res.status(error.status || 500).json({
     message: error.status ? error.message : "Authentication failed"
+  });
+}
+
+function auditAuthEvent(req, event, detail = {}) {
+  localAuditLogger.record(event, {
+    ...localAuditLogger.requestMetadata(req),
+    ...detail
   });
 }
 
@@ -46,8 +54,16 @@ export function createAuthRouter() {
       const user = authenticateUser(req.body);
       const token = createSession(user.id);
       setSessionCookie(res, token);
+      auditAuthEvent(req, "auth.login.succeeded", {
+        outcome: "succeeded",
+        userId: user.id
+      });
       res.json({ user });
     } catch (error) {
+      auditAuthEvent(req, "auth.login.failed", {
+        outcome: "failed",
+        status: error.status || 500
+      });
       handleAuthError(res, error);
     }
   });
