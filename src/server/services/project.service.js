@@ -30,6 +30,10 @@ function ensureProjectId(id) {
   return clean || randomUUID();
 }
 
+function userIdFromPrincipal(principal) {
+  return typeof principal === "string" ? principal : principal?.userId;
+}
+
 function publicProject(row, { includeSnapshot = false } = {}) {
   if (!row) return null;
   const project = {
@@ -66,7 +70,8 @@ function projectSelect(includeSnapshot = false) {
   `;
 }
 
-export function listProjects(userId) {
+export function listProjects(principal) {
+  const userId = userIdFromPrincipal(principal);
   const scope = ensureUserWorkspace(userId);
   return prepare(`
     SELECT ${projectSelect(false)}
@@ -78,7 +83,8 @@ export function listProjects(userId) {
   `).all(scope.workspaceId, userId).map((row) => publicProject(row));
 }
 
-export function getProject(userId, id, { touchLastOpened = false } = {}) {
+export function getProject(principal, id, { touchLastOpened = false } = {}) {
+  const userId = userIdFromPrincipal(principal);
   const scope = ensureUserWorkspace(userId);
   const now = Date.now();
   if (touchLastOpened) {
@@ -94,7 +100,8 @@ export function getProject(userId, id, { touchLastOpened = false } = {}) {
   return publicProject(readProject(userId, id, scope.workspaceId), { includeSnapshot: true });
 }
 
-export function createProject(userId, input = {}) {
+export function createProject(principal, input = {}) {
+  const userId = userIdFromPrincipal(principal);
   return transaction((db) => {
     const scope = ensureUserWorkspaceWithDb(db, userId);
     const now = Date.now();
@@ -149,7 +156,8 @@ export function createProject(userId, input = {}) {
   });
 }
 
-export function updateProject(userId, id, input = {}) {
+export function updateProject(principal, id, input = {}) {
+  const userId = userIdFromPrincipal(principal);
   return transaction((db) => {
     const scope = ensureUserWorkspaceWithDb(db, userId);
     const existing = publicProject(readProjectWithDb(db, userId, id, scope.workspaceId), { includeSnapshot: true });
@@ -214,7 +222,8 @@ export function updateProject(userId, id, input = {}) {
   });
 }
 
-export function saveProjectCanvas(userId, id, input = {}) {
+export function saveProjectCanvas(principal, id, input = {}) {
+  const userId = userIdFromPrincipal(principal);
   return transaction((db) => {
     const scope = ensureUserWorkspaceWithDb(db, userId);
     const existing = publicProject(readProjectWithDb(db, userId, id, scope.workspaceId), { includeSnapshot: true });
@@ -254,7 +263,8 @@ export function saveProjectCanvas(userId, id, input = {}) {
   });
 }
 
-export function softDeleteProject(userId, id) {
+export function softDeleteProject(principal, id) {
+  const userId = userIdFromPrincipal(principal);
   return transaction((db) => {
     const scope = ensureUserWorkspaceWithDb(db, userId);
     const existing = publicProject(readProjectWithDb(db, userId, id, scope.workspaceId), { includeSnapshot: true });
