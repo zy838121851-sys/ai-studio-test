@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { basename, extname } from "node:path";
 import { env } from "../config/env.js";
 import { prepare, transaction } from "../db/sqlite.js";
-import { normalizeText } from "../lib/input-validation.js";
+import { createHttpError, normalizeText } from "../lib/input-validation.js";
 import { getAssetCollection } from "./asset-collection.service.js";
 import { getProject } from "./project.service.js";
 import { resolveStoredFilePath, saveStoredBuffer, storedFileExists } from "./storage.service.js";
@@ -43,14 +43,10 @@ function normalizeAssetType(type, mimeType = "") {
 function assertAllowedUpload(mimeType = "", sizeBytes = 0, { maxBytes = env.maxUploadBytes } = {}) {
   const limit = Number(maxBytes || env.maxUploadBytes);
   if (sizeBytes > limit) {
-    const error = new Error("Upload is too large");
-    error.status = 413;
-    throw error;
+    throw createHttpError("Upload is too large", 413);
   }
   if (mimeType && !ALLOWED_UPLOAD_MIME_TYPES.has(mimeType)) {
-    const error = new Error("Unsupported upload type");
-    error.status = 415;
-    throw error;
+    throw createHttpError("Unsupported upload type", 415);
   }
 }
 
@@ -255,9 +251,7 @@ export function resolveExistingUploadAssetPath(asset = {}) {
 export function createUploadedAsset(principal, { file, fields = {} } = {}) {
   const userId = userIdFromPrincipal(principal);
   if (!file?.buffer?.length) {
-    const error = new Error("File is required");
-    error.status = 400;
-    throw error;
+    throw createHttpError("File is required", 400);
   }
   const assetType = fields.type || normalizeAssetType("", file.mimeType);
   const maxBytes = assetType === "model3d" ? env.maxModelUploadBytes : env.maxUploadBytes;
@@ -310,9 +304,7 @@ export function createGeneratedAsset(principal, input = {}) {
   }
 
   if (!url) {
-    const error = new Error("Generated asset URL is required");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Generated asset URL is required", 400);
   }
 
   return insertAsset(userId, {
@@ -354,9 +346,7 @@ export function createGeneratedAssetFromBuffer(principal, {
 } = {}) {
   const userId = userIdFromPrincipal(principal);
   if (!Buffer.isBuffer(buffer) || !buffer.length) {
-    const error = new Error("Generated asset buffer is required");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Generated asset buffer is required", 400);
   }
   const assetType = type || normalizeAssetType("", mimeType);
   const maxBytes = assetType === "model3d" ? env.maxModelUploadBytes : env.maxUploadBytes;
@@ -475,9 +465,7 @@ export function addAssetToProject(principal, id, { projectId } = {}) {
     const scope = ensureUserWorkspaceWithDb(db, userId);
     const allowedProjectId = ensureProjectAccessWithDb(db, userId, scope.workspaceId, projectId);
     if (!allowedProjectId) {
-      const error = new Error("Project not found");
-      error.status = 404;
-      throw error;
+      throw createHttpError("Project not found", 404);
     }
     insertProjectAssetLink(db, scope.workspaceId, allowedProjectId, id, Date.now());
     return getAsset(userId, id);
@@ -490,9 +478,7 @@ export function moveAssetToCollection(principal, id, { collectionId } = {}) {
   if (!existing) return null;
   const allowedCollectionId = ensureCollectionAccess(userId, collectionId);
   if (collectionId && !allowedCollectionId) {
-    const error = new Error("Collection not found");
-    error.status = 404;
-    throw error;
+    throw createHttpError("Collection not found", 404);
   }
   return updateAsset(userId, id, { collectionId: allowedCollectionId, libraryVisible: true });
 }
@@ -653,9 +639,7 @@ function shouldCreateAssetFile(asset) {
 function saveDataUrlToUpload(id, dataUrl) {
   const match = dataUrl.match(/^data:([^;,]+)?(;base64)?,(.*)$/);
   if (!match) {
-    const error = new Error("Invalid data URL");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Invalid data URL", 400);
   }
   const mimeType = match[1] || "application/octet-stream";
   const isBase64 = Boolean(match[2]);
