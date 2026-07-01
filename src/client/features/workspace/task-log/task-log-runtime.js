@@ -52,13 +52,7 @@ export function bindTaskLogRuntime(runtime = {}) {
   };
 
   const refresh = () => loadJobs({ elements, state });
-  const scheduleFilterRefresh = () => {
-    clearTimeout(state.debounceTimer);
-    state.debounceTimer = setTimeout(() => {
-      state.offset = 0;
-      refresh();
-    }, 240);
-  };
+  const scheduleFilterRefresh = () => scheduleTaskLogFilterRefresh(state, refresh);
   // Visibility is owned by workspace routing: body[data-view="space"] and
   // #profileView.active must stay stable during any future template split.
   const syncVisibility = () => {
@@ -142,6 +136,14 @@ function stopTaskLogAutoRefresh(state) {
   if (!state.autoTimer) return;
   clearInterval(state.autoTimer);
   state.autoTimer = null;
+}
+
+function scheduleTaskLogFilterRefresh(state, refresh) {
+  clearTimeout(state.debounceTimer);
+  state.debounceTimer = setTimeout(() => {
+    state.offset = 0;
+    refresh();
+  }, 240);
 }
 
 // Selector parity list: preserve these ids/classes before bindTaskLogRuntime().
