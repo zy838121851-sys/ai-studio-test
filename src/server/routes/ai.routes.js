@@ -1,10 +1,6 @@
 import { Router } from "express";
 import { createAIAsyncHandler } from "../lib/ai-error-response.js";
 import {
-  toClientAsset,
-  toClientJob
-} from "../lib/ai-response-dto.js";
-import {
   getModelModality,
   isFixedQwenImageEditAction,
   normalizeTripo3DJobInput,
@@ -13,12 +9,6 @@ import {
 import { sendErrorResponse } from "../lib/http-error-response.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
-import {
-  getAIJobDetails,
-  getAIJobOutputAssets,
-  listAIJobs,
-  refreshAIJob
-} from "../services/ai-job.service.js";
 import {
   DEFAULT_IMAGE_MODEL,
   getModelConfig,
@@ -36,6 +26,10 @@ import {
   createImageTextExtraction,
   createPreparedAction
 } from "../services/ai/assistant-action.service.js";
+import {
+  getAIJobDetailResponse,
+  listAIJobSummaries
+} from "../services/ai/ai-job-query.service.js";
 import {
   createExpandedImageEdit,
   createFixedQwenImageEdit,
@@ -153,59 +147,23 @@ export function createAIRouter() {
   }));
 
   router.get("/ai/jobs", jobPollLimiter, asyncHandler(async (req, res) => {
-    const result = listAIJobs(req.auth.user.id, {
-      limit: req.query.limit,
-      offset: req.query.offset,
-      q: req.query.q,
-      type: req.query.type,
-      status: req.query.status,
-      dateFrom: req.query.dateFrom,
-      dateTo: req.query.dateTo
+    const result = listAIJobSummaries({
+      userId: req.auth.user.id,
+      query: req.query
     });
-    res.json({
-      ...result,
-      serverTime: Date.now()
-    });
+    res.json(result.body);
   }));
 
   router.get("/ai/jobs/:jobId", jobPollLimiter, asyncHandler(async (req, res) => {
-    const refreshed = await refreshAIJob(req.auth.user.id, req.params.jobId);
-    if (!refreshed) {
-      sendErrorResponse(res, 404, "Job not found");
+    const result = await getAIJobDetailResponse({
+      userId: req.auth.user.id,
+      jobId: req.params.jobId
+    });
+    if (result.status) {
+      sendErrorResponse(res, result.status, result.message);
       return;
     }
-    const job = getAIJobDetails(req.auth.user.id, req.params.jobId) || refreshed;
-    const assets = getAIJobOutputAssets(req.auth.user.id, job);
-    const firstAsset = assets[0] || null;
-    res.json({
-      job: toClientJob(job),
-      jobId: job.id,
-      remoteTaskId: job.remoteTaskId || "",
-      status: job.status,
-      progress: job.progress,
-      updatedAt: job.updatedAt,
-      createdAt: job.createdAt,
-      completedAt: job.completedAt,
-      durationMs: job.durationMs,
-      outputCount: assets.length,
-      outputs: assets.map(toClientAsset),
-      imageUrls: assets.filter((asset) => asset.type === "image").map((asset) => asset.url),
-      videoUrls: assets.filter((asset) => asset.type === "video").map((asset) => asset.url),
-      imageUrl: firstAsset?.type === "image" ? firstAsset.url : "",
-      videoUrl: firstAsset?.type === "video" ? firstAsset.url : "",
-      error: job.failureMessage || job.errorMessage || "",
-      errorCode: job.errorCode || "",
-      errorMessage: job.errorMessage || "",
-      failureCode: job.failureCode || job.errorCode || "",
-      failureMessage: job.failureMessage || job.errorMessage || "",
-      requestData: job.requestData || {},
-      responseData: job.responseData || {},
-      billing: {
-        creditsReserved: job.creditsReserved || 0,
-        creditsCharged: job.creditsCharged || 0,
-        status: job.status === "succeeded" ? "charged" : job.status
-      }
-    });
+    res.json(result.body);
   }));
 
   router.post("/chat", aiLimiter, asyncHandler(async (req, res) => {
