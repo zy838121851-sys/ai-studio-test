@@ -11,6 +11,7 @@ import {
   superResolutionImage
 } from "../services/ai.service.js";
 import { env } from "../config/env.js";
+import { sendErrorResponse } from "../lib/http-error-response.js";
 import { logError, logInfo } from "../lib/logger.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
@@ -110,7 +111,7 @@ export function createAIRouter() {
     const remoteTaskId = String(req.params.taskId || "").trim();
     const job = getAIJobByRemoteTaskId(req.auth.user.id, remoteTaskId);
     if (!job) {
-      res.status(404).json({ message: "3D task not found" });
+      sendErrorResponse(res, 404, "3D task not found");
       return;
     }
     const startedAt = Number(job.createdAt || Date.now());
@@ -428,7 +429,7 @@ export function createAIRouter() {
   router.get("/ai/jobs/:jobId", jobPollLimiter, asyncHandler(async (req, res) => {
     const refreshed = await refreshAIJob(req.auth.user.id, req.params.jobId);
     if (!refreshed) {
-      res.status(404).json({ message: "Job not found" });
+      sendErrorResponse(res, 404, "Job not found");
       return;
     }
     const job = getAIJobDetails(req.auth.user.id, req.params.jobId) || refreshed;
@@ -772,22 +773,22 @@ export function createAIRouter() {
       signal: AbortSignal.timeout(10000)
     });
     if (!upstream.ok) {
-      res.status(upstream.status).json({ message: "Unable to fetch image" });
+      sendErrorResponse(res, upstream.status, "Unable to fetch image");
       return;
     }
     const contentType = upstream.headers.get("content-type") || "application/octet-stream";
     if (!contentType.toLowerCase().startsWith("image/")) {
-      res.status(415).json({ message: "URL did not return an image" });
+      sendErrorResponse(res, 415, "URL did not return an image");
       return;
     }
     const contentLength = Number(upstream.headers.get("content-length") || 0);
     if (contentLength && contentLength > env.maxProxyImageBytes) {
-      res.status(413).json({ message: "Image is too large" });
+      sendErrorResponse(res, 413, "Image is too large");
       return;
     }
     const buffer = Buffer.from(await upstream.arrayBuffer());
     if (buffer.length > env.maxProxyImageBytes) {
-      res.status(413).json({ message: "Image is too large" });
+      sendErrorResponse(res, 413, "Image is too large");
       return;
     }
     res.setHeader("Content-Type", contentType);
