@@ -34,6 +34,7 @@ import {
   buildTripo3DDispatchParams,
   buildTripo3DDispatchResultParams,
   buildTripo3DJobRecordParams,
+  buildTripo3DSuccessResponse,
   getInitialAIJobStatus,
   getModelModality,
   getTripo3DJobMetadata,
@@ -944,18 +945,12 @@ async function createTripo3DJob(req, {
         inputType: taskCreated.inputType || ""
       })
     }));
-    return {
-      ok: true,
-      provider: "tripo",
-      taskId: taskCreated.taskId,
-      jobId: job.id,
-      status: "queued",
-      billing: {
-        creditsReserved: reservation.amountCredits,
-        creditsCharged: chargedCredits,
-        status: "charged"
-      }
-    };
+    return buildTripo3DSuccessResponse({
+      taskCreated,
+      job,
+      creditsReserved: reservation.amountCredits,
+      creditsCharged: chargedCredits
+    });
   } catch (error) {
     if (!chargedCredits && reservation?.amountCredits) {
       releaseReservedCredits({

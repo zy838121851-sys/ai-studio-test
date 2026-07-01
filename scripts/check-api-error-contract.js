@@ -29,6 +29,7 @@ import {
   buildTripo3DDispatchParams,
   buildTripo3DDispatchResultParams,
   buildTripo3DJobRecordParams,
+  buildTripo3DSuccessResponse,
   getInitialAIJobStatus,
   getModelModality,
   getTripo3DJobMetadata,
@@ -828,6 +829,24 @@ function assertAIRouteHelpers() {
     progress: 0,
     responseData: { status: "created" }
   }, "Tripo dispatch result params should preserve queued fallback updates");
+
+  assertDeepEqual(buildTripo3DSuccessResponse({
+    taskCreated: { taskId: "task-3", status: "running" },
+    job: { id: "job-3" },
+    creditsReserved: 12,
+    creditsCharged: 12
+  }), {
+    ok: true,
+    provider: "tripo",
+    taskId: "task-3",
+    jobId: "job-3",
+    status: "queued",
+    billing: {
+      creditsReserved: 12,
+      creditsCharged: 12,
+      status: "charged"
+    }
+  }, "Tripo success response should preserve client response shape");
 
   const text3DInput = normalizeTripo3DJobInput({
     prompt: "  make a chair  ",

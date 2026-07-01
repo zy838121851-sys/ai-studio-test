@@ -170,6 +170,26 @@ export function buildTripo3DDispatchResultParams({
   };
 }
 
+export function buildTripo3DSuccessResponse({
+  taskCreated = {},
+  job = {},
+  creditsReserved = 0,
+  creditsCharged = 0
+} = {}) {
+  return {
+    ok: true,
+    provider: "tripo",
+    taskId: taskCreated.taskId,
+    jobId: job.id,
+    status: "queued",
+    billing: {
+      creditsReserved,
+      creditsCharged,
+      status: "charged"
+    }
+  };
+}
+
 export function normalizeTripo3DJobInput(body = {}, { mode = "text" } = {}) {
   const isImageMode = mode === "image";
   const imageUrl = isImageMode
