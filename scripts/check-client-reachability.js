@@ -1,0 +1,114 @@
+import fs from "node:fs";
+import path from "node:path";
+
+const ROOT = process.cwd();
+const CLIENT_DIR = path.join(ROOT, "src", "client");
+const ENTRY_FILES = ["app.js", "server.js"].map((filePath) => path.resolve(ROOT, filePath));
+
+const errors = [];
+
+function toPosixPath(filePath) {
+  return filePath.split(path.sep).join("/");
+}
+
+function relativePath(filePath) {
+  return toPosixPath(path.relative(ROOT, filePath));
+}
+
+function collectJsFiles(targetPath) {
+  const stat = fs.statSync(targetPath);
+  if (stat.isFile()) return targetPath.endsWith(".js") ? [targetPath] : [];
+
+  const files = [];
+  for (const entry of fs.readdirSync(targetPath, { withFileTypes: true })) {
+    files.push(...collectJsFiles(path.join(targetPath, entry.name)));
+  }
+  return files;
+}
+
+function stripImportQuery(specifier) {
+  return String(specifier || "").split("?")[0];
+}
+
+function resolveLocalImport(importerPath, specifier, knownFiles) {
+  if (!specifier.startsWith(".") && !specifier.startsWith("/")) return null;
+
+  const baseDir = specifier.startsWith("/") ? ROOT : path.dirname(importerPath);
+  const basePath = path.resolve(baseDir, stripImportQuery(specifier));
+  const candidates = [
+    basePath,
+    `${basePath}.js`,
+    path.join(basePath, "index.js")
+  ];
+  return candidates.find((candidate) => knownFiles.has(candidate)) || null;
+}
+
+function parseImportSpecifiers(source) {
+  const specifiers = [];
+  const patterns = [
+    /\bimport\s+(?:[^;"']+?\s+from\s+)?["']([^"']+)["']/g,
+    /\bexport\s+(?:[^;"']+?\s+from\s+)["']([^"']+)["']/g,
+    /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g
+  ];
+
+  for (const pattern of patterns) {
+    let match;
+    while ((match = pattern.exec(source))) {
+      specifiers.push(match[1]);
+    }
+  }
+
+  return specifiers;
+}
+
+function buildReachabilityGraph() {
+  const allFiles = new Set([
+    ...collectJsFiles(CLIENT_DIR),
+    ...collectJsFiles(path.join(ROOT, "src", "server")),
+    ...ENTRY_FILES
+  ].map((filePath) => path.resolve(filePath)));
+  const reachable = new Set();
+  const stack = [...ENTRY_FILES];
+
+  while (stack.length) {
+    const filePath = stack.pop();
+    if (!filePath || reachable.has(filePath) || !fs.existsSync(filePath)) continue;
+
+    reachable.add(filePath);
+    const source = fs.readFileSync(filePath, "utf8");
+    for (const specifier of parseImportSpecifiers(source)) {
+      const resolved = resolveLocalImport(filePath, specifier, allFiles);
+      if (resolved) {
+        if (!reachable.has(resolved)) stack.push(resolved);
+        continue;
+      }
+      if (specifier.startsWith(".") || specifier.startsWith("/")) {
+        errors.push(`${relativePath(filePath)} imports missing local module ${specifier}`);
+      }
+    }
+  }
+
+  return { allFiles, reachable };
+}
+
+const { allFiles, reachable } = buildReachabilityGraph();
+const unreachableClientFiles = Array.from(allFiles)
+  .filter((filePath) => filePath.startsWith(CLIENT_DIR + path.sep) && !reachable.has(filePath))
+  .map(relativePath)
+  .sort();
+
+if (unreachableClientFiles.length > 0) {
+  errors.push(
+    `Unreachable client modules found from app.js/server.js:\n${unreachableClientFiles.map((filePath) => `- ${filePath}`).join("\n")}`
+  );
+}
+
+if (errors.length > 0) {
+  console.error("Client reachability check failed:");
+  for (const error of errors) {
+    console.error(error);
+  }
+  process.exit(1);
+}
+
+console.log(`Client reachability checks passed. reachable=${reachable.size} client_unreachable=0`);
