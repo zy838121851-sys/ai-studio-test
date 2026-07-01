@@ -16,8 +16,6 @@ import {
   buildGenerationFailureLog,
   buildGenerationRequestLog,
   buildGenerationResponseLog,
-  buildTripo3DRequestLog,
-  buildTripo3DResponseLog,
   toClientSizeNormalization
 } from "../lib/ai-job-log-payload.js";
 import {
@@ -29,19 +27,8 @@ import {
 } from "../lib/ai-response-dto.js";
 import {
   assertResolvedProviderMatchesModel,
-  assertTripo3DModelConfig,
-  assertTripo3DRequiredInput,
-  buildTripo3DChargeReservationParams,
-  buildTripo3DCreateContext,
   buildTripo3DDispatchResultParams,
-  buildTripo3DFailJobParams,
-  buildTripo3DJobRecordParams,
-  buildTripo3DReleaseReservationParams,
-  buildTripo3DRequestLogParams,
-  buildTripo3DResponseLogParams,
-  buildTripo3DReserveCreditsParams,
   buildTripo3DRemoteFailureParams,
-  buildTripo3DSuccessResponse,
   getInitialAIJobStatus,
   getModelModality,
   hasRemoteFallbackModelOutput,
@@ -49,7 +36,6 @@ import {
   jobStatusForError,
   normalizeTripo3DJobInput,
   normalizeImages,
-  runTripo3DDispatch,
   validateVideoOptions
 } from "../lib/ai-route-helpers.js";
 import { logAIModelRoute, logAIProviderRoute } from "../lib/ai-route-logging.js";
@@ -59,7 +45,6 @@ import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import { assertPublicHttpUrl } from "../security/network.js";
 import { billFixedTask } from "../services/credits/billing.service.js";
 import {
-  chargeReservedCredits,
   releaseReservedCredits,
   reserveCredits
 } from "../services/credits/credit.service.js";
@@ -74,7 +59,6 @@ import {
   getAIJobDetails,
   getAIJobOutputAssets,
   listAIJobs,
-  markAIJobCreditsCharged,
   refreshAIJob,
   scheduleAIJobRefresh,
   updateAIJobLogData,
@@ -83,15 +67,13 @@ import {
 } from "../services/ai-job.service.js";
 import { getAsset } from "../services/asset.service.js";
 import {
-  DEFAULT_3D_MODEL,
   DEFAULT_IMAGE_MODEL,
   getModelConfig,
   isApimartModel,
   listImageModels
 } from "../services/model-catalog.service.js";
+import { createTripo3DJob } from "../services/ai/tripo-3d-creation.service.js";
 import {
-  createImageToModelTask,
-  createTextToModelTask,
   getTask as getTripoTask
 } from "../services/ai/providers/tripo.service.js";
 import { randomUUID } from "node:crypto";
@@ -133,12 +115,20 @@ export function createAIRouter() {
   router.use(requireAuth);
 
   router.post("/ai/3d/text-to-model", aiLimiter, asyncHandler(async (req, res) => {
-    const result = await createTripo3DJob(req, normalizeTripo3DJobInput(req.body, { mode: "text" }));
+    const result = await createTripo3DJob({
+      userId: req.auth.user.id,
+      body: req.body,
+      input: normalizeTripo3DJobInput(req.body, { mode: "text" })
+    });
     res.json(result);
   }));
 
   router.post("/ai/3d/image-to-model", aiLimiter, asyncHandler(async (req, res) => {
-    const result = await createTripo3DJob(req, normalizeTripo3DJobInput(req.body, { mode: "image" }));
+    const result = await createTripo3DJob({
+      userId: req.auth.user.id,
+      body: req.body,
+      input: normalizeTripo3DJobInput(req.body, { mode: "image" })
+    });
     res.json(result);
   }));
 
@@ -829,139 +819,4 @@ export function createAIRouter() {
   }));
 
   return router;
-}
-
-async function createTripo3DJob(req, {
-  mode = "text",
-  prompt = "",
-  imageUrl = "",
-  imageDataUrl = "",
-  imageName = "",
-  imageMimeType = "",
-  texture = true
-} = {}) {
-  const userId = req.auth.user.id;
-  const modelId = String(req.body?.modelId || req.body?.model || DEFAULT_3D_MODEL).trim() || DEFAULT_3D_MODEL;
-  const modelConfig = getModelConfig(modelId);
-  assertTripo3DModelConfig({ modelId, modelConfig, mode });
-  const cleanPrompt = String(prompt || "").trim();
-  const cleanImageUrl = String(imageUrl || "").trim();
-  const cleanImageDataUrl = String(imageDataUrl || "").trim();
-  const cleanImageName = String(imageName || "").trim();
-  const cleanImageMimeType = String(imageMimeType || "").trim();
-  assertTripo3DRequiredInput({
-    mode,
-    prompt: cleanPrompt,
-    imageUrl: cleanImageUrl,
-    imageDataUrl: cleanImageDataUrl
-  });
-
-  const requestId = randomUUID();
-  const startedAt = Date.now();
-  const {
-    task,
-    route,
-    providerModel,
-    taskApiModel,
-    quoteParams
-  } = buildTripo3DCreateContext({
-    mode,
-    modelConfig
-  });
-  const quote = quoteFixedCredits(quoteParams);
-  const reservation = reserveCredits(buildTripo3DReserveCreditsParams({
-    userId,
-    quote,
-    modelConfig,
-    task,
-    requestId
-  }));
-  let job = createAIJob(buildTripo3DJobRecordParams({
-    requestId,
-    userId,
-    modelConfig,
-    providerModel,
-    prompt: cleanPrompt,
-    creditsReserved: reservation.amountCredits,
-    requestData: buildTripo3DRequestLog(buildTripo3DRequestLogParams({
-      route,
-      requestId,
-      modelConfig,
-      mode,
-      prompt: cleanPrompt,
-      imageUrl: cleanImageUrl,
-      imageDataUrl: cleanImageDataUrl,
-      imageName: cleanImageName,
-      imageMimeType: cleanImageMimeType,
-      texture,
-      task,
-      quote,
-      reservation
-    }))
-  }));
-  let taskCreated = null;
-  let chargedCredits = 0;
-  try {
-    taskCreated = await runTripo3DDispatch({
-      mode,
-      prompt: cleanPrompt,
-      imageUrl: cleanImageUrl,
-      imageDataUrl: cleanImageDataUrl,
-      imageName: cleanImageName,
-      imageMimeType: cleanImageMimeType,
-      apiModel: taskApiModel,
-      texture,
-      defaultParams: modelConfig.defaultParams || {},
-      requestId,
-      createImageToModelTask,
-      createTextToModelTask
-    });
-    const charge = chargeReservedCredits(buildTripo3DChargeReservationParams({
-      userId,
-      reservation,
-      modelConfig,
-      task,
-      requestId,
-      job
-    }));
-    chargedCredits = charge.chargedCredits || 0;
-    markAIJobCreditsCharged(userId, job.id, chargedCredits);
-    job = updateAIJobDispatchResult(userId, job.id, buildTripo3DDispatchResultParams({
-      taskCreated,
-      providerModel,
-      responseData: buildTripo3DResponseLog(taskCreated, buildTripo3DResponseLogParams({
-        taskCreated,
-        modelConfig,
-        mode,
-        chargedCredits
-      }))
-    }));
-    return buildTripo3DSuccessResponse({
-      taskCreated,
-      job,
-      creditsReserved: reservation.amountCredits,
-      creditsCharged: chargedCredits
-    });
-  } catch (error) {
-    if (!chargedCredits && reservation?.amountCredits) {
-      releaseReservedCredits(buildTripo3DReleaseReservationParams({
-        userId,
-        reservation,
-        modelConfig,
-        task,
-        error,
-        requestId,
-        job
-      }));
-    }
-    if (job?.id) {
-      failModel3DJob(userId, job.id, buildTripo3DFailJobParams({
-        error,
-        taskCreated,
-        startedAt,
-        chargedCredits
-      }));
-    }
-    throw error;
-  }
 }
