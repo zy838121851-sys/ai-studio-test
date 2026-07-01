@@ -1,5 +1,6 @@
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { execute, queryOne, sqlValue } from "../db/sqlite.js";
+import { createHttpError } from "../lib/input-validation.js";
 import { findOrCreateIdentityUser, normalizeIdentity } from "./identity.service.js";
 import { deliverVerificationCode } from "./code-provider.service.js";
 
@@ -44,9 +45,7 @@ export async function sendVerificationCode({ channel, target, purpose = "login" 
   const cleanChannel = normalizeChannel(channel);
   const cleanTarget = normalizeTarget(cleanChannel, target);
   if (!cleanTarget || (cleanChannel === "email" && !cleanTarget.includes("@"))) {
-    const error = new Error(cleanChannel === "sms" ? "Valid phone number is required" : "Valid email is required");
-    error.status = 400;
-    throw error;
+    throw createHttpError(cleanChannel === "sms" ? "Valid phone number is required" : "Valid email is required", 400);
   }
 
   const now = Date.now();
@@ -63,9 +62,7 @@ export async function sendVerificationCode({ channel, target, purpose = "login" 
     LIMIT 1;
   `);
   if (existing && Number(existing.last_sent_at || 0) + RESEND_WINDOW_MS > now) {
-    const error = new Error("Please wait before requesting another code");
-    error.status = 429;
-    throw error;
+    throw createHttpError("Please wait before requesting another code", 429);
   }
 
   const code = makeCode();
@@ -132,14 +129,10 @@ export function verifyCodeAndGetUser({ channel, target, code, name = "", purpose
   `);
 
   if (!row || Number(row.expires_at || 0) <= now) {
-    const error = new Error("Verification code is invalid or expired");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Verification code is invalid or expired", 400);
   }
   if (Number(row.attempt_count || 0) >= MAX_ATTEMPTS) {
-    const error = new Error("Verification code has too many attempts");
-    error.status = 429;
-    throw error;
+    throw createHttpError("Verification code has too many attempts", 429);
   }
 
   const matches = hashCode(cleanCode, row.salt) === row.code_hash;
@@ -149,9 +142,7 @@ export function verifyCodeAndGetUser({ channel, target, code, name = "", purpose
       SET attempt_count = attempt_count + 1
       WHERE id = ${sqlValue(row.id)};
     `);
-    const error = new Error("Verification code is invalid or expired");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Verification code is invalid or expired", 400);
   }
 
   execute(`
