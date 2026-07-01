@@ -20,6 +20,7 @@ import {
   buildGenerationJobRecordParams,
   buildGenerationReleaseReservationParams,
   buildGenerationReserveCreditsParams,
+  getModelModality,
   jobStatusForError,
   normalizeImages,
   validateVideoOptions
@@ -41,8 +42,33 @@ import {
 } from "../credits/credit.service.js";
 import { billFixedTask } from "../credits/billing.service.js";
 import { quoteFixedCredits } from "../credits/pricing.service.js";
-import { isApimartModel } from "../model-catalog.service.js";
+import {
+  DEFAULT_IMAGE_MODEL,
+  getModelConfig,
+  isApimartModel
+} from "../model-catalog.service.js";
 import { randomUUID } from "node:crypto";
+
+export function resolveGenerationModelRequest(body = {}) {
+  const modelId = String(body?.modelId || body?.model || DEFAULT_IMAGE_MODEL).trim() || DEFAULT_IMAGE_MODEL;
+  const modelConfig = getModelConfig(modelId);
+  if (!modelConfig) {
+    const error = new Error(`Unsupported model: ${modelId}`);
+    error.status = 400;
+    throw error;
+  }
+  if (getModelModality(modelConfig) === "3d") {
+    const error = new Error("3D models must use /api/ai/3d/text-to-model or /api/ai/3d/image-to-model");
+    error.status = 400;
+    error.code = "USE_3D_GENERATION_API";
+    throw error;
+  }
+  return {
+    modelId,
+    modelConfig,
+    apimartModel: isApimartModel(modelId)
+  };
+}
 
 export async function createFixedBillingGeneration({
   userId = "",

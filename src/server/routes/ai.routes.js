@@ -1,7 +1,6 @@
 import { Router } from "express";
 import { createAIAsyncHandler } from "../lib/ai-error-response.js";
 import {
-  getModelModality,
   isFixedQwenImageEditAction,
   normalizeTripo3DJobInput,
   normalizeImages
@@ -12,13 +11,13 @@ import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import {
   DEFAULT_IMAGE_MODEL,
   getModelConfig,
-  isApimartModel,
   listImageModels
 } from "../services/model-catalog.service.js";
 import {
   createChatImageGeneration,
   createFixedBillingGeneration,
-  createGenerationJob
+  createGenerationJob,
+  resolveGenerationModelRequest
 } from "../services/ai/generation-creation.service.js";
 import {
   createCanvasAgentSuggestion,
@@ -110,20 +109,8 @@ export function createAIRouter() {
   }));
 
   router.post("/ai/generate", aiLimiter, asyncHandler(async (req, res) => {
-    const modelId = String(req.body?.modelId || req.body?.model || DEFAULT_IMAGE_MODEL).trim() || DEFAULT_IMAGE_MODEL;
-    const modelConfig = getModelConfig(modelId);
-    if (!modelConfig) {
-      const error = new Error(`Unsupported model: ${modelId}`);
-      error.status = 400;
-      throw error;
-    }
-    if (getModelModality(modelConfig) === "3d") {
-      const error = new Error("3D models must use /api/ai/3d/text-to-model or /api/ai/3d/image-to-model");
-      error.status = 400;
-      error.code = "USE_3D_GENERATION_API";
-      throw error;
-    }
-    if (!isApimartModel(modelId)) {
+    const { modelId, modelConfig, apimartModel } = resolveGenerationModelRequest(req.body);
+    if (!apimartModel) {
       const generation = await createFixedBillingGeneration({
         userId: req.auth.user.id,
         body: req.body,
