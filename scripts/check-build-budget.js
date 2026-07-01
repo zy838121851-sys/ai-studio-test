@@ -5,8 +5,9 @@ const DIST_DIR = path.resolve("dist");
 const ASSETS_DIR = path.join(DIST_DIR, "assets");
 
 const BUDGETS = {
-  appJsBytes: 735 * 1024,
+  appJsBytes: 705 * 1024,
   appCssBytes: 115 * 1024,
+  imageGeneratorWorkflowBytes: 35 * 1024,
   modelViewerBytes: 30 * 1024,
   videoGeneratorWorkflowBytes: 18 * 1024,
   threeJsBytes: 750 * 1024,
@@ -72,6 +73,11 @@ const appCss = findRequiredChunk(
   "app CSS",
   (file) => /^index-[A-Za-z0-9_-]+\.css$/.test(file.name)
 );
+const imageGeneratorWorkflow = findRequiredChunk(
+  files,
+  "image generator workflow",
+  (file) => /^image-generator-workflow-[A-Za-z0-9_-]+\.js$/.test(file.name)
+);
 const modelViewer = findRequiredChunk(
   files,
   "model viewer",
@@ -110,6 +116,7 @@ if (process.exitCode) {
 console.log("Build budget summary:");
 checkBudget("app JS", appJs.bytes, BUDGETS.appJsBytes);
 checkBudget("app CSS", appCss.bytes, BUDGETS.appCssBytes);
+checkBudget("image generator workflow", imageGeneratorWorkflow.bytes, BUDGETS.imageGeneratorWorkflowBytes);
 checkBudget("model viewer", modelViewer.bytes, BUDGETS.modelViewerBytes);
 checkBudget("video generator workflow", videoGeneratorWorkflow.bytes, BUDGETS.videoGeneratorWorkflowBytes);
 checkBudget("Three.js vendor", threeJs.bytes, BUDGETS.threeJsBytes);

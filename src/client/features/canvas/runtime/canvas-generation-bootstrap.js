@@ -2,7 +2,7 @@ import { createDirectorCardWorkflow } from "../../agent/workflows/director-card-
 import { createPromptGenerationWorkflow } from "../../ai/workflows/prompt-generation-workflow.js";
 import { createGenerationNodeWorkflow } from "../workflows/generation-node-workflow.js";
 import { createGenerationUploadWorkflow } from "../workflows/generation-upload-workflow.js";
-import { createImageGeneratorWorkflow } from "../workflows/image-generator-workflow.js?v=20260627-library-bulk-select-1";
+import { createImageGeneratorWorkflow } from "../workflows/image-generator-workflow-loader.js";
 import { createVideoGeneratorWorkflow } from "../workflows/video-generator-workflow-loader.js";
 import { createModelViewerWorkflow } from "../workflows/model-viewer-workflow.js";
 
