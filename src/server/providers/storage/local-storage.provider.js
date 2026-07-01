@@ -1,6 +1,7 @@
 import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { basename, join, relative, resolve } from "node:path";
 import { env } from "../../config/env.js";
+import { createHttpError } from "../../lib/input-validation.js";
 
 export function createLocalStorageProvider({
   uploadDir = env.uploadDir,
@@ -20,9 +21,7 @@ export function createLocalStorageProvider({
   function normalizeFileName(fileName = "") {
     const cleanFileName = String(fileName || "").trim();
     if (!cleanFileName || cleanFileName !== basename(cleanFileName)) {
-      const error = new Error("Invalid storage file name");
-      error.status = 400;
-      throw error;
+      throw createHttpError("Invalid storage file name", 400);
     }
     return cleanFileName;
   }
