@@ -1,4 +1,4 @@
-import { createWorkspaceCanvasOperationsRuntime } from "../../canvas/runtime/index.js";
+import { createWorkspaceCanvasOperationsRuntime } from "../../canvas/runtime/canvas-app-runtime.js";
 
 export function createWorkspaceCanvasOperationsAppRuntime({
   elements = {},

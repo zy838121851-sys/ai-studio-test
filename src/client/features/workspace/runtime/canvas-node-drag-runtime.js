@@ -1,4 +1,4 @@
-import { createWorkspaceCanvasNodeDragRuntime } from "../../canvas/runtime/index.js";
+import { createWorkspaceCanvasNodeDragRuntime } from "../../canvas/runtime/canvas-app-runtime.js";
 
 export function createWorkspaceCanvasNodeDragAppRuntime({
   elements = {},
