@@ -1,4 +1,5 @@
 import { escapeHtml } from "../../../lib/text.js";
+import { ensureTaskLogTemplate } from "./task-log-template.js";
 
 const AUTO_REFRESH_MS = 8000;
 const STATUS_LABELS = {
@@ -15,6 +16,7 @@ const STATUS_LABELS = {
 // prevents duplicate listeners when workspace runtime is mounted again.
 export function bindTaskLogRuntime(runtime = {}) {
   const documentRoot = runtime.documentRoot || globalThis.document;
+  ensureTaskLogTemplate(documentRoot);
   const elements = collectTaskLogElements(documentRoot);
   if (!elements.page || elements.page.dataset.taskLogBound === "true") return null;
   elements.page.dataset.taskLogBound = "true";
