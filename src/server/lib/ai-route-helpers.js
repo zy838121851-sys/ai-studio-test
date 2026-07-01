@@ -144,6 +144,37 @@ export function buildTripo3DDispatchParams({
   };
 }
 
+export async function runTripo3DDispatch({
+  mode = "text",
+  prompt = "",
+  imageUrl = "",
+  imageDataUrl = "",
+  imageName = "",
+  imageMimeType = "",
+  apiModel,
+  texture = true,
+  defaultParams = {},
+  requestId = "",
+  createImageToModelTask,
+  createTextToModelTask
+} = {}) {
+  const params = buildTripo3DDispatchParams({
+    mode,
+    prompt,
+    imageUrl,
+    imageDataUrl,
+    imageName,
+    imageMimeType,
+    apiModel,
+    texture,
+    defaultParams,
+    requestId
+  });
+  return mode === "image"
+    ? createImageToModelTask(params)
+    : createTextToModelTask(params);
+}
+
 export function buildTripo3DJobRecordParams({
   requestId = "",
   userId = "",

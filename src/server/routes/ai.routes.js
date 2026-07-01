@@ -33,7 +33,6 @@ import {
   assertTripo3DRequiredInput,
   buildTripo3DChargeReservationParams,
   buildTripo3DCreateContext,
-  buildTripo3DDispatchParams,
   buildTripo3DDispatchResultParams,
   buildTripo3DFailJobParams,
   buildTripo3DJobRecordParams,
@@ -50,6 +49,7 @@ import {
   jobStatusForError,
   normalizeTripo3DJobInput,
   normalizeImages,
+  runTripo3DDispatch,
   validateVideoOptions
 } from "../lib/ai-route-helpers.js";
 import { logAIModelRoute, logAIProviderRoute } from "../lib/ai-route-logging.js";
@@ -902,26 +902,20 @@ async function createTripo3DJob(req, {
   let taskCreated = null;
   let chargedCredits = 0;
   try {
-    taskCreated = mode === "image"
-      ? await createImageToModelTask(buildTripo3DDispatchParams({
-        mode,
-        imageUrl: cleanImageUrl,
-        imageDataUrl: cleanImageDataUrl,
-        imageName: cleanImageName,
-        imageMimeType: cleanImageMimeType,
-        apiModel: taskApiModel,
-        texture,
-        defaultParams: modelConfig.defaultParams || {},
-        requestId
-      }))
-      : await createTextToModelTask(buildTripo3DDispatchParams({
-        mode,
-        prompt: cleanPrompt,
-        apiModel: taskApiModel,
-        texture,
-        defaultParams: modelConfig.defaultParams || {},
-        requestId
-      }));
+    taskCreated = await runTripo3DDispatch({
+      mode,
+      prompt: cleanPrompt,
+      imageUrl: cleanImageUrl,
+      imageDataUrl: cleanImageDataUrl,
+      imageName: cleanImageName,
+      imageMimeType: cleanImageMimeType,
+      apiModel: taskApiModel,
+      texture,
+      defaultParams: modelConfig.defaultParams || {},
+      requestId,
+      createImageToModelTask,
+      createTextToModelTask
+    });
     const charge = chargeReservedCredits(buildTripo3DChargeReservationParams({
       userId,
       reservation,

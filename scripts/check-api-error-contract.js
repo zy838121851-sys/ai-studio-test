@@ -49,6 +49,7 @@ import {
   jobStatusForError,
   normalizeTripo3DJobInput,
   normalizeImages,
+  runTripo3DDispatch,
   validateVideoOptions
 } from "../src/server/lib/ai-route-helpers.js";
 import { logAIModelRoute, logAIProviderRoute } from "../src/server/lib/ai-route-logging.js";
@@ -72,7 +73,7 @@ try {
   await assertAIAsyncHandler();
   assertAIJobLogPayloads();
   assertAIResponseDtos();
-  assertAIRouteHelpers();
+  await assertAIRouteHelpers();
   assertAIRouteLogging();
   assertGenerationTransformHelpers();
 
@@ -587,7 +588,7 @@ function assertAIResponseDtos() {
   assert(deferred.billing.status === "charged", "Deferred image edit DTO should mark succeeded jobs as charged");
 }
 
-function assertAIRouteHelpers() {
+async function assertAIRouteHelpers() {
   assert(getInitialAIJobStatus({ imageUrl: "/uploads/image.png" }) === "running", "Immediate image outputs should start as running for local persistence");
   assert(getInitialAIJobStatus({ videoUrl: "/uploads/video.mp4" }) === "running", "Immediate video outputs should start as running for local persistence");
   assert(getInitialAIJobStatus({ status: "succeeded" }) === "running", "Provider succeeded results should start as running for local refresh");
@@ -815,6 +816,62 @@ function assertAIRouteHelpers() {
     defaultParams: { draft: true },
     requestId: "request-2"
   }, "Tripo image dispatch params should preserve provider input shape");
+
+  const textDispatchCalls = [];
+  const textDispatchResult = await runTripo3DDispatch({
+    mode: "text",
+    prompt: "make a chair",
+    apiModel: "api-model",
+    texture: false,
+    defaultParams: { draft: true },
+    requestId: "request-dispatch-1",
+    createImageToModelTask: (params) => {
+      throw new Error(`unexpected image dispatch ${JSON.stringify(params)}`);
+    },
+    createTextToModelTask: async (params) => {
+      textDispatchCalls.push(params);
+      return { taskId: "text-task" };
+    }
+  });
+  assertDeepEqual(textDispatchCalls, [{
+    prompt: "make a chair",
+    apiModel: "api-model",
+    texture: false,
+    defaultParams: { draft: true },
+    requestId: "request-dispatch-1"
+  }], "Tripo dispatch runner should preserve text provider params");
+  assertDeepEqual(textDispatchResult, { taskId: "text-task" }, "Tripo dispatch runner should return text provider result");
+
+  const imageDispatchCalls = [];
+  const imageDispatchResult = await runTripo3DDispatch({
+    mode: "image",
+    imageUrl: "file_token:abcdefghij",
+    imageDataUrl: "data:image/png;base64,AAAA",
+    imageName: "input.png",
+    imageMimeType: "image/png",
+    apiModel: "api-model",
+    texture: true,
+    defaultParams: { draft: true },
+    requestId: "request-dispatch-2",
+    createImageToModelTask: async (params) => {
+      imageDispatchCalls.push(params);
+      return { taskId: "image-task" };
+    },
+    createTextToModelTask: (params) => {
+      throw new Error(`unexpected text dispatch ${JSON.stringify(params)}`);
+    }
+  });
+  assertDeepEqual(imageDispatchCalls, [{
+    imageUrl: "file_token:abcdefghij",
+    imageDataUrl: "data:image/png;base64,AAAA",
+    imageName: "input.png",
+    imageMimeType: "image/png",
+    apiModel: "api-model",
+    texture: true,
+    defaultParams: { draft: true },
+    requestId: "request-dispatch-2"
+  }], "Tripo dispatch runner should preserve image provider params");
+  assertDeepEqual(imageDispatchResult, { taskId: "image-task" }, "Tripo dispatch runner should return image provider result");
 
   assertDeepEqual(buildTripo3DJobRecordParams({
     requestId: "request-3",
