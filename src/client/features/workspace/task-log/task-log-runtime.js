@@ -88,10 +88,7 @@ export function bindTaskLogRuntime(runtime = {}) {
   });
   // Modal actions rely on native hidden state and [data-task-log-*] buttons.
   elements.modal?.addEventListener("click", (event) => {
-    const closeButton = event.target.closest("[data-task-log-close]");
-    const copyButton = event.target.closest("[data-task-log-copy]");
-    if (closeButton) closeTaskModal(elements);
-    if (copyButton) copyText(copyButton.dataset.taskLogCopy || "");
+    handleTaskLogModalClick(event, elements);
   });
   documentRoot.addEventListener("keydown", (event) => {
     if (event.key === "Escape" && !elements.modal?.hidden) closeTaskModal(elements);
@@ -148,6 +145,13 @@ function handleTaskLogRowClick(event, elements) {
   } else if (outputButton && !outputButton.disabled) {
     openTaskOutput(elements, outputButton.dataset.taskLogOutput || "");
   }
+}
+
+function handleTaskLogModalClick(event, elements) {
+  const closeButton = event.target.closest("[data-task-log-close]");
+  const copyButton = event.target.closest("[data-task-log-copy]");
+  if (closeButton) closeTaskModal(elements);
+  if (copyButton) copyText(copyButton.dataset.taskLogCopy || "");
 }
 
 // Selector parity list: preserve these ids/classes before bindTaskLogRuntime().
