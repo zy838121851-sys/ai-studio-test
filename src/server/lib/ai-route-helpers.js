@@ -65,6 +65,26 @@ export function isValidTripoImageInput(imageUrl = "", imageDataUrl = "") {
   return /^data:image\/[a-zA-Z0-9.+-]+;base64,/i.test(String(imageDataUrl || "").trim());
 }
 
+export function assertTripo3DRequiredInput({
+  mode = "text",
+  prompt = "",
+  imageUrl = "",
+  imageDataUrl = ""
+} = {}) {
+  if (mode === "text" && !String(prompt || "").trim()) {
+    const error = new Error("Missing prompt");
+    error.status = 400;
+    error.code = "PROMPT_REQUIRED";
+    throw error;
+  }
+  if (mode === "image" && !isValidTripoImageInput(imageUrl, imageDataUrl)) {
+    const error = new Error("Image-to-3D requires an http/https URL, Tripo file token, or uploaded image data.");
+    error.status = 400;
+    error.code = "TRIPO_IMAGE_INPUT_REQUIRED";
+    throw error;
+  }
+}
+
 export function normalizeTripo3DJobInput(body = {}, { mode = "text" } = {}) {
   const isImageMode = mode === "image";
   const imageUrl = isImageMode

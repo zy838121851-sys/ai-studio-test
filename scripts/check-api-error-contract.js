@@ -25,6 +25,7 @@ import {
 import {
   assertResolvedProviderMatchesModel,
   assertTripo3DModelConfig,
+  assertTripo3DRequiredInput,
   getInitialAIJobStatus,
   getModelModality,
   hasRemoteFallbackModelOutput,
@@ -687,6 +688,23 @@ function assertAIRouteHelpers() {
   assert(isValidTripoImageInput("abcdefghij", "") === true, "Tripo image input should accept bare file tokens");
   assert(isValidTripoImageInput("", "data:image/png;base64,AAAA") === true, "Tripo image input should accept image data URLs");
   assert(isValidTripoImageInput("ftp://example.test/input.png", "") === false, "Tripo image input should reject unsupported URL schemes");
+
+  assertTripo3DRequiredInput({ mode: "text", prompt: "  make a chair  " });
+  assertTripo3DRequiredInput({ mode: "image", imageUrl: "file_token:abcdefghij" });
+  assertThrowsStatusCode(
+    () => assertTripo3DRequiredInput({ mode: "text", prompt: "   " }),
+    400,
+    "PROMPT_REQUIRED",
+    "Missing prompt",
+    "Tripo input guard should require prompts for text-to-3D"
+  );
+  assertThrowsStatusCode(
+    () => assertTripo3DRequiredInput({ mode: "image", imageUrl: "ftp://example.test/input.png", imageDataUrl: "" }),
+    400,
+    "TRIPO_IMAGE_INPUT_REQUIRED",
+    "Image-to-3D requires an http/https URL, Tripo file token, or uploaded image data.",
+    "Tripo input guard should require valid image input for image-to-3D"
+  );
 
   const text3DInput = normalizeTripo3DJobInput({
     prompt: "  make a chair  ",

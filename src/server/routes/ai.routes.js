@@ -30,11 +30,11 @@ import {
 import {
   assertResolvedProviderMatchesModel,
   assertTripo3DModelConfig,
+  assertTripo3DRequiredInput,
   getInitialAIJobStatus,
   getModelModality,
   hasRemoteFallbackModelOutput,
   isFixedQwenImageEditAction,
-  isValidTripoImageInput,
   jobStatusForError,
   normalizeTripo3DJobInput,
   normalizeImages,
@@ -840,18 +840,12 @@ async function createTripo3DJob(req, {
   const cleanImageDataUrl = String(imageDataUrl || "").trim();
   const cleanImageName = String(imageName || "").trim();
   const cleanImageMimeType = String(imageMimeType || "").trim();
-  if (mode === "text" && !cleanPrompt) {
-    const error = new Error("Missing prompt");
-    error.status = 400;
-    error.code = "PROMPT_REQUIRED";
-    throw error;
-  }
-  if (mode === "image" && !isValidTripoImageInput(cleanImageUrl, cleanImageDataUrl)) {
-    const error = new Error("Image-to-3D requires an http/https URL, Tripo file token, or uploaded image data.");
-    error.status = 400;
-    error.code = "TRIPO_IMAGE_INPUT_REQUIRED";
-    throw error;
-  }
+  assertTripo3DRequiredInput({
+    mode,
+    prompt: cleanPrompt,
+    imageUrl: cleanImageUrl,
+    imageDataUrl: cleanImageDataUrl
+  });
 
   const requestId = randomUUID();
   const startedAt = Date.now();
