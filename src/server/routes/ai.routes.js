@@ -1,16 +1,13 @@
 import { Router } from "express";
 import { createAIAsyncHandler } from "../lib/ai-error-response.js";
 import {
-  isFixedQwenImageEditAction,
-  normalizeTripo3DJobInput,
-  normalizeImages
+  normalizeTripo3DJobInput
 } from "../lib/ai-route-helpers.js";
 import { sendErrorResponse } from "../lib/http-error-response.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import {
   DEFAULT_IMAGE_MODEL,
-  getModelConfig,
   listImageModels
 } from "../services/model-catalog.service.js";
 import {
@@ -30,10 +27,7 @@ import {
   listAIJobSummaries
 } from "../services/ai/ai-job-query.service.js";
 import {
-  createExpandedImageEdit,
-  createFixedQwenImageEdit,
-  createModelImageEdit,
-  createUpscaledImageEdit
+  createImageEdit
 } from "../services/ai/image-edit-creation.service.js";
 import { proxyImage } from "../services/ai/image-proxy.service.js";
 import {
@@ -154,67 +148,17 @@ export function createAIRouter() {
   }));
 
   router.post("/chat", aiLimiter, asyncHandler(async (req, res) => {
-    const requestedModel = String(req.body?.model || DEFAULT_IMAGE_MODEL).trim() || DEFAULT_IMAGE_MODEL;
-    const modelConfig = getModelConfig(requestedModel);
-    if (!modelConfig) {
-      throw new Error(`Unsupported image model: ${requestedModel}`);
-    }
     const generation = await createChatImageGeneration({
       userId: req.auth.user.id,
-      body: req.body,
-      requestedModel,
-      modelConfig
+      body: req.body
     });
     res.json(generation.body);
   }));
 
   router.post("/image-edit", aiLimiter, asyncHandler(async (req, res) => {
-    const requestedModel = String(req.body?.model || DEFAULT_IMAGE_MODEL).trim() || DEFAULT_IMAGE_MODEL;
-    const modelConfig = getModelConfig(requestedModel);
-    if (!modelConfig) {
-      throw new Error(`Unsupported image model: ${requestedModel}`);
-    }
-    const { model = requestedModel, prompt, image, images, size, actionType, upscaleFactor, expand } = req.body;
-    if (!prompt) throw new Error("Missing prompt");
-    const referenceImages = Array.isArray(images) && images.length ? images : [image].filter(Boolean);
-    if (!referenceImages.length) throw new Error("Missing image");
-    if (actionType === "expand_image") {
-      const edit = await createExpandedImageEdit({
-        model,
-        prompt,
-        referenceImages,
-        expand
-      });
-      res.json(edit.body);
-      return;
-    }
-    if (actionType === "upscale") {
-      const edit = await createUpscaledImageEdit({
-        model,
-        prompt,
-        referenceImages,
-        upscaleFactor
-      });
-      res.json(edit.body);
-      return;
-    }
-    if (isFixedQwenImageEditAction(actionType)) {
-      const edit = await createFixedQwenImageEdit({
-        userId: req.auth.user.id,
-        prompt,
-        referenceImages,
-        size,
-        actionType
-      });
-      res.json(edit.body);
-      return;
-    }
-    const edit = await createModelImageEdit({
+    const edit = await createImageEdit({
       userId: req.auth.user.id,
-      model,
-      prompt,
-      referenceImages,
-      size
+      body: req.body
     });
     res.json(edit.body);
   }));

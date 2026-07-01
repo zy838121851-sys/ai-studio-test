@@ -4,7 +4,10 @@ import {
   toClientBilling,
   toClientJob
 } from "../../lib/ai-response-dto.js";
-import { getInitialAIJobStatus } from "../../lib/ai-route-helpers.js";
+import {
+  getInitialAIJobStatus,
+  isFixedQwenImageEditAction
+} from "../../lib/ai-route-helpers.js";
 import {
   expandImage,
   generateFixedQwenImageEdit,
@@ -20,9 +23,66 @@ import {
 import { getAsset } from "../asset.service.js";
 import { billFixedTask } from "../credits/billing.service.js";
 import {
+  DEFAULT_IMAGE_MODEL,
   getModelConfig,
   isApimartModel
 } from "../model-catalog.service.js";
+
+export async function createImageEdit({
+  userId = "",
+  body = {}
+} = {}) {
+  const requestedModel = String(body?.model || DEFAULT_IMAGE_MODEL).trim() || DEFAULT_IMAGE_MODEL;
+  const modelConfig = getModelConfig(requestedModel);
+  if (!modelConfig) {
+    throw new Error(`Unsupported image model: ${requestedModel}`);
+  }
+  const {
+    model = requestedModel,
+    prompt,
+    image,
+    images,
+    size,
+    actionType,
+    upscaleFactor,
+    expand
+  } = body;
+  if (!prompt) throw new Error("Missing prompt");
+  const referenceImages = Array.isArray(images) && images.length ? images : [image].filter(Boolean);
+  if (!referenceImages.length) throw new Error("Missing image");
+  if (actionType === "expand_image") {
+    return createExpandedImageEdit({
+      model,
+      prompt,
+      referenceImages,
+      expand
+    });
+  }
+  if (actionType === "upscale") {
+    return createUpscaledImageEdit({
+      model,
+      prompt,
+      referenceImages,
+      upscaleFactor
+    });
+  }
+  if (isFixedQwenImageEditAction(actionType)) {
+    return createFixedQwenImageEdit({
+      userId,
+      prompt,
+      referenceImages,
+      size,
+      actionType
+    });
+  }
+  return createModelImageEdit({
+    userId,
+    model,
+    prompt,
+    referenceImages,
+    size
+  });
+}
 
 export async function createExpandedImageEdit({
   model = "",

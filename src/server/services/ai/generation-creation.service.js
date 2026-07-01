@@ -100,32 +100,37 @@ export async function createChatImageGeneration({
   userId = "",
   body = {},
   requestedModel = "",
-  modelConfig = {}
+  modelConfig = null
 } = {}) {
+  const resolvedModel = requestedModel || (String(body?.model || DEFAULT_IMAGE_MODEL).trim() || DEFAULT_IMAGE_MODEL);
+  const resolvedModelConfig = modelConfig || getModelConfig(resolvedModel);
+  if (!resolvedModelConfig) {
+    throw new Error(`Unsupported image model: ${resolvedModel}`);
+  }
   const result = await billFixedTask({
     userId,
-    provider: modelConfig.providerId,
-    model: requestedModel,
+    provider: resolvedModelConfig.providerId,
+    model: resolvedModel,
     task: "image_generation",
     count: body?.count,
     reason: "image_generation",
     callProvider: () => generateImage({
       ...body,
-      model: requestedModel
+      model: resolvedModel
     })
   });
   logAIModelRoute({
     route: "/api/chat",
-    requestedModel,
-    providerModel: result.providerModel || result.resolvedModel || result.model || modelConfig.providerModel,
+    requestedModel: resolvedModel,
+    providerModel: result.providerModel || result.resolvedModel || result.model || resolvedModelConfig.providerModel,
     remoteTaskId: result.remoteTaskId || result.taskId || "",
     type: "image",
     referenceCount: Array.isArray(body?.images) ? body.images.length : 0
   });
-  assertResolvedProviderMatchesModel({ modelConfig, result });
+  assertResolvedProviderMatchesModel({ modelConfig: resolvedModelConfig, result });
   logAIProviderRoute({
-    requestedModel,
-    provider: result.provider || modelConfig.providerId,
+    requestedModel: resolvedModel,
+    provider: result.provider || resolvedModelConfig.providerId,
     providerModel: result.providerModel || result.resolvedModel || result.model,
     referenceCount: result.referenceCount
   });
@@ -134,11 +139,11 @@ export async function createChatImageGeneration({
       message: result.imageUrl ? "Image generated" : "Model returned without an image URL",
       imageUrl: result.imageUrl,
       model: result.model,
-      requestedModel: result.requestedModel || requestedModel,
+      requestedModel: result.requestedModel || resolvedModel,
       resolvedModel: result.resolvedModel || result.model,
-      provider: isApimartModel(requestedModel) ? undefined : (result.provider || modelConfig.providerId),
+      provider: isApimartModel(resolvedModel) ? undefined : (result.provider || resolvedModelConfig.providerId),
       providerModel: result.providerModel || result.resolvedModel || result.model,
-      providerCalls: isApimartModel(requestedModel) ? [] : (result.providerCalls || []),
+      providerCalls: isApimartModel(resolvedModel) ? [] : (result.providerCalls || []),
       referenceCount: result.referenceCount,
       sizeNormalization: toClientSizeNormalization(result.sizeNormalization),
       billing: toClientBilling(result.billing)
