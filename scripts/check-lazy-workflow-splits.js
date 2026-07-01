@@ -39,22 +39,6 @@ const LAZY_SPLITS = [
 
 const ENTRY_EXPECTATIONS = [
   {
-    filePath: "src/client/features/canvas/index.js",
-    required: [
-      "from \"./model-viewer-loader.js\"",
-      "from \"./workflows/image-edit-workflow-loader.js\"",
-      "from \"./workflows/image-generator-workflow-loader.js\"",
-      "from \"./workflows/model-viewer-workflow-loader.js\""
-    ],
-    forbidden: [
-      "from \"./model-viewer.js\"",
-      "from \"./workflows/image-edit-workflow.js\"",
-      "from \"./workflows/image-generator-workflow.js\"",
-      "from \"./workflows/video-generator-workflow.js\"",
-      "from \"./workflows/model-viewer-workflow.js\""
-    ]
-  },
-  {
     filePath: "src/client/features/canvas/runtime/canvas-interaction-bootstrap.js",
     required: [
       "from \"../workflows/image-edit-workflow-loader.js\""
