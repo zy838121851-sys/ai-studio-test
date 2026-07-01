@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { sendCaughtErrorResponse, sendErrorResponse } from "../lib/http-error-response.js";
+import { getRequestUserId } from "../lib/request-auth.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import {
   createAssetCollection,
@@ -8,10 +9,6 @@ import {
   updateAssetCollection
 } from "../services/asset-collection.service.js";
 import { listAssetsForCollection } from "../services/asset.service.js";
-
-function userIdFromRequest(req) {
-  return req.auth.user.id;
-}
 
 function handleCollectionError(res, error) {
   sendCaughtErrorResponse(res, error, {
@@ -26,12 +23,12 @@ export function createAssetCollectionRouter() {
   router.use(requireAuth);
 
   router.get("/asset-collections", (req, res) => {
-    res.json({ collections: listAssetCollections(userIdFromRequest(req)) });
+    res.json({ collections: listAssetCollections(getRequestUserId(req)) });
   });
 
   router.post("/asset-collections", (req, res) => {
     try {
-      const collection = createAssetCollection(userIdFromRequest(req), req.body);
+      const collection = createAssetCollection(getRequestUserId(req), req.body);
       res.status(201).json({ collection });
     } catch (error) {
       handleCollectionError(res, error);
@@ -40,7 +37,7 @@ export function createAssetCollectionRouter() {
 
   router.patch("/asset-collections/:id", (req, res) => {
     try {
-      const collection = updateAssetCollection(userIdFromRequest(req), req.params.id, req.body);
+      const collection = updateAssetCollection(getRequestUserId(req), req.params.id, req.body);
       if (!collection) {
         sendErrorResponse(res, 404, "Asset collection not found");
         return;
@@ -52,7 +49,7 @@ export function createAssetCollectionRouter() {
   });
 
   router.delete("/asset-collections/:id", (req, res) => {
-    const collection = deleteAssetCollection(userIdFromRequest(req), req.params.id);
+    const collection = deleteAssetCollection(getRequestUserId(req), req.params.id);
     if (!collection) {
       sendErrorResponse(res, 404, "Asset collection not found");
       return;
@@ -61,7 +58,7 @@ export function createAssetCollectionRouter() {
   });
 
   router.get("/asset-collections/:id/assets", (req, res) => {
-    const assets = listAssetsForCollection(userIdFromRequest(req), req.params.id);
+    const assets = listAssetsForCollection(getRequestUserId(req), req.params.id);
     if (!assets) {
       sendErrorResponse(res, 404, "Asset collection not found");
       return;

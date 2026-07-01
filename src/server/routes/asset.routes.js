@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { env } from "../config/env.js";
 import { sendCaughtErrorResponse, sendErrorResponse } from "../lib/http-error-response.js";
+import { getRequestUserId } from "../lib/request-auth.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import { recordAuditEvent } from "../services/audit.service.js";
@@ -22,10 +23,6 @@ const uploadLimiter = createRateLimiter({
   message: "Too many upload requests"
 });
 
-function userIdFromRequest(req) {
-  return req.auth.user.id;
-}
-
 function handleAssetError(res, error) {
   sendCaughtErrorResponse(res, error, {
     defaultStatus: 400,
@@ -40,7 +37,7 @@ export function createAssetRouter() {
 
   router.get("/assets", (req, res) => {
     res.json({
-      assets: listAssets(userIdFromRequest(req), {
+      assets: listAssets(getRequestUserId(req), {
         projectId: req.query.projectId,
         collection: req.query.collection,
         collectionId: req.query.collectionId
@@ -49,7 +46,7 @@ export function createAssetRouter() {
   });
 
   router.post("/assets/upload", uploadLimiter, async (req, res) => {
-    const userId = userIdFromRequest(req);
+    const userId = getRequestUserId(req);
     try {
       const multipart = await parseMultipartForm(req);
       const asset = createUploadedAsset(userId, multipart);
@@ -74,7 +71,7 @@ export function createAssetRouter() {
 
   router.post("/assets/generated", (req, res) => {
     try {
-      const asset = createGeneratedAsset(userIdFromRequest(req), req.body);
+      const asset = createGeneratedAsset(getRequestUserId(req), req.body);
       res.status(201).json({ asset });
     } catch (error) {
       handleAssetError(res, error);
@@ -82,7 +79,7 @@ export function createAssetRouter() {
   });
 
   router.get("/assets/:id", (req, res) => {
-    const asset = getAsset(userIdFromRequest(req), req.params.id);
+    const asset = getAsset(getRequestUserId(req), req.params.id);
     if (!asset) {
       sendErrorResponse(res, 404, "Asset not found");
       return;
@@ -92,7 +89,7 @@ export function createAssetRouter() {
 
   router.patch("/assets/:id", (req, res) => {
     try {
-      const asset = updateAsset(userIdFromRequest(req), req.params.id, req.body);
+      const asset = updateAsset(getRequestUserId(req), req.params.id, req.body);
       if (!asset) {
         sendErrorResponse(res, 404, "Asset not found");
         return;
@@ -104,7 +101,7 @@ export function createAssetRouter() {
   });
 
   router.delete("/assets/:id", (req, res) => {
-    const userId = userIdFromRequest(req);
+    const userId = getRequestUserId(req);
     const asset = softDeleteAsset(userId, req.params.id);
     if (!asset) {
       recordAuditEvent(req, "asset.delete.failed", {
@@ -127,7 +124,7 @@ export function createAssetRouter() {
 
   router.post("/assets/:id/add-to-project", (req, res) => {
     try {
-      const asset = addAssetToProject(userIdFromRequest(req), req.params.id, req.body);
+      const asset = addAssetToProject(getRequestUserId(req), req.params.id, req.body);
       if (!asset) {
         sendErrorResponse(res, 404, "Asset not found");
         return;
@@ -140,7 +137,7 @@ export function createAssetRouter() {
 
   router.post("/assets/:id/move-to-collection", (req, res) => {
     try {
-      const asset = moveAssetToCollection(userIdFromRequest(req), req.params.id, req.body);
+      const asset = moveAssetToCollection(getRequestUserId(req), req.params.id, req.body);
       if (!asset) {
         sendErrorResponse(res, 404, "Asset not found");
         return;

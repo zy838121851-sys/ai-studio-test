@@ -1,11 +1,8 @@
 import { Router } from "express";
 import { sendErrorResponse } from "../lib/http-error-response.js";
+import { getRequestUserId } from "../lib/request-auth.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { getAssetByUploadUrl, resolveExistingUploadAssetPath } from "../services/asset.service.js";
-
-function userIdFromRequest(req) {
-  return req.auth.user.id;
-}
 
 export function createProtectedUploadRouter() {
   const router = Router();
@@ -13,7 +10,7 @@ export function createProtectedUploadRouter() {
 
   router.get("/:fileName", (req, res) => {
     const publicPath = `/uploads/${req.params.fileName || ""}`;
-    const asset = getAssetByUploadUrl(userIdFromRequest(req), publicPath);
+    const asset = getAssetByUploadUrl(getRequestUserId(req), publicPath);
     const absolutePath = resolveExistingUploadAssetPath(asset);
     if (!asset || !absolutePath) {
       sendErrorResponse(res, 404, "Upload not found");

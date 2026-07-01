@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { sendCaughtErrorResponse, sendErrorResponse } from "../lib/http-error-response.js";
+import { getRequestUserId } from "../lib/request-auth.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import {
   archiveProjectConversation,
@@ -10,10 +11,6 @@ import {
   restoreProjectConversation
 } from "../services/conversation.service.js";
 import { runConversationTurn } from "../services/conversation-orchestrator.service.js";
-
-function userIdFromRequest(req) {
-  return req.auth.user.id;
-}
 
 function sendError(res, error) {
   sendCaughtErrorResponse(res, error, {
@@ -60,7 +57,7 @@ export function createConversationRouter() {
   router.get("/conversations", (req, res) => {
     try {
       const projectId = String(req.query?.projectId || "").trim();
-      const conversations = listProjectConversations(userIdFromRequest(req), projectId);
+      const conversations = listProjectConversations(getRequestUserId(req), projectId);
       res.json({ conversations });
     } catch (error) {
       sendError(res, error);
@@ -70,8 +67,8 @@ export function createConversationRouter() {
   router.post("/conversations", (req, res) => {
     try {
       const projectId = String(req.body?.projectId || "").trim();
-      if (req.body?.reset) archiveProjectConversation(userIdFromRequest(req), projectId);
-      const conversation = getOrCreateProjectConversation(userIdFromRequest(req), projectId, req.body);
+      if (req.body?.reset) archiveProjectConversation(getRequestUserId(req), projectId);
+      const conversation = getOrCreateProjectConversation(getRequestUserId(req), projectId, req.body);
       res.json({ conversation });
     } catch (error) {
       sendError(res, error);
@@ -79,7 +76,7 @@ export function createConversationRouter() {
   });
 
   router.get("/conversations/:id/messages", (req, res) => {
-    const messages = listConversationMessages(userIdFromRequest(req), req.params.id);
+    const messages = listConversationMessages(getRequestUserId(req), req.params.id);
     if (!messages) {
       sendErrorResponse(res, 404, "Conversation not found");
       return;
@@ -89,7 +86,7 @@ export function createConversationRouter() {
 
   router.post("/conversations/:id/restore", (req, res) => {
     try {
-      const conversation = restoreProjectConversation(userIdFromRequest(req), req.params.id);
+      const conversation = restoreProjectConversation(getRequestUserId(req), req.params.id);
       res.json({ conversation });
     } catch (error) {
       sendError(res, error);
@@ -97,7 +94,7 @@ export function createConversationRouter() {
   });
 
   router.post("/conversations/:id/runs", async (req, res) => {
-    const conversation = getConversationForUser(userIdFromRequest(req), req.params.id);
+    const conversation = getConversationForUser(getRequestUserId(req), req.params.id);
     if (!conversation) {
       sendErrorResponse(res, 404, "Conversation not found");
       return;
@@ -129,7 +126,7 @@ export function createConversationRouter() {
 
     try {
       await runConversationTurn({
-        userId: userIdFromRequest(req),
+        userId: getRequestUserId(req),
         conversationId: conversation.id,
         runId,
         text: req.body?.text,

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { createAIAsyncHandler } from "../lib/ai-error-response.js";
 import { sendErrorResponse } from "../lib/http-error-response.js";
+import { getRequestUserId } from "../lib/request-auth.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import { getModelListResponse } from "../services/model-catalog.service.js";
@@ -63,7 +64,7 @@ export function createAIRouter() {
 
   router.post("/ai/3d/text-to-model", aiLimiter, asyncHandler(async (req, res) => {
     const result = await createTripo3DJob({
-      userId: req.auth.user.id,
+      userId: getRequestUserId(req),
       body: req.body,
       mode: "text"
     });
@@ -72,7 +73,7 @@ export function createAIRouter() {
 
   router.post("/ai/3d/image-to-model", aiLimiter, asyncHandler(async (req, res) => {
     const result = await createTripo3DJob({
-      userId: req.auth.user.id,
+      userId: getRequestUserId(req),
       body: req.body,
       mode: "image"
     });
@@ -82,7 +83,7 @@ export function createAIRouter() {
   router.get("/ai/3d/tasks/:taskId", jobPollLimiter, asyncHandler(async (req, res) => {
     const remoteTaskId = String(req.params.taskId || "").trim();
     const result = await getTripo3DTaskStatus({
-      userId: req.auth.user.id,
+      userId: getRequestUserId(req),
       remoteTaskId
     });
     if (result.status) {
@@ -96,7 +97,7 @@ export function createAIRouter() {
     const { modelId, modelConfig, apimartModel } = resolveGenerationModelRequest(req.body);
     if (!apimartModel) {
       const generation = await createFixedBillingGeneration({
-        userId: req.auth.user.id,
+        userId: getRequestUserId(req),
         body: req.body,
         modelId,
         modelConfig
@@ -106,7 +107,7 @@ export function createAIRouter() {
     }
 
     const generation = await createGenerationJob({
-      userId: req.auth.user.id,
+      userId: getRequestUserId(req),
       body: req.body,
       modelConfig,
       path: req.path
@@ -119,7 +120,7 @@ export function createAIRouter() {
 
   router.get("/ai/jobs", jobPollLimiter, asyncHandler(async (req, res) => {
     const result = listAIJobSummaries({
-      userId: req.auth.user.id,
+      userId: getRequestUserId(req),
       query: req.query
     });
     res.json(result.body);
@@ -127,7 +128,7 @@ export function createAIRouter() {
 
   router.get("/ai/jobs/:jobId", jobPollLimiter, asyncHandler(async (req, res) => {
     const result = await getAIJobDetailResponse({
-      userId: req.auth.user.id,
+      userId: getRequestUserId(req),
       jobId: req.params.jobId
     });
     if (result.status) {
@@ -139,7 +140,7 @@ export function createAIRouter() {
 
   router.post("/chat", aiLimiter, asyncHandler(async (req, res) => {
     const generation = await createChatImageGeneration({
-      userId: req.auth.user.id,
+      userId: getRequestUserId(req),
       body: req.body
     });
     res.json(generation.body);
@@ -147,7 +148,7 @@ export function createAIRouter() {
 
   router.post("/image-edit", aiLimiter, asyncHandler(async (req, res) => {
     const edit = await createImageEdit({
-      userId: req.auth.user.id,
+      userId: getRequestUserId(req),
       body: req.body
     });
     res.json(edit.body);
@@ -160,7 +161,7 @@ export function createAIRouter() {
 
   router.post("/analyze-image", aiLimiter, asyncHandler(async (req, res) => {
     const analysis = await createImageAnalysis({
-      userId: req.auth.user.id,
+      userId: getRequestUserId(req),
       body: req.body
     });
     res.json(analysis.body);

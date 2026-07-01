@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { sendCaughtErrorResponse, sendErrorResponse } from "../lib/http-error-response.js";
+import { getRequestUserId } from "../lib/request-auth.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { recordAuditEvent } from "../services/audit.service.js";
 import {
@@ -10,10 +11,6 @@ import {
   softDeleteProject,
   updateProject
 } from "../services/project.service.js";
-
-function userIdFromRequest(req) {
-  return req.auth.user.id;
-}
 
 function handleProjectError(res, error) {
   sendCaughtErrorResponse(res, error, {
@@ -28,12 +25,12 @@ export function createProjectRouter() {
   router.use(requireAuth);
 
   router.get("/projects", (req, res) => {
-    res.json({ projects: listProjects(userIdFromRequest(req)) });
+    res.json({ projects: listProjects(getRequestUserId(req)) });
   });
 
   router.post("/projects", (req, res) => {
     try {
-      const project = createProject(userIdFromRequest(req), req.body);
+      const project = createProject(getRequestUserId(req), req.body);
       res.status(201).json({ project });
     } catch (error) {
       handleProjectError(res, error);
@@ -41,7 +38,7 @@ export function createProjectRouter() {
   });
 
   router.get("/projects/:id", (req, res) => {
-    const project = getProject(userIdFromRequest(req), req.params.id, { touchLastOpened: true });
+    const project = getProject(getRequestUserId(req), req.params.id, { touchLastOpened: true });
     if (!project) {
       sendErrorResponse(res, 404, "Project not found");
       return;
@@ -51,7 +48,7 @@ export function createProjectRouter() {
 
   router.patch("/projects/:id", (req, res) => {
     try {
-      const project = updateProject(userIdFromRequest(req), req.params.id, req.body);
+      const project = updateProject(getRequestUserId(req), req.params.id, req.body);
       if (!project) {
         sendErrorResponse(res, 404, "Project not found");
         return;
@@ -63,7 +60,7 @@ export function createProjectRouter() {
   });
 
   router.delete("/projects/:id", (req, res) => {
-    const userId = userIdFromRequest(req);
+    const userId = getRequestUserId(req);
     const project = softDeleteProject(userId, req.params.id);
     if (!project) {
       recordAuditEvent(req, "project.delete.failed", {
@@ -85,7 +82,7 @@ export function createProjectRouter() {
 
   router.post("/projects/:id/save-canvas", (req, res) => {
     try {
-      const project = saveProjectCanvas(userIdFromRequest(req), req.params.id, req.body);
+      const project = saveProjectCanvas(getRequestUserId(req), req.params.id, req.body);
       if (!project) {
         sendErrorResponse(res, 404, "Project not found");
         return;

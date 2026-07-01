@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { sendErrorResponse } from "../lib/http-error-response.js";
+import { getRequestUserId } from "../lib/request-auth.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { getCreditBalance, listCreditTransactions } from "../services/credits/credit.service.js";
 import { quoteFixedCredits } from "../services/credits/pricing.service.js";
@@ -9,12 +10,12 @@ export function createCreditRouter() {
   const router = Router();
 
   router.get("/credits/balance", requireAuth, (req, res) => {
-    res.json({ balance: getCreditBalance(req.auth.user.id) });
+    res.json({ balance: getCreditBalance(getRequestUserId(req)) });
   });
 
   router.get("/credits/transactions", requireAuth, (req, res) => {
     res.json({
-      transactions: listCreditTransactions(req.auth.user.id, {
+      transactions: listCreditTransactions(getRequestUserId(req), {
         limit: req.query.limit,
         offset: req.query.offset
       })
