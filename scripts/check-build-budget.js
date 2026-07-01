@@ -5,9 +5,10 @@ const DIST_DIR = path.resolve("dist");
 const ASSETS_DIR = path.join(DIST_DIR, "assets");
 
 const BUDGETS = {
-  appJsBytes: 750 * 1024,
+  appJsBytes: 735 * 1024,
   appCssBytes: 115 * 1024,
   modelViewerBytes: 30 * 1024,
+  videoGeneratorWorkflowBytes: 18 * 1024,
   threeJsBytes: 750 * 1024,
   gltfLoaderBytes: 50 * 1024,
   orbitControlsBytes: 25 * 1024,
@@ -76,6 +77,11 @@ const modelViewer = findRequiredChunk(
   "model viewer",
   (file) => /^model-viewer-[A-Za-z0-9_-]+\.js$/.test(file.name)
 );
+const videoGeneratorWorkflow = findRequiredChunk(
+  files,
+  "video generator workflow",
+  (file) => /^video-generator-workflow-[A-Za-z0-9_-]+\.js$/.test(file.name)
+);
 const threeJs = findRequiredChunk(
   files,
   "Three.js vendor",
@@ -105,6 +111,7 @@ console.log("Build budget summary:");
 checkBudget("app JS", appJs.bytes, BUDGETS.appJsBytes);
 checkBudget("app CSS", appCss.bytes, BUDGETS.appCssBytes);
 checkBudget("model viewer", modelViewer.bytes, BUDGETS.modelViewerBytes);
+checkBudget("video generator workflow", videoGeneratorWorkflow.bytes, BUDGETS.videoGeneratorWorkflowBytes);
 checkBudget("Three.js vendor", threeJs.bytes, BUDGETS.threeJsBytes);
 checkBudget("GLTFLoader vendor", gltfLoader.bytes, BUDGETS.gltfLoaderBytes);
 checkBudget("OrbitControls vendor", orbitControls.bytes, BUDGETS.orbitControlsBytes);

@@ -3,7 +3,7 @@ import { createPromptGenerationWorkflow } from "../../ai/workflows/prompt-genera
 import { createGenerationNodeWorkflow } from "../workflows/generation-node-workflow.js";
 import { createGenerationUploadWorkflow } from "../workflows/generation-upload-workflow.js";
 import { createImageGeneratorWorkflow } from "../workflows/image-generator-workflow.js?v=20260627-library-bulk-select-1";
-import { createVideoGeneratorWorkflow } from "../workflows/video-generator-workflow.js";
+import { createVideoGeneratorWorkflow } from "../workflows/video-generator-workflow-loader.js";
 import { createModelViewerWorkflow } from "../workflows/model-viewer-workflow.js";
 
 export function createCanvasGenerationBootstrap({
