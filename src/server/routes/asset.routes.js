@@ -2,6 +2,7 @@ import { Router } from "express";
 import { env } from "../config/env.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
+import { localAuditLogger } from "../providers/audit/local-audit-logger.js";
 import {
   addAssetToProject,
   createGeneratedAsset,
@@ -22,6 +23,13 @@ const uploadLimiter = createRateLimiter({
 
 function userIdFromRequest(req) {
   return req.auth.user.id;
+}
+
+function auditAssetEvent(req, event, detail = {}) {
+  localAuditLogger.record(event, {
+    ...localAuditLogger.requestMetadata(req),
+    ...detail
+  });
 }
 
 function handleAssetError(res, error) {
@@ -45,11 +53,25 @@ export function createAssetRouter() {
   });
 
   router.post("/assets/upload", uploadLimiter, async (req, res) => {
+    const userId = userIdFromRequest(req);
     try {
       const multipart = await parseMultipartForm(req);
-      const asset = createUploadedAsset(userIdFromRequest(req), multipart);
+      const asset = createUploadedAsset(userId, multipart);
+      auditAssetEvent(req, "asset.upload.succeeded", {
+        outcome: "succeeded",
+        userId,
+        assetId: asset.id,
+        type: asset.type,
+        mimeType: asset.mimeType,
+        sizeBytes: asset.sizeBytes
+      });
       res.status(201).json({ asset });
     } catch (error) {
+      auditAssetEvent(req, "asset.upload.failed", {
+        outcome: "failed",
+        status: error.status || 500,
+        userId
+      });
       handleAssetError(res, error);
     }
   });
@@ -86,11 +108,24 @@ export function createAssetRouter() {
   });
 
   router.delete("/assets/:id", (req, res) => {
-    const asset = softDeleteAsset(userIdFromRequest(req), req.params.id);
+    const userId = userIdFromRequest(req);
+    const asset = softDeleteAsset(userId, req.params.id);
     if (!asset) {
+      auditAssetEvent(req, "asset.delete.failed", {
+        outcome: "failed",
+        status: 404,
+        userId,
+        assetId: req.params.id
+      });
       res.status(404).json({ message: "Asset not found" });
       return;
     }
+    auditAssetEvent(req, "asset.delete.succeeded", {
+      outcome: "succeeded",
+      userId,
+      assetId: asset.id,
+      type: asset.type
+    });
     res.json({ asset });
   });
 
