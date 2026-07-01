@@ -1,4 +1,4 @@
-import { createWorkspaceImageEditRuntime } from "../../ai/runtime/index.js";
+import { createWorkspaceImageEditRuntime } from "../../ai/runtime/workspace-image-edit-runtime.js";
 
 export function createWorkspaceImageEditAppRuntime({
   elements = {},

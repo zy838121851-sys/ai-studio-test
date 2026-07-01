@@ -1,8 +1,10 @@
 import {
   createWorkspaceAICoreControllers,
-  createWorkspaceAICoreWorkspaceRuntime,
+  createWorkspaceAICoreWorkspaceRuntime
+} from "../../agent/runtime/ai-core-app-runtime.js";
+import {
   createWorkspaceDirectorActionRuntime
-} from "../../agent/runtime/index.js";
+} from "../../agent/runtime/workspace-director-action-runtime.js";
 
 export function createWorkspaceAICoreControllerRuntime({
   elements = {},
