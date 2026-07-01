@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { execute, queryOne, sqlValue } from "../db/sqlite.js";
+import { createHttpError } from "../lib/input-validation.js";
 import { ensureCreditAccount } from "../services/credits/credit.service.js";
 
 export const IDENTITY_PROVIDERS = new Set(["email", "phone", "wechat", "qq"]);
@@ -71,9 +72,7 @@ export function createUserWithIdentity({
 } = {}) {
   const clean = normalizeIdentity(provider, identifier);
   if (!IDENTITY_PROVIDERS.has(clean.provider) || !clean.identifier) {
-    const error = new Error("Valid identity is required");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Valid identity is required", 400);
   }
   const existing = findIdentity(clean.provider, clean.identifier);
   if (existing) return publicUser(existing);
