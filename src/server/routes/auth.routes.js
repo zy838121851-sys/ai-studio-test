@@ -6,6 +6,7 @@ import { createOAuthStart, getOAuthStateStatus, handleOAuthCallback, markOAuthSt
 import { getAuthProviderStatus } from "../auth/provider-status.service.js";
 import { sendVerificationCode, verifyCodeAndGetUser } from "../auth/verification.service.js";
 import { sendCaughtErrorResponse } from "../lib/http-error-response.js";
+import { getRequestBody, getRequestQuery, getRouteParam } from "../lib/route-request.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import { recordAuditEvent } from "../services/audit.service.js";
 
@@ -36,7 +37,7 @@ export function createAuthRouter() {
 
   router.post("/auth/register", authLimiter, (req, res) => {
     try {
-      const user = createUser(req.body);
+      const user = createUser(getRequestBody(req));
       const token = createSession(user.id);
       setSessionCookie(res, token);
       res.status(201).json({ user });
@@ -47,7 +48,7 @@ export function createAuthRouter() {
 
   router.post("/auth/login", authLimiter, (req, res) => {
     try {
-      const user = authenticateUser(req.body);
+      const user = authenticateUser(getRequestBody(req));
       const token = createSession(user.id);
       setSessionCookie(res, token);
       recordAuditEvent(req, "auth.login.succeeded", {
@@ -66,7 +67,7 @@ export function createAuthRouter() {
 
   router.post("/auth/code/send", authLimiter, async (req, res) => {
     try {
-      const result = await sendVerificationCode(req.body);
+      const result = await sendVerificationCode(getRequestBody(req));
       res.json({
         message: "Verification code sent",
         channel: result.channel,
@@ -83,7 +84,7 @@ export function createAuthRouter() {
 
   router.post("/auth/code/verify", authLimiter, (req, res) => {
     try {
-      const user = verifyCodeAndGetUser(req.body);
+      const user = verifyCodeAndGetUser(getRequestBody(req));
       const token = createSession(user.id);
       setSessionCookie(res, token);
       res.json({ user });
@@ -94,10 +95,11 @@ export function createAuthRouter() {
 
   router.get("/auth/oauth/:provider/start", authLimiter, (req, res) => {
     try {
-      const result = createOAuthStart(req.params.provider, {
-        redirectTo: req.query.redirectTo
+      const query = getRequestQuery(req);
+      const result = createOAuthStart(getRouteParam(req, "provider"), {
+        redirectTo: query.redirectTo
       });
-      if (req.query.format === "json") {
+      if (query.format === "json") {
         res.json(result);
         return;
       }
@@ -109,8 +111,9 @@ export function createAuthRouter() {
 
   router.get("/auth/oauth/:provider/qr.svg", authLimiter, async (req, res) => {
     try {
-      const result = createOAuthStart(req.params.provider, {
-        redirectTo: req.query.redirectTo
+      const query = getRequestQuery(req);
+      const result = createOAuthStart(getRouteParam(req, "provider"), {
+        redirectTo: query.redirectTo
       });
       const svg = await QRCode.toString(result.authorizationUrl, {
         type: "svg",
@@ -129,8 +132,9 @@ export function createAuthRouter() {
 
   router.get("/auth/oauth/:provider/qr", authLimiter, async (req, res) => {
     try {
-      const result = createOAuthStart(req.params.provider, {
-        redirectTo: req.query.redirectTo
+      const query = getRequestQuery(req);
+      const result = createOAuthStart(getRouteParam(req, "provider"), {
+        redirectTo: query.redirectTo
       });
       const qrSvg = await QRCode.toString(result.authorizationUrl, {
         type: "svg",
@@ -154,11 +158,13 @@ export function createAuthRouter() {
 
   router.get("/auth/oauth/:provider/status/:state", oauthPollLimiter, (req, res) => {
     try {
-      const result = getOAuthStateStatus(req.params.provider, req.params.state);
+      const provider = getRouteParam(req, "provider");
+      const state = getRouteParam(req, "state");
+      const result = getOAuthStateStatus(provider, state);
       if (result.status === "authenticated" && result.user?.id && !result.sessionIssued) {
         const token = createSession(result.user.id);
         setSessionCookie(res, token);
-        markOAuthStateSessionIssued(req.params.provider, req.params.state);
+        markOAuthStateSessionIssued(provider, state);
       }
       res.json(result);
     } catch (error) {
@@ -168,7 +174,7 @@ export function createAuthRouter() {
 
   router.get("/auth/oauth/:provider/callback", async (req, res) => {
     try {
-      const result = await handleOAuthCallback(req.params.provider, req.query);
+      const result = await handleOAuthCallback(getRouteParam(req, "provider"), getRequestQuery(req));
       const token = createSession(result.user.id);
       setSessionCookie(res, token);
       res.redirect(result.redirectTo || "/");
