@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { requireAuth } from "../middleware/auth.middleware.js";
+import { localAuditLogger } from "../providers/audit/local-audit-logger.js";
 import {
   createProject,
   getProject,
@@ -11,6 +12,13 @@ import {
 
 function userIdFromRequest(req) {
   return req.auth.user.id;
+}
+
+function auditProjectEvent(req, event, detail = {}) {
+  localAuditLogger.record(event, {
+    ...localAuditLogger.requestMetadata(req),
+    ...detail
+  });
 }
 
 function handleProjectError(res, error) {
@@ -59,11 +67,23 @@ export function createProjectRouter() {
   });
 
   router.delete("/projects/:id", (req, res) => {
-    const project = softDeleteProject(userIdFromRequest(req), req.params.id);
+    const userId = userIdFromRequest(req);
+    const project = softDeleteProject(userId, req.params.id);
     if (!project) {
+      auditProjectEvent(req, "project.delete.failed", {
+        outcome: "failed",
+        status: 404,
+        userId,
+        projectId: req.params.id
+      });
       res.status(404).json({ message: "Project not found" });
       return;
     }
+    auditProjectEvent(req, "project.delete.succeeded", {
+      outcome: "succeeded",
+      userId,
+      projectId: project.id
+    });
     res.json({ project });
   });
 
