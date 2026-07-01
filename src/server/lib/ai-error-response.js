@@ -1,5 +1,6 @@
 import { toClientJob } from "./ai-response-dto.js";
 import { logError } from "./logger.js";
+import { getRequestMethod, getRequestPath } from "./route-request.js";
 
 export function createAIAsyncHandler({
   classifier = null,
@@ -13,11 +14,13 @@ export function createAIAsyncHandler({
     try {
       await handler(req, res);
     } catch (error) {
-      const failure = classify(error, { path: req.path });
+      const method = getRequestMethod(req);
+      const path = getRequestPath(req);
+      const failure = classify(error, { path });
       const errorJob = error.aiJob || error.job || null;
       writeLog("AI request failed", error, {
-        method: req.method,
-        path: req.path,
+        method,
+        path,
         failureCode: failure.failureCode,
         stage: failure.stage
       });
