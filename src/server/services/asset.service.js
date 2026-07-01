@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { basename, extname } from "node:path";
 import { env } from "../config/env.js";
 import { prepare, transaction } from "../db/sqlite.js";
+import { normalizeText } from "../lib/input-validation.js";
 import { getAssetCollection } from "./asset-collection.service.js";
 import { getProject } from "./project.service.js";
 import { resolveStoredFilePath, saveStoredBuffer, storedFileExists } from "./storage.service.js";
@@ -19,10 +20,6 @@ const ALLOWED_UPLOAD_MIME_TYPES = new Set([
   "model/gltf+json",
   "application/octet-stream"
 ]);
-
-function normalizeText(value) {
-  return String(value || "").trim();
-}
 
 function normalizeUploadPublicPath(value = "") {
   const pathname = String(value || "").split("?")[0].split("#")[0];
