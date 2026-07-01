@@ -27,6 +27,7 @@ import {
 } from "../lib/ai-response-dto.js";
 import {
   assertResolvedProviderMatchesModel,
+  buildGenerationReleaseReservationParams,
   buildGenerationReserveCreditsParams,
   buildTripo3DDispatchResultParams,
   buildTripo3DRemoteFailureParams,
@@ -414,17 +415,14 @@ export function createAIRouter() {
           durationMs: Date.now() - startedAt
         });
       } else if (reservation?.amountCredits) {
-        releaseReservedCredits({
+        releaseReservedCredits(buildGenerationReleaseReservationParams({
           userId: req.auth.user.id,
-          amount: reservation.amountCredits,
-          provider: modelConfig.providerId,
-          model: modelConfig.id,
+          reservation,
+          modelConfig,
           task,
-          billingType: "fixed",
-          reason: error?.message || "provider_failed",
           requestId,
-          status: "failed"
-        });
+          error
+        }));
       }
       throw error;
     }

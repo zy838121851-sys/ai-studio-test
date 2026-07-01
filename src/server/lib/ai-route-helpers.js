@@ -312,6 +312,27 @@ export function buildGenerationReserveCreditsParams({
   };
 }
 
+export function buildGenerationReleaseReservationParams({
+  userId = "",
+  reservation = {},
+  modelConfig = {},
+  task = "",
+  error = {},
+  requestId = ""
+} = {}) {
+  return {
+    userId,
+    amount: reservation.amountCredits,
+    provider: modelConfig.providerId,
+    model: modelConfig.id,
+    task,
+    billingType: "fixed",
+    reason: error?.message || "provider_failed",
+    requestId,
+    status: "failed"
+  };
+}
+
 export function buildTripo3DChargeReservationParams({
   userId = "",
   reservation = {},

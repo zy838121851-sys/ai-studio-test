@@ -26,6 +26,7 @@ import {
   assertResolvedProviderMatchesModel,
   assertTripo3DModelConfig,
   assertTripo3DRequiredInput,
+  buildGenerationReleaseReservationParams,
   buildGenerationReserveCreditsParams,
   buildTripo3DChargeReservationParams,
   buildTripo3DCreateContext,
@@ -1028,6 +1029,31 @@ async function assertAIRouteHelpers() {
     reason: "image_generation",
     requestId: "request-generation-1"
   }, "Generation reserve credits params should preserve fixed billing fields");
+
+  assertDeepEqual(buildGenerationReleaseReservationParams({
+    userId: "user-1",
+    reservation: { amountCredits: 12 },
+    modelConfig: { id: "image-model", providerId: "apimart" },
+    task: "image_generation",
+    error: { message: "Provider failed" },
+    requestId: "request-generation-1"
+  }), {
+    userId: "user-1",
+    amount: 12,
+    provider: "apimart",
+    model: "image-model",
+    task: "image_generation",
+    billingType: "fixed",
+    reason: "Provider failed",
+    requestId: "request-generation-1",
+    status: "failed"
+  }, "Generation release reservation params should preserve failed billing fields");
+
+  assertDeepEqual(buildGenerationReleaseReservationParams({
+    reservation: { amountCredits: 8 },
+    modelConfig: { id: "video-model", providerId: "apimart" },
+    task: "video_generation"
+  }).reason, "provider_failed", "Generation release reservation params should preserve provider failure fallback reason");
 
   assertDeepEqual(buildTripo3DChargeReservationParams({
     userId: "user-1",
