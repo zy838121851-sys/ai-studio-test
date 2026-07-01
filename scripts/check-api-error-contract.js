@@ -26,6 +26,7 @@ import {
   assertResolvedProviderMatchesModel,
   assertTripo3DModelConfig,
   assertTripo3DRequiredInput,
+  buildGenerationCompleteJobParams,
   buildGenerationDispatchResultParams,
   buildGenerationJobRecordParams,
   buildGenerationReleaseReservationParams,
@@ -1099,6 +1100,30 @@ async function assertAIRouteHelpers() {
     progress: 5,
     responseData: { status: "created" }
   }, "Generation dispatch result params should preserve queued refresh updates");
+
+  assertDeepEqual(buildGenerationCompleteJobParams({
+    immediateOutputUrl: "/uploads/image.png",
+    type: "image",
+    responseData: { status: "created" },
+    startedAt: 100,
+    now: 250
+  }), {
+    outputs: [{ url: "/uploads/image.png", mimeType: "image/png" }],
+    responseData: { status: "created" },
+    durationMs: 150
+  }, "Generation complete job params should preserve image completion fields");
+
+  assertDeepEqual(buildGenerationCompleteJobParams({
+    immediateOutputUrl: "/uploads/video.mp4",
+    type: "video",
+    responseData: { status: "created" },
+    startedAt: 100,
+    now: 260
+  }), {
+    outputs: [{ url: "/uploads/video.mp4", mimeType: "video/mp4" }],
+    responseData: { status: "created" },
+    durationMs: 160
+  }, "Generation complete job params should preserve video completion fields");
 
   assertDeepEqual(buildGenerationReleaseReservationParams({
     userId: "user-1",

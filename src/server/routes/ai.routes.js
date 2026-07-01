@@ -27,6 +27,7 @@ import {
 } from "../lib/ai-response-dto.js";
 import {
   assertResolvedProviderMatchesModel,
+  buildGenerationCompleteJobParams,
   buildGenerationDispatchResultParams,
   buildGenerationJobRecordParams,
   buildGenerationReleaseReservationParams,
@@ -327,11 +328,12 @@ export function createAIRouter() {
         responseData: responseLog
       }));
       if (immediateOutputUrl) {
-        const completed = await completeAIJob(req.auth.user.id, job.id, {
-          outputs: [{ url: immediateOutputUrl, mimeType: type === "video" ? "video/mp4" : "image/png" }],
+        const completed = await completeAIJob(req.auth.user.id, job.id, buildGenerationCompleteJobParams({
+          immediateOutputUrl,
+          type,
           responseData: responseLog,
-          durationMs: Date.now() - startedAt
-        });
+          startedAt
+        }));
         if (completed?.status !== "succeeded") {
           const failure = toClientFailure(completed, "OUTPUT_SAVE_FAILED");
           res.status(500).json({

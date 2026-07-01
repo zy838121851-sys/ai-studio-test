@@ -355,6 +355,20 @@ export function buildGenerationDispatchResultParams({
   };
 }
 
+export function buildGenerationCompleteJobParams({
+  immediateOutputUrl = "",
+  type = "image",
+  responseData = {},
+  startedAt = 0,
+  now = Date.now()
+} = {}) {
+  return {
+    outputs: [{ url: immediateOutputUrl, mimeType: type === "video" ? "video/mp4" : "image/png" }],
+    responseData,
+    durationMs: now - startedAt
+  };
+}
+
 export function buildGenerationReleaseReservationParams({
   userId = "",
   reservation = {},
