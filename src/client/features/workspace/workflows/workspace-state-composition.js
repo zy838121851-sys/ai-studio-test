@@ -1,4 +1,8 @@
-import { createWorkspaceAppState } from "../runtime/workspace-app-state.js";
+import {
+  DEFAULT_CANVAS_PAN,
+  DEFAULT_CANVAS_ZOOM
+} from "../../canvas/canvas-viewport.js";
+import { createAppInitialState } from "../runtime/state/app-initial-state.js";
 
 export function createWorkspaceCompositionState(options) {
   return createWorkspaceAppState(options);
@@ -50,6 +54,17 @@ export function createWorkspaceCompositionStateBundle(options) {
       set activeProjectId(value) { state.activeProjectId = value; },
       get libraryViewMode() { return state.libraryViewMode; },
       set libraryViewMode(value) { state.libraryViewMode = value; }
+    })
+  };
+}
+
+function createWorkspaceAppState({ getLibraryViewMode }) {
+  return {
+    assets: [],
+    ...createAppInitialState({
+      defaultCanvasZoom: DEFAULT_CANVAS_ZOOM,
+      defaultCanvasPan: DEFAULT_CANVAS_PAN,
+      getLibraryViewMode
     })
   };
 }
