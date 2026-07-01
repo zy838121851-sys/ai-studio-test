@@ -8,7 +8,12 @@ import {
 } from "../billing.service.js";
 import { ensureUserWorkspaceWithDb } from "../workspace.service.js";
 
-export function getCreditBalance(userId) {
+function userIdFromPrincipal(principal) {
+  return typeof principal === "string" ? principal : principal?.userId;
+}
+
+export function getCreditBalance(principal) {
+  const userId = userIdFromPrincipal(principal);
   const account = getCreditAccount(userId);
   return toPublicBalance(account || {
     user_id: userId,
@@ -18,7 +23,8 @@ export function getCreditBalance(userId) {
   });
 }
 
-export function listCreditTransactions(userId, { limit = 50, offset = 0 } = {}) {
+export function listCreditTransactions(principal, { limit = 50, offset = 0 } = {}) {
+  const userId = userIdFromPrincipal(principal);
   return prepare(`
     SELECT
       id, type, amount_credits, balance_after, reserved_after,
@@ -33,11 +39,13 @@ export function listCreditTransactions(userId, { limit = 50, offset = 0 } = {}) 
   `).all(userId, normalizeLimit(limit), Math.max(0, Number(offset || 0))).map(toPublicTransaction);
 }
 
-export function ensureCreditAccount(userId, {
+export function ensureCreditAccount(principal, {
   initialCredits = DEFAULT_SIGNUP_CREDITS,
   reason = "initial_signup_grant",
-  requestId = `initial-grant:${userId}`
+  requestId
 } = {}) {
+  const userId = userIdFromPrincipal(principal);
+  const resolvedRequestId = requestId || `initial-grant:${userId}`;
   return transaction((db) => {
     const account = getOrCreateZeroAccount(db, userId);
     const grant = db.prepare(`
@@ -47,7 +55,7 @@ export function ensureCreditAccount(userId, {
         AND type = 'grant'
         AND request_id = ?
       LIMIT 1;
-    `).get(account.id, requestId);
+    `).get(account.id, resolvedRequestId);
     if (grant) return toPublicBalance({ ...account, user_id: userId });
 
     const credits = Math.ceil(Number(initialCredits || 0));
@@ -72,7 +80,7 @@ export function ensureCreditAccount(userId, {
       balanceAfter: balance,
       reservedAfter: reserved,
       reason,
-      requestId,
+      requestId: resolvedRequestId,
       status: "charged",
       createdAt: now
     });
@@ -80,7 +88,8 @@ export function ensureCreditAccount(userId, {
   });
 }
 
-export function addCredits(userId, { amount, reason = "admin_adjust", requestId = randomUUID() } = {}) {
+export function addCredits(principal, { amount, reason = "admin_adjust", requestId = randomUUID() } = {}) {
+  const userId = userIdFromPrincipal(principal);
   return transaction((db) => {
     const account = getOrCreateZeroAccount(db, userId);
     const credits = toCredits(amount);
