@@ -1,17 +1,11 @@
 import { Router } from "express";
-import {
-  generateImage
-} from "../services/ai.service.js";
 import { env } from "../config/env.js";
 import { createAIAsyncHandler } from "../lib/ai-error-response.js";
-import { toClientSizeNormalization } from "../lib/ai-job-log-payload.js";
 import {
   toClientAsset,
-  toClientBilling,
   toClientJob
 } from "../lib/ai-response-dto.js";
 import {
-  assertResolvedProviderMatchesModel,
   buildTripo3DDispatchResultParams,
   buildTripo3DRemoteFailureParams,
   getModelModality,
@@ -20,12 +14,10 @@ import {
   normalizeTripo3DJobInput,
   normalizeImages
 } from "../lib/ai-route-helpers.js";
-import { logAIModelRoute, logAIProviderRoute } from "../lib/ai-route-logging.js";
 import { sendErrorResponse } from "../lib/http-error-response.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import { assertPublicHttpUrl } from "../security/network.js";
-import { billFixedTask } from "../services/credits/billing.service.js";
 import {
   completeModel3DJob,
   failModel3DJob,
@@ -44,6 +36,7 @@ import {
   listImageModels
 } from "../services/model-catalog.service.js";
 import {
+  createChatImageGeneration,
   createFixedBillingGeneration,
   createGenerationJob
 } from "../services/ai/generation-creation.service.js";
@@ -283,46 +276,13 @@ export function createAIRouter() {
     if (!modelConfig) {
       throw new Error(`Unsupported image model: ${requestedModel}`);
     }
-    const result = await billFixedTask({
+    const generation = await createChatImageGeneration({
       userId: req.auth.user.id,
-      provider: modelConfig.providerId,
-      model: requestedModel,
-      task: "image_generation",
-      count: req.body?.count,
-      reason: "image_generation",
-      callProvider: () => generateImage({
-        ...req.body,
-        model: requestedModel
-      })
-    });
-    logAIModelRoute({
-      route: "/api/chat",
+      body: req.body,
       requestedModel,
-      providerModel: result.providerModel || result.resolvedModel || result.model || modelConfig.providerModel,
-      remoteTaskId: result.remoteTaskId || result.taskId || "",
-      type: "image",
-      referenceCount: Array.isArray(req.body?.images) ? req.body.images.length : 0
+      modelConfig
     });
-    assertResolvedProviderMatchesModel({ modelConfig, result });
-    logAIProviderRoute({
-      requestedModel,
-      provider: result.provider || modelConfig.providerId,
-      providerModel: result.providerModel || result.resolvedModel || result.model,
-      referenceCount: result.referenceCount
-    });
-    res.json({
-      message: result.imageUrl ? "Image generated" : "Model returned without an image URL",
-      imageUrl: result.imageUrl,
-      model: result.model,
-      requestedModel: result.requestedModel || requestedModel,
-      resolvedModel: result.resolvedModel || result.model,
-      provider: isApimartModel(requestedModel) ? undefined : (result.provider || modelConfig.providerId),
-      providerModel: result.providerModel || result.resolvedModel || result.model,
-      providerCalls: isApimartModel(requestedModel) ? [] : (result.providerCalls || []),
-      referenceCount: result.referenceCount,
-      sizeNormalization: toClientSizeNormalization(result.sizeNormalization),
-      billing: toClientBilling(result.billing)
-    });
+    res.json(generation.body);
   }));
 
   router.post("/image-edit", aiLimiter, asyncHandler(async (req, res) => {

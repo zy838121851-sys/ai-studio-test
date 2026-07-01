@@ -1,4 +1,5 @@
 import {
+  toClientSizeNormalization,
   buildGenerationFailureLog,
   buildGenerationRequestLog,
   buildGenerationResponseLog
@@ -9,9 +10,11 @@ import {
   buildQueuedGenerationResponse,
   buildRefreshedGenerationResponse,
   sanitizeGenerationResult,
+  toClientBilling,
   toClientJob
 } from "../../lib/ai-response-dto.js";
 import {
+  assertResolvedProviderMatchesModel,
   buildGenerationCompleteJobParams,
   buildGenerationDispatchResultParams,
   buildGenerationJobRecordParams,
@@ -21,7 +24,7 @@ import {
   normalizeImages,
   validateVideoOptions
 } from "../../lib/ai-route-helpers.js";
-import { logAIModelRoute } from "../../lib/ai-route-logging.js";
+import { logAIModelRoute, logAIProviderRoute } from "../../lib/ai-route-logging.js";
 import { generateImage, generateVideo } from "../ai.service.js";
 import {
   completeAIJob,
@@ -38,6 +41,7 @@ import {
 } from "../credits/credit.service.js";
 import { billFixedTask } from "../credits/billing.service.js";
 import { quoteFixedCredits } from "../credits/pricing.service.js";
+import { isApimartModel } from "../model-catalog.service.js";
 import { randomUUID } from "node:crypto";
 
 export async function createFixedBillingGeneration({
@@ -63,6 +67,56 @@ export async function createFixedBillingGeneration({
   });
   return {
     body: sanitizeGenerationResult(result, modelConfig)
+  };
+}
+
+export async function createChatImageGeneration({
+  userId = "",
+  body = {},
+  requestedModel = "",
+  modelConfig = {}
+} = {}) {
+  const result = await billFixedTask({
+    userId,
+    provider: modelConfig.providerId,
+    model: requestedModel,
+    task: "image_generation",
+    count: body?.count,
+    reason: "image_generation",
+    callProvider: () => generateImage({
+      ...body,
+      model: requestedModel
+    })
+  });
+  logAIModelRoute({
+    route: "/api/chat",
+    requestedModel,
+    providerModel: result.providerModel || result.resolvedModel || result.model || modelConfig.providerModel,
+    remoteTaskId: result.remoteTaskId || result.taskId || "",
+    type: "image",
+    referenceCount: Array.isArray(body?.images) ? body.images.length : 0
+  });
+  assertResolvedProviderMatchesModel({ modelConfig, result });
+  logAIProviderRoute({
+    requestedModel,
+    provider: result.provider || modelConfig.providerId,
+    providerModel: result.providerModel || result.resolvedModel || result.model,
+    referenceCount: result.referenceCount
+  });
+  return {
+    body: {
+      message: result.imageUrl ? "Image generated" : "Model returned without an image URL",
+      imageUrl: result.imageUrl,
+      model: result.model,
+      requestedModel: result.requestedModel || requestedModel,
+      resolvedModel: result.resolvedModel || result.model,
+      provider: isApimartModel(requestedModel) ? undefined : (result.provider || modelConfig.providerId),
+      providerModel: result.providerModel || result.resolvedModel || result.model,
+      providerCalls: isApimartModel(requestedModel) ? [] : (result.providerCalls || []),
+      referenceCount: result.referenceCount,
+      sizeNormalization: toClientSizeNormalization(result.sizeNormalization),
+      billing: toClientBilling(result.billing)
+    }
   };
 }
 
