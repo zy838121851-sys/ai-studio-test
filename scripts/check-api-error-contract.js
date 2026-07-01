@@ -1,7 +1,7 @@
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { classifyAIError, toClientFailure } from "../src/server/lib/ai-error-response.js";
+import { buildAIErrorResponseBody, classifyAIError, toClientFailure } from "../src/server/lib/ai-error-response.js";
 import {
   buildGenerationFailureLog,
   buildGenerationRequestLog,
@@ -44,6 +44,7 @@ const restoreConsole = suppressAuditLogs();
 try {
   assertNoInlineMessageErrorResponses();
   assertAIErrorClassification();
+  assertAIErrorResponseBody();
   assertAIJobLogPayloads();
   assertAIResponseDtos();
   assertAIRouteHelpers();
@@ -250,6 +251,82 @@ function assertAIErrorClassification() {
       failureMessage: "provider exploded"
     },
     "AI job failures should preserve stored error details"
+  );
+}
+
+function assertAIErrorResponseBody() {
+  const failure = {
+    failureCode: "PROVIDER_FAILED",
+    failureMessage: "provider exploded",
+    stage: "provider"
+  };
+  assertDeepEqual(
+    buildAIErrorResponseBody(failure),
+    {
+      message: "provider exploded",
+      errorCode: "PROVIDER_FAILED",
+      errorMessage: "provider exploded",
+      failureCode: "PROVIDER_FAILED",
+      failureMessage: "provider exploded",
+      stage: "provider"
+    },
+    "AI error response body should preserve the route error contract without a job"
+  );
+  assertDeepEqual(
+    buildAIErrorResponseBody(failure, {
+      id: "job-1",
+      provider: "apimart",
+      vendor: "",
+      modelId: "gpt-image-2",
+      providerModel: "",
+      type: "image",
+      status: "failed",
+      progress: 0,
+      promptPreview: "",
+      inputAssetIds: [],
+      outputAssetIds: [],
+      creditsReserved: 8,
+      creditsCharged: 0,
+      failureCode: "PROVIDER_FAILED",
+      failureMessage: "provider exploded",
+      createdAt: 0,
+      updatedAt: 0,
+      completedAt: null
+    }),
+    {
+      message: "provider exploded",
+      errorCode: "PROVIDER_FAILED",
+      errorMessage: "provider exploded",
+      failureCode: "PROVIDER_FAILED",
+      failureMessage: "provider exploded",
+      stage: "provider",
+      job: {
+        id: "job-1",
+        modelId: "gpt-image-2",
+        providerModel: "",
+        vendor: "",
+        type: "image",
+        status: "failed",
+        progress: 0,
+        promptPreview: "",
+        inputAssetIds: [],
+        outputAssetIds: [],
+        outputCount: 0,
+        remoteTaskId: "",
+        errorCode: "",
+        errorMessage: "",
+        failureCode: "PROVIDER_FAILED",
+        failureMessage: "provider exploded",
+        creditsReserved: 8,
+        creditsCharged: 0,
+        createdAt: 0,
+        updatedAt: 0,
+        completedAt: null,
+        durationMs: null
+      },
+      jobId: "job-1"
+    },
+    "AI error response body should include the client job DTO when a failed job is available"
   );
 }
 

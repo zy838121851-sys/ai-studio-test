@@ -1,3 +1,17 @@
+import { toClientJob } from "./ai-response-dto.js";
+
+export function buildAIErrorResponseBody(failure = {}, errorJob = null) {
+  return {
+    message: failure.failureMessage,
+    errorCode: failure.failureCode,
+    errorMessage: failure.failureMessage,
+    failureCode: failure.failureCode,
+    failureMessage: failure.failureMessage,
+    stage: failure.stage,
+    ...(errorJob ? { job: toClientJob(errorJob), jobId: errorJob.id } : {})
+  };
+}
+
 export function toClientFailure(job = {}, fallbackCode = "AI_JOB_FAILED") {
   const failureCode = job?.failureCode || job?.errorCode || fallbackCode;
   const failureMessage = job?.failureMessage || job?.errorMessage || "AI job failed";

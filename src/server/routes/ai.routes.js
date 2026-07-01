@@ -11,7 +11,7 @@ import {
   superResolutionImage
 } from "../services/ai.service.js";
 import { env } from "../config/env.js";
-import { classifyAIError, toClientFailure } from "../lib/ai-error-response.js";
+import { buildAIErrorResponseBody, classifyAIError, toClientFailure } from "../lib/ai-error-response.js";
 import {
   buildGenerationFailureLog,
   buildGenerationRequestLog,
@@ -1037,13 +1037,5 @@ function asyncHandler(handler) {
 }
 
 function sendAIErrorResponse(res, error = {}, failure = {}, errorJob = null) {
-  res.status(error.status || 500).json({
-    message: failure.failureMessage,
-    errorCode: failure.failureCode,
-    errorMessage: failure.failureMessage,
-    failureCode: failure.failureCode,
-    failureMessage: failure.failureMessage,
-    stage: failure.stage,
-    ...(errorJob ? { job: toClientJob(errorJob), jobId: errorJob.id } : {})
-  });
+  res.status(error.status || 500).json(buildAIErrorResponseBody(failure, errorJob));
 }
