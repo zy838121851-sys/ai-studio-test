@@ -26,6 +26,7 @@ import {
   assertResolvedProviderMatchesModel,
   assertTripo3DModelConfig,
   assertTripo3DRequiredInput,
+  buildGenerationJobRecordParams,
   buildGenerationReleaseReservationParams,
   buildGenerationReserveCreditsParams,
   buildTripo3DChargeReservationParams,
@@ -1029,6 +1030,41 @@ async function assertAIRouteHelpers() {
     reason: "image_generation",
     requestId: "request-generation-1"
   }, "Generation reserve credits params should preserve fixed billing fields");
+
+  assertDeepEqual(buildGenerationJobRecordParams({
+    requestId: "request-generation-1",
+    userId: "user-1",
+    modelConfig: {
+      id: "image-model",
+      providerId: "apimart",
+      providerModel: "provider-image-model",
+      vendor: "apimart"
+    },
+    type: "image",
+    prompt: "make an image",
+    inputAssetIds: ["asset-1"],
+    creditsReserved: 12,
+    requestData: { route: "/api/ai/generate" }
+  }), {
+    id: "request-generation-1",
+    userId: "user-1",
+    provider: "apimart",
+    vendor: "apimart",
+    modelId: "image-model",
+    providerModel: "provider-image-model",
+    remoteTaskId: "",
+    type: "image",
+    status: "queued",
+    progress: 0,
+    prompt: "make an image",
+    inputAssetIds: ["asset-1"],
+    creditsReserved: 12,
+    requestData: { route: "/api/ai/generate" }
+  }, "Generation job record params should preserve createAIJob fields");
+
+  assert(buildGenerationJobRecordParams({
+    modelConfig: { id: "image-model", providerId: "apimart" }
+  }).providerModel === "image-model", "Generation job record params should preserve provider model fallback");
 
   assertDeepEqual(buildGenerationReleaseReservationParams({
     userId: "user-1",

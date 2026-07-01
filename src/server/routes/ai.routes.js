@@ -27,6 +27,7 @@ import {
 } from "../lib/ai-response-dto.js";
 import {
   assertResolvedProviderMatchesModel,
+  buildGenerationJobRecordParams,
   buildGenerationReleaseReservationParams,
   buildGenerationReserveCreditsParams,
   buildTripo3DDispatchResultParams,
@@ -264,17 +265,11 @@ export function createAIRouter() {
         task,
         requestId
       }));
-      job = createAIJob({
-        id: requestId,
+      job = createAIJob(buildGenerationJobRecordParams({
+        requestId,
         userId: req.auth.user.id,
-        provider: modelConfig.providerId,
-        vendor: modelConfig.vendor || "",
-        modelId: modelConfig.id,
-        providerModel: modelConfig.providerModel || modelConfig.id,
-        remoteTaskId: "",
+        modelConfig,
         type,
-        status: "queued",
-        progress: 0,
         prompt,
         inputAssetIds: req.body?.inputAssetIds || [],
         creditsReserved: reservation.amountCredits,
@@ -292,7 +287,7 @@ export function createAIRouter() {
           quote,
           reservation
         })
-      });
+      }));
       const result = type === "video"
         ? await generateVideo({
           model: modelConfig.id,

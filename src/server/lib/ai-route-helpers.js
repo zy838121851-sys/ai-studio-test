@@ -312,6 +312,34 @@ export function buildGenerationReserveCreditsParams({
   };
 }
 
+export function buildGenerationJobRecordParams({
+  requestId = "",
+  userId = "",
+  modelConfig = {},
+  type = "image",
+  prompt = "",
+  inputAssetIds = [],
+  creditsReserved = 0,
+  requestData = {}
+} = {}) {
+  return {
+    id: requestId,
+    userId,
+    provider: modelConfig.providerId,
+    vendor: modelConfig.vendor || "",
+    modelId: modelConfig.id,
+    providerModel: modelConfig.providerModel || modelConfig.id,
+    remoteTaskId: "",
+    type,
+    status: "queued",
+    progress: 0,
+    prompt,
+    inputAssetIds,
+    creditsReserved,
+    requestData
+  };
+}
+
 export function buildGenerationReleaseReservationParams({
   userId = "",
   reservation = {},
