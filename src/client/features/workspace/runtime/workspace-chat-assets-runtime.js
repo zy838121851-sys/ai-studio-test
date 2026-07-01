@@ -1,4 +1,4 @@
-import { createWorkspaceAssetLibraryRuntime } from "../asset-library/asset-library-app-runtime.js?v=20260627-library-bulk-select-1";
+import { createAssetLibraryFeatureRuntime } from "../asset-library/asset-library-feature-runtime.js?v=20260627-library-bulk-select-1";
 import { createWorkspaceChatRuntime } from "../chat/runtime/chat-app-runtime.js";
 
 export function createWorkspaceAssetRuntime({
@@ -7,7 +7,7 @@ export function createWorkspaceAssetRuntime({
   state = {},
   services = {}
 } = {}) {
-  return createWorkspaceAssetLibraryRuntime({
+  return createAssetLibraryFeatureRuntime({
     eventBus,
     elements: {
       assetList: elements.assetList,
