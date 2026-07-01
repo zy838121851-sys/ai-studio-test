@@ -156,6 +156,38 @@ export function buildTripo3DJobRecordParams({
   };
 }
 
+export function buildTripo3DRequestLogParams({
+  route = "",
+  requestId = "",
+  modelConfig = {},
+  mode = "text",
+  prompt = "",
+  imageUrl = "",
+  imageDataUrl = "",
+  imageName = "",
+  imageMimeType = "",
+  texture = true,
+  task = "",
+  quote = {},
+  reservation = {}
+} = {}) {
+  return {
+    route,
+    requestId,
+    modelConfig,
+    mode,
+    prompt,
+    imageUrl,
+    imageDataUrl,
+    imageName,
+    imageMimeType,
+    texture,
+    task,
+    quote,
+    reservation
+  };
+}
+
 export function buildTripo3DDispatchResultParams({
   taskCreated = {},
   providerModel = "",

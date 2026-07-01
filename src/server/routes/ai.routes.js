@@ -38,6 +38,7 @@ import {
   buildTripo3DJobRecordParams,
   buildTripo3DQuoteParams,
   buildTripo3DReleaseReservationParams,
+  buildTripo3DRequestLogParams,
   buildTripo3DReserveCreditsParams,
   buildTripo3DRemoteFailureParams,
   buildTripo3DSuccessResponse,
@@ -879,7 +880,7 @@ async function createTripo3DJob(req, {
     providerModel,
     prompt: cleanPrompt,
     creditsReserved: reservation.amountCredits,
-    requestData: buildTripo3DRequestLog({
+    requestData: buildTripo3DRequestLog(buildTripo3DRequestLogParams({
       route,
       requestId,
       modelConfig,
@@ -893,7 +894,7 @@ async function createTripo3DJob(req, {
       task,
       quote,
       reservation
-    })
+    }))
   }));
   let taskCreated = null;
   let chargedCredits = 0;

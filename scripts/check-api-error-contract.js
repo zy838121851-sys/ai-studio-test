@@ -33,6 +33,7 @@ import {
   buildTripo3DJobRecordParams,
   buildTripo3DQuoteParams,
   buildTripo3DReleaseReservationParams,
+  buildTripo3DRequestLogParams,
   buildTripo3DReserveCreditsParams,
   buildTripo3DRemoteFailureParams,
   buildTripo3DSuccessResponse,
@@ -805,6 +806,36 @@ function assertAIRouteHelpers() {
     prompt: "",
     modelConfig: { id: "tripo-model" }
   }).prompt === "Image to 3D", "Tripo job record params should preserve image prompt fallback");
+
+  assertDeepEqual(buildTripo3DRequestLogParams({
+    route: "/api/ai/3d/image-to-model",
+    requestId: "request-log-1",
+    modelConfig: { id: "tripo-model", apiModel: "api-model" },
+    mode: "image",
+    prompt: "make a chair",
+    imageUrl: "file_token:abcdefghij",
+    imageDataUrl: "data:image/png;base64,AAAA",
+    imageName: "input.png",
+    imageMimeType: "image/png",
+    texture: false,
+    task: "tripo_image_to_3d_standard",
+    quote: { totalCredits: 12 },
+    reservation: { amountCredits: 12 }
+  }), {
+    route: "/api/ai/3d/image-to-model",
+    requestId: "request-log-1",
+    modelConfig: { id: "tripo-model", apiModel: "api-model" },
+    mode: "image",
+    prompt: "make a chair",
+    imageUrl: "file_token:abcdefghij",
+    imageDataUrl: "data:image/png;base64,AAAA",
+    imageName: "input.png",
+    imageMimeType: "image/png",
+    texture: false,
+    task: "tripo_image_to_3d_standard",
+    quote: { totalCredits: 12 },
+    reservation: { amountCredits: 12 }
+  }, "Tripo request log params should preserve request log input shape");
 
   assertDeepEqual(buildTripo3DDispatchResultParams({
     taskCreated: {
