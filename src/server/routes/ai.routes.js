@@ -39,6 +39,7 @@ import {
   buildTripo3DQuoteParams,
   buildTripo3DReleaseReservationParams,
   buildTripo3DRequestLogParams,
+  buildTripo3DResponseLogParams,
   buildTripo3DReserveCreditsParams,
   buildTripo3DRemoteFailureParams,
   buildTripo3DSuccessResponse,
@@ -932,13 +933,12 @@ async function createTripo3DJob(req, {
     job = updateAIJobDispatchResult(userId, job.id, buildTripo3DDispatchResultParams({
       taskCreated,
       providerModel,
-      responseData: buildTripo3DResponseLog(taskCreated, {
+      responseData: buildTripo3DResponseLog(taskCreated, buildTripo3DResponseLogParams({
+        taskCreated,
         modelConfig,
         mode,
-        chargedCredits,
-        status: "created",
-        inputType: taskCreated.inputType || ""
-      })
+        chargedCredits
+      }))
     }));
     return buildTripo3DSuccessResponse({
       taskCreated,

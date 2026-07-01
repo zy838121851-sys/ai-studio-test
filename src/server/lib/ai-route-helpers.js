@@ -188,6 +188,21 @@ export function buildTripo3DRequestLogParams({
   };
 }
 
+export function buildTripo3DResponseLogParams({
+  taskCreated = {},
+  modelConfig = {},
+  mode = "text",
+  chargedCredits = 0
+} = {}) {
+  return {
+    modelConfig,
+    mode,
+    chargedCredits,
+    status: "created",
+    inputType: taskCreated.inputType || ""
+  };
+}
+
 export function buildTripo3DDispatchResultParams({
   taskCreated = {},
   providerModel = "",

@@ -34,6 +34,7 @@ import {
   buildTripo3DQuoteParams,
   buildTripo3DReleaseReservationParams,
   buildTripo3DRequestLogParams,
+  buildTripo3DResponseLogParams,
   buildTripo3DReserveCreditsParams,
   buildTripo3DRemoteFailureParams,
   buildTripo3DSuccessResponse,
@@ -836,6 +837,29 @@ function assertAIRouteHelpers() {
     quote: { totalCredits: 12 },
     reservation: { amountCredits: 12 }
   }, "Tripo request log params should preserve request log input shape");
+
+  assertDeepEqual(buildTripo3DResponseLogParams({
+    taskCreated: { inputType: "image" },
+    modelConfig: { id: "tripo-model", apiModel: "api-model" },
+    mode: "image",
+    chargedCredits: 12
+  }), {
+    modelConfig: { id: "tripo-model", apiModel: "api-model" },
+    mode: "image",
+    chargedCredits: 12,
+    status: "created",
+    inputType: "image"
+  }, "Tripo response log params should preserve created response log fields");
+  assertDeepEqual(buildTripo3DResponseLogParams({
+    taskCreated: {},
+    modelConfig: { id: "tripo-model" }
+  }), {
+    modelConfig: { id: "tripo-model" },
+    mode: "text",
+    chargedCredits: 0,
+    status: "created",
+    inputType: ""
+  }, "Tripo response log params should preserve default response log fields");
 
   assertDeepEqual(buildTripo3DDispatchResultParams({
     taskCreated: {
