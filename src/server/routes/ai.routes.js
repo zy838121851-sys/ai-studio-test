@@ -20,6 +20,12 @@ import {
   buildTripo3DResponseLog,
   toClientSizeNormalization
 } from "../lib/ai-job-log-payload.js";
+import {
+  buildDeferredImageEditResult,
+  toClientAsset,
+  toClientBilling,
+  toClientJob
+} from "../lib/ai-response-dto.js";
 import { sendErrorResponse } from "../lib/http-error-response.js";
 import { logError, logInfo } from "../lib/logger.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
@@ -1111,56 +1117,6 @@ function jobStatusForError(error = {}) {
   return "failed";
 }
 
-function buildDeferredImageEditResult(result = {}, job = {}, firstAsset = null, reservation = {}) {
-  const imageAssets = firstAsset?.type === "image" ? [firstAsset] : [];
-  return {
-    ...result,
-    imageUrl: firstAsset?.type === "image" ? firstAsset.url : "",
-    imageUrls: imageAssets.map((asset) => asset.url),
-    outputs: imageAssets.map(toClientAsset),
-    asset: toClientAsset(firstAsset),
-    job: toClientJob(job),
-    jobId: job?.id || "",
-    remoteTaskId: job?.remoteTaskId || result.remoteTaskId || result.taskId || "",
-    status: job?.status || result.status || "",
-    outputCount: imageAssets.length,
-    deferCharge: true,
-    billing: {
-      creditsReserved: reservation.amountCredits || job?.creditsReserved || 0,
-      creditsCharged: job?.creditsCharged || 0,
-      status: job?.status === "succeeded" ? "charged" : (job?.status || "reserved")
-    }
-  };
-}
-
-function toClientJob(job = {}) {
-  if (!job) return null;
-  return {
-    id: job.id,
-    modelId: job.modelId,
-    providerModel: job.providerModel || "",
-    vendor: job.vendor,
-    type: job.type,
-    status: job.status,
-    progress: job.progress,
-    promptPreview: job.promptPreview,
-    inputAssetIds: job.inputAssetIds || [],
-    outputAssetIds: job.outputAssetIds || [],
-    outputCount: Array.isArray(job.outputAssetIds) ? job.outputAssetIds.length : 0,
-    remoteTaskId: job.remoteTaskId || "",
-    errorCode: job.errorCode || "",
-    errorMessage: job.errorMessage || "",
-    failureCode: job.failureCode || job.errorCode || "",
-    failureMessage: job.failureMessage || job.errorMessage || "",
-    creditsReserved: job.creditsReserved || 0,
-    creditsCharged: job.creditsCharged || 0,
-    createdAt: job.createdAt,
-    updatedAt: job.updatedAt,
-    completedAt: job.completedAt,
-    durationMs: job.durationMs ?? null
-  };
-}
-
 function getJobOutputAssets(userId, job = {}) {
   return Array.from(job.outputAssetIds || [])
     .map((assetId) => getAsset(userId, assetId))
@@ -1173,36 +1129,6 @@ function hasRemoteFallbackModelOutput(assets = []) {
     && !asset.filePath
     && /^https?:\/\//i.test(String(asset.url || ""))
   ));
-}
-
-function toClientAsset(asset = {}) {
-  if (!asset) return null;
-  return {
-    assetId: asset.id,
-    url: asset.url,
-    mimeType: asset.mimeType,
-    type: asset.type,
-    width: asset.width,
-    height: asset.height,
-    duration: asset.duration,
-    modelId: asset.modelName,
-    prompt: asset.prompt,
-    createdAt: asset.createdAt
-  };
-}
-
-function toClientBilling(billing = null) {
-  if (!billing) return undefined;
-  return {
-    requestId: billing.requestId,
-    task: billing.task,
-    billingType: billing.billingType,
-    creditsReserved: billing.creditsReserved || 0,
-    creditsCharged: billing.creditsCharged || 0,
-    unitCredits: billing.unitCredits,
-    count: billing.count,
-    status: billing.status
-  };
 }
 
 function asyncHandler(handler) {

@@ -9,6 +9,12 @@ import {
   buildTripo3DRequestLog,
   buildTripo3DResponseLog
 } from "../src/server/lib/ai-job-log-payload.js";
+import {
+  buildDeferredImageEditResult,
+  toClientAsset,
+  toClientBilling,
+  toClientJob
+} from "../src/server/lib/ai-response-dto.js";
 
 const tempRoot = mkdtempSync(join(tmpdir(), "ai-studio-api-error-contract-"));
 process.env.DB_PATH = join(tempRoot, "api-error-contract.sqlite");
@@ -26,6 +32,7 @@ try {
   assertNoInlineMessageErrorResponses();
   assertAIErrorClassification();
   assertAIJobLogPayloads();
+  assertAIResponseDtos();
 
   const { createServer } = await import("../src/server/index.js");
   const { closeDatabase } = await import("../src/server/db/sqlite.js");
@@ -320,6 +327,77 @@ function assertAIJobLogPayloads() {
   });
   assert(failureLog.providerStatus === 502, "Generation failure log should keep provider status");
   assert(failureLog.failureCode === "PROVIDER_FAILED", "Generation failure log should keep failure code");
+}
+
+function assertAIResponseDtos() {
+  const job = {
+    id: "job-1",
+    modelId: "gpt-image-2",
+    providerModel: "gpt-image-2",
+    vendor: "apimart",
+    type: "image",
+    status: "succeeded",
+    progress: 100,
+    promptPreview: "prompt preview",
+    inputAssetIds: ["input-1"],
+    outputAssetIds: ["asset-1", "asset-2"],
+    remoteTaskId: "remote-1",
+    errorCode: "PROVIDER_FAILED",
+    errorMessage: "provider exploded",
+    creditsReserved: 8,
+    creditsCharged: 8,
+    createdAt: 1,
+    updatedAt: 2,
+    completedAt: 3,
+    durationMs: 4
+  };
+  const clientJob = toClientJob(job);
+  assert(clientJob.id === "job-1", "Client job DTO should keep the job id");
+  assert(clientJob.outputCount === 2, "Client job DTO should derive outputCount from outputAssetIds");
+  assert(clientJob.failureCode === "PROVIDER_FAILED", "Client job DTO should fall back to errorCode for failureCode");
+  assert(clientJob.failureMessage === "provider exploded", "Client job DTO should fall back to errorMessage for failureMessage");
+  assert(toClientJob(null) === null, "Client job DTO should return null for missing jobs");
+
+  const asset = {
+    id: "asset-1",
+    url: "/uploads/output.png",
+    mimeType: "image/png",
+    type: "image",
+    width: 1024,
+    height: 1024,
+    duration: 0,
+    modelName: "gpt-image-2",
+    prompt: "prompt",
+    createdAt: 5
+  };
+  const clientAsset = toClientAsset(asset);
+  assert(clientAsset.assetId === "asset-1", "Client asset DTO should expose assetId");
+  assert(clientAsset.modelId === "gpt-image-2", "Client asset DTO should expose modelName as modelId");
+  assert(toClientAsset(null) === null, "Client asset DTO should return null for missing assets");
+
+  const billing = toClientBilling({
+    requestId: "req-1",
+    task: "image_generation",
+    billingType: "fixed",
+    creditsReserved: 8,
+    creditsCharged: 8,
+    unitCredits: 8,
+    count: 1,
+    status: "charged"
+  });
+  assert(billing.status === "charged", "Client billing DTO should keep billing status");
+  assert(toClientBilling(null) === undefined, "Client billing DTO should return undefined for missing billing");
+
+  const deferred = buildDeferredImageEditResult({
+    taskId: "remote-task",
+    imageUrl: "provider-url-should-not-leak"
+  }, job, asset, { amountCredits: 8 });
+  assert(deferred.deferCharge === true, "Deferred image edit DTO should mark deferCharge");
+  assert(deferred.imageUrl === "/uploads/output.png", "Deferred image edit DTO should prefer persisted asset URL");
+  assert(deferred.imageUrls.length === 1, "Deferred image edit DTO should expose persisted image URLs");
+  assert(deferred.jobId === "job-1", "Deferred image edit DTO should expose jobId");
+  assert(deferred.remoteTaskId === "remote-1", "Deferred image edit DTO should prefer job remote task id");
+  assert(deferred.billing.status === "charged", "Deferred image edit DTO should mark succeeded jobs as charged");
 }
 
 function errorWith({ status, code, message } = {}) {
