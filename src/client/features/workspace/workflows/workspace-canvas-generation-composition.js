@@ -1,4 +1,4 @@
-import { createWorkspaceCanvasGenerationAppRuntime } from "../runtime/workspace-canvas-runtime.js";
+import { createWorkspaceCanvasGenerationAppRuntime } from "../runtime/canvas-generation-runtime.js";
 
 export function createWorkspaceCanvasGenerationCompositionRuntime({
   elements,
