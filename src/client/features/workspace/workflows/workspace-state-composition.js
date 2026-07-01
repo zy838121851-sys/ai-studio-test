@@ -1,4 +1,3 @@
-import { createWorkspaceAppScope } from "../runtime/workspace-app-scope.js";
 import { createWorkspaceAppState } from "../runtime/workspace-app-state.js";
 
 export function createWorkspaceCompositionState(options) {
@@ -6,7 +5,7 @@ export function createWorkspaceCompositionState(options) {
 }
 
 export function createWorkspaceCompositionScope(accessors) {
-  return createWorkspaceAppScope(accessors);
+  return accessors;
 }
 
 export function createWorkspaceCompositionStateBundle(options) {
