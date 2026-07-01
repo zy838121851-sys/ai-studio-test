@@ -36,6 +36,28 @@ export function getModelModality(modelConfig = {}) {
   return String(modelConfig.modality || modelConfig.type || "image").trim().toLowerCase();
 }
 
+export function assertTripo3DModelConfig({ modelId = "", modelConfig = {}, mode = "text" } = {}) {
+  if (!modelConfig || getModelModality(modelConfig) !== "3d" || modelConfig.providerId !== "tripo") {
+    const error = new Error(`Unsupported 3D model: ${modelId}`);
+    error.status = 400;
+    error.code = "UNSUPPORTED_3D_MODEL";
+    throw error;
+  }
+  const capabilities = modelConfig.capabilities || {};
+  if (mode === "text" && capabilities.textTo3D !== true) {
+    const error = new Error(`${modelConfig.label || modelConfig.id} does not support text to 3D`);
+    error.status = 400;
+    error.code = "TEXT_TO_3D_UNSUPPORTED";
+    throw error;
+  }
+  if (mode === "image" && capabilities.imageTo3D !== true) {
+    const error = new Error(`${modelConfig.label || modelConfig.id} does not support image to 3D`);
+    error.status = 400;
+    error.code = "IMAGE_TO_3D_UNSUPPORTED";
+    throw error;
+  }
+}
+
 export function isValidTripoImageInput(imageUrl = "", imageDataUrl = "") {
   const cleanUrl = String(imageUrl || "").trim();
   if (/^https?:\/\//i.test(cleanUrl)) return true;

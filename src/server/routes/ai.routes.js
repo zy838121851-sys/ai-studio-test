@@ -29,6 +29,7 @@ import {
 } from "../lib/ai-response-dto.js";
 import {
   assertResolvedProviderMatchesModel,
+  assertTripo3DModelConfig,
   getInitialAIJobStatus,
   getModelModality,
   hasRemoteFallbackModelOutput,
@@ -833,25 +834,7 @@ async function createTripo3DJob(req, {
   const userId = req.auth.user.id;
   const modelId = String(req.body?.modelId || req.body?.model || DEFAULT_3D_MODEL).trim() || DEFAULT_3D_MODEL;
   const modelConfig = getModelConfig(modelId);
-  if (!modelConfig || getModelModality(modelConfig) !== "3d" || modelConfig.providerId !== "tripo") {
-    const error = new Error(`Unsupported 3D model: ${modelId}`);
-    error.status = 400;
-    error.code = "UNSUPPORTED_3D_MODEL";
-    throw error;
-  }
-  const capabilities = modelConfig.capabilities || {};
-  if (mode === "text" && capabilities.textTo3D !== true) {
-    const error = new Error(`${modelConfig.label || modelConfig.id} does not support text to 3D`);
-    error.status = 400;
-    error.code = "TEXT_TO_3D_UNSUPPORTED";
-    throw error;
-  }
-  if (mode === "image" && capabilities.imageTo3D !== true) {
-    const error = new Error(`${modelConfig.label || modelConfig.id} does not support image to 3D`);
-    error.status = 400;
-    error.code = "IMAGE_TO_3D_UNSUPPORTED";
-    throw error;
-  }
+  assertTripo3DModelConfig({ modelId, modelConfig, mode });
   const cleanPrompt = String(prompt || "").trim();
   const cleanImageUrl = String(imageUrl || "").trim();
   const cleanImageDataUrl = String(imageDataUrl || "").trim();

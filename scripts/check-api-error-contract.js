@@ -24,6 +24,7 @@ import {
 } from "../src/server/lib/ai-response-dto.js";
 import {
   assertResolvedProviderMatchesModel,
+  assertTripo3DModelConfig,
   getInitialAIJobStatus,
   getModelModality,
   hasRemoteFallbackModelOutput,
@@ -581,6 +582,68 @@ function assertAIRouteHelpers() {
   assert(getModelModality({ type: "video" }) === "video", "Model modality should fall back to type");
   assert(getModelModality({}) === "image", "Model modality should default to image");
 
+  assertTripo3DModelConfig({
+    modelId: "tripo-text",
+    modelConfig: { id: "tripo-text", providerId: "tripo", modality: "3d", capabilities: { textTo3D: true } },
+    mode: "text"
+  });
+  assertTripo3DModelConfig({
+    modelId: "tripo-image",
+    modelConfig: { id: "tripo-image", providerId: "tripo", modality: "3d", capabilities: { imageTo3D: true } },
+    mode: "image"
+  });
+  assertThrowsStatusCode(
+    () => assertTripo3DModelConfig({ modelId: "missing-model", modelConfig: null, mode: "text" }),
+    400,
+    "UNSUPPORTED_3D_MODEL",
+    "Unsupported 3D model: missing-model",
+    "Tripo model guard should reject missing model configs"
+  );
+  assertThrowsStatusCode(
+    () => assertTripo3DModelConfig({
+      modelId: "image-model",
+      modelConfig: { id: "image-model", providerId: "tripo", type: "image", capabilities: { textTo3D: true } },
+      mode: "text"
+    }),
+    400,
+    "UNSUPPORTED_3D_MODEL",
+    "Unsupported 3D model: image-model",
+    "Tripo model guard should reject non-3D models"
+  );
+  assertThrowsStatusCode(
+    () => assertTripo3DModelConfig({
+      modelId: "other-3d",
+      modelConfig: { id: "other-3d", providerId: "other", modality: "3d", capabilities: { textTo3D: true } },
+      mode: "text"
+    }),
+    400,
+    "UNSUPPORTED_3D_MODEL",
+    "Unsupported 3D model: other-3d",
+    "Tripo model guard should reject non-Tripo 3D models"
+  );
+  assertThrowsStatusCode(
+    () => assertTripo3DModelConfig({
+      modelId: "tripo-image-only",
+      modelConfig: { id: "tripo-image-only", label: "Tripo Image Only", providerId: "tripo", modality: "3d", capabilities: { imageTo3D: true } },
+      mode: "text"
+    }),
+    400,
+    "TEXT_TO_3D_UNSUPPORTED",
+    "Tripo Image Only does not support text to 3D",
+    "Tripo model guard should reject text mode without text capability"
+  );
+  assertThrowsStatusCode(
+    () => assertTripo3DModelConfig({
+      modelId: "tripo-text-only",
+      modelConfig: { id: "tripo-text-only", label: "Tripo Text Only", providerId: "tripo", modality: "3d", capabilities: { textTo3D: true } },
+      mode: "image"
+    }),
+    400,
+    "IMAGE_TO_3D_UNSUPPORTED",
+    "Tripo Text Only does not support image to 3D",
+    "Tripo model guard should reject image mode without image capability"
+  );
+
   assert(isFixedQwenImageEditAction("remove_background") === true, "Fixed Qwen helper should recognize background removal");
   assert(isFixedQwenImageEditAction(" text_edit ") === true, "Fixed Qwen helper should trim action types");
   assert(isFixedQwenImageEditAction("upscale") === false, "Fixed Qwen helper should reject unrelated action types");
@@ -775,6 +838,18 @@ function assertThrowsStatus(fn, status, message, label) {
     fn();
   } catch (error) {
     assert(error.status === status, `${label}: expected status ${status}, got ${error.status}`);
+    assert(error.message === message, `${label}: expected message "${message}", got "${error.message}"`);
+    return;
+  }
+  throw new Error(`${label}: expected an error`);
+}
+
+function assertThrowsStatusCode(fn, status, code, message, label) {
+  try {
+    fn();
+  } catch (error) {
+    assert(error.status === status, `${label}: expected status ${status}, got ${error.status}`);
+    assert(error.code === code, `${label}: expected code ${code}, got ${error.code}`);
     assert(error.message === message, `${label}: expected message "${message}", got "${error.message}"`);
     return;
   }
