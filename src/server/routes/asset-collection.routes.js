@@ -19,6 +19,10 @@ function handleCollectionError(res, error) {
   });
 }
 
+function sendCollectionNotFound(res) {
+  sendErrorResponse(res, 404, "Asset collection not found");
+}
+
 export function createAssetCollectionRouter() {
   const router = Router();
   router.use(requireAuth);
@@ -40,7 +44,7 @@ export function createAssetCollectionRouter() {
     try {
       const collection = updateAssetCollection(getRequestContext(req), getRouteParam(req, "id"), getRequestBody(req));
       if (!collection) {
-        sendErrorResponse(res, 404, "Asset collection not found");
+        sendCollectionNotFound(res);
         return;
       }
       res.json({ collection });
@@ -52,7 +56,7 @@ export function createAssetCollectionRouter() {
   router.delete("/asset-collections/:id", (req, res) => {
     const collection = deleteAssetCollection(getRequestContext(req), getRouteParam(req, "id"));
     if (!collection) {
-      sendErrorResponse(res, 404, "Asset collection not found");
+      sendCollectionNotFound(res);
       return;
     }
     res.json({ collection });
@@ -61,7 +65,7 @@ export function createAssetCollectionRouter() {
   router.get("/asset-collections/:id/assets", (req, res) => {
     const assets = listAssetsForCollection(getRequestContext(req), getRouteParam(req, "id"));
     if (!assets) {
-      sendErrorResponse(res, 404, "Asset collection not found");
+      sendCollectionNotFound(res);
       return;
     }
     res.json({ assets });
