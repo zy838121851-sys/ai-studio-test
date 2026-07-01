@@ -78,6 +78,21 @@ const ENTRY_EXPECTATIONS = [
   }
 ];
 
+const FORBIDDEN_STATIC_PACKAGE_IMPORTS = [
+  {
+    specifier: "three",
+    label: "Three.js"
+  },
+  {
+    specifier: "three/examples/jsm/loaders/GLTFLoader.js",
+    label: "GLTFLoader"
+  },
+  {
+    specifier: "three/examples/jsm/controls/OrbitControls.js",
+    label: "OrbitControls"
+  }
+];
+
 const errors = [];
 
 function toPosixPath(filePath) {
@@ -195,6 +210,23 @@ function assertNoRuntimeStaticImportsToLazyModules() {
   }
 }
 
+function assertNoRuntimeStaticImportsToHeavyPackages() {
+  const forbiddenSpecifiers = new Map(
+    FORBIDDEN_STATIC_PACKAGE_IMPORTS.map((item) => [item.specifier, item.label])
+  );
+
+  for (const filePath of walkJsFiles(CLIENT_DIR)) {
+    const relPath = relativePath(filePath);
+    const text = fs.readFileSync(filePath, "utf8");
+
+    for (const specifier of parseStaticSpecifiers(text)) {
+      const label = forbiddenSpecifiers.get(specifier);
+      if (!label) continue;
+      fail(`${relPath} statically imports ${label}; load it behind the model viewer lazy path`);
+    }
+  }
+}
+
 for (const expectation of ENTRY_EXPECTATIONS) {
   for (const snippet of expectation.required) {
     assertFileContains(expectation.filePath, snippet);
@@ -209,6 +241,7 @@ for (const split of LAZY_SPLITS) {
 }
 
 assertNoRuntimeStaticImportsToLazyModules();
+assertNoRuntimeStaticImportsToHeavyPackages();
 
 if (errors.length > 0) {
   console.error("Lazy workflow split check failed:");
