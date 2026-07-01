@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { sendErrorResponse } from "../lib/http-error-response.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { getCreditBalance, listCreditTransactions } from "../services/credits/credit.service.js";
 import { quoteFixedCredits } from "../services/credits/pricing.service.js";
@@ -25,7 +26,7 @@ export function createCreditRouter() {
     const task = String(req.query.task || "").trim();
     const provider = inferProviderIdForModel(model);
     if (!provider) {
-      res.status(402).json({ message: "该模型未配置价格" });
+      sendErrorResponse(res, 402, "该模型未配置价格");
       return;
     }
     const quote = quoteFixedCredits({
