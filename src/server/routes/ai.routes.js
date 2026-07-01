@@ -32,6 +32,7 @@ import {
   assertTripo3DModelConfig,
   assertTripo3DRequiredInput,
   buildTripo3DDispatchParams,
+  buildTripo3DJobRecordParams,
   getInitialAIJobStatus,
   getModelModality,
   getTripo3DJobMetadata,
@@ -871,18 +872,12 @@ async function createTripo3DJob(req, {
     reason: task,
     requestId
   });
-  let job = createAIJob({
-    id: requestId,
+  let job = createAIJob(buildTripo3DJobRecordParams({
+    requestId,
     userId,
-    provider: "tripo",
-    vendor: "tripo",
-    modelId: modelConfig.id,
+    modelConfig,
     providerModel,
-    remoteTaskId: "",
-    type: "model3d",
-    status: "queued",
-    progress: 0,
-    prompt: cleanPrompt || "Image to 3D",
+    prompt: cleanPrompt,
     creditsReserved: reservation.amountCredits,
     requestData: buildTripo3DRequestLog({
       route,
@@ -899,7 +894,7 @@ async function createTripo3DJob(req, {
       quote,
       reservation
     })
-  });
+  }));
   let taskCreated = null;
   let chargedCredits = 0;
   try {

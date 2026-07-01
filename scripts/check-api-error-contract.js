@@ -27,6 +27,7 @@ import {
   assertTripo3DModelConfig,
   assertTripo3DRequiredInput,
   buildTripo3DDispatchParams,
+  buildTripo3DJobRecordParams,
   getInitialAIJobStatus,
   getModelModality,
   getTripo3DJobMetadata,
@@ -768,6 +769,34 @@ function assertAIRouteHelpers() {
     defaultParams: { draft: true },
     requestId: "request-2"
   }, "Tripo image dispatch params should preserve provider input shape");
+
+  assertDeepEqual(buildTripo3DJobRecordParams({
+    requestId: "request-3",
+    userId: "user-1",
+    modelConfig: { id: "tripo-model" },
+    providerModel: "api-model",
+    prompt: "make a chair",
+    creditsReserved: 12,
+    requestData: { route: "/api/ai/3d/text-to-model" }
+  }), {
+    id: "request-3",
+    userId: "user-1",
+    provider: "tripo",
+    vendor: "tripo",
+    modelId: "tripo-model",
+    providerModel: "api-model",
+    remoteTaskId: "",
+    type: "model3d",
+    status: "queued",
+    progress: 0,
+    prompt: "make a chair",
+    creditsReserved: 12,
+    requestData: { route: "/api/ai/3d/text-to-model" }
+  }, "Tripo job record params should preserve createAIJob fields");
+  assert(buildTripo3DJobRecordParams({
+    prompt: "",
+    modelConfig: { id: "tripo-model" }
+  }).prompt === "Image to 3D", "Tripo job record params should preserve image prompt fallback");
 
   const text3DInput = normalizeTripo3DJobInput({
     prompt: "  make a chair  ",

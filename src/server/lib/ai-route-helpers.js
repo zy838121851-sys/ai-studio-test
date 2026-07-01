@@ -130,6 +130,32 @@ export function buildTripo3DDispatchParams({
   };
 }
 
+export function buildTripo3DJobRecordParams({
+  requestId = "",
+  userId = "",
+  modelConfig = {},
+  providerModel = "",
+  prompt = "",
+  creditsReserved = 0,
+  requestData = {}
+} = {}) {
+  return {
+    id: requestId,
+    userId,
+    provider: "tripo",
+    vendor: "tripo",
+    modelId: modelConfig.id,
+    providerModel,
+    remoteTaskId: "",
+    type: "model3d",
+    status: "queued",
+    progress: 0,
+    prompt: prompt || "Image to 3D",
+    creditsReserved,
+    requestData
+  };
+}
+
 export function normalizeTripo3DJobInput(body = {}, { mode = "text" } = {}) {
   const isImageMode = mode === "image";
   const imageUrl = isImageMode
