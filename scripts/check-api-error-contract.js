@@ -27,6 +27,7 @@ import {
   normalizeImages,
   validateVideoOptions
 } from "../src/server/lib/ai-route-helpers.js";
+import { logAIModelRoute, logAIProviderRoute } from "../src/server/lib/ai-route-logging.js";
 
 const tempRoot = mkdtempSync(join(tmpdir(), "ai-studio-api-error-contract-"));
 process.env.DB_PATH = join(tempRoot, "api-error-contract.sqlite");
@@ -46,6 +47,7 @@ try {
   assertAIJobLogPayloads();
   assertAIResponseDtos();
   assertAIRouteHelpers();
+  assertAIRouteLogging();
   assertGenerationTransformHelpers();
 
   const { createServer } = await import("../src/server/index.js");
@@ -476,6 +478,52 @@ function assertAIRouteHelpers() {
   const normalizedImages = normalizeImages(["a", "", null, "b"]);
   assert(normalizedImages.length === 2 && normalizedImages[0] === "a" && normalizedImages[1] === "b", "Image normalization should filter falsy image entries");
   assert(normalizeImages("not-array").length === 0, "Image normalization should reject non-array input");
+}
+
+function assertAIRouteLogging() {
+  const entries = [];
+  const logger = (message, detail) => entries.push({ message, detail });
+
+  logAIModelRoute({
+    route: "/api/ai/generate",
+    requestedModel: "gpt-image-2",
+    provider: "apimart",
+    providerModel: "gpt-image-2",
+    remoteTaskId: "remote-1",
+    type: "image",
+    referenceCount: "2"
+  }, { nodeEnv: "development", logger });
+  assert(entries.length === 1, "AI route logging should emit in development");
+  assert(entries[0].message === "AI model route", "AI route logging should use the existing log message");
+  assertDeepEqual(entries[0].detail, {
+    route: "/api/ai/generate",
+    requestedModel: "gpt-image-2",
+    provider: "apimart",
+    providerModel: "gpt-image-2",
+    remoteTaskId: "remote-1",
+    type: "image",
+    referenceCount: 2
+  }, "AI route logging should preserve the model route payload");
+
+  logAIModelRoute({ route: "/api/ai/generate" }, { nodeEnv: "test", logger });
+  assert(entries.length === 1, "AI route logging should remain silent outside development");
+
+  logAIProviderRoute({
+    requestedModel: "qwen-image-plus",
+    provider: "qwen",
+    providerModel: "qwen-image-plus",
+    referenceCount: 3
+  }, { nodeEnv: "development", logger });
+  assert(entries.length === 2, "AI provider route logging should delegate to model route logging");
+  assertDeepEqual(entries[1].detail, {
+    route: "/api/chat",
+    requestedModel: "qwen-image-plus",
+    provider: "qwen",
+    providerModel: "qwen-image-plus",
+    remoteTaskId: "",
+    type: "image",
+    referenceCount: 3
+  }, "AI provider route logging should preserve the chat route payload");
 }
 
 function assertGenerationTransformHelpers() {

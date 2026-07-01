@@ -38,8 +38,9 @@ import {
   normalizeImages,
   validateVideoOptions
 } from "../lib/ai-route-helpers.js";
+import { logAIModelRoute, logAIProviderRoute } from "../lib/ai-route-logging.js";
 import { sendErrorResponse } from "../lib/http-error-response.js";
-import { logError, logInfo } from "../lib/logger.js";
+import { logError } from "../lib/logger.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import { assertPublicHttpUrl } from "../security/network.js";
@@ -824,38 +825,6 @@ export function createAIRouter() {
   }));
 
   return router;
-}
-
-function logAIProviderRoute({ requestedModel, provider, providerModel, referenceCount } = {}) {
-  logAIModelRoute({
-    route: "/api/chat",
-    requestedModel,
-    providerModel,
-    provider,
-    type: "image",
-    referenceCount
-  });
-}
-
-function logAIModelRoute({
-  route = "",
-  requestedModel = "",
-  provider = "apimart",
-  providerModel = "",
-  remoteTaskId = "",
-  type = "image",
-  referenceCount = 0
-} = {}) {
-  if (env.nodeEnv !== "development") return;
-  logInfo("AI model route", {
-    route,
-    requestedModel,
-    provider,
-    providerModel,
-    remoteTaskId,
-    type,
-    referenceCount: Number(referenceCount || 0)
-  });
 }
 
 async function createTripo3DJob(req, {
