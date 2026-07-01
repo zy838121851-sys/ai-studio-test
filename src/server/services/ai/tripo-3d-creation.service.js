@@ -18,6 +18,7 @@ import {
   buildTripo3DSuccessResponse,
   buildTripo3DRemoteFailureParams,
   hasRemoteFallbackModelOutput,
+  normalizeTripo3DJobInput,
   runTripo3DDispatch
 } from "../../lib/ai-route-helpers.js";
 import { toClientJob } from "../../lib/ai-response-dto.js";
@@ -51,8 +52,10 @@ import {
 export async function createTripo3DJob({
   userId = "",
   body = {},
-  input = {}
+  input = null,
+  mode: requestMode = "text"
 } = {}) {
+  const normalizedInput = input || normalizeTripo3DJobInput(body, { mode: requestMode });
   const {
     mode = "text",
     prompt = "",
@@ -61,7 +64,7 @@ export async function createTripo3DJob({
     imageName = "",
     imageMimeType = "",
     texture = true
-  } = input;
+  } = normalizedInput;
   const modelId = String(body?.modelId || body?.model || DEFAULT_3D_MODEL).trim() || DEFAULT_3D_MODEL;
   const modelConfig = getModelConfig(modelId);
   assertTripo3DModelConfig({ modelId, modelConfig, mode });

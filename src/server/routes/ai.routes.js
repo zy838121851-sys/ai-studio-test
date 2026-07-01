@@ -1,8 +1,5 @@
 import { Router } from "express";
 import { createAIAsyncHandler } from "../lib/ai-error-response.js";
-import {
-  normalizeTripo3DJobInput
-} from "../lib/ai-route-helpers.js";
 import { sendErrorResponse } from "../lib/http-error-response.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
@@ -75,7 +72,7 @@ export function createAIRouter() {
     const result = await createTripo3DJob({
       userId: req.auth.user.id,
       body: req.body,
-      input: normalizeTripo3DJobInput(req.body, { mode: "text" })
+      mode: "text"
     });
     res.json(result);
   }));
@@ -84,7 +81,7 @@ export function createAIRouter() {
     const result = await createTripo3DJob({
       userId: req.auth.user.id,
       body: req.body,
-      input: normalizeTripo3DJobInput(req.body, { mode: "image" })
+      mode: "image"
     });
     res.json(result);
   }));
