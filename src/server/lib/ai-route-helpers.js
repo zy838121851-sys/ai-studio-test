@@ -43,6 +43,22 @@ export function isValidTripoImageInput(imageUrl = "", imageDataUrl = "") {
   return /^data:image\/[a-zA-Z0-9.+-]+;base64,/i.test(String(imageDataUrl || "").trim());
 }
 
+export function normalizeTripo3DJobInput(body = {}, { mode = "text" } = {}) {
+  const isImageMode = mode === "image";
+  const imageUrl = isImageMode
+    ? body?.imageUrl || body?.image_url || body?.url || body?.input
+    : "";
+  return {
+    mode,
+    prompt: String(body?.prompt || "").trim(),
+    imageUrl: String(imageUrl || "").trim(),
+    imageDataUrl: String(isImageMode ? body?.imageDataUrl || body?.dataUrl || body?.image || "" : "").trim(),
+    imageName: String(isImageMode ? body?.imageName || body?.filename || "" : "").trim(),
+    imageMimeType: String(isImageMode ? body?.imageMimeType || body?.mimeType || "" : "").trim(),
+    texture: body?.texture !== false
+  };
+}
+
 export function jobStatusForError(error = {}) {
   const message = String(error?.message || "");
   if (/timeout|timed out/i.test(message)) return "timeout";

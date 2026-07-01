@@ -35,6 +35,7 @@ import {
   isFixedQwenImageEditAction,
   isValidTripoImageInput,
   jobStatusForError,
+  normalizeTripo3DJobInput,
   normalizeImages,
   validateVideoOptions
 } from "../lib/ai-route-helpers.js";
@@ -119,21 +120,12 @@ export function createAIRouter() {
   router.use(requireAuth);
 
   router.post("/ai/3d/text-to-model", aiLimiter, asyncHandler(async (req, res) => {
-    const result = await createTripo3DJob(req, {
-      mode: "text",
-      prompt: req.body?.prompt
-    });
+    const result = await createTripo3DJob(req, normalizeTripo3DJobInput(req.body, { mode: "text" }));
     res.json(result);
   }));
 
   router.post("/ai/3d/image-to-model", aiLimiter, asyncHandler(async (req, res) => {
-    const result = await createTripo3DJob(req, {
-      mode: "image",
-      imageUrl: req.body?.imageUrl || req.body?.image_url || req.body?.url || req.body?.input,
-      imageDataUrl: req.body?.imageDataUrl || req.body?.dataUrl || req.body?.image || "",
-      imageName: req.body?.imageName || req.body?.filename || "",
-      imageMimeType: req.body?.imageMimeType || req.body?.mimeType || ""
-    });
+    const result = await createTripo3DJob(req, normalizeTripo3DJobInput(req.body, { mode: "image" }));
     res.json(result);
   }));
 
@@ -835,7 +827,8 @@ async function createTripo3DJob(req, {
   imageUrl = "",
   imageDataUrl = "",
   imageName = "",
-  imageMimeType = ""
+  imageMimeType = "",
+  texture = true
 } = {}) {
   const userId = req.auth.user.id;
   const modelId = String(req.body?.modelId || req.body?.model || DEFAULT_3D_MODEL).trim() || DEFAULT_3D_MODEL;
@@ -919,7 +912,7 @@ async function createTripo3DJob(req, {
       imageDataUrl: cleanImageDataUrl,
       imageName: cleanImageName,
       imageMimeType: cleanImageMimeType,
-      texture: req.body?.texture !== false,
+      texture,
       task,
       quote,
       reservation
@@ -935,14 +928,14 @@ async function createTripo3DJob(req, {
         imageName: cleanImageName,
         imageMimeType: cleanImageMimeType,
         apiModel: modelConfig.apiModel || modelConfig.providerModel,
-        texture: req.body?.texture !== false,
+        texture,
         defaultParams: modelConfig.defaultParams || {},
         requestId
       })
       : await createTextToModelTask({
         prompt: cleanPrompt,
         apiModel: modelConfig.apiModel || modelConfig.providerModel,
-        texture: req.body?.texture !== false,
+        texture,
         defaultParams: modelConfig.defaultParams || {},
         requestId
       });

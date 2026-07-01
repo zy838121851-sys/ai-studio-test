@@ -30,6 +30,7 @@ import {
   isFixedQwenImageEditAction,
   isValidTripoImageInput,
   jobStatusForError,
+  normalizeTripo3DJobInput,
   normalizeImages,
   validateVideoOptions
 } from "../src/server/lib/ai-route-helpers.js";
@@ -623,6 +624,29 @@ function assertAIRouteHelpers() {
   assert(isValidTripoImageInput("abcdefghij", "") === true, "Tripo image input should accept bare file tokens");
   assert(isValidTripoImageInput("", "data:image/png;base64,AAAA") === true, "Tripo image input should accept image data URLs");
   assert(isValidTripoImageInput("ftp://example.test/input.png", "") === false, "Tripo image input should reject unsupported URL schemes");
+
+  const text3DInput = normalizeTripo3DJobInput({
+    prompt: "  make a chair  ",
+    texture: false,
+    imageUrl: "https://example.test/ignored.png"
+  }, { mode: "text" });
+  assert(text3DInput.mode === "text", "Tripo 3D text input should preserve text mode");
+  assert(text3DInput.prompt === "make a chair", "Tripo 3D text input should trim prompts");
+  assert(text3DInput.imageUrl === "", "Tripo 3D text input should ignore image URL aliases");
+  assert(text3DInput.texture === false, "Tripo 3D input should preserve explicit texture false");
+
+  const image3DInput = normalizeTripo3DJobInput({
+    image_url: "  file_token:abcdefghij  ",
+    dataUrl: "  data:image/png;base64,AAAA  ",
+    filename: "  input.png  ",
+    mimeType: "  image/png  "
+  }, { mode: "image" });
+  assert(image3DInput.mode === "image", "Tripo 3D image input should preserve image mode");
+  assert(image3DInput.imageUrl === "file_token:abcdefghij", "Tripo 3D image input should normalize image_url aliases");
+  assert(image3DInput.imageDataUrl === "data:image/png;base64,AAAA", "Tripo 3D image input should normalize data URL aliases");
+  assert(image3DInput.imageName === "input.png", "Tripo 3D image input should normalize filename aliases");
+  assert(image3DInput.imageMimeType === "image/png", "Tripo 3D image input should normalize MIME type aliases");
+  assert(image3DInput.texture === true, "Tripo 3D input should default texture to true");
 
   assert(jobStatusForError(errorWith({ message: "Provider timed out" })) === "timeout", "Timeout errors should map to timeout job status");
   assert(jobStatusForError(errorWith({ message: "output could not be saved" })) === "save_failed", "Output save errors should map to save_failed job status");
