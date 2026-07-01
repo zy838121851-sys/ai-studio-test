@@ -11,6 +11,7 @@ import {
 } from "../src/server/lib/ai-job-log-payload.js";
 import {
   buildDeferredImageEditResult,
+  sanitizeGenerationResult,
   toClientAsset,
   toClientBilling,
   toClientJob
@@ -20,7 +21,8 @@ import {
   getModelModality,
   isValidTripoImageInput,
   jobStatusForError,
-  normalizeImages
+  normalizeImages,
+  validateVideoOptions
 } from "../src/server/lib/ai-route-helpers.js";
 
 const tempRoot = mkdtempSync(join(tmpdir(), "ai-studio-api-error-contract-"));
@@ -41,6 +43,7 @@ try {
   assertAIJobLogPayloads();
   assertAIResponseDtos();
   assertAIRouteHelpers();
+  assertGenerationTransformHelpers();
 
   const { createServer } = await import("../src/server/index.js");
   const { closeDatabase } = await import("../src/server/db/sqlite.js");
@@ -432,6 +435,84 @@ function assertAIRouteHelpers() {
   const normalizedImages = normalizeImages(["a", "", null, "b"]);
   assert(normalizedImages.length === 2 && normalizedImages[0] === "a" && normalizedImages[1] === "b", "Image normalization should filter falsy image entries");
   assert(normalizeImages("not-array").length === 0, "Image normalization should reject non-array input");
+}
+
+function assertGenerationTransformHelpers() {
+  const videoModel = {
+    id: "seedance-2",
+    label: "Seedance",
+    allowedOptions: {
+      duration: [5, 10],
+      size: ["16:9", "9:16"],
+      generate_audio: []
+    }
+  };
+  const videoOptions = validateVideoOptions(videoModel, {
+    duration: 5,
+    size: "16:9",
+    generate_audio: false
+  });
+  assert(videoOptions.duration === 5, "Video option validation should keep allowed duration");
+  assert(videoOptions.size === "16:9", "Video option validation should keep allowed size");
+  assert(videoOptions.generate_audio === false, "Video option validation should keep open-ended boolean options");
+  assertThrowsStatus(
+    () => validateVideoOptions(videoModel, { resolution: "720p" }),
+    400,
+    "Unsupported video option: resolution",
+    "Video option validation should reject unsupported option keys"
+  );
+  assertThrowsStatus(
+    () => validateVideoOptions(videoModel, { duration: 7 }),
+    400,
+    "Unsupported duration for Seedance",
+    "Video option validation should reject unsupported option values"
+  );
+
+  const sanitized = sanitizeGenerationResult({
+    imageUrl: "/uploads/generated.png",
+    requestedModel: "gpt-image-2",
+    model: "provider-model",
+    resolvedModel: "resolved-model",
+    referenceCount: 2,
+    sizeNormalization: {
+      requestedSize: "1024x1024",
+      normalizedSize: "1024*1024",
+      providerSize: "1024*1024",
+      changed: true
+    },
+    billing: {
+      requestId: "req-1",
+      task: "image_generation",
+      billingType: "fixed",
+      creditsReserved: 8,
+      creditsCharged: 8,
+      unitCredits: 8,
+      count: 1,
+      status: "charged"
+    }
+  }, {
+    id: "fallback-model"
+  });
+  assert(sanitized.message === "Image generated", "Sanitized generation response should report generated images");
+  assert(sanitized.model === "gpt-image-2", "Sanitized generation response should prefer requestedModel");
+  assert(sanitized.resolvedModel === "resolved-model", "Sanitized generation response should keep resolved model");
+  assert(sanitized.sizeNormalization.changed === true, "Sanitized generation response should map size normalization");
+  assert(sanitized.billing.status === "charged", "Sanitized generation response should map billing");
+
+  const missingImage = sanitizeGenerationResult({ model: "provider-model" }, { id: "fallback-model" });
+  assert(missingImage.message === "Model returned without an image URL", "Sanitized generation response should report missing image URLs");
+  assert(missingImage.model === "fallback-model", "Sanitized generation response should fall back to model config id");
+}
+
+function assertThrowsStatus(fn, status, message, label) {
+  try {
+    fn();
+  } catch (error) {
+    assert(error.status === status, `${label}: expected status ${status}, got ${error.status}`);
+    assert(error.message === message, `${label}: expected message "${message}", got "${error.message}"`);
+    return;
+  }
+  throw new Error(`${label}: expected an error`);
 }
 
 function errorWith({ status, code, message } = {}) {

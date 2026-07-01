@@ -1,3 +1,18 @@
+import { toClientSizeNormalization } from "./ai-job-log-payload.js";
+
+export function sanitizeGenerationResult(result = {}, modelConfig = {}) {
+  return {
+    message: result.imageUrl ? "Image generated" : "Model returned without an image URL",
+    imageUrl: result.imageUrl,
+    model: result.requestedModel || modelConfig.id || result.model,
+    requestedModel: result.requestedModel || modelConfig.id || result.model,
+    resolvedModel: result.resolvedModel || result.model,
+    referenceCount: result.referenceCount,
+    sizeNormalization: toClientSizeNormalization(result.sizeNormalization),
+    billing: toClientBilling(result.billing)
+  };
+}
+
 export function buildDeferredImageEditResult(result = {}, job = {}, firstAsset = null, reservation = {}) {
   const imageAssets = firstAsset?.type === "image" ? [firstAsset] : [];
   return {

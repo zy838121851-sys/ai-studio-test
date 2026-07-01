@@ -22,6 +22,7 @@ import {
 } from "../lib/ai-job-log-payload.js";
 import {
   buildDeferredImageEditResult,
+  sanitizeGenerationResult,
   toClientAsset,
   toClientBilling,
   toClientJob
@@ -31,7 +32,8 @@ import {
   getModelModality,
   isValidTripoImageInput,
   jobStatusForError,
-  normalizeImages
+  normalizeImages,
+  validateVideoOptions
 } from "../lib/ai-route-helpers.js";
 import { sendErrorResponse } from "../lib/http-error-response.js";
 import { logError, logInfo } from "../lib/logger.js";
@@ -1060,39 +1062,6 @@ async function createTripo3DJob(req, {
     }
     throw error;
   }
-}
-
-function validateVideoOptions(modelConfig = {}, input = {}) {
-  const allowed = modelConfig.allowedOptions || {};
-  const output = {};
-  for (const [key, value] of Object.entries(input || {})) {
-    if (!(key in allowed)) {
-      const error = new Error(`Unsupported video option: ${key}`);
-      error.status = 400;
-      throw error;
-    }
-    const allowedValues = allowed[key] || [];
-    if (allowedValues.length && !allowedValues.includes(value)) {
-      const error = new Error(`Unsupported ${key} for ${modelConfig.label || modelConfig.id}`);
-      error.status = 400;
-      throw error;
-    }
-    output[key] = value;
-  }
-  return output;
-}
-
-function sanitizeGenerationResult(result = {}, modelConfig = {}) {
-  return {
-    message: result.imageUrl ? "Image generated" : "Model returned without an image URL",
-    imageUrl: result.imageUrl,
-    model: result.requestedModel || modelConfig.id || result.model,
-    requestedModel: result.requestedModel || modelConfig.id || result.model,
-    resolvedModel: result.resolvedModel || result.model,
-    referenceCount: result.referenceCount,
-    sizeNormalization: toClientSizeNormalization(result.sizeNormalization),
-    billing: toClientBilling(result.billing)
-  };
 }
 
 function getJobOutputAssets(userId, job = {}) {

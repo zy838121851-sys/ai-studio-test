@@ -26,3 +26,23 @@ export function jobStatusForError(error = {}) {
 export function normalizeImages(images) {
   return Array.isArray(images) ? images.filter(Boolean) : [];
 }
+
+export function validateVideoOptions(modelConfig = {}, input = {}) {
+  const allowed = modelConfig.allowedOptions || {};
+  const output = {};
+  for (const [key, value] of Object.entries(input || {})) {
+    if (!(key in allowed)) {
+      const error = new Error(`Unsupported video option: ${key}`);
+      error.status = 400;
+      throw error;
+    }
+    const allowedValues = allowed[key] || [];
+    if (allowedValues.length && !allowedValues.includes(value)) {
+      const error = new Error(`Unsupported ${key} for ${modelConfig.label || modelConfig.id}`);
+      error.status = 400;
+      throw error;
+    }
+    output[key] = value;
+  }
+  return output;
+}
