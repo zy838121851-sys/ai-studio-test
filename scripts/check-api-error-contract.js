@@ -26,6 +26,7 @@ import {
   assertResolvedProviderMatchesModel,
   assertTripo3DModelConfig,
   assertTripo3DRequiredInput,
+  buildGenerationDispatchResultParams,
   buildGenerationJobRecordParams,
   buildGenerationReleaseReservationParams,
   buildGenerationReserveCreditsParams,
@@ -1065,6 +1066,39 @@ async function assertAIRouteHelpers() {
   assert(buildGenerationJobRecordParams({
     modelConfig: { id: "image-model", providerId: "apimart" }
   }).providerModel === "image-model", "Generation job record params should preserve provider model fallback");
+
+  assertDeepEqual(buildGenerationDispatchResultParams({
+    result: {
+      remoteTaskId: "remote-1",
+      providerModel: "provider-image-model",
+      status: "queued"
+    },
+    modelConfig: { id: "image-model", providerModel: "fallback-provider-model" },
+    immediateOutputUrl: "/uploads/image.png",
+    responseData: { status: "created" }
+  }), {
+    remoteTaskId: "remote-1",
+    providerModel: "provider-image-model",
+    status: "queued",
+    progress: 90,
+    responseData: { status: "created" }
+  }, "Generation dispatch result params should preserve immediate output updates");
+
+  assertDeepEqual(buildGenerationDispatchResultParams({
+    result: {
+      taskId: "task-1",
+      resolvedModel: "resolved-image-model",
+      status: "succeeded"
+    },
+    modelConfig: { id: "image-model" },
+    responseData: { status: "created" }
+  }), {
+    remoteTaskId: "task-1",
+    providerModel: "resolved-image-model",
+    status: "running",
+    progress: 5,
+    responseData: { status: "created" }
+  }, "Generation dispatch result params should preserve queued refresh updates");
 
   assertDeepEqual(buildGenerationReleaseReservationParams({
     userId: "user-1",

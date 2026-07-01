@@ -27,6 +27,7 @@ import {
 } from "../lib/ai-response-dto.js";
 import {
   assertResolvedProviderMatchesModel,
+  buildGenerationDispatchResultParams,
   buildGenerationJobRecordParams,
   buildGenerationReleaseReservationParams,
   buildGenerationReserveCreditsParams,
@@ -319,13 +320,12 @@ export function createAIRouter() {
         type,
         immediateOutputUrl
       });
-      job = updateAIJobDispatchResult(req.auth.user.id, job.id, {
-        remoteTaskId: result.remoteTaskId || result.taskId || "",
-        providerModel: result.providerModel || result.resolvedModel || result.model || modelConfig.providerModel || modelConfig.id,
-        status: getInitialAIJobStatus(result),
-        progress: immediateOutputUrl ? 90 : 5,
+      job = updateAIJobDispatchResult(req.auth.user.id, job.id, buildGenerationDispatchResultParams({
+        result,
+        modelConfig,
+        immediateOutputUrl,
         responseData: responseLog
-      });
+      }));
       if (immediateOutputUrl) {
         const completed = await completeAIJob(req.auth.user.id, job.id, {
           outputs: [{ url: immediateOutputUrl, mimeType: type === "video" ? "video/mp4" : "image/png" }],

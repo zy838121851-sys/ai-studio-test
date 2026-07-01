@@ -340,6 +340,21 @@ export function buildGenerationJobRecordParams({
   };
 }
 
+export function buildGenerationDispatchResultParams({
+  result = {},
+  modelConfig = {},
+  immediateOutputUrl = "",
+  responseData = {}
+} = {}) {
+  return {
+    remoteTaskId: result.remoteTaskId || result.taskId || "",
+    providerModel: result.providerModel || result.resolvedModel || result.model || modelConfig.providerModel || modelConfig.id,
+    status: getInitialAIJobStatus(result),
+    progress: immediateOutputUrl ? 90 : 5,
+    responseData
+  };
+}
+
 export function buildGenerationReleaseReservationParams({
   userId = "",
   reservation = {},
