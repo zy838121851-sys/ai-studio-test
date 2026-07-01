@@ -1,8 +1,8 @@
 import { buildRuntimeStateInputs } from "./state/runtime-state-builders.js";
 import { buildRuntimeStateSources } from "./state/runtime-state-builders.js";
-import { buildCanvasViewportRuntimeInputs } from "../../canvas/runtime/index.js";
-import { buildAgentRuntimeActionInputs, buildAgentRuntimeActionSources } from "../../agent/runtime/index.js";
-import { buildAICoreRuntimeInputs, buildAICoreRuntimeSources } from "../../ai/runtime/index.js";
+import { buildCanvasViewportRuntimeInputs } from "../../canvas/runtime/viewport-runtime-inputs.js";
+import { buildAgentRuntimeActionInputs, buildAgentRuntimeActionSources } from "../../agent/runtime/action-runtime.js";
+import { buildAICoreRuntimeInputs, buildAICoreRuntimeSources } from "../../ai/runtime/ai-core-runtime.js";
 import { buildChatRuntimeInputs, buildChatRuntimeSources } from "../chat/runtime/chat-runtime.js";
 import { buildHomeRuntimeInputs, buildHomeRuntimeSources } from "../home/runtime/home-runtime.js?v=20260627-library-bulk-select-1";
 import { buildWorkspaceWorkflowRuntimeInputs, buildWorkspaceWorkflowRuntimeSources } from "../workflows/runtime/workflow-runtime.js";
