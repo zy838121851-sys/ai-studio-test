@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { sendCaughtErrorResponse, sendErrorResponse } from "../lib/http-error-response.js";
 import { getRequestContext } from "../lib/request-auth.js";
+import { getRequestBody, getRouteParam } from "../lib/route-request.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import {
   createAssetCollection,
@@ -28,7 +29,7 @@ export function createAssetCollectionRouter() {
 
   router.post("/asset-collections", (req, res) => {
     try {
-      const collection = createAssetCollection(getRequestContext(req), req.body);
+      const collection = createAssetCollection(getRequestContext(req), getRequestBody(req));
       res.status(201).json({ collection });
     } catch (error) {
       handleCollectionError(res, error);
@@ -37,7 +38,7 @@ export function createAssetCollectionRouter() {
 
   router.patch("/asset-collections/:id", (req, res) => {
     try {
-      const collection = updateAssetCollection(getRequestContext(req), req.params.id, req.body);
+      const collection = updateAssetCollection(getRequestContext(req), getRouteParam(req, "id"), getRequestBody(req));
       if (!collection) {
         sendErrorResponse(res, 404, "Asset collection not found");
         return;
@@ -49,7 +50,7 @@ export function createAssetCollectionRouter() {
   });
 
   router.delete("/asset-collections/:id", (req, res) => {
-    const collection = deleteAssetCollection(getRequestContext(req), req.params.id);
+    const collection = deleteAssetCollection(getRequestContext(req), getRouteParam(req, "id"));
     if (!collection) {
       sendErrorResponse(res, 404, "Asset collection not found");
       return;
@@ -58,7 +59,7 @@ export function createAssetCollectionRouter() {
   });
 
   router.get("/asset-collections/:id/assets", (req, res) => {
-    const assets = listAssetsForCollection(getRequestContext(req), req.params.id);
+    const assets = listAssetsForCollection(getRequestContext(req), getRouteParam(req, "id"));
     if (!assets) {
       sendErrorResponse(res, 404, "Asset collection not found");
       return;
