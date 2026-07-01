@@ -6,6 +6,10 @@ function normalizeText(value) {
   return String(value || "").trim();
 }
 
+function userIdFromPrincipal(principal) {
+  return typeof principal === "string" ? principal : principal?.userId;
+}
+
 function publicCollection(row) {
   if (!row) return null;
   return {
@@ -44,7 +48,8 @@ function collectionSelect() {
   `;
 }
 
-export function listAssetCollections(userId) {
+export function listAssetCollections(principal) {
+  const userId = userIdFromPrincipal(principal);
   const scope = ensureUserWorkspace(userId);
   return prepare(`
     SELECT ${collectionSelect()}
@@ -62,7 +67,8 @@ export function listAssetCollections(userId) {
   `).all(scope.workspaceId, userId).map(publicCollection);
 }
 
-export function getAssetCollection(userId, id) {
+export function getAssetCollection(principal, id) {
+  const userId = userIdFromPrincipal(principal);
   const scope = ensureUserWorkspace(userId);
   return publicCollection(prepare(`
     SELECT ${collectionSelect()}
@@ -81,7 +87,8 @@ export function getAssetCollection(userId, id) {
   `).get(id, scope.workspaceId, userId));
 }
 
-export function createAssetCollection(userId, input = {}) {
+export function createAssetCollection(principal, input = {}) {
+  const userId = userIdFromPrincipal(principal);
   const name = normalizeText(input.name);
   if (!name) {
     const error = new Error("Collection name is required");
@@ -102,7 +109,8 @@ export function createAssetCollection(userId, input = {}) {
   });
 }
 
-export function updateAssetCollection(userId, id, input = {}) {
+export function updateAssetCollection(principal, id, input = {}) {
+  const userId = userIdFromPrincipal(principal);
   const name = normalizeText(input.name);
   if (!name) {
     const error = new Error("Collection name is required");
@@ -127,7 +135,8 @@ export function updateAssetCollection(userId, id, input = {}) {
   });
 }
 
-export function deleteAssetCollection(userId, id) {
+export function deleteAssetCollection(principal, id) {
+  const userId = userIdFromPrincipal(principal);
   return transaction((db) => {
     const scope = ensureUserWorkspaceWithDb(db, userId);
     const existing = getAssetCollection(userId, id);
