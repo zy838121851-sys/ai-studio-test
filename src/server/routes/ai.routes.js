@@ -59,6 +59,7 @@ import {
   failAIJob,
   getAIJobByRemoteTaskId,
   getAIJobDetails,
+  getAIJobOutputAssets,
   listAIJobs,
   markAIJobCreditsCharged,
   refreshAIJob,
@@ -151,7 +152,7 @@ export function createAIRouter() {
       checkedAt: Date.now()
     };
     if (remote.status === "success") {
-      const existingAssets = getJobOutputAssets(req.auth.user.id, job);
+      const existingAssets = getAIJobOutputAssets(req.auth.user.id, job);
       const needsLocalModelSave = hasRemoteFallbackModelOutput(existingAssets);
       currentJob = await completeModel3DJob(req.auth.user.id, job.id, {
         outputs: remote.modelUrl
@@ -181,7 +182,7 @@ export function createAIRouter() {
         progress: remote.progress
       });
     }
-    const assets = getJobOutputAssets(req.auth.user.id, currentJob);
+    const assets = getAIJobOutputAssets(req.auth.user.id, currentJob);
     const localModel = assets.find((asset) => asset.type === "model3d" && asset.filePath) || null;
     const firstModel = assets.find((asset) => asset.type === "model3d") || null;
     res.json({
@@ -461,7 +462,7 @@ export function createAIRouter() {
       return;
     }
     const job = getAIJobDetails(req.auth.user.id, req.params.jobId) || refreshed;
-    const assets = getJobOutputAssets(req.auth.user.id, job);
+    const assets = getAIJobOutputAssets(req.auth.user.id, job);
     const firstAsset = assets[0] || null;
     res.json({
       job: toClientJob(job),
@@ -1015,12 +1016,6 @@ async function createTripo3DJob(req, {
     }
     throw error;
   }
-}
-
-function getJobOutputAssets(userId, job = {}) {
-  return Array.from(job.outputAssetIds || [])
-    .map((assetId) => getAsset(userId, assetId))
-    .filter(Boolean);
 }
 
 function asyncHandler(handler) {

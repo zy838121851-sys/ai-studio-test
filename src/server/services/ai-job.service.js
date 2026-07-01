@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { Buffer } from "node:buffer";
 import { prepare, transaction } from "../db/sqlite.js";
 import { chargeReservedCredits, releaseReservedCredits } from "./credits/credit.service.js";
-import { createGeneratedAsset, createGeneratedAssetFromBuffer } from "./asset.service.js";
+import { createGeneratedAsset, createGeneratedAssetFromBuffer, getAsset } from "./asset.service.js";
 import { localJobQueue } from "../providers/queue/local-job-queue.provider.js";
 import { getApimartTaskStatus } from "./providers/apimart/apimart-task.service.js";
 import { sanitizePromptPreview, stripLargeInputs } from "./providers/apimart/apimart.client.js";
@@ -75,6 +75,12 @@ export function getAIJobDetails(userId, id) {
       AND id = ?
     LIMIT 1;
   `).get(userId, id), { includeLog: true });
+}
+
+export function getAIJobOutputAssets(userId, job = {}) {
+  return Array.from(job.outputAssetIds || [])
+    .map((assetId) => getAsset(userId, assetId))
+    .filter(Boolean);
 }
 
 export function getAIJobByRemoteTaskId(userId, remoteTaskId) {

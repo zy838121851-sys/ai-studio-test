@@ -25,7 +25,8 @@ try {
     completeAIJob,
     createAIJob,
     failAIJob,
-    getAIJobDetails
+    getAIJobDetails,
+    getAIJobOutputAssets
   } = await import("../src/server/services/ai-job.service.js");
   const { createGeneratedAsset } = await import("../src/server/services/asset.service.js");
 
@@ -87,6 +88,11 @@ try {
   assert(completedJob.outputAssetIds.length === 1, "AI job completion should link one output asset");
   assert(completedJob.outputCount === 1, "AI job completion should expose output count");
   assert(completedJob.progress === 100, "AI job completion should set progress to 100");
+  const outputAssets = getAIJobOutputAssets(userA.user.id, completedJob);
+  assert(outputAssets.length === 1, "AI job output assets should resolve for the owning user");
+  assert(outputAssets[0].id === completedJob.outputAssetIds[0], "AI job output asset resolver should preserve output asset ids");
+  assert(getAIJobOutputAssets(userB.user.id, completedJob).length === 0, "AI job output assets should not resolve across users");
+  assert(getAIJobOutputAssets(userA.user.id, { outputAssetIds: [completedJob.outputAssetIds[0], "missing-asset"] }).length === 1, "AI job output asset resolver should filter missing assets");
 
   const ownerDetail = await request(baseUrl, `/api/ai/jobs/${successJob.id}`, { cookie: userA.cookie });
   assert(ownerDetail.status === 200, "Owner should be able to read own AI job");
