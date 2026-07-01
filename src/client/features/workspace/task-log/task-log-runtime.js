@@ -56,10 +56,7 @@ export function bindTaskLogRuntime(runtime = {}) {
   // Visibility is owned by workspace routing: body[data-view="space"] and
   // #profileView.active must stay stable during any future template split.
   const syncVisibility = () => {
-    const visible = isTaskLogVisible(documentRoot, elements);
-    if (visible && !state.loaded) refresh();
-    if (visible) startTaskLogAutoRefresh(state, refresh);
-    if (!visible) stopTaskLogAutoRefresh(state);
+    syncTaskLogVisibility(documentRoot, elements, state, refresh);
   };
 
   elements.refresh?.addEventListener("click", refresh);
@@ -89,9 +86,7 @@ export function bindTaskLogRuntime(runtime = {}) {
     handleTaskLogDocumentKeydown(event, elements);
   });
 
-  const observer = new MutationObserver(syncVisibility);
-  if (documentRoot.body) observer.observe(documentRoot.body, { attributes: true, attributeFilter: ["data-view"] });
-  syncVisibility();
+  const observer = bindTaskLogVisibilityObserver(documentRoot, syncVisibility);
 
   return {
     refresh,
@@ -106,6 +101,20 @@ export function bindTaskLogRuntime(runtime = {}) {
 
 function isTaskLogVisible(documentRoot, elements) {
   return documentRoot.body?.dataset.view === "space" || elements.profileView?.classList.contains("active");
+}
+
+function syncTaskLogVisibility(documentRoot, elements, state, refresh) {
+  const visible = isTaskLogVisible(documentRoot, elements);
+  if (visible && !state.loaded) refresh();
+  if (visible) startTaskLogAutoRefresh(state, refresh);
+  if (!visible) stopTaskLogAutoRefresh(state);
+}
+
+function bindTaskLogVisibilityObserver(documentRoot, syncVisibility) {
+  const observer = new MutationObserver(syncVisibility);
+  if (documentRoot.body) observer.observe(documentRoot.body, { attributes: true, attributeFilter: ["data-view"] });
+  syncVisibility();
+  return observer;
 }
 
 function startTaskLogAutoRefresh(state, refresh) {
