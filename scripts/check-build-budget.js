@@ -12,9 +12,11 @@ const BUDGETS = {
   modelViewerBytes: 30 * 1024,
   modelViewerWorkflowBytes: 2 * 1024,
   videoGeneratorWorkflowBytes: 18 * 1024,
+  lazyFeatureJsBytes: 90 * 1024,
   threeJsBytes: 750 * 1024,
   gltfLoaderBytes: 50 * 1024,
   orbitControlsBytes: 25 * 1024,
+  heavy3dVendorJsBytes: 830 * 1024,
   totalJsBytes: 1600 * 1024,
   totalAssetsBytes: 1760 * 1024
 };
@@ -119,6 +121,18 @@ const orbitControls = findRequiredChunk(
 const totalJsBytes = files
   .filter((file) => file.name.endsWith(".js"))
   .reduce((sum, file) => sum + file.bytes, 0);
+const lazyFeatureJsBytes = [
+  imageEditWorkflow,
+  imageGeneratorWorkflow,
+  modelViewer,
+  modelViewerWorkflow,
+  videoGeneratorWorkflow
+].reduce((sum, file) => sum + file.bytes, 0);
+const heavy3dVendorJsBytes = [
+  threeJs,
+  gltfLoader,
+  orbitControls
+].reduce((sum, file) => sum + file.bytes, 0);
 const totalAssetsBytes = files.reduce((sum, file) => sum + file.bytes, 0);
 
 if (process.exitCode) {
@@ -133,9 +147,11 @@ checkBudget("image generator workflow", imageGeneratorWorkflow.bytes, BUDGETS.im
 checkBudget("model viewer", modelViewer.bytes, BUDGETS.modelViewerBytes);
 checkBudget("model viewer workflow", modelViewerWorkflow.bytes, BUDGETS.modelViewerWorkflowBytes);
 checkBudget("video generator workflow", videoGeneratorWorkflow.bytes, BUDGETS.videoGeneratorWorkflowBytes);
+checkBudget("lazy feature JS", lazyFeatureJsBytes, BUDGETS.lazyFeatureJsBytes);
 checkBudget("Three.js vendor", threeJs.bytes, BUDGETS.threeJsBytes);
 checkBudget("GLTFLoader vendor", gltfLoader.bytes, BUDGETS.gltfLoaderBytes);
 checkBudget("OrbitControls vendor", orbitControls.bytes, BUDGETS.orbitControlsBytes);
+checkBudget("heavy 3D vendor JS", heavy3dVendorJsBytes, BUDGETS.heavy3dVendorJsBytes);
 checkBudget("total JS", totalJsBytes, BUDGETS.totalJsBytes);
 checkBudget("total assets", totalAssetsBytes, BUDGETS.totalAssetsBytes);
 
