@@ -60,11 +60,7 @@ export function bindTaskLogRuntime(runtime = {}) {
   };
 
   elements.refresh?.addEventListener("click", refresh);
-  elements.search?.addEventListener("input", scheduleFilterRefresh);
-  elements.dateFrom?.addEventListener("change", scheduleFilterRefresh);
-  elements.dateTo?.addEventListener("change", scheduleFilterRefresh);
-  elements.type?.addEventListener("change", scheduleFilterRefresh);
-  elements.status?.addEventListener("change", scheduleFilterRefresh);
+  bindTaskLogFilterControls(elements, scheduleFilterRefresh);
   elements.limit?.addEventListener("change", () => {
     handleTaskLogLimitChange(elements, state, refresh);
   });
@@ -136,6 +132,14 @@ function scheduleTaskLogFilterRefresh(state, refresh) {
     state.offset = 0;
     refresh();
   }, 240);
+}
+
+function bindTaskLogFilterControls(elements, scheduleFilterRefresh) {
+  elements.search?.addEventListener("input", scheduleFilterRefresh);
+  elements.dateFrom?.addEventListener("change", scheduleFilterRefresh);
+  elements.dateTo?.addEventListener("change", scheduleFilterRefresh);
+  elements.type?.addEventListener("change", scheduleFilterRefresh);
+  elements.status?.addEventListener("change", scheduleFilterRefresh);
 }
 
 function handleTaskLogLimitChange(elements, state, refresh) {
