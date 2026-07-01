@@ -1,15 +1,12 @@
 import { randomUUID } from "node:crypto";
 import { prepare, transaction } from "../db/sqlite.js";
+import { normalizeText } from "../lib/input-validation.js";
 import { countSnapshotNodes, sanitizeCanvasSnapshotJson } from "./snapshot-safety.service.js";
 import { ensureUserWorkspace, ensureUserWorkspaceWithDb } from "./workspace.service.js";
 
 function normalizeTitle(title) {
   const clean = String(title || "").replace(/\s+/g, " ").trim();
   return clean || "Fresh Ideas";
-}
-
-function normalizeText(value) {
-  return String(value || "").trim();
 }
 
 export function normalizeProjectThumbnail(value) {
