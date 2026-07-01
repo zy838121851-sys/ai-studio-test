@@ -31,6 +31,7 @@ import {
   assertResolvedProviderMatchesModel,
   assertTripo3DModelConfig,
   assertTripo3DRequiredInput,
+  buildTripo3DChargeReservationParams,
   buildTripo3DDispatchParams,
   buildTripo3DDispatchResultParams,
   buildTripo3DFailJobParams,
@@ -920,18 +921,14 @@ async function createTripo3DJob(req, {
         defaultParams: modelConfig.defaultParams || {},
         requestId
       }));
-    const charge = chargeReservedCredits({
+    const charge = chargeReservedCredits(buildTripo3DChargeReservationParams({
       userId,
-      reservedAmount: reservation.amountCredits,
-      chargeAmount: reservation.amountCredits,
-      provider: "tripo",
-      model: modelConfig.id,
+      reservation,
+      modelConfig,
       task,
-      billingType: "fixed",
-      reason: "tripo_task_created",
       requestId,
-      aiJobId: job.id
-    });
+      job
+    }));
     chargedCredits = charge.chargedCredits || 0;
     markAIJobCreditsCharged(userId, job.id, chargedCredits);
     job = updateAIJobDispatchResult(userId, job.id, buildTripo3DDispatchResultParams({

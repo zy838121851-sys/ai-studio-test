@@ -170,6 +170,28 @@ export function buildTripo3DDispatchResultParams({
   };
 }
 
+export function buildTripo3DChargeReservationParams({
+  userId = "",
+  reservation = {},
+  modelConfig = {},
+  task = "",
+  requestId = "",
+  job = {}
+} = {}) {
+  return {
+    userId,
+    reservedAmount: reservation.amountCredits,
+    chargeAmount: reservation.amountCredits,
+    provider: "tripo",
+    model: modelConfig.id,
+    task,
+    billingType: "fixed",
+    reason: "tripo_task_created",
+    requestId,
+    aiJobId: job?.id
+  };
+}
+
 export function buildTripo3DSuccessResponse({
   taskCreated = {},
   job = {},

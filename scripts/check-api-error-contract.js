@@ -26,6 +26,7 @@ import {
   assertResolvedProviderMatchesModel,
   assertTripo3DModelConfig,
   assertTripo3DRequiredInput,
+  buildTripo3DChargeReservationParams,
   buildTripo3DDispatchParams,
   buildTripo3DDispatchResultParams,
   buildTripo3DFailJobParams,
@@ -832,6 +833,26 @@ function assertAIRouteHelpers() {
     progress: 0,
     responseData: { status: "created" }
   }, "Tripo dispatch result params should preserve queued fallback updates");
+
+  assertDeepEqual(buildTripo3DChargeReservationParams({
+    userId: "user-1",
+    reservation: { amountCredits: 12 },
+    modelConfig: { id: "tripo-model" },
+    task: "tripo_text_to_3d_standard",
+    requestId: "request-3",
+    job: { id: "job-3" }
+  }), {
+    userId: "user-1",
+    reservedAmount: 12,
+    chargeAmount: 12,
+    provider: "tripo",
+    model: "tripo-model",
+    task: "tripo_text_to_3d_standard",
+    billingType: "fixed",
+    reason: "tripo_task_created",
+    requestId: "request-3",
+    aiJobId: "job-3"
+  }, "Tripo charge reservation params should preserve fixed billing fields");
 
   assertDeepEqual(buildTripo3DSuccessResponse({
     taskCreated: { taskId: "task-3", status: "running" },
