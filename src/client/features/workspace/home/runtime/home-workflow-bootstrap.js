@@ -1,5 +1,4 @@
 import { createHomeWorkflow } from "../workflows/home-workflow.js";
-import { createHomeWorkflowAccessors } from "../../runtime/workflow-accessors.js";
 
 export function createHomeWorkflowRuntime({
   elements = {},
@@ -16,6 +15,8 @@ export function createHomeWorkflowRuntime({
 
   return {
     homeWorkflow,
-    ...createHomeWorkflowAccessors(homeWorkflow)
+    renderHomeFilePreview: (...args) => homeWorkflow.renderHomeFilePreview?.(...args),
+    setHomeFiles: (...args) => homeWorkflow.setHomeFiles?.(...args),
+    openHomeFilePicker: (...args) => homeWorkflow.openHomeFilePicker?.(...args)
   };
 }
