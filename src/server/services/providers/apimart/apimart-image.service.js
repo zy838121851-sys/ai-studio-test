@@ -6,6 +6,7 @@ import {
   shouldUseApimartMock,
   uploadApimartImage
 } from "./apimart.client.js";
+import { createHttpError } from "../../../lib/input-validation.js";
 import { normalizeApimartImageSize } from "../../image-size-normalization.service.js";
 
 const MOCK_IMAGE_DATA_URL = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/p9sAAAAASUVORK5CYII=";
@@ -182,8 +183,7 @@ export function mockImageResult({
 } = {}) {
   const cleanPrompt = String(prompt || "").toLowerCase();
   if (cleanPrompt.includes("mock-apimart-fail")) {
-    const error = new Error("Mock APIMart image failure");
-    error.status = 502;
+    const error = createHttpError("Mock APIMart image failure", 502);
     error.code = "MOCK_APIMART_IMAGE_FAILED";
     throw error;
   }
