@@ -33,6 +33,10 @@ function handleAssetError(res, error) {
   });
 }
 
+function sendAssetNotFound(res) {
+  sendErrorResponse(res, 404, "Asset not found");
+}
+
 export function createAssetRouter() {
   const router = Router();
   router.use(requireAuth);
@@ -84,7 +88,7 @@ export function createAssetRouter() {
   router.get("/assets/:id", (req, res) => {
     const asset = getAsset(getRequestContext(req), getRouteParam(req, "id"));
     if (!asset) {
-      sendErrorResponse(res, 404, "Asset not found");
+      sendAssetNotFound(res);
       return;
     }
     res.json({ asset });
@@ -94,7 +98,7 @@ export function createAssetRouter() {
     try {
       const asset = updateAsset(getRequestContext(req), getRouteParam(req, "id"), getRequestBody(req));
       if (!asset) {
-        sendErrorResponse(res, 404, "Asset not found");
+        sendAssetNotFound(res);
         return;
       }
       res.json({ asset });
@@ -114,7 +118,7 @@ export function createAssetRouter() {
         userId: context.userId,
         assetId
       });
-      sendErrorResponse(res, 404, "Asset not found");
+      sendAssetNotFound(res);
       return;
     }
     recordAuditEvent(req, "asset.delete.succeeded", {
@@ -130,7 +134,7 @@ export function createAssetRouter() {
     try {
       const asset = addAssetToProject(getRequestContext(req), getRouteParam(req, "id"), getRequestBody(req));
       if (!asset) {
-        sendErrorResponse(res, 404, "Asset not found");
+        sendAssetNotFound(res);
         return;
       }
       res.json({ asset });
@@ -143,7 +147,7 @@ export function createAssetRouter() {
     try {
       const asset = moveAssetToCollection(getRequestContext(req), getRouteParam(req, "id"), getRequestBody(req));
       if (!asset) {
-        sendErrorResponse(res, 404, "Asset not found");
+        sendAssetNotFound(res);
         return;
       }
       res.json({ asset });
