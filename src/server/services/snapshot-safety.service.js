@@ -1,3 +1,5 @@
+import { createHttpError } from "../lib/input-validation.js";
+
 const MAX_SNAPSHOT_BYTES = 10 * 1024 * 1024;
 const MAX_SNAPSHOT_NODES = 2000;
 
@@ -5,23 +7,17 @@ export function sanitizeCanvasSnapshotJson(input) {
   const text = String(input || "").trim();
   if (!text) return "";
   if (Buffer.byteLength(text, "utf8") > MAX_SNAPSHOT_BYTES) {
-    const error = new Error("Canvas snapshot is too large");
-    error.status = 413;
-    throw error;
+    throw createHttpError("Canvas snapshot is too large", 413);
   }
 
   let parsed;
   try {
     parsed = JSON.parse(text);
   } catch {
-    const error = new Error("Invalid canvas snapshot JSON");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Invalid canvas snapshot JSON", 400);
   }
   if (!parsed || typeof parsed !== "object" || !Array.isArray(parsed.nodes)) {
-    const error = new Error("Invalid canvas snapshot structure");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Invalid canvas snapshot structure", 400);
   }
 
   const snapshot = {
