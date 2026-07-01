@@ -1,5 +1,5 @@
 export { startWorkspaceApp } from "./workspace-app-runtime.js";
-export { mountWorkspaceApp } from "../workflows/index.js?v=20260628-boot-inline-1";
+export { mountWorkspaceApp } from "../workflows/workspace-app-mount.js?v=20260628-boot-inline-1";
 export { startWorkspaceApp as startWorkspaceComposition } from "../workflows/workspace-app-composition.js?v=20260628-boot-inline-1";
 export { createWorkspaceAppElements } from "./workspace-app-elements.js";
 export { createWorkspaceAppDefaults } from "./workspace-app-defaults.js";

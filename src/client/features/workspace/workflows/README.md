@@ -2,8 +2,9 @@
 
 Public entries:
 
-- `index.js` exports `mountWorkspaceApp` for Next-ready client mounting.
-- `index.js` exports `startWorkspaceApp` for the current compatibility startup path.
+- `workspace-app-mount.js` exports `mountWorkspaceApp` for client mounting.
+- `workspace-app-composition.js` exports `startWorkspaceApp` for workspace composition.
+- `index.js` is kept as a compatibility barrel for older import paths.
 
 Everything else in this folder is internal composition code used to keep the
 legacy browser runtime Next-ready without exposing many low-level builders as a

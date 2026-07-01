@@ -194,8 +194,8 @@ Compatibility rules after this cleanup:
 
 - Keep `src/client/features/workspace/runtime/index.js` as a public runtime
   barrel until all consumers and migration paths are separately proven safe.
-- Keep `src/client/features/workspace/workflows/index.js` because workspace
-  feature barrels still re-export through it.
+- Keep `src/client/features/workspace/workflows/index.js` as a compatibility
+  barrel for older import paths.
 - Do not alter `workspace-app-mount.js` compatibility bridge behavior in the
   same batch.
 
@@ -228,13 +228,36 @@ Do not begin entry governance by changing:
 
 These areas have broader runtime or deployment coupling.
 
+### Completed C: bypass workflows barrel from workspace barrels
+
+Current role:
+
+- `src/client/features/workspace/index.js` exports `mountWorkspaceApp` and
+  `startWorkspaceApp` directly from their concrete workflow modules.
+- `src/client/features/workspace/runtime/index.js` exports `mountWorkspaceApp`
+  directly from `workspace-app-mount.js`.
+- `src/client/features/workspace/runtime/workspace-app-runtime.js` exports
+  `startWorkspaceApp` directly from `workspace-app-composition.js`.
+- `src/client/features/workspace/workflows/index.js` remains as a compatibility
+  barrel and is not deleted.
+
+Why this was the safest third code cleanup:
+
+- Search showed `workflows/index.js` was only consumed by broad barrels and
+  compatibility re-export files.
+- The exported functions are unchanged.
+- No runtime behavior, compatibility bridge behavior, DOM, styles, or server
+  route changed.
+
 ## Recommended Next Small Code Batch
 
 The next safest code batch is:
 
-1. Audit whether `src/client/features/workspace/workflows/index.js` has real
-   consumers beyond broad feature barrels.
-2. Decide whether a narrower workspace public API should replace broad barrels.
+1. Audit `src/client/features/workspace/index.js` and
+   `src/client/features/workspace/runtime/index.js` as public compatibility
+   barrels.
+2. Decide whether to document them as compatibility-only before any deletion
+   proof.
 3. Do not change `workspace-app-mount.js` compatibility bridge behavior.
 4. Do not delete any broad barrel or forwarding file.
 5. Run `npm run check`.
