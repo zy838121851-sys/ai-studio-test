@@ -3,12 +3,12 @@ import { Buffer } from "node:buffer";
 import { prepare, transaction } from "../db/sqlite.js";
 import { chargeReservedCredits, releaseReservedCredits } from "./credits/credit.service.js";
 import { createGeneratedAsset, createGeneratedAssetFromBuffer } from "./asset.service.js";
+import { localJobQueue } from "../providers/queue/local-job-queue.provider.js";
 import { getApimartTaskStatus } from "./providers/apimart/apimart-task.service.js";
 import { sanitizePromptPreview, stripLargeInputs } from "./providers/apimart/apimart.client.js";
 import { ensureUserWorkspaceWithDb } from "./workspace.service.js";
 
 const TERMINAL_STATUSES = new Set(["succeeded", "failed", "cancelled", "timeout", "save_failed"]);
-const activeJobRefreshes = new Set();
 const MAX_LOG_JSON_LENGTH = 24000;
 const SECRET_KEY_PATTERN = /(?:authorization|cookie|password|secret|token|api[_-]?key|access[_-]?key)/i;
 
@@ -147,12 +147,11 @@ export async function refreshAIJob(userId, id) {
 
 export function scheduleAIJobRefresh(userId, id, { attempts = 180, delayMs = 2000 } = {}) {
   const key = `${userId}:${id}`;
-  if (!userId || !id || activeJobRefreshes.has(key)) return;
-  activeJobRefreshes.add(key);
-  runScheduledAIJobRefresh(userId, id, { attempts, delayMs, key });
+  if (!userId || !id) return;
+  localJobQueue.scheduleUnique(key, () => runScheduledAIJobRefresh(userId, id, { attempts, delayMs }));
 }
 
-async function runScheduledAIJobRefresh(userId, id, { attempts, delayMs, key }) {
+async function runScheduledAIJobRefresh(userId, id, { attempts, delayMs }) {
   try {
     for (let index = 0; index < attempts; index += 1) {
       await delay(delayMs);
@@ -162,8 +161,6 @@ async function runScheduledAIJobRefresh(userId, id, { attempts, delayMs, key }) 
     }
   } catch (error) {
     console.warn("[ai-jobs] Scheduled refresh failed", { jobId: id, error: error?.message || String(error) });
-  } finally {
-    activeJobRefreshes.delete(key);
   }
 }
 
