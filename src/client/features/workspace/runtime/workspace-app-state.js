@@ -1,7 +1,7 @@
 import {
   DEFAULT_CANVAS_PAN,
   DEFAULT_CANVAS_ZOOM
-} from "../../canvas/runtime/index.js";
+} from "../../canvas/canvas-viewport.js";
 import { createAppInitialState } from "./state/app-initial-state.js";
 
 export function createWorkspaceAppState({ getLibraryViewMode }) {

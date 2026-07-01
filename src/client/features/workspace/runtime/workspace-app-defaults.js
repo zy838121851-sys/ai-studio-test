@@ -2,7 +2,7 @@ import {
   DIRECTOR_ACTIONS,
   DIRECTOR_VIEW_COUNT,
   IMAGE_EDIT_BUILD_DEFAULTS
-} from "../../canvas/runtime/index.js";
+} from "../../canvas/runtime/director-defaults.js";
 
 export function createWorkspaceAppDefaults() {
   return {
