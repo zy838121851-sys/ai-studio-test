@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { Buffer } from "node:buffer";
 import { env } from "../../../config/env.js";
+import { createHttpError } from "../../../lib/input-validation.js";
 
 export const APIMART_IMAGE_ENDPOINT = "/images/generations";
 export const APIMART_MIDJOURNEY_IMAGE_ENDPOINT = "/midjourney/generations";
@@ -20,8 +21,7 @@ export async function requestApimart(path, {
   retries = 2
 } = {}) {
   if (!env.apimartApiKey) {
-    const error = new Error("APIMart API key is not configured");
-    error.status = 503;
+    const error = createHttpError("APIMart API key is not configured", 503);
     error.code = "APIMART_KEY_MISSING";
     throw error;
   }
@@ -41,8 +41,7 @@ export async function requestApimart(path, {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || payload?.code >= 400) {
-        const error = new Error(payload?.message || payload?.error?.message || `APIMart request failed: ${response.status}`);
-        error.status = response.status || 502;
+        const error = createHttpError(payload?.message || payload?.error?.message || `APIMart request failed: ${response.status}`, response.status || 502);
         error.code = payload?.code || payload?.error?.code || "APIMART_REQUEST_FAILED";
         if (attempt < retries && isRetryableApimartError(error)) {
           lastError = error;
@@ -71,8 +70,7 @@ export async function uploadApimartImage(dataUrl, {
   filename = "reference.png"
 } = {}) {
   if (!env.apimartApiKey) {
-    const error = new Error("APIMart API key is not configured");
-    error.status = 503;
+    const error = createHttpError("APIMart API key is not configured", 503);
     error.code = "APIMART_KEY_MISSING";
     throw error;
   }
@@ -95,8 +93,7 @@ export async function uploadApimartImage(dataUrl, {
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || payload?.code >= 400) {
-        const error = new Error(payload?.message || payload?.error?.message || `APIMart upload failed: ${response.status}`);
-        error.status = response.status || 502;
+        const error = createHttpError(payload?.message || payload?.error?.message || `APIMart upload failed: ${response.status}`, response.status || 502);
         error.code = payload?.code || payload?.error?.code || "APIMART_UPLOAD_FAILED";
         if (attempt < retries && isRetryableApimartError(error)) {
           lastError = error;
@@ -107,8 +104,7 @@ export async function uploadApimartImage(dataUrl, {
       }
       const uploadedUrl = extractUploadedImageUrl(payload);
       if (!uploadedUrl) {
-        const error = new Error("APIMart upload did not return an image URL");
-        error.status = 502;
+        const error = createHttpError("APIMart upload did not return an image URL", 502);
         error.code = "APIMART_UPLOAD_URL_MISSING";
         throw error;
       }
@@ -148,8 +144,7 @@ function redactString(value) {
 function dataUrlToImageUpload(dataUrl, filename) {
   const match = String(dataUrl || "").match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,(.*)$/s);
   if (!match) {
-    const error = new Error("Only image data URLs can be uploaded to APIMart");
-    error.status = 400;
+    const error = createHttpError("Only image data URLs can be uploaded to APIMart", 400);
     error.code = "APIMART_UPLOAD_INVALID_DATA_URL";
     throw error;
   }
