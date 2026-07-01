@@ -1,13 +1,17 @@
+import { createWorkspaceRuntimeActions } from "./launch-actions-config.js?v=20260628-boot-inline-1";
+import { createWorkspaceRuntimeLaunchConfig } from "./launch-config-base.js";
 import {
-  createWorkspaceRuntimeActions,
-  createWorkspaceRuntimeBindings,
   createWorkspaceRuntimeConstants,
-  createWorkspaceRuntimeElements,
-  createWorkspaceRuntimeLaunchConfig,
+  createWorkspaceRuntimeElements
+} from "./launch-elements-config.js";
+import {
   createWorkspaceRuntimeStateFromScope,
-  createWorkspaceRuntimeStateSettersFromScope,
+  createWorkspaceRuntimeStateSettersFromScope
+} from "./launch-state-config.js";
+import {
+  createWorkspaceRuntimeBindings,
   createWorkspaceRuntimeWorkflows
-} from "./workspace-runtime-launch-config.js?v=20260628-boot-inline-1";
+} from "./launch-workflow-bindings-config.js";
 
 export function createWorkspaceAppLaunchConfig({
   workspaceAppScope,
