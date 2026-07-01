@@ -77,6 +77,10 @@ function normalizeBoolean(value, fallback = false) {
   return Boolean(fallback);
 }
 
+function userIdFromPrincipal(principal) {
+  return typeof principal === "string" ? principal : principal?.userId;
+}
+
 function ensureProjectAccess(userId, projectId) {
   const cleanProjectId = normalizeText(projectId);
   if (!cleanProjectId) return "";
@@ -153,12 +157,13 @@ function assetSelect() {
   `;
 }
 
-export function listAssets(userId, {
+export function listAssets(principal, {
   projectId = "",
   collection = "",
   collectionId = "",
   includeHidden = false
 } = {}) {
+  const userId = userIdFromPrincipal(principal);
   const scope = ensureUserWorkspace(userId);
   const projectFilter = normalizeText(projectId);
   const collectionFilter = normalizeText(collection);
@@ -192,7 +197,8 @@ export function listAssets(userId, {
   ).map(publicAsset);
 }
 
-export function getAsset(userId, id) {
+export function getAsset(principal, id) {
+  const userId = userIdFromPrincipal(principal);
   const scope = ensureUserWorkspace(userId);
   return publicAsset(prepare(`
     SELECT ${assetSelect()}
@@ -211,7 +217,8 @@ export function getAsset(userId, id) {
   `).get(id, scope.workspaceId, userId));
 }
 
-export function getAssetByUploadUrl(userId, uploadUrl = "") {
+export function getAssetByUploadUrl(principal, uploadUrl = "") {
+  const userId = userIdFromPrincipal(principal);
   const publicPath = normalizeUploadPublicPath(uploadUrl);
   if (!publicPath) return null;
   const filePath = publicPath.slice(1);
@@ -248,7 +255,8 @@ export function resolveExistingUploadAssetPath(asset = {}) {
     : "";
 }
 
-export function createUploadedAsset(userId, { file, fields = {} } = {}) {
+export function createUploadedAsset(principal, { file, fields = {} } = {}) {
+  const userId = userIdFromPrincipal(principal);
   if (!file?.buffer?.length) {
     const error = new Error("File is required");
     error.status = 400;
@@ -285,7 +293,8 @@ export function createUploadedAsset(userId, { file, fields = {} } = {}) {
   });
 }
 
-export function createGeneratedAsset(userId, input = {}) {
+export function createGeneratedAsset(principal, input = {}) {
+  const userId = userIdFromPrincipal(principal);
   const id = randomUUID();
   let url = normalizeText(input.url || input.imageUrl);
   let filePath = "";
@@ -331,7 +340,7 @@ export function createGeneratedAsset(userId, input = {}) {
   });
 }
 
-export function createGeneratedAssetFromBuffer(userId, {
+export function createGeneratedAssetFromBuffer(principal, {
   buffer,
   mimeType = "application/octet-stream",
   title = "Generated asset",
@@ -346,6 +355,7 @@ export function createGeneratedAssetFromBuffer(userId, {
   projectId = "",
   collectionId = ""
 } = {}) {
+  const userId = userIdFromPrincipal(principal);
   if (!Buffer.isBuffer(buffer) || !buffer.length) {
     const error = new Error("Generated asset buffer is required");
     error.status = 400;
@@ -381,7 +391,8 @@ export function createGeneratedAssetFromBuffer(userId, {
   });
 }
 
-export function updateAsset(userId, id, input = {}) {
+export function updateAsset(principal, id, input = {}) {
+  const userId = userIdFromPrincipal(principal);
   const existing = getAsset(userId, id);
   if (!existing) return null;
   return transaction((db) => {
@@ -439,7 +450,8 @@ export function updateAsset(userId, id, input = {}) {
   });
 }
 
-export function softDeleteAsset(userId, id) {
+export function softDeleteAsset(principal, id) {
+  const userId = userIdFromPrincipal(principal);
   const existing = getAsset(userId, id);
   if (!existing) return null;
   return transaction((db) => {
@@ -458,7 +470,8 @@ export function softDeleteAsset(userId, id) {
   });
 }
 
-export function addAssetToProject(userId, id, { projectId } = {}) {
+export function addAssetToProject(principal, id, { projectId } = {}) {
+  const userId = userIdFromPrincipal(principal);
   const existing = getAsset(userId, id);
   if (!existing) return null;
   return transaction((db) => {
@@ -474,7 +487,8 @@ export function addAssetToProject(userId, id, { projectId } = {}) {
   });
 }
 
-export function moveAssetToCollection(userId, id, { collectionId } = {}) {
+export function moveAssetToCollection(principal, id, { collectionId } = {}) {
+  const userId = userIdFromPrincipal(principal);
   const existing = getAsset(userId, id);
   if (!existing) return null;
   const allowedCollectionId = ensureCollectionAccess(userId, collectionId);
@@ -486,7 +500,8 @@ export function moveAssetToCollection(userId, id, { collectionId } = {}) {
   return updateAsset(userId, id, { collectionId: allowedCollectionId, libraryVisible: true });
 }
 
-export function listAssetsForCollection(userId, collectionId) {
+export function listAssetsForCollection(principal, collectionId) {
+  const userId = userIdFromPrincipal(principal);
   const scope = ensureUserWorkspace(userId);
   const allowedCollectionId = ensureCollectionAccess(userId, collectionId);
   if (!allowedCollectionId) return null;

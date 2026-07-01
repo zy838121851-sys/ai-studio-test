@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { env } from "../config/env.js";
 import { sendCaughtErrorResponse, sendErrorResponse } from "../lib/http-error-response.js";
-import { getRequestUserId } from "../lib/request-auth.js";
+import { getRequestContext } from "../lib/request-auth.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import { recordAuditEvent } from "../services/audit.service.js";
@@ -37,7 +37,7 @@ export function createAssetRouter() {
 
   router.get("/assets", (req, res) => {
     res.json({
-      assets: listAssets(getRequestUserId(req), {
+      assets: listAssets(getRequestContext(req), {
         projectId: req.query.projectId,
         collection: req.query.collection,
         collectionId: req.query.collectionId
@@ -46,13 +46,13 @@ export function createAssetRouter() {
   });
 
   router.post("/assets/upload", uploadLimiter, async (req, res) => {
-    const userId = getRequestUserId(req);
+    const context = getRequestContext(req);
     try {
       const multipart = await parseMultipartForm(req);
-      const asset = createUploadedAsset(userId, multipart);
+      const asset = createUploadedAsset(context, multipart);
       recordAuditEvent(req, "asset.upload.succeeded", {
         outcome: "succeeded",
-        userId,
+        userId: context.userId,
         assetId: asset.id,
         type: asset.type,
         mimeType: asset.mimeType,
@@ -63,7 +63,7 @@ export function createAssetRouter() {
       recordAuditEvent(req, "asset.upload.failed", {
         outcome: "failed",
         status: error.status || 500,
-        userId
+        userId: context.userId
       });
       handleAssetError(res, error);
     }
@@ -71,7 +71,7 @@ export function createAssetRouter() {
 
   router.post("/assets/generated", (req, res) => {
     try {
-      const asset = createGeneratedAsset(getRequestUserId(req), req.body);
+      const asset = createGeneratedAsset(getRequestContext(req), req.body);
       res.status(201).json({ asset });
     } catch (error) {
       handleAssetError(res, error);
@@ -79,7 +79,7 @@ export function createAssetRouter() {
   });
 
   router.get("/assets/:id", (req, res) => {
-    const asset = getAsset(getRequestUserId(req), req.params.id);
+    const asset = getAsset(getRequestContext(req), req.params.id);
     if (!asset) {
       sendErrorResponse(res, 404, "Asset not found");
       return;
@@ -89,7 +89,7 @@ export function createAssetRouter() {
 
   router.patch("/assets/:id", (req, res) => {
     try {
-      const asset = updateAsset(getRequestUserId(req), req.params.id, req.body);
+      const asset = updateAsset(getRequestContext(req), req.params.id, req.body);
       if (!asset) {
         sendErrorResponse(res, 404, "Asset not found");
         return;
@@ -101,13 +101,13 @@ export function createAssetRouter() {
   });
 
   router.delete("/assets/:id", (req, res) => {
-    const userId = getRequestUserId(req);
-    const asset = softDeleteAsset(userId, req.params.id);
+    const context = getRequestContext(req);
+    const asset = softDeleteAsset(context, req.params.id);
     if (!asset) {
       recordAuditEvent(req, "asset.delete.failed", {
         outcome: "failed",
         status: 404,
-        userId,
+        userId: context.userId,
         assetId: req.params.id
       });
       sendErrorResponse(res, 404, "Asset not found");
@@ -115,7 +115,7 @@ export function createAssetRouter() {
     }
     recordAuditEvent(req, "asset.delete.succeeded", {
       outcome: "succeeded",
-      userId,
+      userId: context.userId,
       assetId: asset.id,
       type: asset.type
     });
@@ -124,7 +124,7 @@ export function createAssetRouter() {
 
   router.post("/assets/:id/add-to-project", (req, res) => {
     try {
-      const asset = addAssetToProject(getRequestUserId(req), req.params.id, req.body);
+      const asset = addAssetToProject(getRequestContext(req), req.params.id, req.body);
       if (!asset) {
         sendErrorResponse(res, 404, "Asset not found");
         return;
@@ -137,7 +137,7 @@ export function createAssetRouter() {
 
   router.post("/assets/:id/move-to-collection", (req, res) => {
     try {
-      const asset = moveAssetToCollection(getRequestUserId(req), req.params.id, req.body);
+      const asset = moveAssetToCollection(getRequestContext(req), req.params.id, req.body);
       if (!asset) {
         sendErrorResponse(res, 404, "Asset not found");
         return;

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { sendCaughtErrorResponse, sendErrorResponse } from "../lib/http-error-response.js";
-import { getRequestUserId } from "../lib/request-auth.js";
+import { getRequestContext, getRequestUserId } from "../lib/request-auth.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import {
   createAssetCollection,
@@ -58,7 +58,7 @@ export function createAssetCollectionRouter() {
   });
 
   router.get("/asset-collections/:id/assets", (req, res) => {
-    const assets = listAssetsForCollection(getRequestUserId(req), req.params.id);
+    const assets = listAssetsForCollection(getRequestContext(req), req.params.id);
     if (!assets) {
       sendErrorResponse(res, 404, "Asset collection not found");
       return;
