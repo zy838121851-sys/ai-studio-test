@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { createAIAsyncHandler } from "../lib/ai-error-response.js";
 import { sendErrorResponse } from "../lib/http-error-response.js";
+import { getRequestQuery, getRouteParam } from "../lib/route-request.js";
 import { getRequestUserId } from "../lib/request-auth.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
@@ -57,7 +58,7 @@ export function createAIRouter() {
   const router = Router();
 
   router.get("/models", asyncHandler(async (req, res) => {
-    res.json(getModelListResponse({ surface: req.query.surface }));
+    res.json(getModelListResponse({ surface: getRequestQuery(req).surface }));
   }));
 
   router.use(requireAuth);
@@ -81,7 +82,7 @@ export function createAIRouter() {
   }));
 
   router.get("/ai/3d/tasks/:taskId", jobPollLimiter, asyncHandler(async (req, res) => {
-    const remoteTaskId = String(req.params.taskId || "").trim();
+    const remoteTaskId = String(getRouteParam(req, "taskId") || "").trim();
     const result = await getTripo3DTaskStatus({
       userId: getRequestUserId(req),
       remoteTaskId
@@ -121,7 +122,7 @@ export function createAIRouter() {
   router.get("/ai/jobs", jobPollLimiter, asyncHandler(async (req, res) => {
     const result = listAIJobSummaries({
       userId: getRequestUserId(req),
-      query: req.query
+      query: getRequestQuery(req)
     });
     res.json(result.body);
   }));
@@ -129,7 +130,7 @@ export function createAIRouter() {
   router.get("/ai/jobs/:jobId", jobPollLimiter, asyncHandler(async (req, res) => {
     const result = await getAIJobDetailResponse({
       userId: getRequestUserId(req),
-      jobId: req.params.jobId
+      jobId: getRouteParam(req, "jobId")
     });
     if (result.status) {
       sendErrorResponse(res, result.status, result.message);
@@ -179,7 +180,7 @@ export function createAIRouter() {
   }));
 
   router.get("/image-proxy", imageProxyLimiter, asyncHandler(async (req, res) => {
-    const url = String(req.query.url || "").trim();
+    const url = String(getRequestQuery(req).url || "").trim();
     const result = await proxyImage({ url });
     if (result.status) {
       sendErrorResponse(res, result.status, result.message);
