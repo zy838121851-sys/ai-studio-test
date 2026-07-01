@@ -31,6 +31,7 @@ import {
   buildTripo3DDispatchResultParams,
   buildTripo3DFailJobParams,
   buildTripo3DJobRecordParams,
+  buildTripo3DQuoteParams,
   buildTripo3DReleaseReservationParams,
   buildTripo3DReserveCreditsParams,
   buildTripo3DRemoteFailureParams,
@@ -834,6 +835,16 @@ function assertAIRouteHelpers() {
     progress: 0,
     responseData: { status: "created" }
   }, "Tripo dispatch result params should preserve queued fallback updates");
+
+  assertDeepEqual(buildTripo3DQuoteParams({
+    modelConfig: { id: "tripo-model" },
+    task: "tripo_text_to_3d_standard"
+  }), {
+    provider: "tripo",
+    model: "tripo-model",
+    task: "tripo_text_to_3d_standard",
+    count: 1
+  }, "Tripo quote params should preserve fixed pricing fields");
 
   assertDeepEqual(buildTripo3DReserveCreditsParams({
     userId: "user-1",

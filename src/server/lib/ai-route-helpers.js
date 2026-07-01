@@ -170,6 +170,18 @@ export function buildTripo3DDispatchResultParams({
   };
 }
 
+export function buildTripo3DQuoteParams({
+  modelConfig = {},
+  task = ""
+} = {}) {
+  return {
+    provider: "tripo",
+    model: modelConfig.id,
+    task,
+    count: 1
+  };
+}
+
 export function buildTripo3DReserveCreditsParams({
   userId = "",
   quote = {},
