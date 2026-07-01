@@ -1,5 +1,5 @@
-import { memoryRateLimitStore } from "../providers/rate-limit/memory-rate-limit-store.js";
 import { sendErrorResponse } from "../lib/http-error-response.js";
+import { getDefaultRateLimitStore, hitRateLimitBucket } from "../services/rate-limit.service.js";
 
 function clientKey(req, namespace) {
   return `${namespace}:${req.ip || req.socket?.remoteAddress || "unknown"}`;
@@ -10,12 +10,12 @@ export function createRateLimiter({
   windowMs,
   max,
   message = "Too many requests",
-  store = memoryRateLimitStore
+  store = getDefaultRateLimitStore()
 }) {
   return (req, res, next) => {
     const now = Date.now();
     const key = clientKey(req, namespace);
-    const current = store.hit(key, now, windowMs);
+    const current = hitRateLimitBucket(store, key, now, windowMs);
     if (current.count <= max) {
       next();
       return;

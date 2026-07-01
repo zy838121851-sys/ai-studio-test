@@ -1,11 +1,13 @@
 import { createRateLimiter } from "../src/server/middleware/rate-limit.middleware.js";
 import { createMemoryRateLimitStore } from "../src/server/providers/rate-limit/memory-rate-limit-store.js";
+import { getDefaultRateLimitStore, hitRateLimitBucket } from "../src/server/services/rate-limit.service.js";
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
 checkStoreWindowBehavior();
+checkServiceStoreBehavior();
 checkMiddlewareLimitResponse();
 
 console.log("Rate limit provider checks passed.");
@@ -26,6 +28,14 @@ function checkStoreWindowBehavior() {
   const reset = store.hit("auth:127.0.0.1", 6000, 5000);
   assert(reset.count === 1, "Window boundary should start a new bucket");
   assert(reset.resetAt === 11000, "New bucket should get a fresh reset time");
+}
+
+function checkServiceStoreBehavior() {
+  const store = createMemoryRateLimitStore();
+  const first = hitRateLimitBucket(store, "service:127.0.0.1", 1000, 3000);
+  assert(first.count === 1, "Rate limit service should hit the provided store");
+  assert(first.resetAt === 4000, "Rate limit service should preserve store reset behavior");
+  assert(getDefaultRateLimitStore()?.hit, "Rate limit service should expose a default store");
 }
 
 function checkMiddlewareLimitResponse() {
