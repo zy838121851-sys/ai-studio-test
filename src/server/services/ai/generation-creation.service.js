@@ -8,6 +8,7 @@ import {
   buildCompletedGenerationResponse,
   buildQueuedGenerationResponse,
   buildRefreshedGenerationResponse,
+  sanitizeGenerationResult,
   toClientJob
 } from "../../lib/ai-response-dto.js";
 import {
@@ -35,8 +36,35 @@ import {
   releaseReservedCredits,
   reserveCredits
 } from "../credits/credit.service.js";
+import { billFixedTask } from "../credits/billing.service.js";
 import { quoteFixedCredits } from "../credits/pricing.service.js";
 import { randomUUID } from "node:crypto";
+
+export async function createFixedBillingGeneration({
+  userId = "",
+  body = {},
+  modelId = "",
+  modelConfig = {}
+} = {}) {
+  const requestedModel = modelId || modelConfig.id;
+  const result = await billFixedTask({
+    userId,
+    provider: modelConfig.providerId,
+    model: requestedModel,
+    task: "image_generation",
+    count: body?.count,
+    reason: "image_generation",
+    callProvider: () => generateImage({
+      model: requestedModel,
+      prompt: body?.prompt,
+      images: normalizeImages(body?.images),
+      size: body?.size
+    })
+  });
+  return {
+    body: sanitizeGenerationResult(result, modelConfig)
+  };
+}
 
 export async function createGenerationJob({
   userId = "",

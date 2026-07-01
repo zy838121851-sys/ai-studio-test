@@ -14,7 +14,6 @@ import { createAIAsyncHandler } from "../lib/ai-error-response.js";
 import { toClientSizeNormalization } from "../lib/ai-job-log-payload.js";
 import {
   buildDeferredImageEditResult,
-  sanitizeGenerationResult,
   toClientAsset,
   toClientBilling,
   toClientJob
@@ -59,7 +58,10 @@ import {
   isApimartModel,
   listImageModels
 } from "../services/model-catalog.service.js";
-import { createGenerationJob } from "../services/ai/generation-creation.service.js";
+import {
+  createFixedBillingGeneration,
+  createGenerationJob
+} from "../services/ai/generation-creation.service.js";
 import { createTripo3DJob } from "../services/ai/tripo-3d-creation.service.js";
 import {
   getTask as getTripoTask
@@ -200,21 +202,13 @@ export function createAIRouter() {
       throw error;
     }
     if (!isApimartModel(modelId)) {
-      const result = await billFixedTask({
+      const generation = await createFixedBillingGeneration({
         userId: req.auth.user.id,
-        provider: modelConfig.providerId,
-        model: modelId,
-        task: "image_generation",
-        count: req.body?.count,
-        reason: "image_generation",
-        callProvider: () => generateImage({
-          model: modelId,
-          prompt: req.body?.prompt,
-          images: normalizeImages(req.body?.images),
-          size: req.body?.size
-        })
+        body: req.body,
+        modelId,
+        modelConfig
       });
-      res.json(sanitizeGenerationResult(result, modelConfig));
+      res.json(generation.body);
       return;
     }
 
