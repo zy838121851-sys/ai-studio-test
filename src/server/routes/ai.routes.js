@@ -2,11 +2,9 @@ import { Router } from "express";
 import {
   analyzeImage,
   extractImageText,
-  expandImage,
   generateImage,
   generateSuggestions,
-  prepareAction,
-  superResolutionImage
+  prepareAction
 } from "../services/ai.service.js";
 import { env } from "../config/env.js";
 import { createAIAsyncHandler } from "../lib/ai-error-response.js";
@@ -54,8 +52,10 @@ import {
   createGenerationJob
 } from "../services/ai/generation-creation.service.js";
 import {
+  createExpandedImageEdit,
   createFixedQwenImageEdit,
-  createModelImageEdit
+  createModelImageEdit,
+  createUpscaledImageEdit
 } from "../services/ai/image-edit-creation.service.js";
 import { createTripo3DJob } from "../services/ai/tripo-3d-creation.service.js";
 import {
@@ -333,40 +333,24 @@ export function createAIRouter() {
     if (!prompt) throw new Error("Missing prompt");
     const referenceImages = Array.isArray(images) && images.length ? images : [image].filter(Boolean);
     if (!referenceImages.length) throw new Error("Missing image");
-    const requestedProviderId = getModelConfig(model)?.providerId;
     if (actionType === "expand_image") {
-      const result = await expandImage({ image: referenceImages[0], prompt, expand, model });
-      const apimartResult = result.provider === "apimart";
-      res.json({
-        message: result.imageUrl ? "Image expanded" : "Model returned without an image URL",
-        imageUrl: result.imageUrl,
-        model: result.model,
-        requestedModel: result.requestedModel || model,
-        resolvedModel: result.resolvedModel || result.model,
-        provider: apimartResult ? undefined : (result.provider || requestedProviderId),
-        providerModel: result.providerModel || result.resolvedModel || result.model,
-        providerCalls: apimartResult ? [] : (result.providerCalls || []),
-        referenceCount: result.referenceCount,
-        taskId: result.taskId
+      const edit = await createExpandedImageEdit({
+        model,
+        prompt,
+        referenceImages,
+        expand
       });
+      res.json(edit.body);
       return;
     }
     if (actionType === "upscale") {
-      const result = await superResolutionImage({ image: referenceImages[0], prompt, upscaleFactor, model });
-      const apimartResult = result.provider === "apimart";
-      res.json({
-        message: result.imageUrl ? "Image upscaled" : "Model returned without an image URL",
-        imageUrl: result.imageUrl,
-        model: result.model,
-        requestedModel: result.requestedModel || model,
-        resolvedModel: result.resolvedModel || result.model,
-        provider: apimartResult ? undefined : (result.provider || requestedProviderId),
-        providerModel: result.providerModel || result.resolvedModel || result.model,
-        providerCalls: apimartResult ? [] : (result.providerCalls || []),
-        referenceCount: result.referenceCount,
-        taskId: result.taskId,
-        upscaleFactor: result.upscaleFactor
+      const edit = await createUpscaledImageEdit({
+        model,
+        prompt,
+        referenceImages,
+        upscaleFactor
       });
+      res.json(edit.body);
       return;
     }
     if (isFixedQwenImageEditAction(actionType)) {

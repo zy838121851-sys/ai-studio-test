@@ -6,8 +6,10 @@ import {
 } from "../../lib/ai-response-dto.js";
 import { getInitialAIJobStatus } from "../../lib/ai-route-helpers.js";
 import {
+  expandImage,
   generateFixedQwenImageEdit,
-  generateImage
+  generateImage,
+  superResolutionImage
 } from "../ai.service.js";
 import {
   completeAIJob,
@@ -21,6 +23,57 @@ import {
   getModelConfig,
   isApimartModel
 } from "../model-catalog.service.js";
+
+export async function createExpandedImageEdit({
+  model = "",
+  prompt = "",
+  referenceImages = [],
+  expand
+} = {}) {
+  const requestedProviderId = getModelConfig(model)?.providerId;
+  const result = await expandImage({ image: referenceImages[0], prompt, expand, model });
+  const apimartResult = result.provider === "apimart";
+  return {
+    body: {
+      message: result.imageUrl ? "Image expanded" : "Model returned without an image URL",
+      imageUrl: result.imageUrl,
+      model: result.model,
+      requestedModel: result.requestedModel || model,
+      resolvedModel: result.resolvedModel || result.model,
+      provider: apimartResult ? undefined : (result.provider || requestedProviderId),
+      providerModel: result.providerModel || result.resolvedModel || result.model,
+      providerCalls: apimartResult ? [] : (result.providerCalls || []),
+      referenceCount: result.referenceCount,
+      taskId: result.taskId
+    }
+  };
+}
+
+export async function createUpscaledImageEdit({
+  model = "",
+  prompt = "",
+  referenceImages = [],
+  upscaleFactor
+} = {}) {
+  const requestedProviderId = getModelConfig(model)?.providerId;
+  const result = await superResolutionImage({ image: referenceImages[0], prompt, upscaleFactor, model });
+  const apimartResult = result.provider === "apimart";
+  return {
+    body: {
+      message: result.imageUrl ? "Image upscaled" : "Model returned without an image URL",
+      imageUrl: result.imageUrl,
+      model: result.model,
+      requestedModel: result.requestedModel || model,
+      resolvedModel: result.resolvedModel || result.model,
+      provider: apimartResult ? undefined : (result.provider || requestedProviderId),
+      providerModel: result.providerModel || result.resolvedModel || result.model,
+      providerCalls: apimartResult ? [] : (result.providerCalls || []),
+      referenceCount: result.referenceCount,
+      taskId: result.taskId,
+      upscaleFactor: result.upscaleFactor
+    }
+  };
+}
 
 export async function createFixedQwenImageEdit({
   userId = "",
