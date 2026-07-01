@@ -21,6 +21,10 @@ function sendError(res, error) {
   });
 }
 
+function sendConversationNotFound(res) {
+  sendErrorResponse(res, 404, "Conversation not found");
+}
+
 function isResponseWritable(res) {
   return !res.writableEnded && !res.destroyed;
 }
@@ -82,7 +86,7 @@ export function createConversationRouter() {
   router.get("/conversations/:id/messages", (req, res) => {
     const messages = listConversationMessages(getRequestContext(req), getRouteParam(req, "id"));
     if (!messages) {
-      sendErrorResponse(res, 404, "Conversation not found");
+      sendConversationNotFound(res);
       return;
     }
     res.json({ messages });
@@ -102,7 +106,7 @@ export function createConversationRouter() {
     const body = getRequestBody(req);
     const conversation = getConversationForUser(context, getRouteParam(req, "id"));
     if (!conversation) {
-      sendErrorResponse(res, 404, "Conversation not found");
+      sendConversationNotFound(res);
       return;
     }
 
