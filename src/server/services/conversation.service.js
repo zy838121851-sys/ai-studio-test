@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { prepare, transaction } from "../db/sqlite.js";
-import { normalizeBoundedText } from "../lib/input-validation.js";
+import { createHttpError, normalizeBoundedText } from "../lib/input-validation.js";
 import { ensureUserWorkspace, ensureUserWorkspaceWithDb } from "./workspace.service.js";
 
 const MAX_JSON_LENGTH = 240000;
@@ -96,18 +96,14 @@ export function getOrCreateProjectConversation(principal, projectId, input = {})
   const userId = userIdFromPrincipal(principal);
   const cleanProjectId = normalizeBoundedText(projectId, 120);
   if (!cleanProjectId) {
-    const error = new Error("Missing projectId");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Missing projectId", 400);
   }
 
   return transaction((db) => {
     const scope = ensureUserWorkspaceWithDb(db, userId);
     const project = getConversationProjectWithDb(db, userId, scope.workspaceId, cleanProjectId);
     if (!project) {
-      const error = new Error("Project not found");
-      error.status = 404;
-      throw error;
+      throw createHttpError("Project not found", 404);
     }
 
     const existing = db.prepare(`
@@ -160,16 +156,12 @@ export function listProjectConversations(principal, projectId, { limit = 40 } = 
   const userId = userIdFromPrincipal(principal);
   const cleanProjectId = normalizeBoundedText(projectId, 120);
   if (!cleanProjectId) {
-    const error = new Error("Missing projectId");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Missing projectId", 400);
   }
   const scope = ensureUserWorkspace(userId);
   const project = getConversationProject(userId, cleanProjectId);
   if (!project) {
-    const error = new Error("Project not found");
-    error.status = 404;
-    throw error;
+    throw createHttpError("Project not found", 404);
   }
   const safeLimit = Math.max(1, Math.min(Number(limit) || 40, 80));
   return prepare(`
@@ -201,9 +193,7 @@ export function restoreProjectConversation(principal, conversationId) {
   const userId = userIdFromPrincipal(principal);
   const cleanConversationId = normalizeBoundedText(conversationId, 120);
   if (!cleanConversationId) {
-    const error = new Error("Missing conversationId");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Missing conversationId", 400);
   }
 
   return transaction((db) => {
@@ -217,15 +207,11 @@ export function restoreProjectConversation(principal, conversationId) {
       LIMIT 1;
     `).get(cleanConversationId, scope.workspaceId, userId);
     if (!selected) {
-      const error = new Error("Conversation not found");
-      error.status = 404;
-      throw error;
+      throw createHttpError("Conversation not found", 404);
     }
     const project = getConversationProjectWithDb(db, userId, scope.workspaceId, selected.project_id);
     if (!project) {
-      const error = new Error("Project not found");
-      error.status = 404;
-      throw error;
+      throw createHttpError("Project not found", 404);
     }
 
     const timestamp = now();
@@ -331,9 +317,7 @@ export function appendConversationMessage({
   const timestamp = now();
   const cleanRole = normalizeBoundedText(role, 40);
   if (!["user", "assistant", "system", "tool"].includes(cleanRole)) {
-    const error = new Error("Invalid message role");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Invalid message role", 400);
   }
 
   return transaction((db) => {
@@ -346,9 +330,7 @@ export function appendConversationMessage({
       LIMIT 1;
     `).get(conversationId, userId);
     if (!conversation) {
-      const error = new Error("Conversation not found");
-      error.status = 404;
-      throw error;
+      throw createHttpError("Conversation not found", 404);
     }
 
     db.prepare(`
