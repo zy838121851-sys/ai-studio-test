@@ -6,7 +6,7 @@ import { createOAuthStart, getOAuthStateStatus, handleOAuthCallback, markOAuthSt
 import { getAuthProviderStatus } from "../auth/provider-status.service.js";
 import { sendVerificationCode, verifyCodeAndGetUser } from "../auth/verification.service.js";
 import { sendCaughtErrorResponse } from "../lib/http-error-response.js";
-import { getRequestBody, getRequestQuery, getRouteParam } from "../lib/route-request.js";
+import { getRequestBody, getRequestQuery, getRouteParam, requestAccepts } from "../lib/route-request.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import { recordAuditEvent } from "../services/audit.service.js";
 
@@ -179,7 +179,7 @@ export function createAuthRouter() {
       setSessionCookie(res, token);
       res.redirect(result.redirectTo || "/");
     } catch (error) {
-      if (req.accepts("html")) {
+      if (requestAccepts(req, "html")) {
         res.status(error.status || 500).send(error.message || "OAuth login failed");
         return;
       }
