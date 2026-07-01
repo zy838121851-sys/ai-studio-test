@@ -34,6 +34,7 @@ import {
   getInitialAIJobStatus,
   getModelModality,
   getTripo3DJobMetadata,
+  getTripo3DProviderModel,
   hasRemoteFallbackModelOutput,
   isFixedQwenImageEditAction,
   jobStatusForError,
@@ -851,6 +852,8 @@ async function createTripo3DJob(req, {
   const requestId = randomUUID();
   const startedAt = Date.now();
   const { task, route } = getTripo3DJobMetadata(mode);
+  const providerModel = getTripo3DProviderModel(modelConfig);
+  const taskApiModel = getTripo3DProviderModel(modelConfig, { fallbackToId: false });
   const quote = quoteFixedCredits({
     provider: "tripo",
     model: modelConfig.id,
@@ -873,7 +876,7 @@ async function createTripo3DJob(req, {
     provider: "tripo",
     vendor: "tripo",
     modelId: modelConfig.id,
-    providerModel: modelConfig.apiModel || modelConfig.providerModel || modelConfig.id,
+    providerModel,
     remoteTaskId: "",
     type: "model3d",
     status: "queued",
@@ -905,14 +908,14 @@ async function createTripo3DJob(req, {
         imageDataUrl: cleanImageDataUrl,
         imageName: cleanImageName,
         imageMimeType: cleanImageMimeType,
-        apiModel: modelConfig.apiModel || modelConfig.providerModel,
+        apiModel: taskApiModel,
         texture,
         defaultParams: modelConfig.defaultParams || {},
         requestId
       })
       : await createTextToModelTask({
         prompt: cleanPrompt,
-        apiModel: modelConfig.apiModel || modelConfig.providerModel,
+        apiModel: taskApiModel,
         texture,
         defaultParams: modelConfig.defaultParams || {},
         requestId
@@ -933,7 +936,7 @@ async function createTripo3DJob(req, {
     markAIJobCreditsCharged(userId, job.id, chargedCredits);
     job = updateAIJobDispatchResult(userId, job.id, {
       remoteTaskId: taskCreated.taskId,
-      providerModel: taskCreated.providerModel || modelConfig.apiModel || modelConfig.providerModel || modelConfig.id,
+      providerModel: taskCreated.providerModel || providerModel,
       status: taskCreated.status === "running" ? "running" : "queued",
       progress: taskCreated.status === "running" ? 10 : 0,
       responseData: buildTripo3DResponseLog(taskCreated, {

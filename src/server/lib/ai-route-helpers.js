@@ -93,6 +93,10 @@ export function getTripo3DJobMetadata(mode = "text") {
   };
 }
 
+export function getTripo3DProviderModel(modelConfig = {}, { fallbackToId = true } = {}) {
+  return modelConfig.apiModel || modelConfig.providerModel || (fallbackToId ? modelConfig.id : undefined);
+}
+
 export function normalizeTripo3DJobInput(body = {}, { mode = "text" } = {}) {
   const isImageMode = mode === "image";
   const imageUrl = isImageMode

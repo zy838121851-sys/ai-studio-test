@@ -29,6 +29,7 @@ import {
   getInitialAIJobStatus,
   getModelModality,
   getTripo3DJobMetadata,
+  getTripo3DProviderModel,
   hasRemoteFallbackModelOutput,
   isFixedQwenImageEditAction,
   isValidTripoImageInput,
@@ -715,6 +716,22 @@ function assertAIRouteHelpers() {
     task: "tripo_image_to_3d_standard",
     route: "/api/ai/3d/image-to-model"
   }, "Tripo 3D metadata should preserve image-to-model routing");
+
+  assert(getTripo3DProviderModel({
+    id: "model-id",
+    apiModel: "api-model",
+    providerModel: "provider-model"
+  }) === "api-model", "Tripo provider model should prefer apiModel");
+  assert(getTripo3DProviderModel({
+    id: "model-id",
+    providerModel: "provider-model"
+  }) === "provider-model", "Tripo provider model should fall back to providerModel");
+  assert(getTripo3DProviderModel({
+    id: "model-id"
+  }) === "model-id", "Tripo provider model should fall back to model id for job records");
+  assert(getTripo3DProviderModel({
+    id: "model-id"
+  }, { fallbackToId: false }) === undefined, "Tripo task API model should preserve missing provider model");
 
   const text3DInput = normalizeTripo3DJobInput({
     prompt: "  make a chair  ",
