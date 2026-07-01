@@ -4,6 +4,13 @@ import path from "node:path";
 const ROOT = process.cwd();
 const CLIENT_DIR = path.join(ROOT, "src", "client");
 const ENTRY_FILES = ["app.js", "server.js"].map((filePath) => path.resolve(ROOT, filePath));
+const DEPRECATED_CLIENT_MODULES = [
+  "src/client/features/workspace/runtime/actions-context.js",
+  "src/client/features/workspace/runtime/launch-config-base.js",
+  "src/client/features/workspace/runtime/launcher-ai-context.js",
+  "src/client/features/workspace/runtime/launcher-safe-bindings.js",
+  "src/client/features/workspace/runtime/workspace-app-state.js"
+];
 
 const errors = [];
 
@@ -92,10 +99,18 @@ function buildReachabilityGraph() {
 }
 
 const { allFiles, reachable } = buildReachabilityGraph();
+const deprecatedClientFiles = DEPRECATED_CLIENT_MODULES
+  .filter((filePath) => fs.existsSync(path.resolve(ROOT, filePath)));
 const unreachableClientFiles = Array.from(allFiles)
   .filter((filePath) => filePath.startsWith(CLIENT_DIR + path.sep) && !reachable.has(filePath))
   .map(relativePath)
   .sort();
+
+if (deprecatedClientFiles.length > 0) {
+  errors.push(
+    `Deprecated frontend wrapper modules were reintroduced:\n${deprecatedClientFiles.map((filePath) => `- ${filePath}`).join("\n")}`
+  );
+}
 
 if (unreachableClientFiles.length > 0) {
   errors.push(
