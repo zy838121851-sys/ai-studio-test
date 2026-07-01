@@ -3,7 +3,7 @@ import { env } from "../config/env.js";
 import { sendCaughtErrorResponse, sendErrorResponse } from "../lib/http-error-response.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
-import { localAuditLogger } from "../providers/audit/local-audit-logger.js";
+import { recordAuditEvent } from "../services/audit.service.js";
 import {
   addAssetToProject,
   createGeneratedAsset,
@@ -24,13 +24,6 @@ const uploadLimiter = createRateLimiter({
 
 function userIdFromRequest(req) {
   return req.auth.user.id;
-}
-
-function auditAssetEvent(req, event, detail = {}) {
-  localAuditLogger.record(event, {
-    ...localAuditLogger.requestMetadata(req),
-    ...detail
-  });
 }
 
 function handleAssetError(res, error) {
@@ -60,7 +53,7 @@ export function createAssetRouter() {
     try {
       const multipart = await parseMultipartForm(req);
       const asset = createUploadedAsset(userId, multipart);
-      auditAssetEvent(req, "asset.upload.succeeded", {
+      recordAuditEvent(req, "asset.upload.succeeded", {
         outcome: "succeeded",
         userId,
         assetId: asset.id,
@@ -70,7 +63,7 @@ export function createAssetRouter() {
       });
       res.status(201).json({ asset });
     } catch (error) {
-      auditAssetEvent(req, "asset.upload.failed", {
+      recordAuditEvent(req, "asset.upload.failed", {
         outcome: "failed",
         status: error.status || 500,
         userId
@@ -114,7 +107,7 @@ export function createAssetRouter() {
     const userId = userIdFromRequest(req);
     const asset = softDeleteAsset(userId, req.params.id);
     if (!asset) {
-      auditAssetEvent(req, "asset.delete.failed", {
+      recordAuditEvent(req, "asset.delete.failed", {
         outcome: "failed",
         status: 404,
         userId,
@@ -123,7 +116,7 @@ export function createAssetRouter() {
       sendErrorResponse(res, 404, "Asset not found");
       return;
     }
-    auditAssetEvent(req, "asset.delete.succeeded", {
+    recordAuditEvent(req, "asset.delete.succeeded", {
       outcome: "succeeded",
       userId,
       assetId: asset.id,

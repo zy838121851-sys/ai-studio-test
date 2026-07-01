@@ -1,4 +1,5 @@
 import { createLocalAuditLogger } from "../src/server/providers/audit/local-audit-logger.js";
+import { recordAuditEvent } from "../src/server/services/audit.service.js";
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -85,6 +86,23 @@ try {
   assert(warnPayload.outcome === "failed", "Warn payload should keep failed outcome");
   assert(warnPayload.status === 401, "Warn payload should keep failure status");
   assert(warnPayload.at === 1700000000000, "Warn payload should include an at timestamp");
+
+  const serviceEntries = captureConsole(() => {
+    recordAuditEvent({
+      ip: "127.0.0.1",
+      get(name) {
+        return name === "user-agent" ? "AuditServiceCheck/1.0" : "";
+      }
+    }, "asset.delete.succeeded", {
+      outcome: "succeeded",
+      userId: "user_3"
+    });
+  });
+
+  assert(serviceEntries.length === 1, "Audit service should write one log entry");
+  assert(serviceEntries[0].args[0] === "[info] audit:asset.delete.succeeded", "Audit service should preserve event name");
+  assert(serviceEntries[0].args[1].ip === "127.0.0.1", "Audit service should include request metadata");
+  assert(serviceEntries[0].args[1].userAgent === "AuditServiceCheck/1.0", "Audit service should include user-agent metadata");
 } finally {
   Date.now = originalNow;
 }

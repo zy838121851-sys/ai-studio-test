@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { sendCaughtErrorResponse, sendErrorResponse } from "../lib/http-error-response.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
-import { localAuditLogger } from "../providers/audit/local-audit-logger.js";
+import { recordAuditEvent } from "../services/audit.service.js";
 import {
   createProject,
   getProject,
@@ -13,13 +13,6 @@ import {
 
 function userIdFromRequest(req) {
   return req.auth.user.id;
-}
-
-function auditProjectEvent(req, event, detail = {}) {
-  localAuditLogger.record(event, {
-    ...localAuditLogger.requestMetadata(req),
-    ...detail
-  });
 }
 
 function handleProjectError(res, error) {
@@ -73,7 +66,7 @@ export function createProjectRouter() {
     const userId = userIdFromRequest(req);
     const project = softDeleteProject(userId, req.params.id);
     if (!project) {
-      auditProjectEvent(req, "project.delete.failed", {
+      recordAuditEvent(req, "project.delete.failed", {
         outcome: "failed",
         status: 404,
         userId,
@@ -82,7 +75,7 @@ export function createProjectRouter() {
       sendErrorResponse(res, 404, "Project not found");
       return;
     }
-    auditProjectEvent(req, "project.delete.succeeded", {
+    recordAuditEvent(req, "project.delete.succeeded", {
       outcome: "succeeded",
       userId,
       projectId: project.id

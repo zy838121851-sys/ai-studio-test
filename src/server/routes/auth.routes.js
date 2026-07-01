@@ -7,7 +7,7 @@ import { getAuthProviderStatus } from "../auth/provider-status.service.js";
 import { sendVerificationCode, verifyCodeAndGetUser } from "../auth/verification.service.js";
 import { sendCaughtErrorResponse } from "../lib/http-error-response.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
-import { localAuditLogger } from "../providers/audit/local-audit-logger.js";
+import { recordAuditEvent } from "../services/audit.service.js";
 
 const authLimiter = createRateLimiter({
   namespace: "auth",
@@ -31,13 +31,6 @@ function handleAuthError(res, error) {
   });
 }
 
-function auditAuthEvent(req, event, detail = {}) {
-  localAuditLogger.record(event, {
-    ...localAuditLogger.requestMetadata(req),
-    ...detail
-  });
-}
-
 export function createAuthRouter() {
   const router = Router();
 
@@ -57,13 +50,13 @@ export function createAuthRouter() {
       const user = authenticateUser(req.body);
       const token = createSession(user.id);
       setSessionCookie(res, token);
-      auditAuthEvent(req, "auth.login.succeeded", {
+      recordAuditEvent(req, "auth.login.succeeded", {
         outcome: "succeeded",
         userId: user.id
       });
       res.json({ user });
     } catch (error) {
-      auditAuthEvent(req, "auth.login.failed", {
+      recordAuditEvent(req, "auth.login.failed", {
         outcome: "failed",
         status: error.status || 500
       });
