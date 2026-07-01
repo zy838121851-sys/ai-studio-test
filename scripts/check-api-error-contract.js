@@ -27,6 +27,7 @@ import {
   assertTripo3DModelConfig,
   assertTripo3DRequiredInput,
   buildTripo3DChargeReservationParams,
+  buildTripo3DCreateContext,
   buildTripo3DDispatchParams,
   buildTripo3DDispatchResultParams,
   buildTripo3DFailJobParams,
@@ -744,6 +745,41 @@ function assertAIRouteHelpers() {
   assert(getTripo3DProviderModel({
     id: "model-id"
   }, { fallbackToId: false }) === undefined, "Tripo task API model should preserve missing provider model");
+
+  assertDeepEqual(buildTripo3DCreateContext({
+    mode: "image",
+    modelConfig: {
+      id: "tripo-model",
+      apiModel: "api-model",
+      providerModel: "provider-model"
+    }
+  }), {
+    task: "tripo_image_to_3d_standard",
+    route: "/api/ai/3d/image-to-model",
+    providerModel: "api-model",
+    taskApiModel: "api-model",
+    quoteParams: {
+      provider: "tripo",
+      model: "tripo-model",
+      task: "tripo_image_to_3d_standard",
+      count: 1
+    }
+  }, "Tripo create context should preserve image provider and quote fields");
+  assertDeepEqual(buildTripo3DCreateContext({
+    mode: "text",
+    modelConfig: { id: "tripo-model" }
+  }), {
+    task: "tripo_text_to_3d_standard",
+    route: "/api/ai/3d/text-to-model",
+    providerModel: "tripo-model",
+    taskApiModel: undefined,
+    quoteParams: {
+      provider: "tripo",
+      model: "tripo-model",
+      task: "tripo_text_to_3d_standard",
+      count: 1
+    }
+  }, "Tripo create context should preserve provider fallbacks for text mode");
 
   assertDeepEqual(buildTripo3DDispatchParams({
     mode: "text",

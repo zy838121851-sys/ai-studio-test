@@ -32,11 +32,11 @@ import {
   assertTripo3DModelConfig,
   assertTripo3DRequiredInput,
   buildTripo3DChargeReservationParams,
+  buildTripo3DCreateContext,
   buildTripo3DDispatchParams,
   buildTripo3DDispatchResultParams,
   buildTripo3DFailJobParams,
   buildTripo3DJobRecordParams,
-  buildTripo3DQuoteParams,
   buildTripo3DReleaseReservationParams,
   buildTripo3DRequestLogParams,
   buildTripo3DResponseLogParams,
@@ -45,8 +45,6 @@ import {
   buildTripo3DSuccessResponse,
   getInitialAIJobStatus,
   getModelModality,
-  getTripo3DJobMetadata,
-  getTripo3DProviderModel,
   hasRemoteFallbackModelOutput,
   isFixedQwenImageEditAction,
   jobStatusForError,
@@ -860,13 +858,17 @@ async function createTripo3DJob(req, {
 
   const requestId = randomUUID();
   const startedAt = Date.now();
-  const { task, route } = getTripo3DJobMetadata(mode);
-  const providerModel = getTripo3DProviderModel(modelConfig);
-  const taskApiModel = getTripo3DProviderModel(modelConfig, { fallbackToId: false });
-  const quote = quoteFixedCredits(buildTripo3DQuoteParams({
-    modelConfig,
-    task
-  }));
+  const {
+    task,
+    route,
+    providerModel,
+    taskApiModel,
+    quoteParams
+  } = buildTripo3DCreateContext({
+    mode,
+    modelConfig
+  });
+  const quote = quoteFixedCredits(quoteParams);
   const reservation = reserveCredits(buildTripo3DReserveCreditsParams({
     userId,
     quote,

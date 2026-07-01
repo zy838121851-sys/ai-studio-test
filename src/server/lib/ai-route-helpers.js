@@ -97,6 +97,20 @@ export function getTripo3DProviderModel(modelConfig = {}, { fallbackToId = true 
   return modelConfig.apiModel || modelConfig.providerModel || (fallbackToId ? modelConfig.id : undefined);
 }
 
+export function buildTripo3DCreateContext({
+  mode = "text",
+  modelConfig = {}
+} = {}) {
+  const { task, route } = getTripo3DJobMetadata(mode);
+  return {
+    task,
+    route,
+    providerModel: getTripo3DProviderModel(modelConfig),
+    taskApiModel: getTripo3DProviderModel(modelConfig, { fallbackToId: false }),
+    quoteParams: buildTripo3DQuoteParams({ modelConfig, task })
+  };
+}
+
 export function buildTripo3DDispatchParams({
   mode = "text",
   prompt = "",
