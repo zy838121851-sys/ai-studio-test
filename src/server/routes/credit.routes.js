@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { sendErrorResponse } from "../lib/http-error-response.js";
 import { getRequestContext } from "../lib/request-auth.js";
+import { getRequestQuery } from "../lib/route-request.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { getCreditBalance, listCreditTransactions } from "../services/credits/credit.service.js";
 import { quoteFixedCredits } from "../services/credits/pricing.service.js";
@@ -14,17 +15,19 @@ export function createCreditRouter() {
   });
 
   router.get("/credits/transactions", requireAuth, (req, res) => {
+    const query = getRequestQuery(req);
     res.json({
       transactions: listCreditTransactions(getRequestContext(req), {
-        limit: req.query.limit,
-        offset: req.query.offset
+        limit: query.limit,
+        offset: query.offset
       })
     });
   });
 
   router.get("/credits/quote", (req, res) => {
-    const model = String(req.query.model || "").trim();
-    const task = String(req.query.task || "").trim();
+    const query = getRequestQuery(req);
+    const model = String(query.model || "").trim();
+    const task = String(query.task || "").trim();
     const provider = inferProviderIdForModel(model);
     if (!provider) {
       sendErrorResponse(res, 402, "该模型未配置价格");
@@ -34,7 +37,7 @@ export function createCreditRouter() {
       provider,
       model,
       task,
-      count: req.query.count
+      count: query.count
     });
     res.json({ quote });
   });
