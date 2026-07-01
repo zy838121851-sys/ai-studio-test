@@ -2,6 +2,13 @@ import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { classifyAIError, toClientFailure } from "../src/server/lib/ai-error-response.js";
+import {
+  buildGenerationFailureLog,
+  buildGenerationRequestLog,
+  buildGenerationResponseLog,
+  buildTripo3DRequestLog,
+  buildTripo3DResponseLog
+} from "../src/server/lib/ai-job-log-payload.js";
 
 const tempRoot = mkdtempSync(join(tmpdir(), "ai-studio-api-error-contract-"));
 process.env.DB_PATH = join(tempRoot, "api-error-contract.sqlite");
@@ -18,6 +25,7 @@ const restoreConsole = suppressAuditLogs();
 try {
   assertNoInlineMessageErrorResponses();
   assertAIErrorClassification();
+  assertAIJobLogPayloads();
 
   const { createServer } = await import("../src/server/index.js");
   const { closeDatabase } = await import("../src/server/db/sqlite.js");
@@ -220,6 +228,98 @@ function assertAIErrorClassification() {
     },
     "AI job failures should preserve stored error details"
   );
+}
+
+function assertAIJobLogPayloads() {
+  const imageDataUrl = "data:image/png;base64,QUJDRA==";
+  const requestLog = buildGenerationRequestLog({
+    route: "/api/ai/generate",
+    requestId: "req-1",
+    modelConfig: {
+      id: "gpt-image-2",
+      providerId: "apimart",
+      providerModel: "gpt-image-2",
+      vendor: "apimart"
+    },
+    type: "video",
+    task: "video_generation",
+    prompt: "prompt",
+    images: [imageDataUrl, "https://example.test/input.png", ""],
+    size: "1024x1024",
+    videoOptions: { duration: 5 },
+    inputAssetIds: ["asset-a", ""],
+    quote: { totalCredits: 8, fixedCredits: 8 },
+    reservation: { amountCredits: 8 }
+  });
+  assert(requestLog.imageCount === 3, "Generation request log should preserve the original image count");
+  assert(requestLog.images[0].source === "data-url", "Generation request log should summarize data URLs");
+  assert(requestLog.images[0].mimeType === "image/png", "Generation request log should keep data URL MIME type");
+  assert(!JSON.stringify(requestLog).includes("QUJDRA=="), "Generation request log should not leak base64 image data");
+  assert(requestLog.images[1].value === "https://example.test/input.png", "Generation request log should preserve public image URLs");
+  assert(requestLog.inputAssetIds.length === 1 && requestLog.inputAssetIds[0] === "asset-a", "Generation request log should filter empty input asset ids");
+  assert(requestLog.videoOptions.duration === 5, "Generation request log should keep video options for video jobs");
+
+  const responseLog = buildGenerationResponseLog({
+    provider: "apimart",
+    model: "gpt-image-2",
+    imageUrl: "/uploads/output.png",
+    sizeNormalization: {
+      requestedSize: "1024x1024",
+      normalizedSize: "1024*1024",
+      providerSize: "1024*1024",
+      providerResolution: "1k",
+      changed: true,
+      reason: "provider-format"
+    }
+  }, {
+    modelConfig: { id: "gpt-image-2", providerId: "apimart", providerModel: "gpt-image-2" },
+    type: "image",
+    immediateOutputUrl: "/uploads/output.png"
+  });
+  assert(responseLog.status === "succeeded", "Generation response log should mark immediate outputs as succeeded");
+  assert(responseLog.outputCount === 1, "Generation response log should count immediate outputs");
+  assert(responseLog.sizeNormalization.changed === true, "Generation response log should preserve size normalization");
+
+  const tripoTokenLog = buildTripo3DRequestLog({
+    route: "/api/ai/3d/image-to-model",
+    requestId: "tripo-1",
+    modelConfig: { id: "tripo-model", providerModel: "tripo-api" },
+    mode: "image",
+    imageUrl: "file_token:abcdefghij",
+    quote: { totalCredits: 12, unitCredits: 12 },
+    reservation: { amountCredits: 12 }
+  });
+  assert(tripoTokenLog.imageInput.source === "file_token", "Tripo request log should recognize file tokens");
+  assert(tripoTokenLog.imageInput.value === "[file_token]", "Tripo request log should not expose file tokens");
+
+  const tripoDataLog = buildTripo3DRequestLog({
+    imageDataUrl,
+    imageName: "input.png",
+    imageMimeType: "image/png"
+  });
+  assert(tripoDataLog.imageInput.source === "data-url", "Tripo request log should summarize uploaded data URLs");
+  assert(!JSON.stringify(tripoDataLog).includes("QUJDRA=="), "Tripo request log should not leak base64 image data");
+
+  const tripoResponseLog = buildTripo3DResponseLog({
+    taskId: "remote-1",
+    modelUrl: "https://example.test/model.glb",
+    renderedImageUrl: "https://example.test/render.png",
+    status: "running"
+  }, {
+    modelConfig: { id: "tripo-model", providerModel: "tripo-api" },
+    chargedCredits: 12
+  });
+  assert(tripoResponseLog.modelUrl === true, "Tripo response log should store model URL presence as a boolean");
+  assert(tripoResponseLog.billing.status === "charged", "Tripo response log should record charged billing status");
+
+  const error = errorWith({ status: 502, code: "PROVIDER_FAILED", message: "Provider exploded" });
+  const failureLog = buildGenerationFailureLog(error, {
+    stage: "provider",
+    failureCode: "PROVIDER_FAILED",
+    failureMessage: "Provider exploded"
+  });
+  assert(failureLog.providerStatus === 502, "Generation failure log should keep provider status");
+  assert(failureLog.failureCode === "PROVIDER_FAILED", "Generation failure log should keep failure code");
 }
 
 function errorWith({ status, code, message } = {}) {
