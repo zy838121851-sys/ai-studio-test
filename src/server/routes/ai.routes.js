@@ -28,6 +28,7 @@ import {
   toClientJob
 } from "../lib/ai-response-dto.js";
 import {
+  assertResolvedProviderMatchesModel,
   getInitialAIJobStatus,
   getModelModality,
   hasRemoteFallbackModelOutput,
@@ -823,21 +824,6 @@ export function createAIRouter() {
   }));
 
   return router;
-}
-
-function assertResolvedProviderMatchesModel({ modelConfig, result } = {}) {
-  if (modelConfig?.providerId !== "volcengine") return;
-  const provider = String(result?.provider || "").trim();
-  const providerModel = String(result?.providerModel || result?.resolvedModel || result?.model || "").trim();
-  const calls = Array.isArray(result?.providerCalls) ? result.providerCalls : [];
-  const hasOnlyVolcengineCalls = calls.length > 0 && calls.every((call) => call?.provider === "volcengine");
-  if (provider === "volcengine" && hasOnlyVolcengineCalls && !/^qwen-/i.test(providerModel)) return;
-  const callSummary = calls
-    .map((call) => `${call?.provider || "(none)"}/${call?.model || "(none)"}`)
-    .join(", ") || "(no provider calls)";
-  const error = new Error(`Doubao model ${modelConfig.id} resolved to an unexpected provider/model: ${provider || "(none)"} / ${providerModel || "(none)"}; calls: ${callSummary}`);
-  error.status = 500;
-  throw error;
 }
 
 function logAIProviderRoute({ requestedModel, provider, providerModel, referenceCount } = {}) {

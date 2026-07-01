@@ -17,6 +17,7 @@ import {
   toClientJob
 } from "../src/server/lib/ai-response-dto.js";
 import {
+  assertResolvedProviderMatchesModel,
   getInitialAIJobStatus,
   getModelModality,
   hasRemoteFallbackModelOutput,
@@ -431,6 +432,36 @@ function assertAIRouteHelpers() {
   assert(hasRemoteFallbackModelOutput([{ type: "model3d", url: "https://example.test/model.glb" }]) === true, "Remote model output helper should detect remote 3D fallback assets");
   assert(hasRemoteFallbackModelOutput([{ type: "model3d", url: "https://example.test/model.glb", filePath: "/uploads/model.glb" }]) === false, "Remote model output helper should ignore persisted local model assets");
   assert(hasRemoteFallbackModelOutput([{ type: "image", url: "https://example.test/image.png" }]) === false, "Remote model output helper should ignore non-model assets");
+
+  assertResolvedProviderMatchesModel({
+    modelConfig: { id: "doubao-seedream", providerId: "volcengine" },
+    result: {
+      provider: "volcengine",
+      providerModel: "doubao-seedream",
+      providerCalls: [{ provider: "volcengine", model: "doubao-seedream" }]
+    }
+  });
+  assertResolvedProviderMatchesModel({
+    modelConfig: { id: "gpt-image-2", providerId: "apimart" },
+    result: {
+      provider: "qwen",
+      providerModel: "qwen-image-plus",
+      providerCalls: [{ provider: "qwen", model: "qwen-image-plus" }]
+    }
+  });
+  assertThrowsStatus(
+    () => assertResolvedProviderMatchesModel({
+      modelConfig: { id: "doubao-seedream", providerId: "volcengine" },
+      result: {
+        provider: "qwen",
+        providerModel: "qwen-image-plus",
+        providerCalls: [{ provider: "qwen", model: "qwen-image-plus" }]
+      }
+    }),
+    500,
+    "Doubao model doubao-seedream resolved to an unexpected provider/model: qwen / qwen-image-plus; calls: qwen/qwen-image-plus",
+    "Doubao model guard should reject hidden Qwen resolution"
+  );
 
   assert(isValidTripoImageInput("https://example.test/input.png", "") === true, "Tripo image input should accept public URLs");
   assert(isValidTripoImageInput("file_token:abcdefghij", "") === true, "Tripo image input should accept prefixed file tokens");
