@@ -1,5 +1,4 @@
 import { Router } from "express";
-import { env } from "../config/env.js";
 import { createAIAsyncHandler } from "../lib/ai-error-response.js";
 import {
   toClientAsset,
@@ -17,7 +16,6 @@ import {
 import { sendErrorResponse } from "../lib/http-error-response.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
-import { assertPublicHttpUrl } from "../security/network.js";
 import {
   completeModel3DJob,
   failModel3DJob,
@@ -52,6 +50,7 @@ import {
   createModelImageEdit,
   createUpscaledImageEdit
 } from "../services/ai/image-edit-creation.service.js";
+import { proxyImage } from "../services/ai/image-proxy.service.js";
 import { createTripo3DJob } from "../services/ai/tripo-3d-creation.service.js";
 import {
   getTask as getTripoTask
@@ -362,33 +361,14 @@ export function createAIRouter() {
 
   router.get("/image-proxy", imageProxyLimiter, asyncHandler(async (req, res) => {
     const url = String(req.query.url || "").trim();
-    const safeUrl = await assertPublicHttpUrl(url);
-    const upstream = await fetch(safeUrl, {
-      redirect: "error",
-      signal: AbortSignal.timeout(10000)
-    });
-    if (!upstream.ok) {
-      sendErrorResponse(res, upstream.status, "Unable to fetch image");
+    const result = await proxyImage({ url });
+    if (result.status) {
+      sendErrorResponse(res, result.status, result.message);
       return;
     }
-    const contentType = upstream.headers.get("content-type") || "application/octet-stream";
-    if (!contentType.toLowerCase().startsWith("image/")) {
-      sendErrorResponse(res, 415, "URL did not return an image");
-      return;
-    }
-    const contentLength = Number(upstream.headers.get("content-length") || 0);
-    if (contentLength && contentLength > env.maxProxyImageBytes) {
-      sendErrorResponse(res, 413, "Image is too large");
-      return;
-    }
-    const buffer = Buffer.from(await upstream.arrayBuffer());
-    if (buffer.length > env.maxProxyImageBytes) {
-      sendErrorResponse(res, 413, "Image is too large");
-      return;
-    }
-    res.setHeader("Content-Type", contentType);
-    res.setHeader("Cache-Control", "private, max-age=300");
-    res.send(buffer);
+    res.setHeader("Content-Type", result.contentType);
+    res.setHeader("Cache-Control", result.cacheControl);
+    res.send(result.buffer);
   }));
 
   return router;
