@@ -3,10 +3,7 @@ import { createAIAsyncHandler } from "../lib/ai-error-response.js";
 import { sendErrorResponse } from "../lib/http-error-response.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
-import {
-  DEFAULT_IMAGE_MODEL,
-  listImageModels
-} from "../services/model-catalog.service.js";
+import { getModelListResponse } from "../services/model-catalog.service.js";
 import {
   createChatImageGeneration,
   createFixedBillingGeneration,
@@ -59,11 +56,7 @@ export function createAIRouter() {
   const router = Router();
 
   router.get("/models", asyncHandler(async (req, res) => {
-    const surface = String(req.query.surface || "").trim();
-    res.json({
-      defaultModel: DEFAULT_IMAGE_MODEL,
-      models: listImageModels({ surface: surface || undefined })
-    });
+    res.json(getModelListResponse({ surface: req.query.surface }));
   }));
 
   router.use(requireAuth);

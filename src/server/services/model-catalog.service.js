@@ -266,6 +266,14 @@ export function listImageModels({ surface } = {}) {
     .map(toPublicModel);
 }
 
+export function getModelListResponse({ surface } = {}) {
+  const cleanSurface = String(surface || "").trim();
+  return {
+    defaultModel: DEFAULT_IMAGE_MODEL,
+    models: listImageModels({ surface: cleanSurface || undefined })
+  };
+}
+
 export function getModelConfig(modelId) {
   const id = String(modelId || "").trim() || DEFAULT_IMAGE_MODEL;
   return MODEL_CATALOG.find((model) => model.id === id) || null;
