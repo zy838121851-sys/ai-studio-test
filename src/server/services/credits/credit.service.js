@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { prepare, transaction } from "../../db/sqlite.js";
 import { DEFAULT_SIGNUP_CREDITS } from "../../db/credits-migration.js";
+import { createHttpError } from "../../lib/input-validation.js";
 import {
   calculateCreditReservation,
   calculateReservedCreditCharge,
@@ -135,8 +136,7 @@ export function reserveCredits({
     const balance = Number(account.balance_credits || 0);
     const reserved = Number(account.reserved_credits || 0);
     if (balance - reserved < credits) {
-      const error = new Error("绉垎涓嶈冻");
-      error.status = 402;
+      const error = createHttpError("绉垎涓嶈冻", 402);
       error.code = "INSUFFICIENT_CREDITS";
       throw error;
     }
@@ -301,9 +301,7 @@ function getOrCreateZeroAccount(db, userId) {
     LIMIT 1;
   `).get(userId, scope.billingAccountId);
   if (!account) {
-    const error = new Error("Billing account not found");
-    error.status = 500;
-    throw error;
+    throw createHttpError("Billing account not found", 500);
   }
   return account;
 }
@@ -311,9 +309,7 @@ function getOrCreateZeroAccount(db, userId) {
 function getRequiredAccount(db, userId) {
   const account = getOrCreateZeroAccount(db, userId);
   if (!account) {
-    const error = new Error("Credit account not found. Run credits migration first.");
-    error.status = 500;
-    throw error;
+    throw createHttpError("Credit account not found. Run credits migration first.", 500);
   }
   return account;
 }
@@ -398,9 +394,7 @@ function normalizeLimit(limit) {
 function toCredits(value) {
   const credits = Math.ceil(Number(value || 0));
   if (!Number.isFinite(credits) || credits <= 0) {
-    const error = new Error("Credit amount must be a positive integer");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Credit amount must be a positive integer", 400);
   }
   return credits;
 }
