@@ -62,7 +62,7 @@ export function bindTaskLogRuntime(runtime = {}) {
   // Visibility is owned by workspace routing: body[data-view="space"] and
   // #profileView.active must stay stable during any future template split.
   const syncVisibility = () => {
-    const visible = documentRoot.body?.dataset.view === "space" || elements.profileView?.classList.contains("active");
+    const visible = isTaskLogVisible(documentRoot, elements);
     if (visible && !state.loaded) refresh();
     if (visible && !state.autoTimer) {
       state.autoTimer = setInterval(() => {
@@ -132,6 +132,10 @@ export function bindTaskLogRuntime(runtime = {}) {
       elements.page.dataset.taskLogBound = "";
     }
   };
+}
+
+function isTaskLogVisible(documentRoot, elements) {
+  return documentRoot.body?.dataset.view === "space" || elements.profileView?.classList.contains("active");
 }
 
 // Selector parity list: preserve these ids/classes before bindTaskLogRuntime().
