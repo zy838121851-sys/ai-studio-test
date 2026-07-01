@@ -106,7 +106,7 @@ export { createCanvasToolWorkflow } from "./workflows/canvas-tool-workflow.js";
 export { createEraserWorkflow } from "./workflows/eraser-workflow.js";
 export { createGenerationNodeWorkflow } from "./workflows/generation-node-workflow.js";
 export { createGenerationUploadWorkflow } from "./workflows/generation-upload-workflow.js";
-export { createImageEditWorkflow } from "./workflows/image-edit-workflow.js?v=20260627-library-bulk-select-1";
+export { createImageEditWorkflow } from "./workflows/image-edit-workflow-loader.js";
 export { createImageGeneratorWorkflow } from "./workflows/image-generator-workflow-loader.js";
 export { createModelViewerWorkflow } from "./workflows/model-viewer-workflow.js";
 export { createNodeDragWorkflow } from "./workflows/node-drag-workflow.js";

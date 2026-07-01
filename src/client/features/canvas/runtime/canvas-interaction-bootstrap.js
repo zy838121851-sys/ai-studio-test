@@ -2,7 +2,7 @@ import {
   createCanvasCoordinateWorkflow
 } from "../workflows/canvas-coordinate-workflow.js";
 import { createCanvasMenuWorkflow } from "../workflows/canvas-menu-workflow.js";
-import { createImageEditWorkflow } from "../workflows/image-edit-workflow.js?v=20260627-library-bulk-select-1";
+import { createImageEditWorkflow } from "../workflows/image-edit-workflow-loader.js";
 import { createShapeToolbarController } from "../shape-toolbar-controller.js";
 import { createTextEditWorkflow } from "../workflows/text-edit-workflow.js";
 
