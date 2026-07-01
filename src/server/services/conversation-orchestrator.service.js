@@ -2,6 +2,7 @@ import {
   analyzeImage,
   generateSuggestions
 } from "./ai.service.js";
+import { normalizeBoundedText } from "../lib/input-validation.js";
 import { getModelConfig } from "./model-catalog.service.js";
 import {
   appendConversationMessage,
@@ -163,7 +164,7 @@ const HIGH_RISK_PROMPT_DRIFT_RULES = [
 ];
 
 function normalizeText(value = "", maxLength = 4000) {
-  return String(value || "").replace(/\s+/g, " ").trim().slice(0, maxLength);
+  return normalizeBoundedText(value, maxLength);
 }
 
 function compactJson(value, maxLength = 9000) {
