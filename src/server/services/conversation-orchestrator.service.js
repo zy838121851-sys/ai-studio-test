@@ -2,7 +2,7 @@ import {
   analyzeImage,
   generateSuggestions
 } from "./ai.service.js";
-import { normalizeBoundedText } from "../lib/input-validation.js";
+import { createHttpError, normalizeBoundedText } from "../lib/input-validation.js";
 import { getModelConfig } from "./model-catalog.service.js";
 import {
   appendConversationMessage,
@@ -738,17 +738,13 @@ export async function runConversationTurn({
 } = {}) {
   const conversation = getConversationForUser(userId, conversationId);
   if (!conversation) {
-    const error = new Error("Conversation not found");
-    error.status = 404;
-    throw error;
+    throw createHttpError("Conversation not found", 404);
   }
   const cleanText = normalizeText(text);
   const cleanAttachments = Array.isArray(attachments) ? attachments.slice(0, 8) : [];
   const cleanCanvasContext = canvasContext && typeof canvasContext === "object" ? canvasContext : {};
   if (!cleanText && !cleanAttachments.length && !Object.keys(cleanCanvasContext).length) {
-    const error = new Error("Missing text or context");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Missing text or context", 400);
   }
 
   const userMessage = appendConversationMessage({
