@@ -85,6 +85,14 @@ export function assertTripo3DRequiredInput({
   }
 }
 
+export function getTripo3DJobMetadata(mode = "text") {
+  const isImageMode = mode === "image";
+  return {
+    task: isImageMode ? "tripo_image_to_3d_standard" : "tripo_text_to_3d_standard",
+    route: `/api/ai/3d/${isImageMode ? "image-to-model" : "text-to-model"}`
+  };
+}
+
 export function normalizeTripo3DJobInput(body = {}, { mode = "text" } = {}) {
   const isImageMode = mode === "image";
   const imageUrl = isImageMode

@@ -28,6 +28,7 @@ import {
   assertTripo3DRequiredInput,
   getInitialAIJobStatus,
   getModelModality,
+  getTripo3DJobMetadata,
   hasRemoteFallbackModelOutput,
   isFixedQwenImageEditAction,
   isValidTripoImageInput,
@@ -705,6 +706,15 @@ function assertAIRouteHelpers() {
     "Image-to-3D requires an http/https URL, Tripo file token, or uploaded image data.",
     "Tripo input guard should require valid image input for image-to-3D"
   );
+
+  assertDeepEqual(getTripo3DJobMetadata("text"), {
+    task: "tripo_text_to_3d_standard",
+    route: "/api/ai/3d/text-to-model"
+  }, "Tripo 3D metadata should preserve text-to-model routing");
+  assertDeepEqual(getTripo3DJobMetadata("image"), {
+    task: "tripo_image_to_3d_standard",
+    route: "/api/ai/3d/image-to-model"
+  }, "Tripo 3D metadata should preserve image-to-model routing");
 
   const text3DInput = normalizeTripo3DJobInput({
     prompt: "  make a chair  ",

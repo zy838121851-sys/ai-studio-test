@@ -33,6 +33,7 @@ import {
   assertTripo3DRequiredInput,
   getInitialAIJobStatus,
   getModelModality,
+  getTripo3DJobMetadata,
   hasRemoteFallbackModelOutput,
   isFixedQwenImageEditAction,
   jobStatusForError,
@@ -849,7 +850,7 @@ async function createTripo3DJob(req, {
 
   const requestId = randomUUID();
   const startedAt = Date.now();
-  const task = mode === "image" ? "tripo_image_to_3d_standard" : "tripo_text_to_3d_standard";
+  const { task, route } = getTripo3DJobMetadata(mode);
   const quote = quoteFixedCredits({
     provider: "tripo",
     model: modelConfig.id,
@@ -880,7 +881,7 @@ async function createTripo3DJob(req, {
     prompt: cleanPrompt || "Image to 3D",
     creditsReserved: reservation.amountCredits,
     requestData: buildTripo3DRequestLog({
-      route: `/api/ai/3d/${mode === "image" ? "image-to-model" : "text-to-model"}`,
+      route,
       requestId,
       modelConfig,
       mode,
