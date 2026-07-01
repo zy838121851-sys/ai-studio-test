@@ -93,16 +93,15 @@ docs still reference it.
 `app-init.js` imports:
 
 ```text
-../features/workspace/runtime/index.js
+../features/workspace/workflows/workspace-app-mount.js
 ```
 
-The runtime index currently re-exports many workspace runtime helpers. The
-specific mount chain is:
+The concrete mount chain is:
 
 ```text
-src/client/features/workspace/runtime/index.js
--> src/client/features/workspace/workflows/index.js
+src/client/core/app-init.js
 -> src/client/features/workspace/workflows/workspace-app-mount.js
+-> src/client/features/workspace/workflows/workspace-app-composition.js
 ```
 
 `workspace-app-mount.js` is the concrete mount function that calls the workspace
@@ -168,29 +167,37 @@ Rollback:
 git revert <entry-shortening-commit>
 ```
 
-### Candidate B: workspace runtime mount re-export
+### Completed B: bypass workspace runtime barrel for app mount
 
 Current role:
 
 ```text
 app-init.js
--> features/workspace/runtime/index.js
--> features/workspace/workflows/index.js
 -> workspace-app-mount.js
 ```
 
-Potential future move:
+Current source entry:
 
-- Import `mountWorkspaceApp` from `workspace-app-mount.js` directly, or create a
-  narrower runtime mount entry.
+```js
+import { mountWorkspaceApp } from "../features/workspace/workflows/workspace-app-mount.js?v=20260628-boot-inline-1";
+```
 
-Why this is not the first move:
+Why this was the safest second code cleanup:
 
-- `runtime/index.js` is also a broad public runtime barrel.
-- It exports many helpers used by workspace composition and future migration
-  paths.
-- A direct import might be safe, but it should be done only after a targeted
-  import graph check for `features/workspace/runtime/index.js`.
+- `app-init.js` was the only runtime consumer importing
+  `features/workspace/runtime/index.js` for `mountWorkspaceApp`.
+- `workspace-app-mount.js` is the concrete function implementation.
+- The compatibility bridge lifecycle remains inside `workspace-app-mount.js`.
+- No broad barrel or forwarding file was deleted.
+
+Compatibility rules after this cleanup:
+
+- Keep `src/client/features/workspace/runtime/index.js` as a public runtime
+  barrel until all consumers and migration paths are separately proven safe.
+- Keep `src/client/features/workspace/workflows/index.js` because workspace
+  feature barrels still re-export through it.
+- Do not alter `workspace-app-mount.js` compatibility bridge behavior in the
+  same batch.
 
 ### Candidate C: `src/client/features/workspace/index.js`
 
@@ -225,8 +232,9 @@ These areas have broader runtime or deployment coupling.
 
 The next safest code batch is:
 
-1. Audit `src/client/features/workspace/runtime/index.js` import consumers.
-2. Decide whether `app-init.js` can import a narrower workspace mount entry.
+1. Audit whether `src/client/features/workspace/workflows/index.js` has real
+   consumers beyond broad feature barrels.
+2. Decide whether a narrower workspace public API should replace broad barrels.
 3. Do not change `workspace-app-mount.js` compatibility bridge behavior.
 4. Do not delete any broad barrel or forwarding file.
 5. Run `npm run check`.

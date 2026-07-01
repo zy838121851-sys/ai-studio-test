@@ -12,7 +12,7 @@ import { initAuthEntry } from "../features/auth/auth-entry.js";
 import { initCreditQuoteBadges } from "../features/credits/quote-badges.js?v=20260628-boot-inline-1";
 import { initAssetPanel } from "../features/workspace/asset-library/asset-panel.js?v=20260628-boot-inline-1";
 import { initAgentPanel } from "../features/agent/agent-panel.js";
-import { mountWorkspaceApp } from "../features/workspace/runtime/index.js?v=20260628-boot-inline-1";
+import { mountWorkspaceApp } from "../features/workspace/workflows/workspace-app-mount.js?v=20260628-boot-inline-1";
 
 function markAppBootState(state = "ready") {
   const body = globalThis.document?.body;
