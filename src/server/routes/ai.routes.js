@@ -33,6 +33,7 @@ import {
   assertTripo3DRequiredInput,
   buildTripo3DDispatchParams,
   buildTripo3DDispatchResultParams,
+  buildTripo3DFailJobParams,
   buildTripo3DJobRecordParams,
   buildTripo3DReleaseReservationParams,
   buildTripo3DSuccessResponse,
@@ -965,19 +966,12 @@ async function createTripo3DJob(req, {
       }));
     }
     if (job?.id) {
-      failModel3DJob(userId, job.id, {
-        status: "failed",
-        errorCode: error?.code || "TRIPO_TASK_CREATE_FAILED",
-        errorMessage: error?.message || "Tripo task creation failed",
-        responseData: {
-          status: "failed",
-          stage: taskCreated ? "charge" : "task_create",
-          provider: "tripo",
-          providerPayload: error?.providerPayload || undefined
-        },
-        durationMs: Date.now() - startedAt,
-        refundTodo: Boolean(chargedCredits)
-      });
+      failModel3DJob(userId, job.id, buildTripo3DFailJobParams({
+        error,
+        taskCreated,
+        startedAt,
+        chargedCredits
+      }));
     }
     throw error;
   }

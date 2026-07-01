@@ -28,6 +28,7 @@ import {
   assertTripo3DRequiredInput,
   buildTripo3DDispatchParams,
   buildTripo3DDispatchResultParams,
+  buildTripo3DFailJobParams,
   buildTripo3DJobRecordParams,
   buildTripo3DReleaseReservationParams,
   buildTripo3DSuccessResponse,
@@ -886,6 +887,48 @@ function assertAIRouteHelpers() {
     aiJobId: "",
     status: "failed"
   }, "Tripo release reservation params should preserve default failure fallbacks");
+
+  assertDeepEqual(buildTripo3DFailJobParams({
+    error: {
+      code: "TRIPO_DOWN",
+      message: "provider failed",
+      providerPayload: { reason: "downstream" }
+    },
+    taskCreated: null,
+    startedAt: 1000,
+    chargedCredits: 0,
+    now: 1250
+  }), {
+    status: "failed",
+    errorCode: "TRIPO_DOWN",
+    errorMessage: "provider failed",
+    responseData: {
+      status: "failed",
+      stage: "task_create",
+      provider: "tripo",
+      providerPayload: { reason: "downstream" }
+    },
+    durationMs: 250,
+    refundTodo: false
+  }, "Tripo fail job params should preserve task-create failure fields");
+  assertDeepEqual(buildTripo3DFailJobParams({
+    error: {},
+    taskCreated: { taskId: "task-1" },
+    startedAt: 1000,
+    chargedCredits: 12,
+    now: 1300
+  }), {
+    status: "failed",
+    errorCode: "TRIPO_TASK_CREATE_FAILED",
+    errorMessage: "Tripo task creation failed",
+    responseData: {
+      status: "failed",
+      stage: "charge",
+      provider: "tripo"
+    },
+    durationMs: 300,
+    refundTodo: true
+  }, "Tripo fail job params should preserve charge failure fallbacks");
 
   const text3DInput = normalizeTripo3DJobInput({
     prompt: "  make a chair  ",

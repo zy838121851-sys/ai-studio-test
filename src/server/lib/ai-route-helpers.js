@@ -213,6 +213,28 @@ export function buildTripo3DReleaseReservationParams({
   };
 }
 
+export function buildTripo3DFailJobParams({
+  error = {},
+  taskCreated = null,
+  startedAt = 0,
+  chargedCredits = 0,
+  now = Date.now()
+} = {}) {
+  return {
+    status: "failed",
+    errorCode: error?.code || "TRIPO_TASK_CREATE_FAILED",
+    errorMessage: error?.message || "Tripo task creation failed",
+    responseData: {
+      status: "failed",
+      stage: taskCreated ? "charge" : "task_create",
+      provider: "tripo",
+      providerPayload: error?.providerPayload || undefined
+    },
+    durationMs: now - startedAt,
+    refundTodo: Boolean(chargedCredits)
+  };
+}
+
 export function normalizeTripo3DJobInput(body = {}, { mode = "text" } = {}) {
   const isImageMode = mode === "image";
   const imageUrl = isImageMode
