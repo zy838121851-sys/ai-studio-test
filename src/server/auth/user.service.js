@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { execute, queryOne, sqlValue } from "../db/sqlite.js";
+import { createHttpError } from "../lib/input-validation.js";
 import { ensureCreditAccount } from "../services/credits/credit.service.js";
 import { publicEmail } from "./identity.service.js";
 import { hashPassword, verifyPassword } from "./password.js";
@@ -33,19 +34,13 @@ export function findUserByEmail(email) {
 export function createUser({ email, password, name = "" } = {}) {
   const normalizedEmail = normalizeEmail(email);
   if (!normalizedEmail || !normalizedEmail.includes("@")) {
-    const error = new Error("Valid email is required");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Valid email is required", 400);
   }
   if (String(password || "").length < 8) {
-    const error = new Error("Password must be at least 8 characters");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Password must be at least 8 characters", 400);
   }
   if (findUserByEmail(normalizedEmail)) {
-    const error = new Error("Email already registered");
-    error.status = 409;
-    throw error;
+    throw createHttpError("Email already registered", 409);
   }
 
   const now = Date.now();
@@ -103,9 +98,7 @@ export function createUser({ email, password, name = "" } = {}) {
 export function authenticateUser({ email, password } = {}) {
   const user = findUserByEmail(email);
   if (!user || !verifyPassword(password || "", user.password_salt, user.password_hash)) {
-    const error = new Error("Invalid email or password");
-    error.status = 401;
-    throw error;
+    throw createHttpError("Invalid email or password", 401);
   }
   return publicUser(user);
 }
