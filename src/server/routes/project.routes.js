@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { sendCaughtErrorResponse, sendErrorResponse } from "../lib/http-error-response.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { localAuditLogger } from "../providers/audit/local-audit-logger.js";
 import {
@@ -22,8 +23,10 @@ function auditProjectEvent(req, event, detail = {}) {
 }
 
 function handleProjectError(res, error) {
-  res.status(error.status || 400).json({
-    message: error.status ? error.message : (error.message || "Project request failed")
+  sendCaughtErrorResponse(res, error, {
+    defaultStatus: 400,
+    defaultMessage: "Project request failed",
+    useStatusMessageOnly: true
   });
 }
 
@@ -47,7 +50,7 @@ export function createProjectRouter() {
   router.get("/projects/:id", (req, res) => {
     const project = getProject(userIdFromRequest(req), req.params.id, { touchLastOpened: true });
     if (!project) {
-      res.status(404).json({ message: "Project not found" });
+      sendErrorResponse(res, 404, "Project not found");
       return;
     }
     res.json({ project });
@@ -57,7 +60,7 @@ export function createProjectRouter() {
     try {
       const project = updateProject(userIdFromRequest(req), req.params.id, req.body);
       if (!project) {
-        res.status(404).json({ message: "Project not found" });
+        sendErrorResponse(res, 404, "Project not found");
         return;
       }
       res.json({ project });
@@ -76,7 +79,7 @@ export function createProjectRouter() {
         userId,
         projectId: req.params.id
       });
-      res.status(404).json({ message: "Project not found" });
+      sendErrorResponse(res, 404, "Project not found");
       return;
     }
     auditProjectEvent(req, "project.delete.succeeded", {
@@ -91,7 +94,7 @@ export function createProjectRouter() {
     try {
       const project = saveProjectCanvas(userIdFromRequest(req), req.params.id, req.body);
       if (!project) {
-        res.status(404).json({ message: "Project not found" });
+        sendErrorResponse(res, 404, "Project not found");
         return;
       }
       res.json({ project });

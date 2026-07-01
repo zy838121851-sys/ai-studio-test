@@ -1,4 +1,5 @@
 import { findSessionUser, getSessionToken } from "../auth/session.js";
+import { sendErrorResponse } from "../lib/http-error-response.js";
 
 export function attachAuth(req, _res, next) {
   const token = getSessionToken(req);
@@ -13,7 +14,7 @@ export function attachAuth(req, _res, next) {
 
 export function requireAuth(req, res, next) {
   if (!req.auth?.user) {
-    res.status(401).json({ message: "Authentication required" });
+    sendErrorResponse(res, 401, "Authentication required");
     return;
   }
   next();
