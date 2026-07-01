@@ -7,6 +7,7 @@ import { cleanupAuthArtifacts } from "./auth/cleanup.service.js";
 import { initializeDatabase } from "./db/sqlite.js";
 import { runCreditsMigration } from "./db/credits-migration.js";
 import { logError, logInfo } from "./lib/logger.js";
+import { getRequestMethod, getRequestPath, requestAccepts } from "./lib/route-request.js";
 import { attachAuth } from "./middleware/auth.middleware.js";
 import { requestErrorLogger } from "./middleware/request-log.middleware.js";
 import { createAIRouter } from "./routes/ai.routes.js";
@@ -113,9 +114,9 @@ export function createServer() {
   }
   app.get("*", (req, res, next) => {
     if (
-      req.method === "GET"
-      && isAppNavigationPath(req.path)
-      && req.accepts("html")
+      getRequestMethod(req) === "GET"
+      && isAppNavigationPath(getRequestPath(req))
+      && requestAccepts(req, "html")
     ) {
       noStoreStatic(res);
       res.sendFile(getClientIndexPath({ rootDir, distIndexPath, useBuiltClient }));

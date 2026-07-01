@@ -14,6 +14,10 @@ export function getRequestClientAddress(req) {
   return req.ip || req.socket?.remoteAddress || "unknown";
 }
 
+export function requestAccepts(req, type) {
+  return req.accepts?.(type);
+}
+
 export function getRequestMethod(req) {
   return req.method;
 }
