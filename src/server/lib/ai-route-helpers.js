@@ -235,6 +235,22 @@ export function buildTripo3DFailJobParams({
   };
 }
 
+export function buildTripo3DRemoteFailureParams({
+  remote = {},
+  responseData = null,
+  startedAt = 0,
+  now = Date.now()
+} = {}) {
+  return {
+    status: remote.status === "banned" ? "failed" : remote.status,
+    errorCode: remote.errorCode || remote.status,
+    errorMessage: remote.errorMessage || `Tripo task ${remote.status}`,
+    responseData,
+    durationMs: now - startedAt,
+    refundTodo: true
+  };
+}
+
 export function normalizeTripo3DJobInput(body = {}, { mode = "text" } = {}) {
   const isImageMode = mode === "image";
   const imageUrl = isImageMode

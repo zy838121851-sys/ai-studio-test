@@ -36,6 +36,7 @@ import {
   buildTripo3DFailJobParams,
   buildTripo3DJobRecordParams,
   buildTripo3DReleaseReservationParams,
+  buildTripo3DRemoteFailureParams,
   buildTripo3DSuccessResponse,
   getInitialAIJobStatus,
   getModelModality,
@@ -169,14 +170,11 @@ export function createAIRouter() {
         force: needsLocalModelSave
       });
     } else if (["failed", "cancelled", "banned"].includes(remote.status)) {
-      currentJob = failModel3DJob(req.auth.user.id, job.id, {
-        status: remote.status === "banned" ? "failed" : remote.status,
-        errorCode: remote.errorCode || remote.status,
-        errorMessage: remote.errorMessage || `Tripo task ${remote.status}`,
+      currentJob = failModel3DJob(req.auth.user.id, job.id, buildTripo3DRemoteFailureParams({
+        remote,
         responseData,
-        durationMs: Date.now() - startedAt,
-        refundTodo: true
-      });
+        startedAt
+      }));
     } else {
       updateAIJobLogData(req.auth.user.id, job.id, { responseData });
       currentJob = updateAIJobProgress(req.auth.user.id, job.id, {

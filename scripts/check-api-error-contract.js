@@ -31,6 +31,7 @@ import {
   buildTripo3DFailJobParams,
   buildTripo3DJobRecordParams,
   buildTripo3DReleaseReservationParams,
+  buildTripo3DRemoteFailureParams,
   buildTripo3DSuccessResponse,
   getInitialAIJobStatus,
   getModelModality,
@@ -929,6 +930,37 @@ function assertAIRouteHelpers() {
     durationMs: 300,
     refundTodo: true
   }, "Tripo fail job params should preserve charge failure fallbacks");
+
+  assertDeepEqual(buildTripo3DRemoteFailureParams({
+    remote: {
+      status: "banned",
+      errorCode: "POLICY_BLOCKED",
+      errorMessage: "provider policy blocked"
+    },
+    responseData: { provider: "tripo" },
+    startedAt: 1000,
+    now: 1500
+  }), {
+    status: "failed",
+    errorCode: "POLICY_BLOCKED",
+    errorMessage: "provider policy blocked",
+    responseData: { provider: "tripo" },
+    durationMs: 500,
+    refundTodo: true
+  }, "Tripo remote failure params should preserve banned-to-failed mapping");
+  assertDeepEqual(buildTripo3DRemoteFailureParams({
+    remote: { status: "cancelled" },
+    responseData: { provider: "tripo" },
+    startedAt: 1000,
+    now: 1600
+  }), {
+    status: "cancelled",
+    errorCode: "cancelled",
+    errorMessage: "Tripo task cancelled",
+    responseData: { provider: "tripo" },
+    durationMs: 600,
+    refundTodo: true
+  }, "Tripo remote failure params should preserve status fallback fields");
 
   const text3DInput = normalizeTripo3DJobInput({
     prompt: "  make a chair  ",
