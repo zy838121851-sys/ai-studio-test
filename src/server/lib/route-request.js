@@ -10,6 +10,10 @@ export function getRequestHeader(req, name) {
   return req.headers?.[String(name || "").toLowerCase()];
 }
 
+export function getRequestClientAddress(req) {
+  return req.ip || req.socket?.remoteAddress || "unknown";
+}
+
 export function getRequestMethod(req) {
   return req.method;
 }

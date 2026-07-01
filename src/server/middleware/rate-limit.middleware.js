@@ -1,8 +1,9 @@
 import { sendErrorResponse } from "../lib/http-error-response.js";
+import { getRequestClientAddress } from "../lib/route-request.js";
 import { getDefaultRateLimitStore, hitRateLimitBucket } from "../services/rate-limit.service.js";
 
 function clientKey(req, namespace) {
-  return `${namespace}:${req.ip || req.socket?.remoteAddress || "unknown"}`;
+  return `${namespace}:${getRequestClientAddress(req)}`;
 }
 
 export function createRateLimiter({
