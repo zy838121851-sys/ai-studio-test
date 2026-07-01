@@ -21,6 +21,10 @@ function handleProjectError(res, error) {
   });
 }
 
+function sendProjectNotFound(res) {
+  sendErrorResponse(res, 404, "Project not found");
+}
+
 export function createProjectRouter() {
   const router = Router();
   router.use(requireAuth);
@@ -41,7 +45,7 @@ export function createProjectRouter() {
   router.get("/projects/:id", (req, res) => {
     const project = getProject(getRequestContext(req), getRouteParam(req, "id"), { touchLastOpened: true });
     if (!project) {
-      sendErrorResponse(res, 404, "Project not found");
+      sendProjectNotFound(res);
       return;
     }
     res.json({ project });
@@ -51,7 +55,7 @@ export function createProjectRouter() {
     try {
       const project = updateProject(getRequestContext(req), getRouteParam(req, "id"), getRequestBody(req));
       if (!project) {
-        sendErrorResponse(res, 404, "Project not found");
+        sendProjectNotFound(res);
         return;
       }
       res.json({ project });
@@ -71,7 +75,7 @@ export function createProjectRouter() {
         userId: context.userId,
         projectId
       });
-      sendErrorResponse(res, 404, "Project not found");
+      sendProjectNotFound(res);
       return;
     }
     recordAuditEvent(req, "project.delete.succeeded", {
@@ -86,7 +90,7 @@ export function createProjectRouter() {
     try {
       const project = saveProjectCanvas(getRequestContext(req), getRouteParam(req, "id"), getRequestBody(req));
       if (!project) {
-        sendErrorResponse(res, 404, "Project not found");
+        sendProjectNotFound(res);
         return;
       }
       res.json({ project });
