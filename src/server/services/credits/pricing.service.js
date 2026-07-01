@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { prepare, transaction } from "../../db/sqlite.js";
+import { createHttpError } from "../../lib/input-validation.js";
 
 export const CREDIT_VALUE_CNY = 0.05;
 export const DEFAULT_MARKUP_MULTIPLIER = 2;
@@ -383,15 +384,13 @@ function normalizeDefaultPricing(price = {}) {
 }
 
 function throwPriceNotConfigured() {
-  const error = new Error(MODEL_PRICE_NOT_CONFIGURED_MESSAGE);
-  error.status = 402;
+  const error = createHttpError(MODEL_PRICE_NOT_CONFIGURED_MESSAGE, 402);
   error.code = "MODEL_PRICE_NOT_CONFIGURED";
   throw error;
 }
 
 function throwInvalidCount() {
-  const error = new Error("count must be an integer between 1 and 10");
-  error.status = 400;
+  const error = createHttpError("count must be an integer between 1 and 10", 400);
   error.code = "INVALID_CREDIT_COUNT";
   throw error;
 }
