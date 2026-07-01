@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
@@ -15,6 +15,8 @@ let closeDatabaseRef = null;
 const restoreConsole = suppressAuditLogs();
 
 try {
+  assertNoInlineMessageErrorResponses();
+
   const { createServer } = await import("../src/server/index.js");
   const { closeDatabase } = await import("../src/server/db/sqlite.js");
   closeDatabaseRef = closeDatabase;
@@ -142,6 +144,41 @@ function assertErrorContract(response, { label, status, message } = {}) {
   }
   assert(!("stack" in response.body), `${label} should not expose stack`);
   assert(!("trace" in response.body), `${label} should not expose trace`);
+}
+
+function assertNoInlineMessageErrorResponses() {
+  const routesRoot = join(process.cwd(), "src", "server", "routes");
+  const offenders = [];
+  for (const filePath of listJavaScriptFiles(routesRoot)) {
+    const source = readFileSync(filePath, "utf8");
+    const lines = source.split(/\r?\n/);
+    lines.forEach((line, index) => {
+      if (/res\.status\([^\n]+\)\.json\(\{\s*message\s*:/.test(line)) {
+        offenders.push(`${filePath}:${index + 1}`);
+      }
+    });
+  }
+
+  assert(
+    offenders.length === 0,
+    [
+      "Route error responses should use sendErrorResponse/sendCaughtErrorResponse instead of inline { message } JSON.",
+      ...offenders
+    ].join("\n")
+  );
+}
+
+function listJavaScriptFiles(root) {
+  const files = [];
+  for (const entry of readdirSync(root, { withFileTypes: true })) {
+    const entryPath = join(root, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...listJavaScriptFiles(entryPath));
+    } else if (entry.isFile() && entry.name.endsWith(".js")) {
+      files.push(entryPath);
+    }
+  }
+  return files;
 }
 
 function listen(app) {
