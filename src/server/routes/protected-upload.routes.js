@@ -1,5 +1,6 @@
 import { existsSync } from "node:fs";
 import { Router } from "express";
+import { sendErrorResponse } from "../lib/http-error-response.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { getAssetByUploadUrl, resolveUploadAssetPath } from "../services/asset.service.js";
 
@@ -16,20 +17,20 @@ export function createProtectedUploadRouter() {
     const asset = getAssetByUploadUrl(userIdFromRequest(req), publicPath);
     const absolutePath = resolveUploadAssetPath(asset);
     if (!asset || !absolutePath || !existsSync(absolutePath)) {
-      res.status(404).json({ message: "Upload not found" });
+      sendErrorResponse(res, 404, "Upload not found");
       return;
     }
     if (asset.mimeType) res.type(asset.mimeType);
     res.setHeader("Cache-Control", "private, max-age=31536000, immutable");
     res.sendFile(absolutePath, (error) => {
       if (error && !res.headersSent) {
-        res.status(error.statusCode || 500).json({ message: "Unable to read upload" });
+        sendErrorResponse(res, error.statusCode || 500, "Unable to read upload");
       }
     });
   });
 
   router.use((_req, res) => {
-    res.status(404).json({ message: "Upload not found" });
+    sendErrorResponse(res, 404, "Upload not found");
   });
 
   return router;

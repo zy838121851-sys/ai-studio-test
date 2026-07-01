@@ -5,6 +5,7 @@ import { authenticateUser, createUser } from "../auth/user.service.js";
 import { createOAuthStart, getOAuthStateStatus, handleOAuthCallback, markOAuthStateSessionIssued } from "../auth/oauth.service.js";
 import { getAuthProviderStatus } from "../auth/provider-status.service.js";
 import { sendVerificationCode, verifyCodeAndGetUser } from "../auth/verification.service.js";
+import { sendCaughtErrorResponse } from "../lib/http-error-response.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import { localAuditLogger } from "../providers/audit/local-audit-logger.js";
 
@@ -23,8 +24,10 @@ const oauthPollLimiter = createRateLimiter({
 });
 
 function handleAuthError(res, error) {
-  res.status(error.status || 500).json({
-    message: error.status ? error.message : "Authentication failed"
+  sendCaughtErrorResponse(res, error, {
+    defaultStatus: 500,
+    defaultMessage: "Authentication failed",
+    useStatusMessageOnly: true
   });
 }
 
