@@ -1434,17 +1434,21 @@ function asyncHandler(handler) {
         failureCode: failure.failureCode,
         stage: failure.stage
       });
-      res.status(error.status || 500).json({
-        message: failure.failureMessage,
-        errorCode: failure.failureCode,
-        errorMessage: failure.failureMessage,
-        failureCode: failure.failureCode,
-        failureMessage: failure.failureMessage,
-        stage: failure.stage,
-        ...(errorJob ? { job: toClientJob(errorJob), jobId: errorJob.id } : {})
-      });
+      sendAIErrorResponse(res, error, failure, errorJob);
     }
   };
+}
+
+function sendAIErrorResponse(res, error = {}, failure = {}, errorJob = null) {
+  res.status(error.status || 500).json({
+    message: failure.failureMessage,
+    errorCode: failure.failureCode,
+    errorMessage: failure.failureMessage,
+    failureCode: failure.failureCode,
+    failureMessage: failure.failureMessage,
+    stage: failure.stage,
+    ...(errorJob ? { job: toClientJob(errorJob), jobId: errorJob.id } : {})
+  });
 }
 
 function toClientFailure(job = {}, fallbackCode = "AI_JOB_FAILED") {

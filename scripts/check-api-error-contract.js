@@ -111,6 +111,22 @@ try {
     message: "Job not found"
   });
 
+  const failedGenerate = await request(baseUrl, "/api/ai/generate", {
+    method: "POST",
+    cookie: userA.cookie,
+    body: {
+      prompt: "mock-apimart-fail",
+      modelId: "gpt-image-2"
+    }
+  });
+  assertRichAIErrorContract(failedGenerate, {
+    label: "failed AI generate",
+    status: 502,
+    failureCode: "MOCK_APIMART_IMAGE_FAILED",
+    failureMessage: "Mock APIMart image failure",
+    stage: "provider"
+  });
+
   console.log("API error contract checks passed.");
 } finally {
   restoreConsole();
@@ -144,6 +160,21 @@ function assertErrorContract(response, { label, status, message } = {}) {
   }
   assert(!("stack" in response.body), `${label} should not expose stack`);
   assert(!("trace" in response.body), `${label} should not expose trace`);
+}
+
+function assertRichAIErrorContract(response, { label, status, failureCode, failureMessage, stage } = {}) {
+  assertErrorContract(response, {
+    label,
+    status,
+    message: failureMessage
+  });
+  assert(response.body.errorCode === failureCode, `${label} expected errorCode "${failureCode}", got "${response.body.errorCode}"`);
+  assert(response.body.failureCode === failureCode, `${label} expected failureCode "${failureCode}", got "${response.body.failureCode}"`);
+  assert(response.body.errorMessage === failureMessage, `${label} expected errorMessage "${failureMessage}", got "${response.body.errorMessage}"`);
+  assert(response.body.failureMessage === failureMessage, `${label} expected failureMessage "${failureMessage}", got "${response.body.failureMessage}"`);
+  assert(response.body.stage === stage, `${label} expected stage "${stage}", got "${response.body.stage}"`);
+  assert(response.body.jobId, `${label} should return the failed local job id`);
+  assert(response.body.job?.id === response.body.jobId, `${label} should return a job matching jobId`);
 }
 
 function assertNoInlineMessageErrorResponses() {
