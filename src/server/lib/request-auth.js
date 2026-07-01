@@ -4,6 +4,14 @@ export function getRequestContext(req) {
   };
 }
 
+export function setRequestAuth(req, auth = {}) {
+  req.auth = auth;
+}
+
+export function hasRequestUser(req) {
+  return Boolean(getOptionalRequestUser(req));
+}
+
 export function getOptionalRequestUser(req) {
   return req.auth?.user || null;
 }
