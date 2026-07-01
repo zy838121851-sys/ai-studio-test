@@ -5,6 +5,7 @@ import {
   buildGenerationResponseLog
 } from "../../lib/ai-job-log-payload.js";
 import { classifyAIError, toClientFailure } from "../../lib/ai-error-response.js";
+import { createHttpError } from "../../lib/input-validation.js";
 import {
   buildCompletedGenerationResponse,
   buildQueuedGenerationResponse,
@@ -53,13 +54,10 @@ export function resolveGenerationModelRequest(body = {}) {
   const modelId = String(body?.modelId || body?.model || DEFAULT_IMAGE_MODEL).trim() || DEFAULT_IMAGE_MODEL;
   const modelConfig = getModelConfig(modelId);
   if (!modelConfig) {
-    const error = new Error(`Unsupported model: ${modelId}`);
-    error.status = 400;
-    throw error;
+    throw createHttpError(`Unsupported model: ${modelId}`, 400);
   }
   if (getModelModality(modelConfig) === "3d") {
-    const error = new Error("3D models must use /api/ai/3d/text-to-model or /api/ai/3d/image-to-model");
-    error.status = 400;
+    const error = createHttpError("3D models must use /api/ai/3d/text-to-model or /api/ai/3d/image-to-model", 400);
     error.code = "USE_3D_GENERATION_API";
     throw error;
   }
@@ -160,9 +158,7 @@ export async function createGenerationJob({
   const prompt = String(body?.prompt || "").trim();
   const images = normalizeImages(body?.images);
   if (!prompt && !images.length) {
-    const error = new Error("Missing prompt or reference image");
-    error.status = 400;
-    throw error;
+    throw createHttpError("Missing prompt or reference image", 400);
   }
 
   const type = modelConfig.type === "video" ? "video" : "image";
