@@ -86,7 +86,7 @@ export function bindTaskLogRuntime(runtime = {}) {
     handleTaskLogModalClick(event, elements);
   });
   documentRoot.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !elements.modal?.hidden) closeTaskModal(elements);
+    handleTaskLogDocumentKeydown(event, elements);
   });
 
   const observer = new MutationObserver(syncVisibility);
@@ -164,6 +164,10 @@ function handleTaskLogModalClick(event, elements) {
   const copyButton = event.target.closest("[data-task-log-copy]");
   if (closeButton) closeTaskModal(elements);
   if (copyButton) copyText(copyButton.dataset.taskLogCopy || "");
+}
+
+function handleTaskLogDocumentKeydown(event, elements) {
+  if (event.key === "Escape" && !elements.modal?.hidden) closeTaskModal(elements);
 }
 
 // Selector parity list: preserve these ids/classes before bindTaskLogRuntime().
