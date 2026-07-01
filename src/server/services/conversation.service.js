@@ -70,7 +70,12 @@ function toPublicMessage(row) {
   };
 }
 
-export function getConversationProject(userId, projectId) {
+function userIdFromPrincipal(principal) {
+  return typeof principal === "string" ? principal : principal?.userId;
+}
+
+export function getConversationProject(principal, projectId) {
+  const userId = userIdFromPrincipal(principal);
   const scope = ensureUserWorkspace(userId);
   return prepare(`
     SELECT
@@ -91,7 +96,8 @@ export function getConversationProject(userId, projectId) {
   `).get(projectId, scope.workspaceId, userId) || null;
 }
 
-export function getOrCreateProjectConversation(userId, projectId, input = {}) {
+export function getOrCreateProjectConversation(principal, projectId, input = {}) {
+  const userId = userIdFromPrincipal(principal);
   const cleanProjectId = normalizeText(projectId, 120);
   if (!cleanProjectId) {
     const error = new Error("Missing projectId");
@@ -139,7 +145,8 @@ export function getOrCreateProjectConversation(userId, projectId, input = {}) {
   });
 }
 
-export function archiveProjectConversation(userId, projectId) {
+export function archiveProjectConversation(principal, projectId) {
+  const userId = userIdFromPrincipal(principal);
   const scope = ensureUserWorkspace(userId);
   const timestamp = now();
   prepare(`
@@ -153,7 +160,8 @@ export function archiveProjectConversation(userId, projectId) {
   `).run(timestamp, timestamp, scope.workspaceId, userId, projectId);
 }
 
-export function listProjectConversations(userId, projectId, { limit = 40 } = {}) {
+export function listProjectConversations(principal, projectId, { limit = 40 } = {}) {
+  const userId = userIdFromPrincipal(principal);
   const cleanProjectId = normalizeText(projectId, 120);
   if (!cleanProjectId) {
     const error = new Error("Missing projectId");
@@ -179,7 +187,8 @@ export function listProjectConversations(userId, projectId, { limit = 40 } = {})
   `).all(scope.workspaceId, userId, cleanProjectId, safeLimit).map(toPublicConversation);
 }
 
-export function getConversationForUser(userId, conversationId) {
+export function getConversationForUser(principal, conversationId) {
+  const userId = userIdFromPrincipal(principal);
   const scope = ensureUserWorkspace(userId);
   return toPublicConversation(prepare(`
     SELECT *
@@ -192,7 +201,8 @@ export function getConversationForUser(userId, conversationId) {
   `).get(conversationId, scope.workspaceId, userId));
 }
 
-export function restoreProjectConversation(userId, conversationId) {
+export function restoreProjectConversation(principal, conversationId) {
+  const userId = userIdFromPrincipal(principal);
   const cleanConversationId = normalizeText(conversationId, 120);
   if (!cleanConversationId) {
     const error = new Error("Missing conversationId");
@@ -280,7 +290,8 @@ export function restoreProjectConversation(userId, conversationId) {
   });
 }
 
-export function listConversationMessages(userId, conversationId, { limit = 120 } = {}) {
+export function listConversationMessages(principal, conversationId, { limit = 120 } = {}) {
+  const userId = userIdFromPrincipal(principal);
   const conversation = getConversationForUser(userId, conversationId);
   if (!conversation) return null;
   const safeLimit = Math.max(1, Math.min(Number(limit) || 120, 200));
