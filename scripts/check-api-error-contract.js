@@ -15,6 +15,13 @@ import {
   toClientBilling,
   toClientJob
 } from "../src/server/lib/ai-response-dto.js";
+import {
+  getInitialAIJobStatus,
+  getModelModality,
+  isValidTripoImageInput,
+  jobStatusForError,
+  normalizeImages
+} from "../src/server/lib/ai-route-helpers.js";
 
 const tempRoot = mkdtempSync(join(tmpdir(), "ai-studio-api-error-contract-"));
 process.env.DB_PATH = join(tempRoot, "api-error-contract.sqlite");
@@ -33,6 +40,7 @@ try {
   assertAIErrorClassification();
   assertAIJobLogPayloads();
   assertAIResponseDtos();
+  assertAIRouteHelpers();
 
   const { createServer } = await import("../src/server/index.js");
   const { closeDatabase } = await import("../src/server/db/sqlite.js");
@@ -398,6 +406,32 @@ function assertAIResponseDtos() {
   assert(deferred.jobId === "job-1", "Deferred image edit DTO should expose jobId");
   assert(deferred.remoteTaskId === "remote-1", "Deferred image edit DTO should prefer job remote task id");
   assert(deferred.billing.status === "charged", "Deferred image edit DTO should mark succeeded jobs as charged");
+}
+
+function assertAIRouteHelpers() {
+  assert(getInitialAIJobStatus({ imageUrl: "/uploads/image.png" }) === "running", "Immediate image outputs should start as running for local persistence");
+  assert(getInitialAIJobStatus({ videoUrl: "/uploads/video.mp4" }) === "running", "Immediate video outputs should start as running for local persistence");
+  assert(getInitialAIJobStatus({ status: "succeeded" }) === "running", "Provider succeeded results should start as running for local refresh");
+  assert(getInitialAIJobStatus({ status: "FAILED" }) === "failed", "Initial job status should normalize provider status text");
+  assert(getInitialAIJobStatus({}) === "queued", "Initial job status should default to queued");
+
+  assert(getModelModality({ modality: "3D", type: "image" }) === "3d", "Model modality should prefer modality over type");
+  assert(getModelModality({ type: "video" }) === "video", "Model modality should fall back to type");
+  assert(getModelModality({}) === "image", "Model modality should default to image");
+
+  assert(isValidTripoImageInput("https://example.test/input.png", "") === true, "Tripo image input should accept public URLs");
+  assert(isValidTripoImageInput("file_token:abcdefghij", "") === true, "Tripo image input should accept prefixed file tokens");
+  assert(isValidTripoImageInput("abcdefghij", "") === true, "Tripo image input should accept bare file tokens");
+  assert(isValidTripoImageInput("", "data:image/png;base64,AAAA") === true, "Tripo image input should accept image data URLs");
+  assert(isValidTripoImageInput("ftp://example.test/input.png", "") === false, "Tripo image input should reject unsupported URL schemes");
+
+  assert(jobStatusForError(errorWith({ message: "Provider timed out" })) === "timeout", "Timeout errors should map to timeout job status");
+  assert(jobStatusForError(errorWith({ message: "output could not be saved" })) === "save_failed", "Output save errors should map to save_failed job status");
+  assert(jobStatusForError(errorWith({ message: "provider failed" })) === "failed", "Generic errors should map to failed job status");
+
+  const normalizedImages = normalizeImages(["a", "", null, "b"]);
+  assert(normalizedImages.length === 2 && normalizedImages[0] === "a" && normalizedImages[1] === "b", "Image normalization should filter falsy image entries");
+  assert(normalizeImages("not-array").length === 0, "Image normalization should reject non-array input");
 }
 
 function errorWith({ status, code, message } = {}) {
