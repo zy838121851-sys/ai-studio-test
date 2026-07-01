@@ -1,4 +1,34 @@
 import { toClientJob } from "./ai-response-dto.js";
+import { logError } from "./logger.js";
+
+export function createAIAsyncHandler({
+  classifier = null,
+  logger = null,
+  responder = null
+} = {}) {
+  const classify = classifier || classifyAIError;
+  const writeLog = logger || logError;
+  const respond = responder || sendAIErrorResponse;
+  return (handler) => async (req, res) => {
+    try {
+      await handler(req, res);
+    } catch (error) {
+      const failure = classify(error, { path: req.path });
+      const errorJob = error.aiJob || error.job || null;
+      writeLog("AI request failed", error, {
+        method: req.method,
+        path: req.path,
+        failureCode: failure.failureCode,
+        stage: failure.stage
+      });
+      respond(res, error, failure, errorJob);
+    }
+  };
+}
+
+export function sendAIErrorResponse(res, error = {}, failure = {}, errorJob = null) {
+  res.status(error.status || 500).json(buildAIErrorResponseBody(failure, errorJob));
+}
 
 export function buildAIErrorResponseBody(failure = {}, errorJob = null) {
   return {

@@ -1,7 +1,13 @@
 import { mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildAIErrorResponseBody, classifyAIError, toClientFailure } from "../src/server/lib/ai-error-response.js";
+import {
+  buildAIErrorResponseBody,
+  classifyAIError,
+  createAIAsyncHandler,
+  sendAIErrorResponse,
+  toClientFailure
+} from "../src/server/lib/ai-error-response.js";
 import {
   buildGenerationFailureLog,
   buildGenerationRequestLog,
@@ -45,6 +51,7 @@ try {
   assertNoInlineMessageErrorResponses();
   assertAIErrorClassification();
   assertAIErrorResponseBody();
+  await assertAIAsyncHandler();
   assertAIJobLogPayloads();
   assertAIResponseDtos();
   assertAIRouteHelpers();
@@ -328,6 +335,75 @@ function assertAIErrorResponseBody() {
     },
     "AI error response body should include the client job DTO when a failed job is available"
   );
+}
+
+async function assertAIAsyncHandler() {
+  const successCalls = [];
+  const successHandler = createAIAsyncHandler()(
+    async (req, res) => {
+      successCalls.push({ req, res });
+      res.json({ ok: true });
+    }
+  );
+  const successRes = fakeResponse();
+  await successHandler({ method: "GET", path: "/ai/success" }, successRes);
+  assert(successCalls.length === 1, "AI async handler should call successful handlers");
+  assert(successRes.statusCode === 200, "AI async handler should keep successful response status");
+  assertDeepEqual(successRes.body, { ok: true }, "AI async handler should preserve successful response body");
+
+  const entries = [];
+  const responses = [];
+  const failure = {
+    failureCode: "BAD_IMAGE",
+    failureMessage: "Bad image",
+    stage: "request"
+  };
+  const failedJob = {
+    id: "job-failed",
+    status: "failed",
+    outputAssetIds: []
+  };
+  const wrapped = createAIAsyncHandler({
+    classifier: (error, context) => {
+      entries.push({ type: "classify", error, context });
+      return failure;
+    },
+    logger: (message, error, detail) => {
+      entries.push({ type: "log", message, error, detail });
+    },
+    responder: (res, error, responseFailure, errorJob) => {
+      responses.push({ res, error, failure: responseFailure, errorJob });
+    }
+  })(async () => {
+    const error = new Error("Bad image");
+    error.status = 400;
+    error.job = failedJob;
+    throw error;
+  });
+  const failureReq = { method: "POST", path: "/ai/generate" };
+  const failureRes = fakeResponse();
+  await wrapped(failureReq, failureRes);
+  assert(entries.length === 2, "AI async handler should classify and log failures");
+  assert(entries[0].type === "classify", "AI async handler should classify failures before logging");
+  assert(entries[0].context.path === "/ai/generate", "AI async handler should pass the request path to classification");
+  assert(entries[1].type === "log", "AI async handler should log classified failures");
+  assert(entries[1].message === "AI request failed", "AI async handler should preserve the log message");
+  assertDeepEqual(entries[1].detail, {
+    method: "POST",
+    path: "/ai/generate",
+    failureCode: "BAD_IMAGE",
+    stage: "request"
+  }, "AI async handler should preserve failure log details");
+  assert(responses.length === 1, "AI async handler should send one failure response");
+  assert(responses[0].res === failureRes, "AI async handler should pass through the response object");
+  assert(responses[0].failure === failure, "AI async handler should pass the classified failure to the responder");
+  assert(responses[0].errorJob === failedJob, "AI async handler should pass failed jobs to the responder");
+
+  const sendRes = fakeResponse();
+  sendAIErrorResponse(sendRes, { status: 418 }, failure, failedJob);
+  assert(sendRes.statusCode === 418, "AI error responder should preserve explicit error status");
+  assert(sendRes.body.jobId === "job-failed", "AI error responder should include failed job id");
+  assert(sendRes.body.failureCode === "BAD_IMAGE", "AI error responder should preserve failure code");
 }
 
 function assertAIJobLogPayloads() {
@@ -787,6 +863,21 @@ async function request(baseUrl, path, {
     contentType: response.headers.get("content-type") || "",
     cookie: setCookie.split(";")[0],
     body: parsed
+  };
+}
+
+function fakeResponse() {
+  return {
+    statusCode: 200,
+    body: null,
+    status(code) {
+      this.statusCode = code;
+      return this;
+    },
+    json(body) {
+      this.body = body;
+      return this;
+    }
   };
 }
 

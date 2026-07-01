@@ -11,7 +11,7 @@ import {
   superResolutionImage
 } from "../services/ai.service.js";
 import { env } from "../config/env.js";
-import { buildAIErrorResponseBody, classifyAIError, toClientFailure } from "../lib/ai-error-response.js";
+import { classifyAIError, createAIAsyncHandler, toClientFailure } from "../lib/ai-error-response.js";
 import {
   buildGenerationFailureLog,
   buildGenerationRequestLog,
@@ -40,7 +40,6 @@ import {
 } from "../lib/ai-route-helpers.js";
 import { logAIModelRoute, logAIProviderRoute } from "../lib/ai-route-logging.js";
 import { sendErrorResponse } from "../lib/http-error-response.js";
-import { logError } from "../lib/logger.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
 import { createRateLimiter } from "../middleware/rate-limit.middleware.js";
 import { assertPublicHttpUrl } from "../security/network.js";
@@ -103,6 +102,8 @@ const jobPollLimiter = createRateLimiter({
   max: 120,
   message: "Too many job status requests"
 });
+
+const asyncHandler = createAIAsyncHandler();
 
 export function createAIRouter() {
   const router = Router();
@@ -1016,26 +1017,4 @@ async function createTripo3DJob(req, {
     }
     throw error;
   }
-}
-
-function asyncHandler(handler) {
-  return async (req, res) => {
-    try {
-      await handler(req, res);
-    } catch (error) {
-      const failure = classifyAIError(error, { path: req.path });
-      const errorJob = error.aiJob || error.job || null;
-      logError("AI request failed", error, {
-        method: req.method,
-        path: req.path,
-        failureCode: failure.failureCode,
-        stage: failure.stage
-      });
-      sendAIErrorResponse(res, error, failure, errorJob);
-    }
-  };
-}
-
-function sendAIErrorResponse(res, error = {}, failure = {}, errorJob = null) {
-  res.status(error.status || 500).json(buildAIErrorResponseBody(failure, errorJob));
 }
