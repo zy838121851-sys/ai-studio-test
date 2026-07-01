@@ -4,7 +4,7 @@ body[data-view="space"] .profile-view {
   background: #f7f8fa;
 }
 
-.task-log-page {
+#taskLogPage.task-log-page {
   width: min(1770px, calc(100vw - 110px));
   padding-top: 86px;
   padding-bottom: 48px;
@@ -440,7 +440,7 @@ body[data-view="space"] .profile-view {
 }
 
 @media (max-width: 900px) {
-  .task-log-page {
+  #taskLogPage.task-log-page {
     width: calc(100vw - 32px);
     padding-top: 72px;
   }
