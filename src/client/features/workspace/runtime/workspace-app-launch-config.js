@@ -1,5 +1,4 @@
 import { createWorkspaceRuntimeActions } from "./launch-actions-config.js?v=20260628-boot-inline-1";
-import { createWorkspaceRuntimeLaunchConfig } from "./launch-config-base.js";
 import {
   createWorkspaceRuntimeConstants,
   createWorkspaceRuntimeElements
@@ -30,4 +29,24 @@ export function createWorkspaceAppLaunchConfig({
     workflows: createWorkspaceRuntimeWorkflows(workflows),
     bindings: createWorkspaceRuntimeBindings(bindings)
   });
+}
+
+function createWorkspaceRuntimeLaunchConfig({
+  stateSetters = {},
+  constants = {},
+  state = {},
+  elements = {},
+  actions = {},
+  workflows = {},
+  bindings = {}
+} = {}) {
+  return {
+    stateSetters,
+    constants,
+    state,
+    elements,
+    actions,
+    workflows,
+    bindings
+  };
 }
