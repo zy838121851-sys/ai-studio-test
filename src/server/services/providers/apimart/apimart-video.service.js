@@ -5,6 +5,7 @@ import {
   shouldUseApimartMock,
   uploadApimartImage
 } from "./apimart.client.js";
+import { createHttpError } from "../../../lib/input-validation.js";
 
 export async function callApimartVideo({
   model,
@@ -42,9 +43,7 @@ export async function callApimartVideo({
   const data = Array.isArray(payload?.data) ? payload.data[0] : payload?.data;
   const taskId = data?.task_id || data?.taskId || payload?.task_id || payload?.taskId;
   if (!taskId) {
-    const error = new Error("APIMart video response did not include a task id");
-    error.status = 502;
-    throw error;
+    throw createHttpError("APIMart video response did not include a task id", 502);
   }
   return {
     taskId,
@@ -66,8 +65,7 @@ export function mockVideoResult({
   referenceImageNormalization = null
 } = {}) {
   if (String(prompt || "").toLowerCase().includes("mock-apimart-fail")) {
-    const error = new Error("Mock APIMart video failure");
-    error.status = 502;
+    const error = createHttpError("Mock APIMart video failure", 502);
     error.code = "MOCK_APIMART_VIDEO_FAILED";
     throw error;
   }
@@ -110,8 +108,7 @@ export async function normalizeApimartVideoReferenceImages(images = [], {
           imageUrls.push(uploadedUrl);
           uploadedCount += 1;
         } catch (error) {
-          const nextError = new Error(`视频参考图上传失败，请重新上传参考图：${error?.message || String(error)}`);
-          nextError.status = error?.status || 502;
+          const nextError = createHttpError(`视频参考图上传失败，请重新上传参考图：${error?.message || String(error)}`, error?.status || 502);
           nextError.code = error?.code || "APIMART_VIDEO_REFERENCE_UPLOAD_FAILED";
           throw nextError;
         }
@@ -133,8 +130,7 @@ export async function normalizeApimartVideoReferenceImages(images = [], {
       sourceTypes.push("asset");
       continue;
     }
-    const error = new Error("视频参考图格式无效，请重新上传参考图");
-    error.status = 400;
+    const error = createHttpError("视频参考图格式无效，请重新上传参考图", 400);
     error.code = "INVALID_VIDEO_REFERENCE_IMAGE";
     throw error;
   }
