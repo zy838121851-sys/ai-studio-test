@@ -35,6 +35,7 @@ import {
   buildGeneratorPreviewJobMeta,
   getGeneratorPreviewBatchIndex,
   getPendingGeneratorPreviewGroups,
+  markGeneratorPreviewFailed,
   tagGeneratorPreviewJobs,
   updateGeneratorPreviewStatus as updatePreviewStatus
 } from "./image-generator-preview-job-utils.js";
@@ -672,16 +673,6 @@ export function createImageGeneratorWorkflow({
   function getPreviewNodeWidth(previewNode) {
     const frame = previewNode?.querySelector?.(".image-frame");
     return Math.max(160, frame?.offsetWidth || previewNode?.offsetWidth || 560);
-  }
-
-  function markGeneratorPreviewFailed(previewNode, error) {
-    if (!previewNode) return;
-    previewNode.dataset.generatorFailed = "true";
-    previewNode.classList.add("generation-failed");
-    const title = previewNode.querySelector(".generation-frame strong");
-    const statusText = previewNode.querySelector(".generation-frame span");
-    if (title) title.textContent = "生成失败";
-    if (statusText) statusText.textContent = error?.message || "生成失败，请重试";
   }
 
   function resumePendingGeneratorPreviews() {

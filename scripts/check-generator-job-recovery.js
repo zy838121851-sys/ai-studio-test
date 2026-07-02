@@ -1,5 +1,8 @@
 import { readFileSync } from "node:fs";
-import { updateGeneratorPreviewStatus } from "../src/client/features/canvas/workflows/image-generator-preview-job-utils.js";
+import {
+  markGeneratorPreviewFailed,
+  updateGeneratorPreviewStatus
+} from "../src/client/features/canvas/workflows/image-generator-preview-job-utils.js";
 
 function read(path) {
   return readFileSync(path, "utf8");
@@ -16,6 +19,7 @@ const generatorPreviewJobUtils = read("src/client/features/canvas/workflows/imag
 assert(
   generatorWorkflow.includes("onJobCreated")
     && generatorWorkflow.includes("tagGeneratorPreviewJobs")
+    && generatorWorkflow.includes("markGeneratorPreviewFailed")
     && generatorWorkflow.includes("updateGeneratorPreviewStatus as updatePreviewStatus")
     && generatorPreviewJobUtils.includes("applyGeneratorPreviewJobMetadata"),
   "generator must tag preview nodes with job ids when async jobs are created"
@@ -85,6 +89,29 @@ updateGeneratorPreviewStatus({
 }, "");
 assert(statusNode.textContent === "Waiting for image result...", "generator preview status helper should ignore empty text");
 updateGeneratorPreviewStatus(null, "ignored");
+
+const failedTitleNode = { textContent: "" };
+const failedStatusNode = { textContent: "" };
+const failedClasses = new Set();
+const failedPreviewNode = {
+  dataset: {},
+  classList: {
+    add(name) {
+      failedClasses.add(name);
+    }
+  },
+  querySelector(selector) {
+    if (selector === ".generation-frame strong") return failedTitleNode;
+    if (selector === ".generation-frame span") return failedStatusNode;
+    return null;
+  }
+};
+markGeneratorPreviewFailed(failedPreviewNode, new Error("Custom failure"));
+assert(failedPreviewNode.dataset.generatorFailed === "true", "generator preview failure helper should mark failed dataset state");
+assert(failedClasses.has("generation-failed"), "generator preview failure helper should add failed class");
+assert(failedTitleNode.textContent, "generator preview failure helper should update title text");
+assert(failedStatusNode.textContent === "Custom failure", "generator preview failure helper should prefer explicit error messages");
+markGeneratorPreviewFailed(null, new Error("ignored"));
 
 const appInit = read("src/client/core/app-init.js");
 assert(

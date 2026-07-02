@@ -39,6 +39,16 @@ export function updateGeneratorPreviewStatus(previewNode, text = "") {
   if (statusText && text) statusText.textContent = text;
 }
 
+export function markGeneratorPreviewFailed(previewNode, error) {
+  if (!previewNode) return;
+  previewNode.dataset.generatorFailed = "true";
+  previewNode.classList.add("generation-failed");
+  const title = previewNode.querySelector(".generation-frame strong");
+  const statusText = previewNode.querySelector(".generation-frame span");
+  if (title) title.textContent = "生成失败";
+  if (statusText) statusText.textContent = error?.message || "生成失败，请重试";
+}
+
 export function applyGeneratorPreviewJobMetadata(previewNode, { jobId = "", payload = {}, meta = {} } = {}) {
   if (!previewNode || !jobId) return;
   previewNode.dataset.generatorJobId = jobId;
