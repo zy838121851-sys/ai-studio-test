@@ -419,7 +419,7 @@ export function createImageGeneratorWorkflow({
         return createdNode;
       };
       const replaceGeneratorImagePreview = (previewNode, url, index = 0) => {
-        const createdNode = replaceGeneratorImagePreviewNode(previewNode, {
+        const createdNode = ensureGeneratorPreviewReplacement(replaceGeneratorImagePreviewNode(previewNode, {
           title: getGeneratorResultTitle(index, count),
           desc: prompt || "Image generator result",
           url,
@@ -427,8 +427,7 @@ export function createImageGeneratorWorkflow({
           prompt,
           actionType,
           model: resultModel
-        });
-        if (!createdNode) throw new Error("Unable to replace generation preview");
+        }));
         applyGeneratedImageNodeResult(createdNode, url, {
           prompt,
           model: resultModel,
@@ -438,7 +437,7 @@ export function createImageGeneratorWorkflow({
         return registerGeneratedNode(createdNode, index, { trackBatch: true });
       };
       const replaceGeneratorVideoPreview = (previewNode, url) => {
-        const createdNode = replacePreviewWithVideo(previewNode, {
+        const createdNode = ensureGeneratorPreviewReplacement(replacePreviewWithVideo(previewNode, {
           title: "Generated Video.mp4",
           desc: prompt || "Image generator video result",
           url,
@@ -448,8 +447,7 @@ export function createImageGeneratorWorkflow({
           sourceNode: null,
           actionType: "video_generation",
           model: resultModel
-        });
-        if (!createdNode) throw new Error("Unable to replace generation preview");
+        }));
         return registerGeneratedNode(createdNode);
       };
       if (videoModel) {
@@ -592,6 +590,11 @@ export function createImageGeneratorWorkflow({
       actionType,
       model
     });
+  }
+
+  function ensureGeneratorPreviewReplacement(createdNode) {
+    if (!createdNode) throw new Error("Unable to replace generation preview");
+    return createdNode;
   }
 
   function createGeneratorPreviewBatch(node, {
@@ -772,7 +775,7 @@ export function createImageGeneratorWorkflow({
     if (!previewNode?.isConnected) return null;
     if (!url) throw new Error(getMissingGeneratorResultMessage(result));
     const batchIndex = getGeneratorPreviewBatchIndex(previewNode, index);
-    const createdNode = replaceGeneratorImagePreviewNode(previewNode, {
+    const createdNode = ensureGeneratorPreviewReplacement(replaceGeneratorImagePreviewNode(previewNode, {
       title: getGeneratorResultTitle(batchIndex, count),
       desc: previewNode.dataset.generatorPrompt || "Image generator result",
       url,
@@ -780,8 +783,7 @@ export function createImageGeneratorWorkflow({
       prompt: previewNode.dataset.generatorPrompt || "",
       actionType: previewNode.dataset.generatorActionType || "",
       model: result.requestedModel || result.model || previewNode.dataset.generatorModel || ""
-    });
-    if (!createdNode) throw new Error("Unable to replace generation preview");
+    }));
     createdNode.dataset.generatorJobId = jobId;
     return createdNode;
   }
