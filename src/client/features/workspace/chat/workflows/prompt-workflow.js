@@ -38,6 +38,7 @@ import {
 } from "./prompt-debug-summary-utils.js";
 import {
   applyConversationResultToAgentDebug,
+  buildAgentOutputStageData,
   buildAgentDebugPanelSnapshot,
   buildMessageDoneGenerationDecisionPayload,
   createAgentDebugRecord,
@@ -48,6 +49,7 @@ import {
   markAgentPreviewCreationFailed,
   sanitizeDebugValue,
   storeAgentGenerateResult,
+  syncAgentChatBlocksAvailability,
   setAgentGenerationStage as applyAgentGenerationStage
 } from "./prompt-agent-debug-utils.js";
 import {
@@ -878,15 +880,15 @@ export function bindPromptSubmit({
       }
       storeAgentGenerateResult(agentDebug, summarizeGenerationResult(finalResult));
       logAgentDebug(agentDebug, "generate.response.final", agentDebug.generateResult);
-      setAgentGenerationStage(agentDebug, "outputPersist", {
+      setAgentGenerationStage(agentDebug, "outputPersist", buildAgentOutputStageData({
         jobId: finalResult.jobId || finalResult.job?.id || "",
         outputCount: getResultUrls(finalResult).length
-      });
+      }));
       updateAgentDebugPanel(agentDebug);
       const resultModel = finalResult.requestedModel || finalResult.model || model;
       warnIfModelMismatch(model, resultModel, finalResult);
       const modelUsage = formatModelUsage(finalResult, resultModel);
-      agentDebug.addChatBlocksAvailable = typeof addChatBlocks === "function";
+      syncAgentChatBlocksAvailability(agentDebug, addChatBlocks);
       updateChat(progress, "正在整理生成结果...");
       updateAgentDebugPanel(agentDebug);
 
@@ -1003,10 +1005,10 @@ export function bindPromptSubmit({
       }
 
       updateThinking(thinking, 5, true);
-      setAgentGenerationStage(agentDebug, "done", {
+      setAgentGenerationStage(agentDebug, "done", buildAgentOutputStageData({
         jobId: finalResult.jobId || finalResult.job?.id || "",
         outputCount: getResultUrls(finalResult).length
-      });
+      }));
     } catch (error) {
       if (activeChatAgentRunId !== agentDebug.runId) {
         logAgentDebug(agentDebug, "run.stale_error_ignored", {

@@ -196,6 +196,19 @@ export function storeAgentGenerateResult(record, resultSummary = null) {
   return resultSummary;
 }
 
+export function buildAgentOutputStageData({ jobId = "", outputCount = 0 } = {}) {
+  return {
+    jobId: String(jobId || ""),
+    outputCount: Number(outputCount || 0)
+  };
+}
+
+export function syncAgentChatBlocksAvailability(record, addChatBlocks) {
+  const available = typeof addChatBlocks === "function";
+  if (record) record.addChatBlocksAvailable = available;
+  return available;
+}
+
 export function buildMessageDoneGenerationDecisionPayload(record, data = {}, {
   activeRunId = "",
   autoExecute = false

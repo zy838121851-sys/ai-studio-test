@@ -1,6 +1,7 @@
 import {
   applyConversationResultToAgentDebug,
   buildAgentDebugPanelSnapshot,
+  buildAgentOutputStageData,
   buildMessageDoneGenerationDecisionPayload,
   createAgentDebugRecord,
   markAgentGeneratePayloadBuilt,
@@ -10,6 +11,7 @@ import {
   markAgentPreviewCreationFailed,
   sanitizeDebugValue,
   storeAgentGenerateResult,
+  syncAgentChatBlocksAvailability,
   setAgentGenerationStage
 } from "../src/client/features/workspace/chat/workflows/prompt-agent-debug-utils.js";
 
@@ -277,5 +279,21 @@ const resultSummary = { imageUrl: "/uploads/generated.png", jobId: "job-1" };
 const storedResultSummary = storeAgentGenerateResult(resultRecord, resultSummary);
 assert(resultRecord.generateResult === resultSummary, "Generate result helper should store result summaries by reference");
 assert(storedResultSummary === resultSummary, "Generate result helper should return stored summaries");
+
+const outputStageData = buildAgentOutputStageData({
+  jobId: "job-1",
+  outputCount: "3"
+});
+assert(outputStageData.jobId === "job-1", "Output stage helper should keep job ids");
+assert(outputStageData.outputCount === 3, "Output stage helper should normalize output counts");
+
+const blocksAvailableRecord = createAgentDebugRecord({}, {
+  now: () => fixedDate,
+  random: () => 0.5
+});
+assert(syncAgentChatBlocksAvailability(blocksAvailableRecord, () => {}) === true, "Chat blocks availability helper should detect functions");
+assert(blocksAvailableRecord.addChatBlocksAvailable === true, "Chat blocks availability helper should store available state");
+assert(syncAgentChatBlocksAvailability(blocksAvailableRecord, null) === false, "Chat blocks availability helper should detect missing functions");
+assert(blocksAvailableRecord.addChatBlocksAvailable === false, "Chat blocks availability helper should store unavailable state");
 
 console.log("Prompt agent debug utility checks passed.");
