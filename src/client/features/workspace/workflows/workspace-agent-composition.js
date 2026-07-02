@@ -19,7 +19,7 @@ export function createWorkspaceAICoreControllerCompositionRuntime({
   });
 }
 
-export function createWorkspaceDirectorCompositionRuntime({
+function createWorkspaceDirectorCompositionRuntime({
   elements,
   services
 }) {
