@@ -460,13 +460,13 @@ export function createImageGeneratorWorkflow({
           images,
           size,
           expectedType: "video",
-          onJobCreated: (payload) => tagGeneratorPreviewJobs(previewNodes, payload, {
+          onJobCreated: (payload) => tagGeneratorPreviewJobs(previewNodes, payload, buildGeneratorPreviewJobMeta({
             prompt,
             model,
             actionType: "video_generation",
             aspectRatio,
             dimensions
-          }),
+          })),
           onProgress: (payload) => {
             const progress = Number(payload?.progress || 0);
             updatePreviewStatus(previewNodes[0], progress > 0
@@ -489,13 +489,13 @@ export function createImageGeneratorWorkflow({
           prompt,
           images,
           size,
-          onJobCreated: (payload) => tagGeneratorPreviewJobs(previewNodes, payload, {
+          onJobCreated: (payload) => tagGeneratorPreviewJobs(previewNodes, payload, buildGeneratorPreviewJobMeta({
             prompt,
             model,
             actionType,
             aspectRatio,
             dimensions
-          }),
+          })),
           onProgress: (payload) => {
             const progress = Number(payload?.progress || 0);
             previewNodes.forEach((previewNode, index) => {
@@ -523,13 +523,13 @@ export function createImageGeneratorWorkflow({
           prompt,
           images,
           size,
-          onJobCreated: (payload) => tagGeneratorPreviewJobs([previewNode], payload, {
+          onJobCreated: (payload) => tagGeneratorPreviewJobs([previewNode], payload, buildGeneratorPreviewJobMeta({
             prompt,
             model,
             actionType,
             aspectRatio,
             dimensions
-          }),
+          })),
           onProgress: (payload) => {
             const progress = Number(payload?.progress || 0);
             updatePreviewStatus(previewNode, progress > 0
@@ -664,6 +664,22 @@ export function createImageGeneratorWorkflow({
     previewNodes.filter(Boolean).forEach((previewNode) => {
       applyGeneratorPreviewJobMetadata(previewNode, { jobId, payload, meta });
     });
+  }
+
+  function buildGeneratorPreviewJobMeta({
+    prompt = "",
+    model = "",
+    actionType = "image_generation",
+    aspectRatio = "",
+    dimensions = {}
+  } = {}) {
+    return {
+      prompt,
+      model,
+      actionType,
+      aspectRatio,
+      dimensions
+    };
   }
 
   function applyGeneratorPreviewBatchMetadata(previewNode, { count = 1, index = 0 } = {}) {
