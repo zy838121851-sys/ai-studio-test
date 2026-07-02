@@ -437,17 +437,15 @@ export function createImageGeneratorWorkflow({
         return registerGeneratedNode(createdNode, index, { trackBatch: true });
       };
       const replaceGeneratorVideoPreview = (previewNode, url) => {
-        const createdNode = ensureGeneratorPreviewReplacement(replacePreviewWithVideo(previewNode, {
+        const createdNode = ensureGeneratorPreviewReplacement(replacePreviewWithVideo(previewNode, buildGeneratorVideoPreviewReplacementOptions(previewNode, {
           title: "Generated Video.mp4",
           desc: prompt || "Image generator video result",
           url,
-          width: getPreviewNodeWidth(previewNode),
           aspectRatio,
           prompt,
-          sourceNode: null,
           actionType: "video_generation",
           model: resultModel
-        }));
+        })));
         return registerGeneratedNode(createdNode);
       };
       if (videoModel) {
@@ -607,6 +605,28 @@ export function createImageGeneratorWorkflow({
       url,
       aspectRatio,
       prompt,
+      actionType,
+      model
+    };
+  }
+
+  function buildGeneratorVideoPreviewReplacementOptions(previewNode, {
+    title = "Generated Video.mp4",
+    desc = "Image generator video result",
+    url = "",
+    aspectRatio = "",
+    prompt = "",
+    actionType = "video_generation",
+    model = ""
+  } = {}) {
+    return {
+      title,
+      desc,
+      url,
+      width: getPreviewNodeWidth(previewNode),
+      aspectRatio,
+      prompt,
+      sourceNode: null,
       actionType,
       model
     };
