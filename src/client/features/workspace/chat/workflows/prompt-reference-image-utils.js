@@ -1,6 +1,9 @@
 import { getChatPreviewAttachmentFile } from "../components/chat-image-preview.js?v=20260627-chat-agent-2";
 import { findActiveImageNode } from "./prompt-generation-metrics-utils.js";
-import { summarizeDataUrl } from "./prompt-debug-summary-utils.js";
+import {
+  summarizeDataUrl,
+  summarizeFiles
+} from "./prompt-debug-summary-utils.js";
 
 export async function imageSourceToDataUrl(source = "", {
   fetchImpl = globalThis.fetch,
@@ -27,6 +30,89 @@ export function blobToDataUrl(blob) {
 export function inferMimeTypeFromDataUrl(dataUrl = "") {
   const match = String(dataUrl || "").match(/^data:([^;,]+)/);
   return match?.[1] || "";
+}
+
+export async function collectReferenceImages({
+  files = [],
+  domPreviewAttachments = [],
+  readFileAsDataUrl,
+  readImageSourceAsDataUrl,
+  debugRecord = null,
+  logDebug = () => {},
+  readDomPreviewReferencesImpl = readDomPreviewReferences,
+  readSelectedImageReferenceImpl = readSelectedImageReference
+} = {}) {
+  const attachments = [];
+  let successCount = 0;
+  let failureCount = 0;
+  logDebug("attachments.collect.input", {
+    fileCount: files.length,
+    domPreviewAttachmentCount: domPreviewAttachments.length,
+    files: summarizeFiles(files),
+    domPreviewAttachments
+  });
+
+  for (const [index, file] of files.entries()) {
+    try {
+      const dataUrl = await readFileAsDataUrl(file);
+      if (!dataUrl) throw new Error("empty dataURL");
+      successCount += 1;
+      attachments.push({
+        type: file?.type || "image",
+        name: file?.name || `Reference ${index + 1}`,
+        source: "upload",
+        dataUrl
+      });
+    } catch (error) {
+      failureCount += 1;
+      logDebug("attachments.dataurl_failed", {
+        index,
+        name: file?.name || "",
+        type: file?.type || "",
+        size: Number(file?.size || 0),
+        error: error.message || String(error)
+      });
+    }
+  }
+
+  if (files.length && !attachments.length) {
+    throw new Error("No uploaded reference images could be converted to dataURL.");
+  }
+
+  if (!attachments.length && !files.length && domPreviewAttachments.length) {
+    const domReferences = await readDomPreviewReferencesImpl({
+      readFileAsDataUrl,
+      logDebug
+    });
+    attachments.push(...domReferences);
+    if (!attachments.length) {
+      const error = new Error("参考图读取失败，请重新上传参考图。");
+      error.failureCode = "REFERENCE_ATTACHMENT_UNREADABLE";
+      error.stage = "attachments";
+      throw error;
+    }
+  }
+
+  if (!attachments.length && !files.length && !domPreviewAttachments.length) {
+    const selectedReference = await readSelectedImageReferenceImpl(readImageSourceAsDataUrl);
+    if (selectedReference) attachments.push(selectedReference);
+  }
+
+  if (debugRecord) {
+    debugRecord.dataUrlSuccessCount = successCount;
+    debugRecord.dataUrlFailureCount = failureCount;
+  }
+  logDebug("attachments.dataurl_complete", {
+    successCount,
+    failureCount,
+    finalReferenceCount: attachments.length,
+    sources: attachments.map((item) => item.source || "unknown")
+  });
+
+  return {
+    attachments,
+    images: attachments.map((item) => item.dataUrl).filter(Boolean)
+  };
 }
 
 export async function readDomPreviewReferences({

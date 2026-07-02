@@ -45,8 +45,7 @@ import {
   resolveGenerationMetrics
 } from "./prompt-generation-metrics-utils.js";
 import {
-  readDomPreviewReferences,
-  readSelectedImageReference
+  collectReferenceImages
 } from "./prompt-reference-image-utils.js";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
@@ -646,7 +645,8 @@ export function bindPromptSubmit({
         domPreviewAttachments,
         readFileAsDataUrl,
         readImageSourceAsDataUrl,
-        debugRecord: agentDebug
+        debugRecord: agentDebug,
+        logDebug: (label, data) => logAgentDebug(agentDebug, label, data)
       });
       const imageAttachments = referenceBundle.attachments;
       const images = referenceBundle.images;
@@ -2218,86 +2218,6 @@ function snapshotCanvasNode(node) {
     selected: node?.classList?.contains("selected") || node?.dataset?.activeSelection === "true",
     hasImage: Boolean(image?.src),
     imageUrl: image?.src?.startsWith?.("data:") ? "" : (image?.src || "")
-  };
-}
-
-async function collectReferenceImages({
-  files = [],
-  domPreviewAttachments = [],
-  readFileAsDataUrl,
-  readImageSourceAsDataUrl,
-  debugRecord = null
-} = {}) {
-  const attachments = [];
-  let successCount = 0;
-  let failureCount = 0;
-  logAgentDebug(debugRecord, "attachments.collect.input", {
-    fileCount: files.length,
-    domPreviewAttachmentCount: domPreviewAttachments.length,
-    files: summarizeFiles(files),
-    domPreviewAttachments
-  });
-
-  for (const [index, file] of files.entries()) {
-    try {
-      const dataUrl = await readFileAsDataUrl(file);
-      if (!dataUrl) throw new Error("empty dataURL");
-      successCount += 1;
-      attachments.push({
-        type: file?.type || "image",
-        name: file?.name || `Reference ${index + 1}`,
-        source: "upload",
-        dataUrl
-      });
-    } catch (error) {
-      failureCount += 1;
-      logAgentDebug(debugRecord, "attachments.dataurl_failed", {
-        index,
-        name: file?.name || "",
-        type: file?.type || "",
-        size: Number(file?.size || 0),
-        error: error.message || String(error)
-      });
-    }
-  }
-
-  if (files.length && !attachments.length) {
-    throw new Error("No uploaded reference images could be converted to dataURL.");
-  }
-
-  if (!attachments.length && !files.length && domPreviewAttachments.length) {
-    const domReferences = await readDomPreviewReferences({
-      readFileAsDataUrl,
-      logDebug: (label, data) => logAgentDebug(debugRecord, label, data)
-    });
-    attachments.push(...domReferences);
-    if (!attachments.length) {
-      const error = new Error("参考图读取失败，请重新上传参考图。");
-      error.failureCode = "REFERENCE_ATTACHMENT_UNREADABLE";
-      error.stage = "attachments";
-      throw error;
-    }
-  }
-
-  if (!attachments.length && !files.length && !domPreviewAttachments.length) {
-    const selectedReference = await readSelectedImageReference(readImageSourceAsDataUrl);
-    if (selectedReference) attachments.push(selectedReference);
-  }
-
-  if (debugRecord) {
-    debugRecord.dataUrlSuccessCount = successCount;
-    debugRecord.dataUrlFailureCount = failureCount;
-  }
-  logAgentDebug(debugRecord, "attachments.dataurl_complete", {
-    successCount,
-    failureCount,
-    finalReferenceCount: attachments.length,
-    sources: attachments.map((item) => item.source || "unknown")
-  });
-
-  return {
-    attachments,
-    images: attachments.map((item) => item.dataUrl).filter(Boolean)
   };
 }
 

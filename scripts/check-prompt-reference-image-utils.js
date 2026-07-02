@@ -1,4 +1,5 @@
 import {
+  collectReferenceImages,
   imageSourceToDataUrl,
   inferMimeTypeFromDataUrl,
   readDomPreviewReferences,
@@ -167,6 +168,98 @@ const failedReference = await readSelectedImageReference(async () => {
 });
 assert(failedReference === null, "Selected image reference should return null after read failure");
 assert(warnings.length === 1, "Selected image reference should warn on read failure");
+
+const uploadDebug = {};
+const uploadLogs = [];
+const uploadFile = { name: "upload.png", type: "image/png", size: 12 };
+const uploadBundle = await collectReferenceImages({
+  files: [uploadFile],
+  readFileAsDataUrl: async (file) => {
+    assert(file === uploadFile, "Reference collection should read uploaded files");
+    return "data:image/png;base64,upload";
+  },
+  debugRecord: uploadDebug,
+  logDebug: (label, data) => uploadLogs.push({ label, data })
+});
+assert(uploadBundle.attachments.length === 1, "Reference collection should keep uploaded references");
+assert(uploadBundle.attachments[0].source === "upload", "Reference collection should mark upload source");
+assert(uploadBundle.images[0] === "data:image/png;base64,upload", "Reference collection should expose data URLs");
+assert(uploadDebug.dataUrlSuccessCount === 1, "Reference collection should record upload success count");
+assert(uploadDebug.dataUrlFailureCount === 0, "Reference collection should record upload failure count");
+assert(uploadLogs.some((item) => item.label === "attachments.collect.input"), "Reference collection should log inputs");
+assert(uploadLogs.some((item) => item.label === "attachments.dataurl_complete"), "Reference collection should log completion");
+
+const uploadFailureLogs = [];
+let uploadCollectionFailed = false;
+try {
+  await collectReferenceImages({
+    files: [{ name: "bad.png", type: "image/png", size: 1 }],
+    readFileAsDataUrl: async () => "",
+    logDebug: (label, data) => uploadFailureLogs.push({ label, data })
+  });
+} catch (error) {
+  uploadCollectionFailed = error.message === "No uploaded reference images could be converted to dataURL.";
+}
+assert(uploadCollectionFailed, "Reference collection should fail when every uploaded file is unreadable");
+assert(uploadFailureLogs.some((item) => item.label === "attachments.dataurl_failed"), "Reference collection should log upload conversion failures");
+
+const domCollectionLogs = [];
+const domBundle = await collectReferenceImages({
+  domPreviewAttachments: [{ attachmentId: "dom-1" }],
+  readFileAsDataUrl: async () => "data:image/png;base64,unused",
+  readDomPreviewReferencesImpl: async ({ readFileAsDataUrl, logDebug }) => {
+    assert(typeof readFileAsDataUrl === "function", "Reference collection should pass file reader to DOM fallback");
+    logDebug("attachments.dom_preview_complete", {
+      domPreviewCount: 1,
+      recoveredReferenceCount: 1,
+      sources: ["upload"]
+    });
+    return [{
+      type: "image/png",
+      name: "dom.png",
+      source: "upload",
+      dataUrl: "data:image/png;base64,dom"
+    }];
+  },
+  logDebug: (label, data) => domCollectionLogs.push({ label, data })
+});
+assert(domBundle.attachments.length === 1, "Reference collection should use DOM preview references");
+assert(domBundle.attachments[0].name === "dom.png", "Reference collection should preserve DOM preview metadata");
+assert(domBundle.images[0] === "data:image/png;base64,dom", "Reference collection should expose DOM preview data URLs");
+assert(domCollectionLogs.some((item) => item.label === "attachments.dom_preview_complete"), "Reference collection should pass debug logger to DOM fallback");
+
+let domCollectionFailed = false;
+let domCollectionError = null;
+try {
+  await collectReferenceImages({
+    domPreviewAttachments: [{ attachmentId: "missing" }],
+    readDomPreviewReferencesImpl: async () => [],
+    logDebug: () => {}
+  });
+} catch (error) {
+  domCollectionFailed = true;
+  domCollectionError = error;
+}
+assert(domCollectionFailed, "Reference collection should fail when DOM previews are unreadable");
+assert(domCollectionError.failureCode === "REFERENCE_ATTACHMENT_UNREADABLE", "Reference collection should preserve unreadable attachment code");
+assert(domCollectionError.stage === "attachments", "Reference collection should preserve unreadable attachment stage");
+
+const selectedBundle = await collectReferenceImages({
+  readImageSourceAsDataUrl: async () => "data:image/png;base64,selected",
+  readSelectedImageReferenceImpl: async (reader) => {
+    assert(typeof reader === "function", "Reference collection should pass selected image reader");
+    return {
+      type: "image",
+      name: "Selected",
+      source: "canvas-selection",
+      dataUrl: "data:image/png;base64,selected"
+    };
+  },
+  logDebug: () => {}
+});
+assert(selectedBundle.attachments.length === 1, "Reference collection should use selected canvas image fallback");
+assert(selectedBundle.attachments[0].source === "canvas-selection", "Reference collection should preserve selected canvas source");
+assert(selectedBundle.images[0] === "data:image/png;base64,selected", "Reference collection should expose selected canvas data URL");
 
 console.log("Prompt reference image utility checks passed.");
 
