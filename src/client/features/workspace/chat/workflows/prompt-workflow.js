@@ -32,8 +32,10 @@ import {
 } from "./prompt-debug-summary-utils.js";
 import {
   buildAgentDebugPanelSnapshot,
+  buildMessageDoneGenerationDecisionPayload,
   createAgentDebugRecord,
-  sanitizeDebugValue
+  sanitizeDebugValue,
+  setAgentGenerationStage as applyAgentGenerationStage
 } from "./prompt-agent-debug-utils.js";
 import {
   clearComposerAttachments,
@@ -121,34 +123,17 @@ function logAgentDebug(record, label, data = {}) {
 }
 
 function setAgentGenerationStage(record, stage, data = {}) {
-  if (!record || !stage) return;
-  record.generationStage = stage;
-  if (!Array.isArray(record.stageHistory)) record.stageHistory = [];
-  record.stageHistory.push({
-    stage,
-    at: Date.now(),
-    ...sanitizeDebugValue(data)
+  applyAgentGenerationStage(record, stage, data, {
+    logAgentDebug,
+    updateAgentDebugPanel
   });
-  if (record.stageHistory.length > 40) record.stageHistory.splice(0, record.stageHistory.length - 40);
-  logAgentDebug(record, `stage.${stage}`, data);
-  updateAgentDebugPanel(record);
 }
 
 function logMessageDoneGenerationDecision(record, data = {}) {
-  console.debug("[message.done] generation decision", {
-    runId: record?.runId || "",
+  console.debug("[message.done] generation decision", buildMessageDoneGenerationDecisionPayload(record, data, {
     activeRunId: activeChatAgentRunId || "",
-    intent: record?.intent || "",
-    shouldGenerate: Boolean(record?.shouldGenerate),
-    generationType: record?.generationType || "",
-    autoExecute: CHAT_AGENT_CONFIG.autoExecute,
-    generationStarted: Boolean(record?.generationStarted),
-    executeGeneration: Boolean(record?.executeGeneration),
-    pendingPreviewCreated: Boolean(record?.pendingPreviewCreated),
-    messageDoneHandled: Boolean(record?.messageDoneHandled),
-    skipReason: record?.messageDoneSkipReason || "",
-    ...sanitizeDebugValue(data)
-  });
+    autoExecute: CHAT_AGENT_CONFIG.autoExecute
+  }));
 }
 
 function updateAgentDebugPanel(record) {

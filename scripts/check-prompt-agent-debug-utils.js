@@ -1,7 +1,9 @@
 import {
   buildAgentDebugPanelSnapshot,
+  buildMessageDoneGenerationDecisionPayload,
   createAgentDebugRecord,
-  sanitizeDebugValue
+  sanitizeDebugValue,
+  setAgentGenerationStage
 } from "../src/client/features/workspace/chat/workflows/prompt-agent-debug-utils.js";
 
 function assert(condition, message) {
@@ -70,5 +72,59 @@ assert(snapshot.loadedWorkflowVersion === "loaded-1", "Debug panel snapshots sho
 assert(snapshot.streamEventTypes[0] === "message.delta", "Debug panel snapshots should keep stream events");
 assert(snapshot.stageHistory[0].stage === "generate", "Debug panel snapshots should keep stage history");
 assert(snapshot.streamAbortReason === "reader completed", "Debug panel snapshots should keep stream abort reasons");
+
+const stageRecord = createAgentDebugRecord({}, {
+  now: () => fixedDate,
+  random: () => 0.5
+});
+const stageLogs = [];
+const stageUpdates = [];
+setAgentGenerationStage(stageRecord, "generateRequest", {
+  prompt: "data:image/png;base64,abcdef",
+  count: 2
+}, {
+  now: () => 100,
+  logAgentDebug: (_record, label, data) => stageLogs.push({ label, data }),
+  updateAgentDebugPanel: (nextRecord) => stageUpdates.push(nextRecord.generationStage)
+});
+assert(stageRecord.generationStage === "generateRequest", "Generation stage helper should store the current stage");
+assert(stageRecord.stageHistory.length === 1, "Generation stage helper should append stage history");
+assert(stageRecord.stageHistory[0].at === 100, "Generation stage helper should preserve injected timestamps");
+assert(stageRecord.stageHistory[0].prompt === "data:image/png;base64, length=6", "Generation stage helper should sanitize debug data in history");
+assert(stageRecord.stageHistory[0].count === 2, "Generation stage helper should preserve non-sensitive debug data");
+assert(stageLogs[0]?.label === "stage.generateRequest", "Generation stage helper should preserve log labels");
+assert(stageLogs[0]?.data?.prompt === "data:image/png;base64,abcdef", "Generation stage helper should pass original data to loggers");
+assert(stageUpdates[0] === "generateRequest", "Generation stage helper should update debug panels");
+
+for (let index = 0; index < 45; index += 1) {
+  setAgentGenerationStage(stageRecord, `stage-${index}`, {}, { now: () => index });
+}
+assert(stageRecord.stageHistory.length === 40, "Generation stage helper should cap stage history");
+assert(stageRecord.stageHistory[0].stage === "stage-5", "Generation stage helper should remove the oldest stage history entries");
+
+const decisionPayload = buildMessageDoneGenerationDecisionPayload({
+  runId: "run-1",
+  intent: "generate_image",
+  shouldGenerate: true,
+  generationType: "",
+  generationStarted: false,
+  executeGeneration: true,
+  pendingPreviewCreated: true,
+  messageDoneHandled: false,
+  messageDoneSkipReason: "waiting"
+}, {
+  prompt: "data:image/png;base64,1234"
+}, {
+  activeRunId: "active-1",
+  autoExecute: true
+});
+assert(decisionPayload.runId === "run-1", "Message done decision payloads should keep run ids");
+assert(decisionPayload.activeRunId === "active-1", "Message done decision payloads should keep active run ids");
+assert(decisionPayload.intent === "generate_image", "Message done decision payloads should keep intents");
+assert(decisionPayload.shouldGenerate === true, "Message done decision payloads should keep generation decisions");
+assert(decisionPayload.autoExecute === true, "Message done decision payloads should keep auto execute config");
+assert(decisionPayload.pendingPreviewCreated === true, "Message done decision payloads should keep preview state");
+assert(decisionPayload.skipReason === "waiting", "Message done decision payloads should keep skip reasons");
+assert(decisionPayload.prompt === "data:image/png;base64, length=4", "Message done decision payloads should sanitize extra debug data");
 
 console.log("Prompt agent debug utility checks passed.");

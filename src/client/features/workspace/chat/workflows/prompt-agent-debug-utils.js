@@ -78,6 +78,51 @@ export function sanitizeDebugValue(value) {
   return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, sanitizeDebugValue(item)]));
 }
 
+export function setAgentGenerationStage(
+  record,
+  stage,
+  data = {},
+  {
+    now = Date.now,
+    logAgentDebug = () => {},
+    updateAgentDebugPanel = () => {}
+  } = {}
+) {
+  if (!record || !stage) return;
+  record.generationStage = stage;
+  if (!Array.isArray(record.stageHistory)) record.stageHistory = [];
+  record.stageHistory.push({
+    stage,
+    at: now(),
+    ...sanitizeDebugValue(data)
+  });
+  if (record.stageHistory.length > 40) {
+    record.stageHistory.splice(0, record.stageHistory.length - 40);
+  }
+  logAgentDebug(record, `stage.${stage}`, data);
+  updateAgentDebugPanel(record);
+}
+
+export function buildMessageDoneGenerationDecisionPayload(record, data = {}, {
+  activeRunId = "",
+  autoExecute = false
+} = {}) {
+  return {
+    runId: record?.runId || "",
+    activeRunId,
+    intent: record?.intent || "",
+    shouldGenerate: Boolean(record?.shouldGenerate),
+    generationType: record?.generationType || "",
+    autoExecute,
+    generationStarted: Boolean(record?.generationStarted),
+    executeGeneration: Boolean(record?.executeGeneration),
+    pendingPreviewCreated: Boolean(record?.pendingPreviewCreated),
+    messageDoneHandled: Boolean(record?.messageDoneHandled),
+    skipReason: record?.messageDoneSkipReason || "",
+    ...sanitizeDebugValue(data)
+  };
+}
+
 export function buildAgentDebugPanelSnapshot(record, {
   workflowVersion = "",
   loadedWorkflowVersion = ""
