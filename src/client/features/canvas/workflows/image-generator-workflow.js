@@ -37,6 +37,12 @@ import {
   getPendingGeneratorPreviewGroups,
   tagGeneratorPreviewJobs
 } from "./image-generator-preview-job-utils.js";
+import {
+  getGeneratorReferenceStatusText,
+  getGeneratorReferences,
+  mergeGeneratorReferences,
+  removeGeneratorReferenceAtIndex
+} from "./image-generator-reference-utils.js";
 
 const GENERATOR_SELECTOR = ".node-image-generator";
 const GENERATOR_POPOVER_SELECTOR = "#imageGeneratorPopover";
@@ -1521,24 +1527,11 @@ function hasGeneratorDropData(dataTransfer) {
     || types.includes("text/plain");
 }
 
-function getGeneratorReferences(node) {
-  return Array.isArray(node?._generatorReferences) ? node._generatorReferences : [];
-}
-
-function mergeGeneratorReferences(node, nextReferences = []) {
-  return [...getGeneratorReferences(node), ...nextReferences]
-    .filter((item) => item?.dataUrl)
-    .slice(0, 3);
-}
-
 function setGeneratorReferences(node, references = []) {
   if (!node) return;
   node._generatorReferences = references;
   node.dataset.generatorReferenceCount = String(references.length);
-  const status = references.length
-    ? `图生图 · ${references.length} 张参考图`
-    : "文生图";
-  updateGeneratorStatus(node, status);
+  updateGeneratorStatus(node, getGeneratorReferenceStatusText(references));
   renderGeneratorReferences(node, references);
   node.classList.toggle("has-generator-reference", references.length > 0);
 }
@@ -1549,8 +1542,9 @@ function clearGeneratorReferences(node) {
 
 function removeGeneratorReference(node, index) {
   const references = getGeneratorReferences(node);
-  if (!Number.isInteger(index) || index < 0 || index >= references.length) return;
-  setGeneratorReferences(node, references.filter((_, itemIndex) => itemIndex !== index));
+  const nextReferences = removeGeneratorReferenceAtIndex(node, index);
+  if (nextReferences === references) return;
+  setGeneratorReferences(node, nextReferences);
 }
 
 function resetGeneratorInput(node) {
