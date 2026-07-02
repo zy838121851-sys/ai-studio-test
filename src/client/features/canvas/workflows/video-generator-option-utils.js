@@ -44,6 +44,21 @@ export function chooseVideoOptionElement(option) {
   group.dataset.value = option.dataset.value || "";
 }
 
+export function renderVideoModelSelect(select, {
+  models = [],
+  current = "",
+  escapeAttribute = (value) => String(value),
+  escapeHtml = (value) => String(value)
+} = {}) {
+  if (!select) return "";
+  select.innerHTML = models.map((model) => `
+      <option value="${escapeAttribute(model.id)}"${model.id === current ? " selected" : ""}>${escapeHtml(model.label || model.id)}</option>
+    `).join("");
+  select.value = models.some((model) => model.id === current) ? current : (models[0]?.id || "");
+  select.dataset.selectedModelId = select.value || "";
+  return select.value;
+}
+
 export function getVideoSavedOption(node = null, kind = "") {
   return node?.dataset?.[`videoGenerator${capitalize(kind)}`] || "";
 }

@@ -29,6 +29,7 @@ import {
   getVideoSelectedModelId,
   chooseVideoOptionElement,
   renderVideoOptionGroup,
+  renderVideoModelSelect,
   toOptions
 } from "./video-generator-option-utils.js";
 import {
@@ -320,11 +321,7 @@ export function createVideoGeneratorWorkflow({
     if (!select) return;
     const models = getVideoModels();
     const current = select.dataset.selectedModelId || select.value || getSelectedVideoModelId(models);
-    select.innerHTML = models.map((model) => `
-      <option value="${escapeAttribute(model.id)}"${model.id === current ? " selected" : ""}>${escapeHtml(model.label || model.id)}</option>
-    `).join("");
-    select.value = models.some((model) => model.id === current) ? current : (models[0]?.id || "");
-    select.dataset.selectedModelId = select.value || "";
+    renderVideoModelSelect(select, { models, current, escapeAttribute, escapeHtml });
     syncVideoOptionGroups();
   }
 
