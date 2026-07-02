@@ -5,13 +5,6 @@ import * as libDependencies from "../runtime/dependencies/lib-dependencies.js";
 import * as projectDependencies from "../runtime/dependencies/project-dependencies.js";
 import * as workspaceUiDependencies from "../runtime/dependencies/workspace-ui-dependencies.js";
 
-export * from "../runtime/dependencies/agent-dependencies.js";
-export * from "../runtime/dependencies/ai-dependencies.js";
-export * from "../runtime/dependencies/canvas-dependencies.js";
-export * from "../runtime/dependencies/lib-dependencies.js";
-export * from "../runtime/dependencies/project-dependencies.js";
-export * from "../runtime/dependencies/workspace-ui-dependencies.js";
-
 export function createWorkspaceCompositionDependencyBundle() {
   const runtimeDependencies = {
     ...agentDependencies,

@@ -28,6 +28,14 @@ const ENTRY_IMPORT_EXPECTATIONS = [
     forbidden: ["../features/workspace/index.js", "../features/workspace/runtime/index.js"]
   }
 ];
+const MODULE_SURFACE_EXPECTATIONS = [
+  {
+    filePath: "src/client/features/workspace/workflows/workspace-composition-dependencies.js",
+    forbidden: [
+      "export * from"
+    ]
+  }
+];
 
 const errors = [];
 
@@ -109,6 +117,17 @@ function checkEntryImportExpectations() {
   }
 }
 
+function checkModuleSurfaceExpectations() {
+  for (const expectation of MODULE_SURFACE_EXPECTATIONS) {
+    const source = readSource(expectation.filePath);
+    for (const forbidden of expectation.forbidden) {
+      if (source.includes(forbidden)) {
+        errors.push(`${expectation.filePath} must not expose broad dependency re-exports via ${forbidden}`);
+      }
+    }
+  }
+}
+
 function buildReachabilityGraph() {
   const allFiles = new Set([
     ...collectJsFiles(CLIENT_DIR),
@@ -141,6 +160,7 @@ function buildReachabilityGraph() {
 
 const { allFiles, reachable } = buildReachabilityGraph();
 checkEntryImportExpectations();
+checkModuleSurfaceExpectations();
 const deprecatedClientFiles = DEPRECATED_CLIENT_MODULES
   .filter((filePath) => fs.existsSync(path.resolve(ROOT, filePath)));
 const unreachableClientFiles = Array.from(allFiles)
