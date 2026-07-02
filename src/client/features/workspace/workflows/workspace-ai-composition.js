@@ -1,6 +1,6 @@
 import { createWorkspaceImageEditAppRuntime } from "../runtime/workspace-ai-runtime.js";
 
-export function createWorkspaceImageEditCompositionRuntime({
+function createWorkspaceImageEditCompositionRuntime({
   elements,
   services
 }) {

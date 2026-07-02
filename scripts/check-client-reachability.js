@@ -36,6 +36,12 @@ const MODULE_SURFACE_EXPECTATIONS = [
     forbidden: [
       "export * from"
     ]
+  },
+  {
+    filePath: "src/client/features/workspace/workflows/workspace-ai-composition.js",
+    forbidden: [
+      "export function createWorkspaceImageEditCompositionRuntime"
+    ]
   }
 ];
 
