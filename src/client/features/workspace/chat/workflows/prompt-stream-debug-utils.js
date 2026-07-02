@@ -40,3 +40,31 @@ export function parseStreamEventLine(
     throw error;
   }
 }
+
+export function setStreamAbortReason(debugRecord, reason = "", { updateAgentDebugPanel = () => {} } = {}) {
+  if (!debugRecord) return;
+  debugRecord.streamAbortReason = reason;
+  updateAgentDebugPanel(debugRecord);
+}
+
+export function recordHandledStreamEvent(
+  event,
+  shouldContinue,
+  {
+    debugRecord = null,
+    logAgentDebug = () => {},
+    updateAgentDebugPanel = () => {}
+  } = {}
+) {
+  logAgentDebug(debugRecord, "stream.event.handled", {
+    type: event?.type || "",
+    shouldContinue
+  });
+  if (shouldContinue === false) {
+    setStreamAbortReason(debugRecord, `handler stopped after ${event?.type || "unknown"}`, {
+      updateAgentDebugPanel
+    });
+    return false;
+  }
+  return true;
+}

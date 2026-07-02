@@ -71,7 +71,9 @@ import {
   requestConversationRestore
 } from "./prompt-conversation-api-utils.js";
 import {
-  parseStreamEventLine
+  parseStreamEventLine,
+  recordHandledStreamEvent,
+  setStreamAbortReason
 } from "./prompt-stream-debug-utils.js";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
@@ -1884,15 +1886,11 @@ async function streamConversationRun(conversationId, payload, onEvent, { timeout
           updateAgentDebugPanel
         });
         const shouldContinue = onEvent(event);
-        logAgentDebug(debugRecord, "stream.event.handled", {
-          type: event?.type || "",
-          shouldContinue
-        });
-        if (shouldContinue === false) {
-          if (debugRecord) {
-            debugRecord.streamAbortReason = `handler stopped after ${event?.type || "unknown"}`;
-            updateAgentDebugPanel(debugRecord);
-          }
+        if (!recordHandledStreamEvent(event, shouldContinue, {
+          debugRecord,
+          logAgentDebug,
+          updateAgentDebugPanel
+        })) {
           reader.cancel?.().catch?.(() => {});
           return;
         }
@@ -1905,38 +1903,25 @@ async function streamConversationRun(conversationId, payload, onEvent, { timeout
         updateAgentDebugPanel
       });
       const shouldContinue = onEvent(event);
-      logAgentDebug(debugRecord, "stream.event.handled", {
-        type: event?.type || "",
-        shouldContinue
-      });
-      if (shouldContinue === false) {
-        if (debugRecord) {
-          debugRecord.streamAbortReason = `handler stopped after ${event?.type || "unknown"}`;
-          updateAgentDebugPanel(debugRecord);
-        }
+      if (!recordHandledStreamEvent(event, shouldContinue, {
+        debugRecord,
+        logAgentDebug,
+        updateAgentDebugPanel
+      })) {
         reader.cancel?.().catch?.(() => {});
         return;
       }
     }
-    if (debugRecord) {
-      debugRecord.streamAbortReason = "reader completed";
-      updateAgentDebugPanel(debugRecord);
-    }
+    setStreamAbortReason(debugRecord, "reader completed", { updateAgentDebugPanel });
   } catch (error) {
     if (timedOut) {
       const timeoutError = new Error("Agent 流程超时，请重试");
       timeoutError.streamTimeout = true;
-      if (debugRecord) {
-        debugRecord.streamAbortReason = "timeout";
-        updateAgentDebugPanel(debugRecord);
-      }
+      setStreamAbortReason(debugRecord, "timeout", { updateAgentDebugPanel });
       throw timeoutError;
     }
     if (error?.name === "AbortError") {
-      if (debugRecord) {
-        debugRecord.streamAbortReason = "aborted by new run or stop";
-        updateAgentDebugPanel(debugRecord);
-      }
+      setStreamAbortReason(debugRecord, "aborted by new run or stop", { updateAgentDebugPanel });
       throw new Error("Conversation run was stopped.");
     }
     throw error;

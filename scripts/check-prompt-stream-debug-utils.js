@@ -1,5 +1,7 @@
 import {
   parseStreamEventLine,
+  recordHandledStreamEvent,
+  setStreamAbortReason,
   recordStreamEvent
 } from "../src/client/features/workspace/chat/workflows/prompt-stream-debug-utils.js";
 
@@ -62,5 +64,37 @@ assert(parseErrorRecord.lastStreamEventType === "parse.error", "Stream parsing s
 assert(parseErrorRecord.streamParseError, "Stream parsing should store parse error messages");
 assert(warnings[0]?.[0] === "[chat-agent] stream event parse failed", "Stream parsing should preserve warning labels");
 assert(warnings[0]?.[1]?.textLength === 9, "Stream parsing warnings should include text length");
+
+const abortRecord = {};
+const abortUpdates = [];
+setStreamAbortReason(abortRecord, "reader completed", {
+  updateAgentDebugPanel: (nextRecord) => abortUpdates.push(nextRecord.streamAbortReason)
+});
+assert(abortRecord.streamAbortReason === "reader completed", "Stream abort helpers should store abort reasons");
+assert(abortUpdates[0] === "reader completed", "Stream abort helpers should update debug panels");
+
+const handledLogs = [];
+const continueResult = recordHandledStreamEvent({ type: "message.delta" }, true, {
+  debugRecord: abortRecord,
+  logAgentDebug: (_record, label, data) => handledLogs.push({ label, data }),
+  updateAgentDebugPanel: (nextRecord) => abortUpdates.push(nextRecord.streamAbortReason)
+});
+assert(continueResult === true, "Handled stream events should continue unless the handler stops");
+assert(handledLogs[0]?.label === "stream.event.handled", "Handled stream events should preserve debug log labels");
+assert(handledLogs[0]?.data?.type === "message.delta", "Handled stream events should log event types");
+assert(handledLogs[0]?.data?.shouldContinue === true, "Handled stream events should log handler results");
+
+const stoppedRecord = {};
+const stoppedLogs = [];
+const stoppedUpdates = [];
+const stoppedResult = recordHandledStreamEvent({ type: "message.done" }, false, {
+  debugRecord: stoppedRecord,
+  logAgentDebug: (_record, label, data) => stoppedLogs.push({ label, data }),
+  updateAgentDebugPanel: (nextRecord) => stoppedUpdates.push(nextRecord.streamAbortReason)
+});
+assert(stoppedResult === false, "Handled stream events should stop when handlers return false");
+assert(stoppedRecord.streamAbortReason === "handler stopped after message.done", "Handled stream events should record stop reasons");
+assert(stoppedUpdates[0] === "handler stopped after message.done", "Handled stream events should update debug panels on stop");
+assert(stoppedLogs[0]?.data?.shouldContinue === false, "Handled stream events should log stopped handler results");
 
 console.log("Prompt stream debug utility checks passed.");
