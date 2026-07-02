@@ -30,19 +30,24 @@ assert(
   "generator polling must emit local diagnostic logs"
 );
 assert(
-  generatorWorkflow.includes("getMissingGeneratorResultMessage(lastPayload)"),
+  generatorWorkflow.includes("getMissingGeneratorResultMessage(lastPayload, expectedType)"),
   "generator polling must fail clearly when a terminal job has no image URL"
 );
 
 const aiRoutes = read("src/server/routes/ai.routes.js");
+const aiJobQueryService = read("src/server/services/ai/ai-job-query.service.js");
+const generationCreationService = read("src/server/services/ai/generation-creation.service.js");
+const imageEditCreationService = read("src/server/services/ai/image-edit-creation.service.js");
 assert(
-  aiRoutes.includes("remoteTaskId: job.remoteTaskId") &&
-  aiRoutes.includes("updatedAt: job.updatedAt") &&
-  aiRoutes.includes("outputCount: assets.length"),
+  aiRoutes.includes("getAIJobDetailResponse") &&
+  aiJobQueryService.includes("remoteTaskId: job.remoteTaskId") &&
+  aiJobQueryService.includes("updatedAt: job.updatedAt") &&
+  aiJobQueryService.includes("outputCount: assets.length"),
   "job polling API must expose remoteTaskId, updatedAt, and outputCount diagnostics"
 );
 assert(
-  aiRoutes.includes("scheduleAIJobRefresh(req.auth.user.id, job.id)"),
+  generationCreationService.includes("scheduleAIJobRefresh(userId, job.id)") &&
+  imageEditCreationService.includes("scheduleAIJobRefresh(userId, job.id)"),
   "async APIMart jobs must schedule a backend refresh fallback"
 );
 
@@ -60,7 +65,7 @@ assert(
 const appInit = read("src/client/core/app-init.js");
 assert(
   appInit.includes("[runtime] AI Studio client") &&
-  appInit.includes("generator-job-poll-20260627"),
+  appInit.includes("library-bulk-select-20260627"),
   "client startup must log runtime origin and build id"
 );
 

@@ -698,14 +698,19 @@ export function createImageGeneratorWorkflow({
         && previewNode.dataset.generatorFailed !== "true"
       ));
     if (!previews.length) return;
+    const groups = groupGeneratorPreviewsByJob(previews);
+    groups.forEach((nodes, jobId) => resumeGeneratorPreviewGroup(jobId, nodes));
+  }
+
+  function groupGeneratorPreviewsByJob(previews = []) {
     const groups = new Map();
     previews.forEach((previewNode) => {
-      const jobId = previewNode.dataset.generatorJobId;
+      const jobId = previewNode?.dataset?.generatorJobId;
       if (!jobId) return;
       if (!groups.has(jobId)) groups.set(jobId, []);
       groups.get(jobId).push(previewNode);
     });
-    groups.forEach((nodes, jobId) => resumeGeneratorPreviewGroup(jobId, nodes));
+    return groups;
   }
 
   function resumeGeneratorPreviewGroup(jobId, nodes = []) {
@@ -724,22 +729,30 @@ export function createImageGeneratorWorkflow({
           : "正在恢复生成结果..."));
       }
     }).then((result) => {
-      const urls = getResultImageUrls(result);
-      nodes.forEach((previewNode, index) => replaceRecoveredGeneratorPreview(previewNode, {
-        jobId,
-        result,
-        url: urls[getGeneratorPreviewBatchIndex(previewNode, index)] || urls[index] || urls[0] || "",
-        index,
-        count: urls.length || nodes.length || 1
-      }));
-      window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
-      saveCurrentProjectAfterGeneration?.();
+      completeRecoveredGeneratorPreviewGroup(jobId, nodes, result);
     }).catch((error) => {
       nodes.forEach((node) => {
         delete node.dataset.generatorResuming;
         if (node.isConnected) markGeneratorPreviewFailed(node, error);
       });
     });
+  }
+
+  function completeRecoveredGeneratorPreviewGroup(jobId, nodes = [], result = {}) {
+    const urls = getResultImageUrls(result);
+    nodes.forEach((previewNode, index) => replaceRecoveredGeneratorPreview(previewNode, {
+      jobId,
+      result,
+      url: getRecoveredGeneratorPreviewUrl(previewNode, urls, index),
+      index,
+      count: urls.length || nodes.length || 1
+    }));
+    window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
+    saveCurrentProjectAfterGeneration?.();
+  }
+
+  function getRecoveredGeneratorPreviewUrl(previewNode, urls = [], index = 0) {
+    return urls[getGeneratorPreviewBatchIndex(previewNode, index)] || urls[index] || urls[0] || "";
   }
 
   function replaceRecoveredGeneratorPreview(previewNode, { jobId, result = {}, url = "", index = 0, count = 1 } = {}) {
