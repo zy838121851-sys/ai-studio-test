@@ -441,6 +441,36 @@ export function bindPromptSubmit({
       }
       agentBlocksMessage.__updateBlocks?.(blocks);
     };
+    const applyGeneratedAgentProgressResult = ({
+      imageUrls = [],
+      videoUrls = [],
+      generationType = "image",
+      resultStatus = "succeeded",
+      resultModel = "",
+      modelUsage = "",
+      conversationResult = {},
+      agentDebug = {},
+      generationPrompt = "",
+      generationMetrics = {},
+      finalResult = {},
+      hasReference = false
+    } = {}) => {
+      applyAgentProgressResultState(agentBlocksState, buildAgentProgressResultOptions({
+        imageUrls,
+        videoUrls,
+        model: resultModel,
+        modelUsage,
+        generationType,
+        conversationResult,
+        agentDebug,
+        generationPrompt,
+        generationMetrics,
+        finalResult,
+        resultStatus,
+        hasReference
+      }));
+      refreshAgentBlocks();
+    };
     const handleAgentStreamEvent = (event = {}) => {
       if (activeChatAgentRunId !== agentDebug.runId) return;
       if (applyAgentProgressStreamEvent(agentBlocksState, event, { prompt })) {
@@ -930,10 +960,10 @@ export function bindPromptSubmit({
         if (typeof addChatBlocks === "function") {
           progress?.remove?.();
           progress = null;
-          applyAgentProgressResultState(agentBlocksState, buildAgentProgressResultOptions({
+          applyGeneratedAgentProgressResult({
             videoUrls: [],
             imageUrls: [],
-            model: resultModel,
+            resultModel,
             modelUsage,
             generationType: "video",
             conversationResult,
@@ -943,8 +973,7 @@ export function bindPromptSubmit({
             finalResult,
             resultStatus: "idle",
             hasReference: imageAttachments.length > 0
-          }));
-          refreshAgentBlocks();
+          });
         } else {
           progress?.remove?.();
           progress = null;
@@ -979,10 +1008,10 @@ export function bindPromptSubmit({
         if (typeof addChatBlocks === "function") {
           progress?.remove?.();
           progress = null;
-          applyAgentProgressResultState(agentBlocksState, buildAgentProgressResultOptions({
+          applyGeneratedAgentProgressResult({
             imageUrls,
             videoUrls: [],
-            model: resultModel,
+            resultModel,
             modelUsage,
             generationType: "image",
             conversationResult,
@@ -992,8 +1021,7 @@ export function bindPromptSubmit({
             finalResult,
             resultStatus: "succeeded",
             hasReference: imageAttachments.length > 0
-          }));
-          refreshAgentBlocks();
+          });
         } else {
           progress?.remove?.();
           progress = null;
