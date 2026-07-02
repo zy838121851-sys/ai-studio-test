@@ -68,6 +68,8 @@ function sanitizeSnapshotNode(node) {
   next.y = finiteNumber(next.y);
   next.dataset = sanitizeDataset(next.dataset);
   next.media = sanitizeMedia(next.media);
+  if (!isRestorableSnapshotNode(next)) return null;
+  next.html = normalizeSnapshotHtmlMediaUrls(next.html);
   return next;
 }
 
@@ -77,7 +79,7 @@ function sanitizeDataset(dataset = {}) {
   for (const [key, value] of Object.entries(dataset)) {
     const cleanKey = String(key || "").replace(/[^a-zA-Z0-9_-]/g, "");
     if (!cleanKey || /^on/i.test(cleanKey)) continue;
-    next[cleanKey] = sanitizeUrlOrText(value);
+    next[cleanKey] = normalizePersistentMediaUrl(sanitizeUrlOrText(value));
   }
   return next;
 }
@@ -85,7 +87,7 @@ function sanitizeDataset(dataset = {}) {
 function sanitizeMedia(media = {}) {
   if (!media || typeof media !== "object") return {};
   return {
-    url: sanitizeUrl(media.url),
+    url: normalizePersistentMediaUrl(sanitizeUrl(media.url)),
     name: cleanText(media.name, 500),
     type: cleanText(media.type, 120),
     tool: cleanText(media.tool, 120),
@@ -101,6 +103,36 @@ function sanitizeUrlOrText(value) {
 function sanitizeUrl(value) {
   const text = cleanText(value, 5000);
   return isDangerousUrl(text) ? "" : text;
+}
+
+function normalizePersistentMediaUrl(value = "") {
+  const text = String(value || "").trim();
+  if (!text || text.startsWith("blob:")) return "";
+  const match = text.match(/^https?:\/\/(?:localhost|127\.0\.0\.1|\[?::1\]?)(?::\d+)?(\/uploads\/[^?#]*)([?#][\s\S]*)?$/i);
+  if (match) return `${match[1]}${match[2] || ""}`;
+  return text;
+}
+
+function normalizeSnapshotHtmlMediaUrls(html = "") {
+  return String(html || "").replace(
+    /\s(src|href|poster)=("([^"]*)"|'([^']*)')/gi,
+    (match, attribute, _quoted, doubleValue, singleValue) => {
+      const rawValue = doubleValue ?? singleValue ?? "";
+      const normalized = normalizePersistentMediaUrl(rawValue);
+      if (!normalized) return "";
+      const quote = doubleValue === undefined ? "'" : "\"";
+      return ` ${attribute}=${quote}${normalized}${quote}`;
+    }
+  );
+}
+
+function isRestorableSnapshotNode(node = {}) {
+  const kind = String(node.kind || node.dataset?.kind || "").trim().toLowerCase();
+  const className = String(node.className || "");
+  const html = String(node.html || "");
+  return kind !== "loading-image"
+    && !/\bnode-loading-image\b/.test(className)
+    && !/\bgeneration-frame\b/.test(html);
 }
 
 function sanitizeStyle(value = "") {

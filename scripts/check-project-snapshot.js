@@ -4,6 +4,9 @@ import {
   normalizePersistentMediaUrl,
   restoreCanvasSnapshotJson
 } from "../src/client/features/projects/snapshot.js";
+import {
+  sanitizeCanvasSnapshotJson
+} from "../src/server/services/snapshot-safety.service.js";
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -109,6 +112,35 @@ assert(savedSnapshot.nodes[0].kind === "image", "Saving snapshots should keep co
 assert(savedSnapshot.nodes[0].media.url === "/uploads/a.png", "Saved media URLs should be stable relative paths");
 assert(savedSnapshot.nodes[0].dataset.objectUrl === "/uploads/a.png", "Saved dataset media URLs should be stable relative paths");
 assert(savedSnapshot.nodes[0].html.includes("src=\"/uploads/a.png\""), "Saved snapshot HTML should use stable relative media paths");
+
+const serverSanitizedSnapshot = JSON.parse(sanitizeCanvasSnapshotJson(JSON.stringify({
+  version: 1,
+  savedAt: 2000,
+  nodes: [
+    {
+      kind: "loading-image",
+      className: "node-card node-loading-image",
+      html: "<figure class=\"image-frame generation-frame\"></figure>",
+      media: { url: "" }
+    },
+    {
+      kind: "image",
+      className: "node-card node-image",
+      html: "<figure><img src=\"http://localhost:3000/uploads/server.png?cache=1\" /></figure>",
+      dataset: {
+        objectUrl: "http://localhost:3000/uploads/server.png?cache=1",
+        externalUrl: "https://cdn.example.com/uploads/server.png"
+      },
+      media: { url: "http://localhost:3000/uploads/server.png?cache=1" }
+    }
+  ]
+})));
+
+assert(serverSanitizedSnapshot.nodes.length === 1, "Server snapshot sanitizer should skip loading image nodes");
+assert(serverSanitizedSnapshot.nodes[0].media.url === "/uploads/server.png?cache=1", "Server snapshot sanitizer should normalize local media URLs");
+assert(serverSanitizedSnapshot.nodes[0].dataset.objectUrl === "/uploads/server.png?cache=1", "Server snapshot sanitizer should normalize dataset media URLs");
+assert(serverSanitizedSnapshot.nodes[0].dataset.externalUrl === "https://cdn.example.com/uploads/server.png", "Server snapshot sanitizer should keep external HTTPS URLs");
+assert(serverSanitizedSnapshot.nodes[0].html.includes("src=\"/uploads/server.png?cache=1\""), "Server snapshot sanitizer should normalize HTML media URLs");
 
 console.log("Project snapshot checks passed.");
 
