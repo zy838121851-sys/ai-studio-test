@@ -49,6 +49,7 @@ import {
   getGeneratorReferenceStatusText,
   getGeneratorReferences,
   mergeGeneratorReferences,
+  readGeneratorReferenceFiles,
   removeGeneratorReferenceAtIndex
 } from "./image-generator-reference-utils.js";
 import {
@@ -839,19 +840,10 @@ export function createImageGeneratorWorkflow({
   async function addReferenceFilesToGenerator(node, files = []) {
     if (!node || !files.length) return [];
     try {
-      const references = await Promise.all(files
-        .filter((file) => file?.type?.startsWith("image/"))
-        .slice(0, 3)
-        .map(async (file) => {
-          const dataUrl = await readFileAsDataUrl(file);
-          const metrics = await readImageDataUrlMetrics(dataUrl);
-          return {
-            name: file.name || "reference image",
-            dataUrl,
-            width: metrics.width,
-            height: metrics.height
-          };
-        }));
+      const references = await readGeneratorReferenceFiles(files, {
+        readFileAsDataUrl,
+        readImageDataUrlMetrics
+      });
       setGeneratorReferences(node, mergeGeneratorReferences(node, references));
       syncGeneratorFrameToRatio(node, getGeneratorRatioValue(node));
       selectNode(node);

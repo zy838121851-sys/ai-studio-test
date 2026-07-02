@@ -8,6 +8,25 @@ export function mergeGeneratorReferences(node, nextReferences = []) {
     .slice(0, 3);
 }
 
+export async function readGeneratorReferenceFiles(files = [], {
+  readFileAsDataUrl,
+  readImageDataUrlMetrics
+} = {}) {
+  const imageFiles = Array.from(files || [])
+    .filter((file) => file?.type?.startsWith("image/"))
+    .slice(0, 3);
+  return Promise.all(imageFiles.map(async (file) => {
+    const dataUrl = await readFileAsDataUrl(file);
+    const metrics = await readImageDataUrlMetrics(dataUrl);
+    return {
+      name: file.name || "reference image",
+      dataUrl,
+      width: metrics.width,
+      height: metrics.height
+    };
+  }));
+}
+
 export function removeGeneratorReferenceAtIndex(node, index) {
   const references = getGeneratorReferences(node);
   if (!Number.isInteger(index) || index < 0 || index >= references.length) return references;

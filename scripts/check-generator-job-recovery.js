@@ -15,6 +15,9 @@ import {
   applyGeneratedImageNodeSize,
   getGeneratorResultTitle
 } from "../src/client/features/canvas/workflows/image-generator-result-utils.js";
+import {
+  readGeneratorReferenceFiles
+} from "../src/client/features/canvas/workflows/image-generator-reference-utils.js";
 
 function read(path) {
   return readFileSync(path, "utf8");
@@ -36,6 +39,7 @@ assert(
     && generatorWorkflow.includes("getGeneratorPreviewNodeWidth as getPreviewNodeWidth")
     && generatorWorkflow.includes("getGeneratedImagePlacement")
     && generatorWorkflow.includes("getGeneratorReplacementPlacement")
+    && generatorWorkflow.includes("readGeneratorReferenceFiles")
     && generatorWorkflow.includes("markGeneratorPreviewFailed")
     && generatorWorkflow.includes("updateGeneratorPreviewStatus as updatePreviewStatus")
     && generatorWorkflow.includes("applyGeneratedImageNodeResult")
@@ -266,6 +270,28 @@ assert(resultNode.dataset.generationModel === "model-1", "generated image result
 assert(resultNode.dataset.generatorSourceNodeId === "source-1", "generated image result helper should persist source node id");
 assert(resultNode.dataset.outputWidth === "640", "generated image result helper should persist output width");
 assert(resultNode.dataset.outputHeight === "480", "generated image result helper should persist output height");
+const referenceReads = [];
+const referenceFiles = [
+  { name: "one.png", type: "image/png" },
+  { name: "skip.txt", type: "text/plain" },
+  { name: "", type: "image/jpeg" },
+  { name: "three.webp", type: "image/webp" },
+  { name: "four.png", type: "image/png" }
+];
+const fileReferences = await readGeneratorReferenceFiles(referenceFiles, {
+  readFileAsDataUrl: async (file) => {
+    referenceReads.push(file.name || "fallback");
+    return `data:${file.name || "fallback"}`;
+  },
+  readImageDataUrlMetrics: async (dataUrl) => ({
+    width: dataUrl.length,
+    height: dataUrl.length + 1
+  })
+});
+assert(fileReferences.length === 3, "generator reference file helper should keep at most three images");
+assert(referenceReads.join(",") === "one.png,fallback,three.webp", "generator reference file helper should skip non-images before limiting");
+assert(fileReferences[1].name === "reference image", "generator reference file helper should preserve fallback names");
+assert(fileReferences[0].width > 0 && fileReferences[0].height === fileReferences[0].width + 1, "generator reference file helper should include image metrics");
 
 const appInit = read("src/client/core/app-init.js");
 assert(
