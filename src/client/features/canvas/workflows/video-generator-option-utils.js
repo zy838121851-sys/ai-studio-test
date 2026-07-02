@@ -39,6 +39,13 @@ export function getVideoModelByIdFromList(models = [], modelId = "") {
   return models.find((model) => model.id === id) || models[0] || null;
 }
 
+export function getVideoGenerationModels(models = [], getModelType = () => "") {
+  return Array.from(models || [])
+    .filter((model) => getModelType(model.id) === "video" || model.type === "video")
+    .filter((model) => !Array.isArray(model.capabilities) || model.capabilities.includes("video_generation"))
+    .sort((a, b) => Number(a.priority || 999) - Number(b.priority || 999));
+}
+
 export function capitalize(value = "") {
   const text = String(value || "");
   return text ? `${text[0].toUpperCase()}${text.slice(1)}` : "";

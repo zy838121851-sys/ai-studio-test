@@ -21,6 +21,7 @@ import {
 } from "./video-generator-job-utils.js";
 import {
   formatRatioLabel,
+  getVideoGenerationModels,
   getModeOptions,
   getVideoModelByIdFromList,
   getVideoOptionGroupValue,
@@ -483,10 +484,7 @@ export function createVideoGeneratorWorkflow({
   }
 
   function getVideoModels() {
-    return getCachedImageModels("home")
-      .filter((model) => getModelType(model.id) === "video" || model.type === "video")
-      .filter((model) => !Array.isArray(model.capabilities) || model.capabilities.includes("video_generation"))
-      .sort((a, b) => Number(a.priority || 999) - Number(b.priority || 999));
+    return getVideoGenerationModels(getCachedImageModels("home"), getModelType);
   }
 
   function getVideoModelById(modelId) {
