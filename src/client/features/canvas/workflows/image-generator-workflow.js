@@ -56,6 +56,10 @@ import {
   readImageDataUrlMetrics
 } from "./image-generator-image-read-utils.js";
 import {
+  escapeAttribute,
+  escapeHtml
+} from "./image-generator-escape-utils.js";
+import {
   getElementOffsetWithinNode,
   getGeneratorPopoverMetrics,
   getVisibleGeneratorPopoverPosition
@@ -1568,21 +1572,4 @@ function resolveGeneratorOutputSize(node, references = []) {
     references
   );
   return `${dimensions.width}*${dimensions.height}`;
-}
-
-function escapeAttribute(value = "") {
-  return String(value || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;");
-}
-
-function escapeHtml(value = "") {
-  return String(value || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }
