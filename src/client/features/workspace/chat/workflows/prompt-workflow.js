@@ -43,6 +43,11 @@ import {
   summarizePrompt,
   summarizeReferenceImages
 } from "./prompt-debug-summary-utils.js";
+import {
+  clearComposerAttachments,
+  copyReferenceFiles,
+  inferSubmitTriggerSource
+} from "./prompt-input-utils.js";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
 const CONVERSATION_THINKING_STEPS = [
@@ -333,15 +338,6 @@ function positionAgentDebugPanel(panel) {
   }
 }
 
-function inferSubmitTriggerSource(event, form) {
-  const submitter = event?.submitter || null;
-  if (submitter?.id === "promptSubmit" || submitter?.classList?.contains("send")) return "send-button";
-  if (submitter?.id === "presetSkill" || submitter?.closest?.("#presetSkill")) return "skill-button";
-  if (submitter?.dataset?.prompt || submitter?.closest?.("[data-prompt]")) return "quick-action";
-  if (Array.isArray(form?.__pendingHomeGenerationFiles) && form.__pendingHomeGenerationFiles.length) return "quick-action";
-  return submitter ? "other" : "enter";
-}
-
 function getChatPreviewDomSummaries(root = globalThis.document) {
   return Array.from(root?.querySelectorAll?.(".chat-image-preview button") || []).map((button, index) => {
     const image = button.querySelector("img");
@@ -358,15 +354,6 @@ function getChatPreviewDomSummaries(root = globalThis.document) {
       dataUrl: summarizeDataUrl(image?.src || "")
     };
   });
-}
-
-function copyReferenceFiles(files = []) {
-  return Array.from(files || []).filter((file) => file instanceof Blob);
-}
-
-function clearComposerAttachments({ setChatImageFiles, renderChatImagePreview } = {}) {
-  setChatImageFiles([]);
-  renderChatImagePreview();
 }
 
 function restoreComposerAttachmentsOnFailure({
