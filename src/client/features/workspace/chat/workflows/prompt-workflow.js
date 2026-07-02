@@ -19,9 +19,9 @@ import {
 } from "./prompt-model-log-utils.js";
 import {
   applyAgentProgressStreamEvent,
-  buildAgentCompletionSummary,
   buildAgentProgressBlocks,
   buildAgentResultBlocks,
+  applyAgentProgressResultState,
   createAgentProgressState
 } from "./prompt-agent-block-utils.js";
 import {
@@ -978,19 +978,18 @@ export function bindPromptSubmit({
         if (typeof addChatBlocks === "function") {
           progress?.remove?.();
           progress = null;
-          agentBlocksState.videoUrls = [];
-          agentBlocksState.imageUrls = [];
-          agentBlocksState.model = resultModel;
-          agentBlocksState.modelUsage = modelUsage;
-          agentBlocksState.generationType = "video";
-          agentBlocksState.taskType = conversationResult.taskType || agentDebug.taskType;
-          agentBlocksState.optimizedPrompt = generationPrompt;
-          agentBlocksState.size = generationMetrics.outputSize || "";
-          agentBlocksState.jobId = finalResult.jobId || finalResult.job?.id || "";
-          agentBlocksState.resultStatus = "idle";
-          agentBlocksState.summary = buildAgentCompletionSummary({
+          applyAgentProgressResultState(agentBlocksState, {
+            videoUrls: [],
+            imageUrls: [],
+            model: resultModel,
+            modelUsage,
+            generationType: "video",
+            taskType: conversationResult.taskType || agentDebug.taskType,
+            optimizedPrompt: generationPrompt,
+            size: generationMetrics.outputSize || "",
+            jobId: finalResult.jobId || finalResult.job?.id || "",
+            resultStatus: "idle",
             hasReference: imageAttachments.length > 0,
-            generationType: "video"
           });
           refreshAgentBlocks();
         } else {
@@ -1027,19 +1026,18 @@ export function bindPromptSubmit({
         if (typeof addChatBlocks === "function") {
           progress?.remove?.();
           progress = null;
-          agentBlocksState.imageUrls = imageUrls;
-          agentBlocksState.videoUrls = [];
-          agentBlocksState.model = resultModel;
-          agentBlocksState.modelUsage = modelUsage;
-          agentBlocksState.generationType = "image";
-          agentBlocksState.taskType = conversationResult.taskType || agentDebug.taskType;
-          agentBlocksState.optimizedPrompt = generationPrompt;
-          agentBlocksState.size = generationMetrics.outputSize || "";
-          agentBlocksState.jobId = finalResult.jobId || finalResult.job?.id || "";
-          agentBlocksState.resultStatus = "succeeded";
-          agentBlocksState.summary = buildAgentCompletionSummary({
+          applyAgentProgressResultState(agentBlocksState, {
+            imageUrls,
+            videoUrls: [],
+            model: resultModel,
+            modelUsage,
+            generationType: "image",
+            taskType: conversationResult.taskType || agentDebug.taskType,
+            optimizedPrompt: generationPrompt,
+            size: generationMetrics.outputSize || "",
+            jobId: finalResult.jobId || finalResult.job?.id || "",
+            resultStatus: "succeeded",
             hasReference: imageAttachments.length > 0,
-            generationType: "image"
           });
           refreshAgentBlocks();
         } else {

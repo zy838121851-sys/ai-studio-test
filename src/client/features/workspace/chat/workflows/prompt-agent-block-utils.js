@@ -232,6 +232,37 @@ export function applyAgentProgressStreamEvent(state, event = {}, { prompt = "" }
   return false;
 }
 
+export function applyAgentProgressResultState(state, {
+  generationType = "image",
+  imageUrls = [],
+  videoUrls = [],
+  model = "",
+  modelUsage = "",
+  taskType = "",
+  optimizedPrompt = "",
+  size = "",
+  jobId = "",
+  resultStatus = "succeeded",
+  hasReference = false
+} = {}) {
+  if (!state) return false;
+  state.imageUrls = imageUrls;
+  state.videoUrls = videoUrls;
+  state.model = model;
+  state.modelUsage = modelUsage;
+  state.generationType = generationType;
+  state.taskType = taskType;
+  state.optimizedPrompt = optimizedPrompt;
+  state.size = size;
+  state.jobId = jobId;
+  state.resultStatus = resultStatus;
+  state.summary = buildAgentCompletionSummary({
+    hasReference,
+    generationType
+  });
+  return true;
+}
+
 export function buildAgentProgressBlocks(state = {}) {
   const blocks = [];
   const hasReference = Boolean(state.hasReference);

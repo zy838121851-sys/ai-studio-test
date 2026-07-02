@@ -1,5 +1,6 @@
 import {
   applyAgentProgressStreamEvent,
+  applyAgentProgressResultState,
   buildAgentCompletionSummary,
   buildAgentProgressBlocks,
   buildAgentResultBlocks,
@@ -144,5 +145,53 @@ assert(
   applyAgentProgressStreamEvent(progressState, { type: "unknown.event" }) === false,
   "Unknown progress events should not request progress refresh"
 );
+
+assert(
+  applyAgentProgressResultState(progressState, {
+    generationType: "image",
+    imageUrls: ["/uploads/a.png"],
+    videoUrls: [],
+    model: "gpt-image-2",
+    modelUsage: "GPT Image 2",
+    taskType: "poster_design",
+    optimizedPrompt: "optimized prompt",
+    size: "1024x1024",
+    jobId: "job-image",
+    resultStatus: "succeeded",
+    hasReference: true
+  }) === true,
+  "Progress result state should apply image results"
+);
+assert(progressState.imageUrls[0] === "/uploads/a.png", "Progress result state should store image URLs");
+assert(progressState.videoUrls.length === 0, "Progress result state should clear video URLs for image results");
+assert(progressState.model === "gpt-image-2", "Progress result state should store result models");
+assert(progressState.modelUsage === "GPT Image 2", "Progress result state should store model usage");
+assert(progressState.generationType === "image", "Progress result state should store generation type");
+assert(progressState.taskType === "poster_design", "Progress result state should store task type");
+assert(progressState.optimizedPrompt === "optimized prompt", "Progress result state should store optimized prompts");
+assert(progressState.size === "1024x1024", "Progress result state should store output sizes");
+assert(progressState.jobId === "job-image", "Progress result state should store job ids");
+assert(progressState.resultStatus === "succeeded", "Progress result state should store result status");
+assert(progressState.summary === buildAgentCompletionSummary({ hasReference: true, generationType: "image" }), "Progress result state should build completion summaries");
+
+assert(
+  applyAgentProgressResultState(progressState, {
+    generationType: "video",
+    imageUrls: [],
+    videoUrls: [],
+    model: "video-model",
+    modelUsage: "Video Model",
+    taskType: "video_generation",
+    optimizedPrompt: "video prompt",
+    size: "16:9",
+    jobId: "job-video",
+    resultStatus: "idle",
+    hasReference: false
+  }) === true,
+  "Progress result state should apply video results"
+);
+assert(progressState.generationType === "video", "Progress result state should store video generation type");
+assert(progressState.resultStatus === "idle", "Progress result state should preserve video idle status");
+assert(progressState.summary === buildAgentCompletionSummary({ hasReference: false, generationType: "video" }), "Progress result state should build video summaries");
 
 console.log("Prompt agent block utility checks passed.");
