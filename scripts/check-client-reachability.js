@@ -42,6 +42,12 @@ const MODULE_SURFACE_EXPECTATIONS = [
     forbidden: [
       "export function createWorkspaceImageEditCompositionRuntime"
     ]
+  },
+  {
+    filePath: "src/client/features/workspace/workflows/workspace-project-home-composition.js",
+    forbidden: [
+      "export function createWorkspaceProjectHomeCompositionRuntime"
+    ]
   }
 ];
 

@@ -1,6 +1,6 @@
 import { createWorkspaceProjectHomeRuntime } from "../runtime/workspace-project-home-runtime.js?v=20260627-library-bulk-select-1";
 
-export function createWorkspaceProjectHomeCompositionRuntime({
+function createWorkspaceProjectHomeCompositionRuntime({
   document,
   elements,
   state,
