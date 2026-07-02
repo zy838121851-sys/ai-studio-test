@@ -7,6 +7,9 @@ import {
   updateGeneratorPreviewStatus
 } from "../src/client/features/canvas/workflows/image-generator-preview-job-utils.js";
 import {
+  getGeneratorReplacementPlacement
+} from "../src/client/features/canvas/workflows/image-generator-placement-utils.js";
+import {
   getGeneratorResultTitle
 } from "../src/client/features/canvas/workflows/image-generator-result-utils.js";
 
@@ -28,6 +31,7 @@ assert(
     && generatorWorkflow.includes("getRecoveredGeneratorPreviewUrl")
     && generatorWorkflow.includes("getGeneratorPreviewDescription")
     && generatorWorkflow.includes("getGeneratorPreviewNodeWidth as getPreviewNodeWidth")
+    && generatorWorkflow.includes("getGeneratorReplacementPlacement")
     && generatorWorkflow.includes("markGeneratorPreviewFailed")
     && generatorWorkflow.includes("updateGeneratorPreviewStatus as updatePreviewStatus")
     && generatorWorkflow.includes("getGeneratorResultTitle")
@@ -167,6 +171,22 @@ assert(
     querySelector: () => ({ offsetWidth: 100 })
   }) === 160,
   "generator preview width helper should preserve minimum width"
+);
+const replacementPlacement = getGeneratorReplacementPlacement({
+  style: { left: "12.5px", top: "24px" },
+  offsetWidth: 320,
+  querySelector: () => ({ offsetWidth: 480 })
+});
+assert(replacementPlacement.x === 12.5, "replacement placement should preserve node x");
+assert(replacementPlacement.y === 24, "replacement placement should preserve node y");
+assert(replacementPlacement.width === 480, "replacement placement should prefer generator frame width");
+assert(
+  getGeneratorReplacementPlacement({
+    style: {},
+    offsetWidth: 120,
+    querySelector: () => null
+  }).width === 160,
+  "replacement placement should preserve minimum width"
 );
 
 const appInit = read("src/client/core/app-init.js");
