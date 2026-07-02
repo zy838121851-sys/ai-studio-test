@@ -11,6 +11,12 @@ import {
   escapeHtml
 } from "./video-generator-escape-utils.js";
 import {
+  delay,
+  getResultVideoUrl,
+  getRetryAfterDelayMs,
+  isTerminalVideoJobStatus
+} from "./video-generator-job-utils.js";
+import {
   capitalize,
   clamp,
   formatRatioLabel,
@@ -257,7 +263,7 @@ export function createVideoGeneratorWorkflow({
       if (!response.ok) throw new Error(payload?.failureMessage || payload?.errorMessage || payload?.message || `Job request failed: ${response.status}`);
       lastPayload = { ...fallback, ...payload };
       onProgress?.(lastPayload);
-      if (["succeeded", "failed", "cancelled", "timeout", "save_failed"].includes(payload?.status)) {
+      if (isTerminalVideoJobStatus(payload?.status)) {
         if (payload.status !== "succeeded") throw new Error(payload.failureMessage || payload.errorMessage || payload.error || payload.status);
         const videoUrl = getResultVideoUrl(lastPayload);
         if (!videoUrl) {
@@ -565,20 +571,6 @@ function markVideoPreviewFailed(previewNode, error) {
   if (statusText) statusText.textContent = error?.message || "Video generation failed.";
 }
 
-function getResultVideoUrl(result = {}) {
-  if (result.videoUrl) return result.videoUrl;
-  if (Array.isArray(result.videoUrls) && result.videoUrls[0]) return result.videoUrls[0];
-  if (Array.isArray(result.outputs)) {
-    const output = result.outputs.find((item) => {
-      const type = String(item?.type || "").toLowerCase();
-      const mimeType = String(item?.mimeType || item?.mime_type || "").toLowerCase();
-      return item?.url && (type === "video" || mimeType.startsWith("video/"));
-    });
-    if (output?.url) return output.url;
-  }
-  return "";
-}
-
 async function postJson(path, payload = {}) {
   const response = await fetch(path, {
     method: "POST",
@@ -589,14 +581,4 @@ async function postJson(path, payload = {}) {
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.failureMessage || data.errorMessage || data.message || `Request failed: ${response.status}`);
   return data;
-}
-
-function delay(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function getRetryAfterDelayMs(response, fallbackMs = 4000) {
-  const value = Number.parseInt(response?.headers?.get?.("Retry-After") || "", 10);
-  if (Number.isFinite(value) && value > 0) return value * 1000;
-  return fallbackMs;
 }
