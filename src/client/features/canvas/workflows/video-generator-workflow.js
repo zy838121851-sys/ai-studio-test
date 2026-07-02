@@ -17,6 +17,7 @@ import {
   buildVideoGenerationInputs,
   getResultVideoUrl,
   hasVideoGenerationInput,
+  hasVideoGenerationServices,
   postVideoJson,
   runVideoRequest
 } from "./video-generator-job-utils.js";
@@ -195,7 +196,7 @@ export function createVideoGeneratorWorkflow({
       controls.promptInput?.focus?.();
       return;
     }
-    if (typeof addGenerationPreview !== "function" || typeof replacePreviewWithVideo !== "function") {
+    if (!hasVideoGenerationServices({ addGenerationPreview, replacePreviewWithVideo })) {
       setVideoStatus("Video generation workflow is unavailable.");
       return;
     }
