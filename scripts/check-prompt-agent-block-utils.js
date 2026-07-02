@@ -1,5 +1,6 @@
 import {
   applyAgentProgressStreamEvent,
+  applyAgentProgressFailureState,
   applyAgentProgressResultState,
   buildAgentCompletionSummary,
   buildAgentProgressResultOptions,
@@ -194,6 +195,23 @@ assert(
 assert(progressState.generationType === "video", "Progress result state should store video generation type");
 assert(progressState.resultStatus === "idle", "Progress result state should preserve video idle status");
 assert(progressState.summary === buildAgentCompletionSummary({ hasReference: false, generationType: "video" }), "Progress result state should build video summaries");
+
+assert(
+  applyAgentProgressFailureState(progressState) === true,
+  "Progress failure state should apply default failures"
+);
+assert(progressState.resultStatus === "failed", "Progress failure state should mark failed status");
+assert(progressState.resultError === "生成失败，请重试。", "Progress failure state should store default failure text");
+assert(
+  applyAgentProgressFailureState(progressState, { resultError: "Custom failure" }) === true,
+  "Progress failure state should apply custom failures"
+);
+assert(progressState.resultStatus === "failed", "Progress failure state should keep failed status for custom failures");
+assert(progressState.resultError === "Custom failure", "Progress failure state should store custom failure text");
+assert(
+  applyAgentProgressFailureState(null) === false,
+  "Progress failure state should ignore missing state"
+);
 
 const progressResultOptions = buildAgentProgressResultOptions({
   generationType: "image",

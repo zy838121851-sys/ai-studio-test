@@ -263,6 +263,15 @@ export function applyAgentProgressResultState(state, {
   return true;
 }
 
+export function applyAgentProgressFailureState(state, {
+  resultError = "生成失败，请重试。"
+} = {}) {
+  if (!state) return false;
+  state.resultStatus = "failed";
+  state.resultError = resultError;
+  return true;
+}
+
 export function buildAgentProgressResultOptions({
   generationType = "image",
   imageUrls = [],

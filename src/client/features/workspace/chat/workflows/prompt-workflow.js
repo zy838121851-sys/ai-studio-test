@@ -25,6 +25,7 @@ import {
   buildAgentProgressResultOptions,
   buildAgentProgressBlocks,
   buildAgentResultBlocks,
+  applyAgentProgressFailureState,
   applyAgentProgressResultState,
   createAgentProgressState
 } from "./prompt-agent-block-utils.js";
@@ -1044,8 +1045,7 @@ export function bindPromptSubmit({
         updatePromptPreviewStatus(node, "Generation failed, please try again.");
       });
       if (typeof addChatBlocks === "function" && agentBlocksMessage) {
-        agentBlocksState.resultStatus = "failed";
-        agentBlocksState.resultError = "生成失败，请重试。";
+        applyAgentProgressFailureState(agentBlocksState);
         refreshAgentBlocks();
       }
       updateThinking(thinking, 0, true);
