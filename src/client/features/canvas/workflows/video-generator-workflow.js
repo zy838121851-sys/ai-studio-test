@@ -6,6 +6,10 @@ import {
 import {
   fileToDataUrl
 } from "./video-generator-file-utils.js";
+import {
+  escapeAttribute,
+  escapeHtml
+} from "./video-generator-escape-utils.js";
 
 const VIDEO_SELECTOR = ".node-video";
 const VIDEO_POPOVER_SELECTOR = "#videoGeneratorPopover";
@@ -611,17 +615,4 @@ function capitalize(value = "") {
 
 function clamp(value, min, max) {
   return Math.min(max, Math.max(min, value));
-}
-
-function escapeAttribute(value = "") {
-  return escapeHtml(value);
-}
-
-function escapeHtml(value = "") {
-  return String(value || "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }
