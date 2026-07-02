@@ -1,4 +1,5 @@
 import {
+  applyConversationResultToAgentDebug,
   buildAgentDebugPanelSnapshot,
   buildMessageDoneGenerationDecisionPayload,
   createAgentDebugRecord,
@@ -126,5 +127,79 @@ assert(decisionPayload.autoExecute === true, "Message done decision payloads sho
 assert(decisionPayload.pendingPreviewCreated === true, "Message done decision payloads should keep preview state");
 assert(decisionPayload.skipReason === "waiting", "Message done decision payloads should keep skip reasons");
 assert(decisionPayload.prompt === "data:image/png;base64, length=4", "Message done decision payloads should sanitize extra debug data");
+
+const mergeRecord = createAgentDebugRecord({}, {
+  now: () => fixedDate,
+  random: () => 0.5
+});
+mergeRecord.intent = "existing_intent";
+mergeRecord.taskType = "existing_task";
+mergeRecord.promptStrategy = "existing_strategy";
+mergeRecord.optimizedPrompt = "existing optimized";
+mergeRecord.qwenVlMode = "existing-qwen";
+mergeRecord.promptOptimizerMode = "existing-optimizer";
+mergeRecord.skippedOptimizer = true;
+mergeRecord.optimizerError = "existing error";
+mergeRecord.usedFallbackPrompt = true;
+mergeRecord.totalBudgetExceeded = true;
+mergeRecord.imageAnalysisError = "existing analysis error";
+mergeRecord.generationType = "image";
+mergeRecord.shouldGenerate = true;
+assert(
+  applyConversationResultToAgentDebug(mergeRecord, {
+    shouldGenerate: false,
+    outputType: "video"
+  }, {
+    prompt: "fallback prompt",
+    mode: "merge"
+  }) === true,
+  "Conversation result merge should apply debug state"
+);
+assert(mergeRecord.intent === "existing_intent", "Merge debug sync should keep existing intents when missing");
+assert(mergeRecord.taskType === "existing_task", "Merge debug sync should keep existing task types when missing");
+assert(mergeRecord.promptStrategy === "existing_strategy", "Merge debug sync should keep existing prompt strategies when missing");
+assert(mergeRecord.optimizedPrompt === "existing optimized", "Merge debug sync should keep existing optimized prompts when missing");
+assert(mergeRecord.qwenVlMode === "existing-qwen", "Merge debug sync should keep existing Qwen mode when missing");
+assert(mergeRecord.promptOptimizerMode === "existing-optimizer", "Merge debug sync should keep existing optimizer mode when missing");
+assert(mergeRecord.skippedOptimizer === true, "Merge debug sync should preserve skipped optimizer flags");
+assert(mergeRecord.optimizerError === "existing error", "Merge debug sync should preserve optimizer errors when missing");
+assert(mergeRecord.usedFallbackPrompt === true, "Merge debug sync should preserve fallback prompt flags");
+assert(mergeRecord.totalBudgetExceeded === true, "Merge debug sync should preserve budget flags");
+assert(mergeRecord.imageAnalysisPresent === false, "Merge debug sync should reflect missing image analysis");
+assert(mergeRecord.imageAnalysisError === "existing analysis error", "Merge debug sync should preserve analysis errors when missing");
+assert(mergeRecord.generationType === "video", "Merge debug sync should update generation types from output types");
+assert(mergeRecord.shouldGenerate === false, "Merge debug sync should mirror generation decisions");
+
+const executeRecord = createAgentDebugRecord({}, {
+  now: () => fixedDate,
+  random: () => 0.5
+});
+executeRecord.intent = "existing_intent";
+executeRecord.taskType = "existing_task";
+executeRecord.promptStrategy = "existing_strategy";
+executeRecord.optimizedPrompt = "existing optimized";
+executeRecord.generationType = "video";
+assert(
+  applyConversationResultToAgentDebug(executeRecord, {
+    taskType: "",
+    imageAnalysis: { subject: "subject" },
+    optimizedPrompt: "",
+    skippedOptimizer: false
+  }, {
+    prompt: "fallback prompt",
+    mode: "execute",
+    autoExecute: true
+  }) === true,
+  "Conversation result execute sync should apply debug state"
+);
+assert(executeRecord.intent === "", "Execute debug sync should clear missing intents");
+assert(executeRecord.taskType === "existing_task", "Execute debug sync should fall back to existing task types");
+assert(executeRecord.promptStrategy === "existing_strategy", "Execute debug sync should keep existing prompt strategies when missing");
+assert(executeRecord.optimizedPrompt === "fallback prompt", "Execute debug sync should fall back to original prompts");
+assert(executeRecord.generationType === "video", "Execute debug sync should not rewrite generation types");
+assert(executeRecord.imageAnalysisPresent === true, "Execute debug sync should reflect image analysis presence");
+assert(executeRecord.autoExecute === true, "Execute debug sync should store auto execute config");
+assert(executeRecord.shouldGenerate === true, "Execute debug sync should force generation after guard pass");
+assert(executeRecord.executeGeneration === true, "Execute debug sync should mirror auto execute for execution state");
 
 console.log("Prompt agent debug utility checks passed.");

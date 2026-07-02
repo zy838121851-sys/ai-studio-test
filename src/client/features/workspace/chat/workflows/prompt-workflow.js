@@ -37,6 +37,7 @@ import {
   summarizeReferenceImages
 } from "./prompt-debug-summary-utils.js";
 import {
+  applyConversationResultToAgentDebug,
   buildAgentDebugPanelSnapshot,
   buildMessageDoneGenerationDecisionPayload,
   createAgentDebugRecord,
@@ -686,20 +687,10 @@ export function bindPromptSubmit({
           createPendingPreviewForRun({ outputType });
         }
       });
-      agentDebug.intent = conversationResult.intent || agentDebug.intent || "";
-      agentDebug.taskType = conversationResult.taskType || agentDebug.taskType || "";
-      agentDebug.promptStrategy = conversationResult.promptStrategy || agentDebug.promptStrategy || "";
-      agentDebug.optimizedPrompt = conversationResult.optimizedPrompt || agentDebug.optimizedPrompt || prompt;
-      agentDebug.qwenVlMode = conversationResult.qwenVlMode || agentDebug.qwenVlMode || "";
-      agentDebug.promptOptimizerMode = conversationResult.promptOptimizerMode || agentDebug.promptOptimizerMode || "";
-      agentDebug.skippedOptimizer = Boolean(conversationResult.skippedOptimizer || agentDebug.skippedOptimizer);
-      agentDebug.optimizerError = conversationResult.optimizerError || agentDebug.optimizerError || "";
-      agentDebug.usedFallbackPrompt = Boolean(conversationResult.usedFallbackPrompt || agentDebug.usedFallbackPrompt);
-      agentDebug.totalBudgetExceeded = Boolean(conversationResult.totalBudgetExceeded || agentDebug.totalBudgetExceeded);
-      agentDebug.imageAnalysisPresent = Boolean(conversationResult.imageAnalysis);
-      agentDebug.imageAnalysisError = conversationResult.imageAnalysisError || agentDebug.imageAnalysisError || "";
-      agentDebug.generationType = conversationResult.outputType || agentDebug.generationType || "";
-      agentDebug.shouldGenerate = Boolean(conversationResult.shouldGenerate);
+      applyConversationResultToAgentDebug(agentDebug, conversationResult, {
+        prompt,
+        mode: "merge"
+      });
       logMessageDoneGenerationDecision(agentDebug, {
         stage: "conversation-result-returned",
         messageDoneReceived: agentDebug.messageDoneReceived,
@@ -741,21 +732,11 @@ export function bindPromptSubmit({
         return;
       }
 
-      agentDebug.intent = conversationResult.intent || "";
-      agentDebug.taskType = conversationResult.taskType || agentDebug.taskType || "";
-      agentDebug.promptStrategy = conversationResult.promptStrategy || agentDebug.promptStrategy || "";
-      agentDebug.optimizedPrompt = conversationResult.optimizedPrompt || prompt;
-      agentDebug.qwenVlMode = conversationResult.qwenVlMode || agentDebug.qwenVlMode || "";
-      agentDebug.promptOptimizerMode = conversationResult.promptOptimizerMode || agentDebug.promptOptimizerMode || "";
-      agentDebug.skippedOptimizer = Boolean(conversationResult.skippedOptimizer || agentDebug.skippedOptimizer);
-      agentDebug.optimizerError = conversationResult.optimizerError || agentDebug.optimizerError || "";
-      agentDebug.usedFallbackPrompt = Boolean(conversationResult.usedFallbackPrompt || agentDebug.usedFallbackPrompt);
-      agentDebug.totalBudgetExceeded = Boolean(conversationResult.totalBudgetExceeded || agentDebug.totalBudgetExceeded);
-      agentDebug.imageAnalysisPresent = Boolean(conversationResult.imageAnalysis);
-      agentDebug.imageAnalysisError = conversationResult.imageAnalysisError || agentDebug.imageAnalysisError || "";
-      agentDebug.autoExecute = CHAT_AGENT_CONFIG.autoExecute;
-      agentDebug.shouldGenerate = true;
-      agentDebug.executeGeneration = CHAT_AGENT_CONFIG.autoExecute;
+      applyConversationResultToAgentDebug(agentDebug, conversationResult, {
+        prompt,
+        mode: "execute",
+        autoExecute: CHAT_AGENT_CONFIG.autoExecute
+      });
       if (!CHAT_AGENT_CONFIG.autoExecute) {
         agentDebug.messageDoneSkipReason = "skipped because autoExecute false";
         logMessageDoneGenerationDecision(agentDebug, {

@@ -103,6 +103,44 @@ export function setAgentGenerationStage(
   updateAgentDebugPanel(record);
 }
 
+export function applyConversationResultToAgentDebug(
+  record,
+  conversationResult = {},
+  {
+    prompt = "",
+    mode = "merge",
+    autoExecute = false
+  } = {}
+) {
+  if (!record) return false;
+  const executeMode = mode === "execute";
+  record.intent = executeMode
+    ? (conversationResult.intent || "")
+    : (conversationResult.intent || record.intent || "");
+  record.taskType = conversationResult.taskType || record.taskType || "";
+  record.promptStrategy = conversationResult.promptStrategy || record.promptStrategy || "";
+  record.optimizedPrompt = executeMode
+    ? (conversationResult.optimizedPrompt || prompt)
+    : (conversationResult.optimizedPrompt || record.optimizedPrompt || prompt);
+  record.qwenVlMode = conversationResult.qwenVlMode || record.qwenVlMode || "";
+  record.promptOptimizerMode = conversationResult.promptOptimizerMode || record.promptOptimizerMode || "";
+  record.skippedOptimizer = Boolean(conversationResult.skippedOptimizer || record.skippedOptimizer);
+  record.optimizerError = conversationResult.optimizerError || record.optimizerError || "";
+  record.usedFallbackPrompt = Boolean(conversationResult.usedFallbackPrompt || record.usedFallbackPrompt);
+  record.totalBudgetExceeded = Boolean(conversationResult.totalBudgetExceeded || record.totalBudgetExceeded);
+  record.imageAnalysisPresent = Boolean(conversationResult.imageAnalysis);
+  record.imageAnalysisError = conversationResult.imageAnalysisError || record.imageAnalysisError || "";
+  if (!executeMode) {
+    record.generationType = conversationResult.outputType || record.generationType || "";
+    record.shouldGenerate = Boolean(conversationResult.shouldGenerate);
+  } else {
+    record.autoExecute = autoExecute;
+    record.shouldGenerate = true;
+    record.executeGeneration = autoExecute;
+  }
+  return true;
+}
+
 export function buildMessageDoneGenerationDecisionPayload(record, data = {}, {
   activeRunId = "",
   autoExecute = false
