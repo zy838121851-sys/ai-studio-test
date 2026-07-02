@@ -79,6 +79,11 @@ const OBJECT_KEY_UNIQUENESS_EXPECTATIONS = [
     filePath: "src/client/features/workspace/runtime/workspace-app-runtime-launch.js",
     marker: "    actions: {\n      setChatCollapsed,",
     endMarker: "\n    },\n    workflows:"
+  },
+  {
+    filePath: "src/client/features/workspace/runtime/launcher-workspace-context.js",
+    marker: "  return {\n    addChat:",
+    endMarker: "\n  };"
   }
 ];
 

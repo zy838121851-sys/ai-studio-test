@@ -42,7 +42,6 @@ export function createWorkspaceLauncherWorkspaceContext({
     openProject: safeOpenProject,
     deleteProject: safeDeleteProject,
     newBlankProject: safeNewBlankProject,
-    saveCurrentProject: safeSaveCurrentProject,
     generateHomeProject: safeGenerateHomeProject,
     addChatImageFiles: actions.addChatImageFiles,
     bindTaskBarInteractions: bindings.bindTaskBarInteractions,
