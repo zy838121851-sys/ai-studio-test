@@ -20,7 +20,7 @@ import { createWorkspaceProjectHomeCompositionBundle } from "./workspace-project
 import {
   createWorkspaceCompositionStateBundle
 } from "./workspace-state-composition.js";
-import { launchWorkspaceAppComposition } from "./workspace-launch-composition.js?v=20260628-boot-inline-1";
+import { launchWorkspaceAppRuntime } from "../runtime/workspace-app-runtime-launch.js?v=20260628-boot-inline-1";
 export function startWorkspaceApp(documentRoot = globalThis.document) {
   if (!documentRoot) {
     throw new Error("startWorkspaceApp requires a document root");
@@ -409,7 +409,7 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
     }
   });
 
-  const runtime = launchWorkspaceAppComposition({
+  const runtime = launchWorkspaceAppRuntime({
     workspaceAppScope,
     workspaceElements,
     constants: {

@@ -6,6 +6,7 @@ const CLIENT_DIR = path.join(ROOT, "src", "client");
 const ENTRY_FILES = ["app.js", "server.js"].map((filePath) => path.resolve(ROOT, filePath));
 const DEPRECATED_CLIENT_MODULES = [
   "src/client/features/workspace/workflows/workspace-app-bootstrap-composition.js",
+  "src/client/features/workspace/workflows/workspace-launch-composition.js",
   "src/client/features/workspace/runtime/actions-context.js",
   "src/client/features/workspace/runtime/launch-config-base.js",
   "src/client/features/workspace/runtime/launcher-ai-context.js",
