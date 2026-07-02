@@ -25,7 +25,8 @@ import {
 } from "../ai/project-client.js";
 import { createProjectRuntime } from "./runtime.js";
 import { createProjectRuntimeBootstrap } from "./runtime-bootstrap.js";
-import { createProjectSavePatch, restoreCanvasSnapshotJson } from "./snapshot.js";
+import { createProjectSavePatch } from "./snapshot-save-patch.js";
+import { restoreCanvasSnapshotJson } from "./snapshot.js";
 import { createProjectWorkflowRuntime } from "./project-workflow-bootstrap.js?v=20260627-library-bulk-select-1";
 import {
   formatProjectDate,

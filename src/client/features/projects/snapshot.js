@@ -1,22 +1,3 @@
-export function createProjectSavePatch({
-  project,
-  canvasWorld,
-  selectedNode,
-  projectTitleElement,
-  resolveAssetUrl = null
-} = {}) {
-  const nodes = Array.from(canvasWorld?.querySelectorAll(".node-card") || []);
-  const restorableNodes = nodes.filter(isRestorableCanvasNode);
-  const selectedImage = getStableNodeMediaUrl(selectedNode, resolveAssetUrl);
-  const firstImage = getStableNodeMediaUrl(canvasWorld?.querySelector(".node-image"), resolveAssetUrl);
-  return {
-    title: projectTitleElement?.textContent?.trim() || project?.title || "Fresh Ideas",
-    thumbnail: selectedImage || firstImage || stableUrl(project?.thumbnail) || "",
-    itemCount: restorableNodes.length,
-    canvasSnapshotJson: serializeCanvasSnapshot({ canvasWorld, resolveAssetUrl })
-  };
-}
-
 export function serializeCanvasSnapshot({ canvasWorld, resolveAssetUrl = null } = {}) {
   const nodes = Array.from(canvasWorld?.querySelectorAll(".node-card") || [])
     .filter(isRestorableCanvasNode)
@@ -144,7 +125,7 @@ function normalizeSnapshotMedia(item, resolveAssetUrl = null) {
   return media;
 }
 
-function getStableNodeMediaUrl(node, resolveAssetUrl = null) {
+export function getStableNodeMediaUrl(node, resolveAssetUrl = null) {
   if (!node) return "";
   const image = node.querySelector?.(".image-frame img");
   const video = node.querySelector?.("video");
@@ -274,7 +255,7 @@ export function isRestorableSnapshotItem(item = {}) {
     && !/\bgeneration-frame\b/.test(html);
 }
 
-function isRestorableCanvasNode(node) {
+export function isRestorableCanvasNode(node) {
   if (!node) return false;
   const kind = String(node.dataset?.kind || kindFromClass(node) || "").trim().toLowerCase();
   return kind !== "loading-image"

@@ -1,9 +1,11 @@
 import {
-  createProjectSavePatch,
   isRestorableSnapshotItem,
   normalizePersistentMediaUrl,
   restoreCanvasSnapshotJson
 } from "../src/client/features/projects/snapshot.js";
+import {
+  createProjectSavePatch
+} from "../src/client/features/projects/snapshot-save-patch.js";
 import {
   getProjectMediaUrls,
   projectHasRestorableCanvasContent,
