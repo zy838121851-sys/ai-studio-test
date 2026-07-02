@@ -64,6 +64,12 @@ import {
   escapeHtml,
   formatConversationTime
 } from "./prompt-conversation-format-utils.js";
+import {
+  fetchConversationMessages,
+  listProjectConversations,
+  requestConversation,
+  requestConversationRestore
+} from "./prompt-conversation-api-utils.js";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
 const CONVERSATION_THINKING_STEPS = [
@@ -1787,23 +1793,14 @@ async function ensureConversation(projectId, { reset = false } = {}) {
   if (!reset && conversationIdsByProject.has(cleanProjectId)) {
     return { id: conversationIdsByProject.get(cleanProjectId), projectId: cleanProjectId };
   }
-  const response = await fetch("/api/conversations", {
-    method: "POST",
-    credentials: "include",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ projectId: cleanProjectId, reset })
-  });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    if (response.status === 404) conversationIdsByProject.delete(cleanProjectId);
-    const error = new Error(payload?.message || `Conversation request failed: ${response.status}`);
-    error.status = response.status;
+  try {
+    const conversation = await requestConversation(cleanProjectId, { reset });
+    conversationIdsByProject.set(cleanProjectId, conversation.id);
+    return conversation;
+  } catch (error) {
+    if (error?.status === 404) conversationIdsByProject.delete(cleanProjectId);
     throw error;
   }
-  const conversation = payload.conversation;
-  if (!conversation?.id) throw new Error("Conversation response did not include an id");
-  conversationIdsByProject.set(cleanProjectId, conversation.id);
-  return conversation;
 }
 
 async function ensureActiveProjectReadyForGeneration({
@@ -1978,13 +1975,8 @@ async function restoreProjectConversation({ projectId, conversationId = "", addC
     ? { id: String(conversationId || "").trim(), projectId: cleanProjectId }
     : await ensureConversation(cleanProjectId);
   if (!conversation.id) return;
-  const response = await fetch(`/api/conversations/${encodeURIComponent(conversation.id)}/messages`, {
-    credentials: "include"
-  });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload?.message || `Conversation restore failed: ${response.status}`);
+  const messages = await fetchConversationMessages(conversation.id);
   restoredConversationProjects.add(cleanProjectId);
-  const messages = Array.isArray(payload.messages) ? payload.messages : [];
   messages.slice(-40).forEach((message) => {
     const text = message?.content?.text || "";
     if (message.role === "assistant" && Array.isArray(message.attachments)) {
@@ -2100,15 +2092,6 @@ function positionConversationHistoryPopover(button, popover) {
   popover.style.top = `${Math.max(gutter, top)}px`;
 }
 
-async function listProjectConversations(projectId) {
-  const response = await fetch(`/api/conversations?projectId=${encodeURIComponent(projectId)}`, {
-    credentials: "include"
-  });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload?.message || `Conversation history failed: ${response.status}`);
-  return Array.isArray(payload.conversations) ? payload.conversations : [];
-}
-
 function renderConversationHistoryPopover(popover, { projectId, conversations, addChat, addChatImage } = {}) {
   const cleanProjectId = String(projectId || "").trim();
   const currentId = conversationIdsByProject.get(cleanProjectId) || "";
@@ -2140,14 +2123,7 @@ function renderConversationHistoryPopover(popover, { projectId, conversations, a
 }
 
 async function restoreConversationFromHistory({ projectId, conversationId, addChat, addChatImage } = {}) {
-  const response = await fetch(`/api/conversations/${encodeURIComponent(conversationId)}/restore`, {
-    method: "POST",
-    credentials: "include"
-  });
-  const payload = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(payload?.message || `Conversation restore failed: ${response.status}`);
-  const conversation = payload.conversation;
-  if (!conversation?.id) throw new Error("Conversation restore did not include an id");
+  const conversation = await requestConversationRestore(conversationId);
   conversationIdsByProject.set(projectId, conversation.id);
   restoredConversationProjects.delete(projectId);
   const chatLog = globalThis.document?.querySelector?.("#chatLog");
