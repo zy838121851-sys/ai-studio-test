@@ -35,7 +35,7 @@ import {
   toOptions
 } from "./video-generator-option-utils.js";
 import {
-  getPreviewNodeWidth,
+  buildGeneratedVideoNodeOptions,
   getVideoPreviewPlacement,
   markVideoPreviewFailed,
   updatePreviewStatus
@@ -229,17 +229,15 @@ export function createVideoGeneratorWorkflow({
       });
       const videoUrl = getResultVideoUrl(result);
       if (!videoUrl) throw new Error(result?.failureMessage || result?.errorMessage || result?.error || "Model returned without a video URL");
-      const createdNode = replacePreviewWithVideo(previewNode, {
-        title: "Generated Video.mp4",
-        desc: prompt || "Generated video",
-        url: videoUrl,
-        width: getPreviewNodeWidth(previewNode),
-        aspectRatio,
+      const createdNode = replacePreviewWithVideo(previewNode, buildGeneratedVideoNodeOptions({
+        previewNode,
         prompt,
+        videoUrl,
+        aspectRatio,
         sourceNode: node,
-        actionType: "video_generation",
-        model: result.requestedModel || result.model || model
-      });
+        result,
+        model
+      }));
       if (!createdNode) throw new Error("Unable to replace video preview");
       createdNode.dataset.videoGeneratorSourceNodeId = node.dataset.nodeId || "";
       selectNode(createdNode);

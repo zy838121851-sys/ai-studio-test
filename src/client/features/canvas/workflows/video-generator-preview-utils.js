@@ -14,6 +14,28 @@ export function getPreviewNodeWidth(previewNode) {
   return Math.max(160, frame?.offsetWidth || previewNode?.offsetWidth || 560);
 }
 
+export function buildGeneratedVideoNodeOptions({
+  previewNode = null,
+  prompt = "",
+  videoUrl = "",
+  aspectRatio = "",
+  sourceNode = null,
+  result = {},
+  model = ""
+} = {}) {
+  return {
+    title: "Generated Video.mp4",
+    desc: prompt || "Generated video",
+    url: videoUrl,
+    width: getPreviewNodeWidth(previewNode),
+    aspectRatio,
+    prompt,
+    sourceNode,
+    actionType: "video_generation",
+    model: result.requestedModel || result.model || model
+  };
+}
+
 export function updatePreviewStatus(previewNode, text = "") {
   const statusText = previewNode?.querySelector?.(".generation-frame span");
   if (statusText && text) statusText.textContent = text;
