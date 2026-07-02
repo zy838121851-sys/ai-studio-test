@@ -52,7 +52,8 @@ const MODULE_SURFACE_EXPECTATIONS = [
   {
     filePath: "src/client/features/workspace/workflows/workspace-agent-composition.js",
     forbidden: [
-      "export function createWorkspaceDirectorCompositionRuntime"
+      "export function createWorkspaceDirectorCompositionRuntime",
+      "export function createWorkspaceAICoreWorkspaceCompositionRuntime"
     ]
   }
 ];

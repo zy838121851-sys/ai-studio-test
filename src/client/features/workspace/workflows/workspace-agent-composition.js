@@ -61,7 +61,7 @@ export function createWorkspaceDirectorActionCompositionRuntime({
   });
 }
 
-export function createWorkspaceAICoreWorkspaceCompositionRuntime({
+function createWorkspaceAICoreWorkspaceCompositionRuntime({
   elements,
   defaults,
   services
