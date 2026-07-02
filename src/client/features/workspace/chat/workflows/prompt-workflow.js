@@ -60,6 +60,10 @@ import {
   getGenerationToolNameFromEvent,
   isGenerationIntent
 } from "./prompt-conversation-event-utils.js";
+import {
+  escapeHtml,
+  formatConversationTime
+} from "./prompt-conversation-format-utils.js";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
 const CONVERSATION_THINKING_STEPS = [
@@ -2155,30 +2159,6 @@ async function restoreConversationFromHistory({ projectId, conversationId, addCh
     addChatImage,
     force: true
   });
-}
-
-function formatConversationTime(value) {
-  const timestamp = Number(value || 0);
-  if (!timestamp) return "";
-  try {
-    return new Intl.DateTimeFormat("zh-CN", {
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit"
-    }).format(new Date(timestamp));
-  } catch {
-    return "";
-  }
-}
-
-function escapeHtml(value = "") {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
 }
 
 export function bindPromptShortcuts({
