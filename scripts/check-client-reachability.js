@@ -84,6 +84,11 @@ const OBJECT_KEY_UNIQUENESS_EXPECTATIONS = [
     filePath: "src/client/features/workspace/runtime/launcher-workspace-context.js",
     marker: "  return {\n    addChat:",
     endMarker: "\n  };"
+  },
+  {
+    filePath: "src/client/features/workspace/runtime/context/dependencies.js",
+    marker: "export function buildRuntimeActionDependencies(deps = {}) {\n  return {",
+    endMarker: "\n  };\n}"
   }
 ];
 

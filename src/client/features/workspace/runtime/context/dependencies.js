@@ -293,7 +293,6 @@ export function buildRuntimeActionDependencies(deps = {}) {
     setLibraryViewModeStorage: deps.setLibraryViewModeStorage,
     getPendingUploadPoint: deps.getPendingUploadPoint,
     newBlankProject: deps.newBlankProject,
-    saveCurrentProject: deps.saveCurrentProject,
     generateHomeProject: deps.generateHomeProject,
     uploadAsReference: deps.uploadAsReference,
     addChatImageFiles: deps.addChatImageFiles,
