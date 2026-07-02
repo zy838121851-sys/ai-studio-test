@@ -419,14 +419,12 @@ export function createImageGeneratorWorkflow({
         return createdNode;
       };
       const replaceGeneratorImagePreview = (previewNode, url, index = 0) => {
-        const createdNode = replacePreviewWithImage(previewNode, {
+        const createdNode = replaceGeneratorImagePreviewNode(previewNode, {
           title: getGeneratorResultTitle(index, count),
           desc: prompt || "Image generator result",
           url,
-          width: getPreviewNodeWidth(previewNode),
           aspectRatio,
           prompt,
-          sourceNode: null,
           actionType,
           model: resultModel
         });
@@ -577,6 +575,28 @@ export function createImageGeneratorWorkflow({
     }
   }
 
+  function replaceGeneratorImagePreviewNode(previewNode, {
+    title = "Image Generator Result.png",
+    desc = "Image generator result",
+    url = "",
+    aspectRatio = "",
+    prompt = "",
+    actionType = "",
+    model = ""
+  } = {}) {
+    return replacePreviewWithImage(previewNode, {
+      title,
+      desc,
+      url,
+      width: getPreviewNodeWidth(previewNode),
+      aspectRatio,
+      prompt,
+      sourceNode: null,
+      actionType,
+      model
+    });
+  }
+
   function createGeneratorPreviewBatch(node, {
     count = 1,
     prompt = "",
@@ -712,14 +732,12 @@ export function createImageGeneratorWorkflow({
     if (!previewNode?.isConnected) return null;
     if (!url) throw new Error(getMissingGeneratorResultMessage(result));
     const batchIndex = Math.max(0, Number(previewNode.dataset.generatorBatchIndex || index + 1) - 1);
-    const createdNode = replacePreviewWithImage(previewNode, {
+    const createdNode = replaceGeneratorImagePreviewNode(previewNode, {
       title: getGeneratorResultTitle(batchIndex, count),
       desc: previewNode.dataset.generatorPrompt || "Image generator result",
       url,
-      width: getPreviewNodeWidth(previewNode),
       aspectRatio: previewNode.dataset.generatorAspectRatio || "",
       prompt: previewNode.dataset.generatorPrompt || "",
-      sourceNode: null,
       actionType: previewNode.dataset.generatorActionType || "",
       model: result.requestedModel || result.model || previewNode.dataset.generatorModel || ""
     });
