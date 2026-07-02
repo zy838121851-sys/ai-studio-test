@@ -9,6 +9,7 @@ function assert(condition, message) {
 }
 
 const generatorWorkflow = read("src/client/features/canvas/workflows/image-generator-workflow.js");
+const generatorResultUtils = read("src/client/features/canvas/workflows/image-generator-result-utils.js");
 assert(
   generatorWorkflow.includes("onJobCreated") && generatorWorkflow.includes("tagGeneratorPreviewJobs"),
   "generator must tag preview nodes with job ids when async jobs are created"
@@ -31,7 +32,7 @@ assert(
 );
 assert(
   generatorWorkflow.includes("getMissingGeneratorResultError(lastPayload, expectedType)") &&
-  generatorWorkflow.includes("return new Error(getMissingGeneratorResultMessage(result, expectedType));"),
+  generatorResultUtils.includes("return new Error(getMissingGeneratorResultMessage(result, expectedType));"),
   "generator polling must fail clearly when a terminal job has no image URL"
 );
 

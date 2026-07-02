@@ -3,12 +3,21 @@ import {
   importExternalImageUrl
 } from "../canvas-viewport-events.js";
 import {
-  formatModelUsage,
   getImageModelDisplayName,
   getModelType,
   getSelectedModelId
 } from "../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 import { renderModelPreferenceMenu } from "../../ai/model-preference-menu.js";
+import {
+  getFailedGeneratorJobError,
+  getGeneratorResultUrls,
+  getMissingGeneratorResultError,
+  getMissingGeneratorResultMessage,
+  getPrimaryResultImageUrl,
+  getResultImageUrls,
+  getResultVideoUrls,
+  parseGeneratorResult
+} from "./image-generator-result-utils.js";
 
 const GENERATOR_SELECTOR = ".node-image-generator";
 const GENERATOR_POPOVER_SELECTOR = "#imageGeneratorPopover";
@@ -1236,39 +1245,6 @@ export function createImageGeneratorWorkflow({
     return fallbackMs;
   }
 
-  function getGeneratorResultModel(result = {}, fallbackModel = "") {
-    return result?.requestedModel || result?.model || fallbackModel;
-  }
-
-  function getGeneratorResultSummary(result = {}, selectedModel = "") {
-    const resultModel = getGeneratorResultModel(result, selectedModel);
-    warnIfGeneratorModelMismatch(selectedModel, resultModel, result);
-    return {
-      resultModel,
-      modelUsage: formatModelUsage(result, resultModel)
-    };
-  }
-
-  function parseGeneratorResult(result = {}, selectedModel = "", expectedType = "image") {
-    const urls = getGeneratorResultUrls(result, expectedType);
-    return {
-      ...getGeneratorResultSummary(result, selectedModel),
-      urls,
-      primaryUrl: urls[0] || ""
-    };
-  }
-
-  function warnIfGeneratorModelMismatch(selectedModel, returnedModel, result = {}) {
-    const selected = String(selectedModel || "").trim();
-    const returned = String(returnedModel || "").trim();
-    if (!selected || !returned || selected === returned) return;
-    console.warn("[models] Image generator response model does not match selected model", {
-      selectedModel: selected,
-      returnedModel: returned,
-      jobId: result?.jobId || result?.job?.id || ""
-    });
-  }
-
   function logSubmittedGeneratorModel(model) {
     if (!["localhost", "127.0.0.1"].includes(globalThis.location?.hostname || "")) return;
     console.debug("[models] submitting generation", {
@@ -1290,72 +1266,6 @@ export function createImageGeneratorWorkflow({
       outputCount: payload.outputCount ?? payload.outputs?.length ?? 0,
       updatedAt: payload.updatedAt || payload.job?.updatedAt || ""
     });
-  }
-
-  function getResultImageUrls(result = {}) {
-    const urls = [];
-    if (Array.isArray(result?.imageUrls)) urls.push(...result.imageUrls);
-    if (Array.isArray(result?.outputs)) {
-      result.outputs.forEach((output) => {
-        const type = String(output?.type || "").toLowerCase();
-        const mimeType = String(output?.mimeType || output?.mime_type || "").toLowerCase();
-        if (output?.url && (type === "image" || mimeType.startsWith("image/") || (!type && !mimeType))) {
-          urls.push(output.url);
-        }
-      });
-    }
-    if (result?.imageUrl) urls.unshift(result.imageUrl);
-    return Array.from(new Set(urls.filter(Boolean)));
-  }
-
-  function getPrimaryResultImageUrl(result = {}) {
-    return getResultImageUrls(result)[0] || "";
-  }
-
-  function getGeneratorResultUrls(result = {}, expectedType = "image") {
-    return expectedType === "video"
-      ? getResultVideoUrls(result)
-      : getResultImageUrls(result);
-  }
-
-  function getResultVideoUrls(result = {}) {
-    const urls = [];
-    if (Array.isArray(result?.videoUrls)) urls.push(...result.videoUrls);
-    if (Array.isArray(result?.outputs)) {
-      result.outputs.forEach((output) => {
-        const type = String(output?.type || "").toLowerCase();
-        const mimeType = String(output?.mimeType || output?.mime_type || "").toLowerCase();
-        if (output?.url && (type === "video" || mimeType.startsWith("video/"))) {
-          urls.push(output.url);
-        }
-      });
-    }
-    if (result?.videoUrl) urls.unshift(result.videoUrl);
-    return Array.from(new Set(urls.filter(Boolean)));
-  }
-
-  function getPrimaryResultVideoUrl(result = {}) {
-    return getResultVideoUrls(result)[0] || "";
-  }
-
-  function getFailedGeneratorJobError(result = {}) {
-    return new Error(result?.failureMessage || result?.errorMessage || result?.error || result?.status);
-  }
-
-  function getMissingGeneratorResultError(result = {}, expectedType = "image") {
-    return new Error(getMissingGeneratorResultMessage(result, expectedType));
-  }
-
-  function getMissingGeneratorResultMessage(result = {}, expectedType = "image") {
-    const fallback = expectedType === "video"
-      ? "Model returned without a video URL"
-      : "Model returned without an image URL";
-    const message = String(result?.failureMessage || result?.errorMessage || result?.error || result?.message || fallback).trim();
-    const details = [
-      result?.jobId ? `jobId=${result.jobId}` : "",
-      result?.status ? `status=${result.status}` : ""
-    ].filter(Boolean).join(", ");
-    return details ? `${message} (${details})` : message;
   }
 
   function isMidjourneyModel(model = "") {
