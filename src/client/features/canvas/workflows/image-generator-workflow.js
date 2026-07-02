@@ -51,6 +51,11 @@ import {
 import {
   getGeneratorOutputDimensions
 } from "./image-generator-sizing-utils.js";
+import {
+  getElementOffsetWithinNode,
+  getGeneratorPopoverMetrics,
+  getVisibleGeneratorPopoverPosition
+} from "./image-generator-popover-position-utils.js";
 
 const GENERATOR_SELECTOR = ".node-image-generator";
 const GENERATOR_POPOVER_SELECTOR = "#imageGeneratorPopover";
@@ -1360,21 +1365,18 @@ export function createImageGeneratorWorkflow({
     const frameTop = nodeY + frameOffset.top;
     const frameWidth = frame?.offsetWidth || node.offsetWidth || 560;
     const frameHeight = frame?.offsetHeight || frameWidth;
-    const safeZoom = Math.max(0.2, Math.min(2.5, Number(getZoom?.()) || 1));
-    const screenNodeWidth = frameWidth * safeZoom;
-    const minScreenWidth = 430;
-    const maxScreenWidth = 620;
-    const preferredScreenWidth = screenNodeWidth + 132;
-    const targetScreenWidth = Math.max(minScreenWidth, Math.min(maxScreenWidth, preferredScreenWidth));
-    const minScreenHeight = 168;
-    const maxScreenHeight = 268;
-    const expanded = nextPopover.classList.contains("generator-panel-expanded");
-    const targetScreenHeight = expanded
-      ? 292
-      : Math.max(minScreenHeight, Math.min(maxScreenHeight, targetScreenWidth * 0.42));
-    const popoverWidth = Math.round(targetScreenWidth);
-    const popoverHeight = Math.round(targetScreenHeight);
-    const scaledGap = 22;
+    const {
+      safeZoom,
+      screenWidth,
+      screenHeight,
+      popoverWidth,
+      popoverHeight,
+      gap
+    } = getGeneratorPopoverMetrics({
+      frameWidth,
+      zoom: getZoom?.(),
+      expanded: nextPopover.classList.contains("generator-panel-expanded")
+    });
 
     const position = getVisibleGeneratorPopoverPosition({
       frameLeft,
@@ -1383,10 +1385,12 @@ export function createImageGeneratorWorkflow({
       frameHeight,
       popoverWidth,
       popoverHeight,
-      screenWidth: targetScreenWidth,
-      screenHeight: targetScreenHeight,
-      gap: scaledGap,
-      zoom: safeZoom
+      screenWidth,
+      screenHeight,
+      gap,
+      zoom: safeZoom,
+      viewportRect: canvasViewport?.getBoundingClientRect?.(),
+      worldRect: canvasWorld?.getBoundingClientRect?.()
     });
 
     nextPopover.style.width = `${popoverWidth}px`;
@@ -1399,51 +1403,6 @@ export function createImageGeneratorWorkflow({
     nextPopover.style.top = `${position.top}px`;
     resetCanvasViewportScroll();
     return { popoverWidth, popoverHeight, editScale: 1 };
-  }
-
-  function getVisibleGeneratorPopoverPosition({
-    frameLeft,
-    frameTop,
-    frameWidth,
-    frameHeight,
-    popoverWidth,
-    popoverHeight,
-    screenWidth,
-    screenHeight,
-    gap,
-    zoom
-  } = {}) {
-    let left = frameLeft + frameWidth / 2 - popoverWidth / 2;
-    let top = frameTop + frameHeight + gap;
-    const viewportRect = canvasViewport?.getBoundingClientRect?.();
-    const worldRect = canvasWorld?.getBoundingClientRect?.();
-    if (!viewportRect || !worldRect || !Number.isFinite(zoom) || zoom <= 0) {
-      return { left, top };
-    }
-
-    const margin = 16;
-    const frameScreenLeft = worldRect.left + frameLeft * zoom;
-    const frameScreenTop = worldRect.top + frameTop * zoom;
-    const frameScreenWidth = frameWidth * zoom;
-    const frameScreenHeight = frameHeight * zoom;
-    const screenLeft = frameScreenLeft + frameScreenWidth / 2 - popoverWidth / 2;
-    const belowScreenTop = frameScreenTop + frameScreenHeight + gap;
-    const clampedScreenLeft = clampScreenPosition(
-      screenLeft,
-      viewportRect.left + margin,
-      viewportRect.right - screenWidth - margin
-    );
-
-    left = clampedScreenLeft;
-    top = belowScreenTop;
-    return { left, top };
-  }
-
-  function clampScreenPosition(value, min, max) {
-    const safeMin = Number.isFinite(min) ? min : 0;
-    const safeMax = Number.isFinite(max) ? max : safeMin;
-    if (safeMax < safeMin) return safeMin;
-    return Math.min(safeMax, Math.max(safeMin, value));
   }
 
   function focusGeneratorPrompt(input = getGeneratorControls().promptInput) {
@@ -1461,18 +1420,6 @@ export function createImageGeneratorWorkflow({
     if (!canvasViewport) return;
     if (canvasViewport.scrollLeft) canvasViewport.scrollLeft = 0;
     if (canvasViewport.scrollTop) canvasViewport.scrollTop = 0;
-  }
-
-  function getElementOffsetWithinNode(element, node) {
-    let left = 0;
-    let top = 0;
-    let current = element;
-    while (current && current !== node) {
-      left += current.offsetLeft || 0;
-      top += current.offsetTop || 0;
-      current = current.offsetParent;
-    }
-    return { left, top };
   }
 
   function getGeneratorPopover() {
