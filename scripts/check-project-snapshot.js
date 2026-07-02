@@ -159,6 +159,12 @@ const serverSanitizedSnapshot = JSON.parse(sanitizeCanvasSnapshotJson(JSON.strin
     },
     {
       kind: "image",
+      className: "node-card generation-frame",
+      html: "<figure class=\"image-frame\"></figure>",
+      media: { url: "" }
+    },
+    {
+      kind: "image",
       className: "node-card node-image",
       html: "<figure><img src=\"https://ai-studio.example.test/uploads/server.png?cache=1\" /></figure>",
       dataset: {

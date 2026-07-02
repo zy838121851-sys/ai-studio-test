@@ -157,6 +157,7 @@ function isRestorableSnapshotNode(node = {}) {
   const html = String(node.html || "");
   return kind !== "loading-image"
     && !/\bnode-loading-image\b/.test(className)
+    && !/\bgeneration-frame\b/.test(className)
     && !/\bgeneration-frame\b/.test(html);
 }
 
