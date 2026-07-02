@@ -34,6 +34,11 @@ export function applyGeneratorPreviewDimensions(previewNode, dimensions = {}) {
   if (dimensions.height > 0) previewNode.dataset.outputHeight = String(dimensions.height);
 }
 
+export function getGeneratorPreviewDescription(prompt = "", index = 0, count = 1) {
+  if (count > 1) return `正在生成第 ${index + 1}/${count} 张`;
+  return prompt ? "正在根据当前提示生成结果" : "正在生成图片";
+}
+
 export function updateGeneratorPreviewStatus(previewNode, text = "") {
   const statusText = previewNode?.querySelector?.(".generation-frame span");
   if (statusText && text) statusText.textContent = text;

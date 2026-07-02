@@ -34,6 +34,7 @@ import {
   applyGeneratorPreviewBatchMetadata,
   applyGeneratorPreviewDimensions,
   buildGeneratorPreviewJobMeta,
+  getGeneratorPreviewDescription,
   getGeneratorPreviewBatchIndex,
   getPendingGeneratorPreviewGroups,
   getRecoveredGeneratorPreviewUrl,
@@ -659,11 +660,6 @@ export function createImageGeneratorWorkflow({
       }
       return previewNode;
     }).filter(Boolean);
-  }
-
-  function getGeneratorPreviewDescription(prompt = "", index = 0, count = 1) {
-    if (count > 1) return `正在生成第 ${index + 1}/${count} 张`;
-    return prompt ? "正在根据当前提示生成结果" : "正在生成图片";
   }
 
   function getPreviewNodeWidth(previewNode) {
