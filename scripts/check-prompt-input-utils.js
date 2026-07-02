@@ -1,6 +1,7 @@
 import {
   clearComposerAttachments,
   copyReferenceFiles,
+  getChatPreviewDomSummaries,
   inferSubmitTriggerSource
 } from "../src/client/features/workspace/chat/workflows/prompt-input-utils.js";
 
@@ -66,12 +67,71 @@ assert(calls.length === 2, "Clearing composer attachments should update files an
 assert(calls[0][0] === "set" && Array.isArray(calls[0][1]) && calls[0][1].length === 0, "Clearing composer attachments should set an empty file list");
 assert(calls[1][0] === "render", "Clearing composer attachments should render preview");
 
+const domSummaries = getChatPreviewDomSummaries(makePreviewRoot([
+  makePreviewButton({
+    attachmentId: "att-1",
+    attachmentName: "reference.png",
+    attachmentType: "image/png",
+    attachmentSize: "123",
+    imageSrc: "data:image/png;base64,abcd",
+    imageAlt: "fallback.png"
+  }),
+  makePreviewButton({
+    imageSrc: "blob:http://localhost/one"
+  })
+]));
+assert(domSummaries.length === 2, "DOM preview summaries should include preview buttons");
+assert(domSummaries[0].attachmentId === "att-1", "DOM preview summary should preserve attachment id");
+assert(domSummaries[0].name === "reference.png", "DOM preview summary should prefer attachment name");
+assert(domSummaries[0].type === "image/png", "DOM preview summary should preserve attachment type");
+assert(domSummaries[0].mime === "image/png", "DOM preview summary should preserve attachment mime");
+assert(domSummaries[0].size === 123, "DOM preview summary should parse attachment size");
+assert(domSummaries[0].hasDataUrl === true, "DOM preview summary should detect data URLs");
+assert(domSummaries[0].dataUrl === "data:image/png;base64, length=4", "DOM preview summary should summarize data URLs");
+assert(domSummaries[1].name === "Reference 2", "DOM preview summary should fall back to indexed name");
+assert(domSummaries[1].hasBlob === true, "DOM preview summary should detect blob URLs");
+assert(domSummaries[1].size === 0, "DOM preview summary should default empty size to zero");
+assert(getChatPreviewDomSummaries({ querySelectorAll: () => [] }).length === 0, "DOM preview summary should handle empty root");
+
 console.log("Prompt input utility checks passed.");
 
 function makeClassList(names = []) {
   return {
     contains(name) {
       return names.includes(name);
+    }
+  };
+}
+
+function makePreviewRoot(buttons = []) {
+  return {
+    querySelectorAll(selector) {
+      return selector === ".chat-image-preview button" ? buttons : [];
+    }
+  };
+}
+
+function makePreviewButton({
+  attachmentId = "",
+  attachmentName = "",
+  attachmentType = "",
+  attachmentSize = "",
+  imageSrc = "",
+  imageAlt = ""
+} = {}) {
+  return {
+    dataset: {
+      attachmentId,
+      attachmentName,
+      attachmentType,
+      attachmentSize
+    },
+    querySelector(selector) {
+      if (selector !== "img") return null;
+      return {
+        src: imageSrc,
+        alt: imageAlt
+      };
     }
   };
 }

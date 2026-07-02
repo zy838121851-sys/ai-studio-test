@@ -1,3 +1,5 @@
+import { summarizeDataUrl } from "./prompt-debug-summary-utils.js";
+
 export function inferSubmitTriggerSource(event, form) {
   const submitter = event?.submitter || null;
   if (submitter?.id === "promptSubmit" || submitter?.classList?.contains("send")) return "send-button";
@@ -14,4 +16,22 @@ export function copyReferenceFiles(files = []) {
 export function clearComposerAttachments({ setChatImageFiles, renderChatImagePreview } = {}) {
   setChatImageFiles([]);
   renderChatImagePreview();
+}
+
+export function getChatPreviewDomSummaries(root = globalThis.document) {
+  return Array.from(root?.querySelectorAll?.(".chat-image-preview button") || []).map((button, index) => {
+    const image = button.querySelector("img");
+    return {
+      index,
+      attachmentId: button.dataset.attachmentId || "",
+      name: button.dataset.attachmentName || image?.alt || `Reference ${index + 1}`,
+      type: button.dataset.attachmentType || "",
+      mime: button.dataset.attachmentType || "",
+      size: Number(button.dataset.attachmentSize || 0),
+      hasFile: false,
+      hasBlob: Boolean(image?.src?.startsWith("blob:")),
+      hasDataUrl: Boolean(image?.src?.startsWith("data:")),
+      dataUrl: summarizeDataUrl(image?.src || "")
+    };
+  });
 }

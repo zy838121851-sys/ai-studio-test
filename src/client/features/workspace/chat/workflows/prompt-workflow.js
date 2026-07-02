@@ -46,6 +46,7 @@ import {
 import {
   clearComposerAttachments,
   copyReferenceFiles,
+  getChatPreviewDomSummaries,
   inferSubmitTriggerSource
 } from "./prompt-input-utils.js";
 
@@ -336,24 +337,6 @@ function positionAgentDebugPanel(panel) {
     pre.style.maxHeight = wideEnough ? "calc(44vh - 32px)" : "calc(30vh - 32px)";
     if (!wideEnough && !panel.dataset.userExpandedOnNarrow) pre.hidden = true;
   }
-}
-
-function getChatPreviewDomSummaries(root = globalThis.document) {
-  return Array.from(root?.querySelectorAll?.(".chat-image-preview button") || []).map((button, index) => {
-    const image = button.querySelector("img");
-    return {
-      index,
-      attachmentId: button.dataset.attachmentId || "",
-      name: button.dataset.attachmentName || image?.alt || `Reference ${index + 1}`,
-      type: button.dataset.attachmentType || "",
-      mime: button.dataset.attachmentType || "",
-      size: Number(button.dataset.attachmentSize || 0),
-      hasFile: false,
-      hasBlob: Boolean(image?.src?.startsWith("blob:")),
-      hasDataUrl: Boolean(image?.src?.startsWith("data:")),
-      dataUrl: summarizeDataUrl(image?.src || "")
-    };
-  });
 }
 
 function restoreComposerAttachmentsOnFailure({
