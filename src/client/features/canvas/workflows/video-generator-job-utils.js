@@ -30,6 +30,22 @@ export function getRetryAfterDelayMs(response, fallbackMs = 4000) {
   return fallbackMs;
 }
 
+export function createVideoGenerationPayload({
+  model = "",
+  prompt = "",
+  images = [],
+  videoOptions = {},
+  defaultSize = "16:9"
+} = {}) {
+  return {
+    model,
+    prompt,
+    images,
+    size: videoOptions.size || defaultSize,
+    videoOptions
+  };
+}
+
 export function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

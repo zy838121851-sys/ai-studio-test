@@ -14,6 +14,7 @@ import {
   setVideoStatusText
 } from "./video-generator-form-state-utils.js";
 import {
+  createVideoGenerationPayload,
   delay,
   getResultVideoUrl,
   getRetryAfterDelayMs,
@@ -254,13 +255,13 @@ export function createVideoGeneratorWorkflow({
   }
 
   async function runVideoRequest({ model, prompt, images = [], videoOptions = {}, onProgress = null } = {}) {
-    const result = await postJsonRequest("/api/ai/generate", {
+    const result = await postJsonRequest("/api/ai/generate", createVideoGenerationPayload({
       model,
       prompt,
       images,
-      size: videoOptions.size || DEFAULT_VIDEO_RATIO,
-      videoOptions
-    });
+      videoOptions,
+      defaultSize: DEFAULT_VIDEO_RATIO
+    }));
     if (result?.videoUrl || !result?.jobId) return result;
     return waitForVideoJob(result.jobId, { fallback: result, onProgress });
   }
