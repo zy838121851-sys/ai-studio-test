@@ -26,6 +26,7 @@ import {
   getVideoModelByIdFromList,
   getVideoOptionGroupValue,
   getVideoSavedOption,
+  getSelectedVideoOptionsFromModel,
   getVideoSelectedModelId,
   chooseVideoOptionElement,
   renderVideoOptionGroup,
@@ -350,18 +351,7 @@ export function createVideoGeneratorWorkflow({
   }
 
   function getSelectedVideoOptions(model = getVideoModelById(getSelectedVideoModelId())) {
-    const allowed = model?.allowedOptions || {};
-    const output = {};
-    if (Array.isArray(allowed.size) && allowed.size.length) output.size = getGroupValue("size") || allowed.size[0];
-    if (Array.isArray(allowed.resolution) && allowed.resolution.length) output.resolution = getGroupValue("resolution") || allowed.resolution[0];
-    if (Array.isArray(allowed.duration) && allowed.duration.length) output.duration = Number(getGroupValue("duration") || allowed.duration[0]);
-    if (Array.isArray(allowed.return_last_frame) && allowed.return_last_frame.length) {
-      output.return_last_frame = getGroupValue("mode") === "last-frame";
-    }
-    if (Array.isArray(allowed.generate_audio) && allowed.generate_audio.length) {
-      output.generate_audio = getGroupValue("audio") === "true";
-    }
-    return output;
+    return getSelectedVideoOptionsFromModel(model, getGroupValue);
   }
 
   function addVideoReferenceFiles(node, files = []) {

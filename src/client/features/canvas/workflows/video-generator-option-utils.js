@@ -83,6 +83,21 @@ export function getVideoModelByIdFromList(models = [], modelId = "") {
   return models.find((model) => model.id === id) || models[0] || null;
 }
 
+export function getSelectedVideoOptionsFromModel(model = null, getOptionValue = () => "") {
+  const allowed = model?.allowedOptions || {};
+  const output = {};
+  if (Array.isArray(allowed.size) && allowed.size.length) output.size = getOptionValue("size") || allowed.size[0];
+  if (Array.isArray(allowed.resolution) && allowed.resolution.length) output.resolution = getOptionValue("resolution") || allowed.resolution[0];
+  if (Array.isArray(allowed.duration) && allowed.duration.length) output.duration = Number(getOptionValue("duration") || allowed.duration[0]);
+  if (Array.isArray(allowed.return_last_frame) && allowed.return_last_frame.length) {
+    output.return_last_frame = getOptionValue("mode") === "last-frame";
+  }
+  if (Array.isArray(allowed.generate_audio) && allowed.generate_audio.length) {
+    output.generate_audio = getOptionValue("audio") === "true";
+  }
+  return output;
+}
+
 export function getVideoGenerationModels(models = [], getModelType = () => "") {
   return Array.from(models || [])
     .filter((model) => getModelType(model.id) === "video" || model.type === "video")
