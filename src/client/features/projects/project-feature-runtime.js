@@ -1,42 +1,20 @@
 import {
-  buildDemoProjects,
-  makeDemoProjectThumb as makeDemoThumb
-} from "./demo-projects.js";
-import {
-  getLibraryTransitionDirection,
-  getProjectDisplayPrompt,
-  getProjectDisplayTitle,
-  getProjectPreview,
-  wrapProjectIndex
-} from "./library-state.js";
-import {
   applyProjectLibraryClasses,
   renderHomeHistoryContent,
   renderProjectLibraryContent,
   showProjectSaveStatus
 } from "./components/project-library.js?v=20260627-library-bulk-select-1";
-import {
-  deleteRemoteProject,
-  getRemoteProject,
-  listRemoteProjects,
-  saveRemoteProject,
-  saveRemoteProjectCanvas,
-  updateRemoteProject
-} from "../ai/project-client.js";
 import { createProjectRuntime } from "./runtime.js";
 import { createProjectRuntimeBootstrap } from "./runtime-bootstrap.js";
-import { createProjectSavePatch } from "./snapshot-save-patch.js";
-import { restoreCanvasSnapshotJson } from "./snapshot.js";
 import { createProjectWorkflowRuntime } from "./project-workflow-bootstrap.js?v=20260627-library-bulk-select-1";
 import {
-  formatProjectDate,
+  createProjectWorkflowServices,
+  isRemoteProjectPersistenceEnabled
+} from "./project-workflow-services.js";
+import {
   clearProjectsStorage,
   getActiveProjectId,
-  hasDemoProjectsSeeded,
   loadProjectsFromStorage,
-  makeProjectTitle,
-  markDemoProjectsSeeded,
-  saveProjectsToStorage,
   setActiveProjectId
 } from "./store.js";
 
@@ -47,7 +25,7 @@ export function createProjectFeatureRuntime({
   chat = {},
   services = {}
 } = {}) {
-  const remoteProjectsEnabled = typeof listRemoteProjects === "function" && typeof saveRemoteProject === "function";
+  const remoteProjectsEnabled = isRemoteProjectPersistenceEnabled();
   if (remoteProjectsEnabled) clearProjectsStorage();
 
   const runtimeBootstrap = createProjectRuntimeBootstrap({
@@ -86,32 +64,7 @@ export function createProjectFeatureRuntime({
       set selectedNode(value) { state.setSelectedNode?.(value); },
       get body() { return elements.body || document.body; }
     },
-    services: {
-      buildDemoProjects,
-      hasDemoProjectsSeeded,
-      markDemoProjectsSeeded,
-      saveProjectsToStorage: remoteProjectsEnabled ? () => {} : saveProjectsToStorage,
-      remoteProjectsEnabled,
-      makeProjectTitleFromPrompt: makeProjectTitle,
-      createProjectSavePatch,
-      restoreCanvasSnapshotJson,
-      listRemoteProjects,
-      createRemoteProject: saveRemoteProject,
-      getRemoteProject,
-      updateRemoteProject,
-      deleteRemoteProject,
-      saveRemoteProjectCanvas,
-      getProjectDisplayPrompt,
-      getProjectDisplayTitle,
-      getProjectPreview,
-      getLibraryTransitionDirection,
-      makeDemoThumb,
-      wrapProjectIndex,
-      formatProjectDate,
-      resolveAssetUrl: services.resolveAssetUrl,
-      ensureAssetsReady: services.ensureAssetsReady,
-      escapeHtml: services.escapeHtml
-    },
+    services: createProjectWorkflowServices({ remoteProjectsEnabled, services }),
     projectRuntime: runtimeBootstrap.projectRuntime,
     elements,
     ui: {
