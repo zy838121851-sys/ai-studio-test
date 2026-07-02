@@ -18,6 +18,12 @@ import {
   getResultVideoUrls,
   parseGeneratorResult
 } from "./image-generator-result-utils.js";
+import {
+  buildGeneratorImagePreviewReplacementOptions,
+  buildGeneratorVideoPreviewReplacementOptions,
+  ensureGeneratorPreviewReplacement,
+  replaceGeneratorImagePreviewNode
+} from "./image-generator-preview-replacement-utils.js";
 
 const GENERATOR_SELECTOR = ".node-image-generator";
 const GENERATOR_POPOVER_SELECTOR = "#imageGeneratorPopover";
@@ -429,6 +435,8 @@ export function createImageGeneratorWorkflow({
       };
       const replaceGeneratorImagePreview = (previewNode, url, index = 0) => {
         const createdNode = ensureGeneratorPreviewReplacement(replaceGeneratorImagePreviewNode(previewNode, buildGeneratorImagePreviewReplacementOptions({
+          replacePreviewWithImage,
+          getPreviewNodeWidth,
           title: getGeneratorResultTitle(index, count),
           desc: prompt || "Image generator result",
           url,
@@ -447,6 +455,7 @@ export function createImageGeneratorWorkflow({
       };
       const replaceGeneratorVideoPreview = (previewNode, url) => {
         const createdNode = ensureGeneratorPreviewReplacement(replacePreviewWithVideo(previewNode, buildGeneratorVideoPreviewReplacementOptions(previewNode, {
+          getPreviewNodeWidth,
           title: "Generated Video.mp4",
           desc: prompt || "Image generator video result",
           url,
@@ -575,75 +584,6 @@ export function createImageGeneratorWorkflow({
     } finally {
       if (node?.isConnected) setGeneratorBusy(node, false);
     }
-  }
-
-  function replaceGeneratorImagePreviewNode(previewNode, {
-    title = "Image Generator Result.png",
-    desc = "Image generator result",
-    url = "",
-    aspectRatio = "",
-    prompt = "",
-    actionType = "",
-    model = ""
-  } = {}) {
-    return replacePreviewWithImage(previewNode, {
-      title,
-      desc,
-      url,
-      width: getPreviewNodeWidth(previewNode),
-      aspectRatio,
-      prompt,
-      sourceNode: null,
-      actionType,
-      model
-    });
-  }
-
-  function buildGeneratorImagePreviewReplacementOptions({
-    title = "Image Generator Result.png",
-    desc = "Image generator result",
-    url = "",
-    aspectRatio = "",
-    prompt = "",
-    actionType = "",
-    model = ""
-  } = {}) {
-    return {
-      title,
-      desc,
-      url,
-      aspectRatio,
-      prompt,
-      actionType,
-      model
-    };
-  }
-
-  function buildGeneratorVideoPreviewReplacementOptions(previewNode, {
-    title = "Generated Video.mp4",
-    desc = "Image generator video result",
-    url = "",
-    aspectRatio = "",
-    prompt = "",
-    actionType = "video_generation",
-    model = ""
-  } = {}) {
-    return {
-      title,
-      desc,
-      url,
-      width: getPreviewNodeWidth(previewNode),
-      aspectRatio,
-      prompt,
-      sourceNode: null,
-      actionType,
-      model
-    };
-  }
-
-  function ensureGeneratorPreviewReplacement(createdNode) {
-    if (!createdNode) throw new Error("Unable to replace generation preview");
-    return createdNode;
   }
 
   function createGeneratorPreviewBatch(node, {
@@ -825,6 +765,8 @@ export function createImageGeneratorWorkflow({
     if (!url) throw new Error(getMissingGeneratorResultMessage(result));
     const batchIndex = getGeneratorPreviewBatchIndex(previewNode, index);
     const createdNode = ensureGeneratorPreviewReplacement(replaceGeneratorImagePreviewNode(previewNode, buildGeneratorImagePreviewReplacementOptions({
+      replacePreviewWithImage,
+      getPreviewNodeWidth,
       title: getGeneratorResultTitle(batchIndex, count),
       desc: previewNode.dataset.generatorPrompt || "Image generator result",
       url,
