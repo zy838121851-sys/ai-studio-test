@@ -1,7 +1,7 @@
-import { createWorkspaceCanvasOperationsCompositionRuntime } from "./workspace-canvas-operations-composition.js";
 import { createWorkspaceCanvasGenerationAppRuntime } from "../runtime/canvas-generation-runtime.js";
 import { createWorkspaceCanvasInteractionAppRuntime } from "../runtime/canvas-interaction-runtime.js";
 import { createWorkspaceCanvasNodeDragAppRuntime } from "../runtime/canvas-node-drag-runtime.js";
+import { createWorkspaceCanvasOperationsAppRuntime } from "../runtime/canvas-operations-runtime.js";
 import { createWorkspaceCanvasSelectionAppRuntime } from "../runtime/canvas-selection-runtime.js";
 import { createWorkspaceCanvasSurfaceAppRuntime } from "../runtime/canvas-surface-runtime.js";
 import { createCanvasGenerationRuntimeInputs } from "./workspace-canvas-generation-inputs.js";
@@ -234,6 +234,44 @@ function createWorkspaceCanvasSurfaceCompositionRuntime({
     },
     defaults
   });
+}
+
+function createWorkspaceCanvasOperationsCompositionRuntime({
+  elements,
+  state,
+  services
+}) {
+  let canvasOperationsRuntime;
+  canvasOperationsRuntime = createWorkspaceCanvasOperationsAppRuntime({
+    elements,
+    state,
+    services: {
+      ensureCanvasNodeId: services.ensureCanvasNodeId,
+      makeDraggable: (...args) => services.makeDraggable(...args),
+      selectNode: (...args) => services.selectNode(...args),
+      resetCanvasTool: (...args) => canvasOperationsRuntime.resetCanvasTool(...args),
+      setTextNodeEditing: (...args) => services.setTextNodeEditing(...args),
+      positionShapeFormatToolbar: services.positionShapeFormatToolbar,
+      isFixedStrokeToolName: services.isFixedStrokeToolName,
+      isLinearDrawToolName: services.isLinearDrawToolName,
+      getNextCanvasNodeId: (...args) => services.getNextCanvasNodeId(...args),
+      viewportPointToWorld: services.viewportPointToWorld,
+      syncCanvasTransform: services.syncCanvasTransform,
+      createSelectionBoxElement: services.createSelectionBoxElement,
+      getSelectionBoxRect: services.getSelectionBoxRect,
+      getVisibleCanvasNodes: services.getVisibleCanvasNodes,
+      getNodeBounds: services.getNodeBounds,
+      getWorldSelectionArea: services.getWorldSelectionArea,
+      selectNodes: services.selectNodes,
+      buildPointsPath: services.buildPointsPath,
+      getCanvasNodeScreenRect: services.getCanvasNodeScreenRect,
+      clearSelection: services.clearSelection,
+      removeNode: services.removeNode,
+      recordCanvasEvent: services.recordCanvasEvent,
+      recordUndoAction: services.recordUndoAction
+    }
+  });
+  return canvasOperationsRuntime;
 }
 
 export function createWorkspaceCanvasCompositionBundle({
