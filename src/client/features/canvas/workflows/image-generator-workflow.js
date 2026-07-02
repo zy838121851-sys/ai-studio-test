@@ -9,6 +9,7 @@ import {
 } from "../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 import { renderModelPreferenceMenu } from "../../ai/model-preference-menu.js";
 import {
+  applyGeneratedImageNodeSize,
   getMissingGeneratorResultError,
   getMissingGeneratorResultMessage,
   getGeneratorResultTitle,
@@ -815,18 +816,6 @@ export function createImageGeneratorWorkflow({
     hideGeneratorPopover();
     if (node.isConnected) node.remove();
     return createdNode;
-  }
-
-  function applyGeneratedImageNodeSize(node, { width, dimensions } = {}) {
-    if (!node) return;
-    if (width) node.style.width = `${Math.round(width)}px`;
-    const frame = node.querySelector(".image-frame");
-    if (frame && dimensions?.width > 0 && dimensions?.height > 0) {
-      frame.style.aspectRatio = `${dimensions.width} / ${dimensions.height}`;
-    }
-    node.dataset.manualSize = "true";
-    if (dimensions?.width > 0) node.dataset.imageNaturalWidth = String(dimensions.width);
-    if (dimensions?.height > 0) node.dataset.imageNaturalHeight = String(dimensions.height);
   }
 
   function applyGeneratedImageNodeResult(node, url, {

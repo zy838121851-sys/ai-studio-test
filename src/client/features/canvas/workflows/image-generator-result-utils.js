@@ -12,6 +12,18 @@ export function getGeneratorResultTitle(index = 0, count = 1) {
     : "Image Generator Result.png";
 }
 
+export function applyGeneratedImageNodeSize(node, { width, dimensions } = {}) {
+  if (!node) return;
+  if (width) node.style.width = `${Math.round(width)}px`;
+  const frame = node.querySelector(".image-frame");
+  if (frame && dimensions?.width > 0 && dimensions?.height > 0) {
+    frame.style.aspectRatio = `${dimensions.width} / ${dimensions.height}`;
+  }
+  node.dataset.manualSize = "true";
+  if (dimensions?.width > 0) node.dataset.imageNaturalWidth = String(dimensions.width);
+  if (dimensions?.height > 0) node.dataset.imageNaturalHeight = String(dimensions.height);
+}
+
 export function parseGeneratorResult(result = {}, selectedModel = "", expectedType = "image") {
   const urls = getGeneratorResultUrls(result, expectedType);
   return {

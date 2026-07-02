@@ -11,6 +11,7 @@ import {
   getGeneratorReplacementPlacement
 } from "../src/client/features/canvas/workflows/image-generator-placement-utils.js";
 import {
+  applyGeneratedImageNodeSize,
   getGeneratorResultTitle
 } from "../src/client/features/canvas/workflows/image-generator-result-utils.js";
 
@@ -36,6 +37,7 @@ assert(
     && generatorWorkflow.includes("getGeneratorReplacementPlacement")
     && generatorWorkflow.includes("markGeneratorPreviewFailed")
     && generatorWorkflow.includes("updateGeneratorPreviewStatus as updatePreviewStatus")
+    && generatorWorkflow.includes("applyGeneratedImageNodeSize")
     && generatorWorkflow.includes("getGeneratorResultTitle")
     && generatorPreviewJobUtils.includes("applyGeneratorPreviewJobMetadata"),
   "generator must tag preview nodes with job ids when async jobs are created"
@@ -215,6 +217,23 @@ assert(
   }).width === 160,
   "generated placement should preserve minimum width"
 );
+const sizedFrame = { style: {} };
+const sizedNode = {
+  style: {},
+  dataset: {},
+  querySelector(selector) {
+    return selector === ".image-frame" ? sizedFrame : null;
+  }
+};
+applyGeneratedImageNodeSize(sizedNode, {
+  width: 320.4,
+  dimensions: { width: 1024, height: 768 }
+});
+assert(sizedNode.style.width === "320px", "generated image size helper should round and apply width");
+assert(sizedFrame.style.aspectRatio === "1024 / 768", "generated image size helper should preserve aspect ratio");
+assert(sizedNode.dataset.manualSize === "true", "generated image size helper should mark manual sizing");
+assert(sizedNode.dataset.imageNaturalWidth === "1024", "generated image size helper should persist natural width");
+assert(sizedNode.dataset.imageNaturalHeight === "768", "generated image size helper should persist natural height");
 
 const appInit = read("src/client/core/app-init.js");
 assert(
