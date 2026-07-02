@@ -15,7 +15,6 @@ import {
 } from "./video-generator-job-utils.js";
 import {
   capitalize,
-  clamp,
   formatRatioLabel,
   getModeOptions,
   getVideoModelByIdFromList,
@@ -30,6 +29,10 @@ import {
   markVideoPreviewFailed,
   updatePreviewStatus
 } from "./video-generator-preview-utils.js";
+import {
+  applyVideoPopoverPosition,
+  getVideoPopoverPositionStyle
+} from "./video-generator-position-utils.js";
 import {
   getVideoReferences,
   mergeVideoReferences,
@@ -412,14 +415,10 @@ export function createVideoGeneratorWorkflow({
     }
     const frame = node.querySelector(".video-file-preview") || node;
     const rect = frame.getBoundingClientRect();
-    const width = Math.max(430, Math.min(820, rect.width + 180));
-    const viewportWidth = globalThis.innerWidth || 1280;
-    const left = clamp(rect.left + rect.width / 2 - width / 2, 16, Math.max(16, viewportWidth - width - 16));
-    nextPopover.style.position = "fixed";
-    nextPopover.style.zIndex = "12080";
-    nextPopover.style.width = `${Math.round(width)}px`;
-    nextPopover.style.left = `${Math.round(left)}px`;
-    nextPopover.style.top = `${Math.round(rect.bottom + 18)}px`;
+    applyVideoPopoverPosition(
+      nextPopover,
+      getVideoPopoverPositionStyle(rect, globalThis.innerWidth || 1280)
+    );
   }
 
   function scheduleVideoPopoverPosition() {
