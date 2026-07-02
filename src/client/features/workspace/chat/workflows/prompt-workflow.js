@@ -18,9 +18,11 @@ import {
   warnIfModelMismatch
 } from "./prompt-model-log-utils.js";
 import {
+  applyAgentProgressStreamEvent,
   buildAgentCompletionSummary,
   buildAgentProgressBlocks,
-  buildAgentResultBlocks
+  buildAgentResultBlocks,
+  createAgentProgressState
 } from "./prompt-agent-block-utils.js";
 import {
   summarizeConversationPayload,
@@ -398,27 +400,11 @@ export function bindPromptSubmit({
     let generationStarted = false;
     let pendingPreviewCreationStarted = false;
     let agentBlocksMessage = null;
-    const agentBlocksState = {
-      hasReference: false,
-      analysisStatus: "idle",
-      imageAnalysis: null,
-      imageAnalysisError: "",
-      promptStatus: "idle",
+    const agentBlocksState = createAgentProgressState({
       prompt,
-      optimizedPrompt: "",
-      promptError: "",
-      resultStatus: "idle",
-      resultError: "",
-      imageUrls: [],
-      videoUrls: [],
       model,
-      modelUsage: "",
-      generationType: getModelType(model) === "3d" ? "3d" : (getModelType(model) === "video" ? "video" : "image"),
-      taskType: "",
-      size: "",
-      jobId: "",
-      summary: ""
-    };
+      generationType: getModelType(model) === "3d" ? "3d" : (getModelType(model) === "video" ? "video" : "image")
+    });
     const refreshAgentBlocks = () => {
       if (typeof addChatBlocks !== "function") return;
       const blocks = buildAgentProgressBlocks(agentBlocksState);
@@ -431,46 +417,7 @@ export function bindPromptSubmit({
     };
     const handleAgentStreamEvent = (event = {}) => {
       if (activeChatAgentRunId !== agentDebug.runId) return;
-      if (event.type === "agent.intent") {
-        agentBlocksState.taskType = event.taskType || agentBlocksState.taskType;
-        agentBlocksState.generationType = event.generationType || agentBlocksState.generationType;
-        if (event.shouldGenerate) {
-          agentBlocksState.resultStatus = "pending";
-          refreshAgentBlocks();
-        }
-        return;
-      }
-      if (event.type === "image.analysis.start") {
-        agentBlocksState.hasReference = true;
-        agentBlocksState.analysisStatus = "pending";
-        refreshAgentBlocks();
-        return;
-      }
-      if (event.type === "image.analysis") {
-        agentBlocksState.hasReference = true;
-        agentBlocksState.analysisStatus = "done";
-        agentBlocksState.imageAnalysis = event.analysis || event.summary || "";
-        agentBlocksState.imageAnalysisError = "";
-        refreshAgentBlocks();
-        return;
-      }
-      if (event.type === "image.analysis.error") {
-        agentBlocksState.hasReference = true;
-        agentBlocksState.analysisStatus = "error";
-        agentBlocksState.imageAnalysisError = "图片分析未完成，已继续优化提示词并生成。";
-        refreshAgentBlocks();
-        return;
-      }
-      if (event.type === "prompt.optimizer.start") {
-        agentBlocksState.promptStatus = "pending";
-        refreshAgentBlocks();
-        return;
-      }
-      if (event.type === "prompt.optimized") {
-        agentBlocksState.promptStatus = "done";
-        agentBlocksState.optimizedPrompt = event.optimizedPrompt || agentBlocksState.optimizedPrompt || prompt;
-        agentBlocksState.taskType = event.taskType || agentBlocksState.taskType;
-        agentBlocksState.promptError = event.optimizerError || "";
+      if (applyAgentProgressStreamEvent(agentBlocksState, event, { prompt })) {
         refreshAgentBlocks();
       }
     };

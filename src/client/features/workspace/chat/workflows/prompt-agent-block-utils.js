@@ -161,6 +161,77 @@ export function buildAgentCompletionSummary({ hasReference = false, generationTy
     : "已完成！我已根据你的需求生成了图片，并放入画布中。";
 }
 
+export function createAgentProgressState({
+  prompt = "",
+  model = "",
+  generationType = "image"
+} = {}) {
+  return {
+    hasReference: false,
+    analysisStatus: "idle",
+    imageAnalysis: null,
+    imageAnalysisError: "",
+    promptStatus: "idle",
+    prompt,
+    optimizedPrompt: "",
+    promptError: "",
+    resultStatus: "idle",
+    resultError: "",
+    imageUrls: [],
+    videoUrls: [],
+    model,
+    modelUsage: "",
+    generationType,
+    taskType: "",
+    size: "",
+    jobId: "",
+    summary: ""
+  };
+}
+
+export function applyAgentProgressStreamEvent(state, event = {}, { prompt = "" } = {}) {
+  if (!state || !event?.type) return false;
+  if (event.type === "agent.intent") {
+    state.taskType = event.taskType || state.taskType;
+    state.generationType = event.generationType || state.generationType;
+    if (event.shouldGenerate) {
+      state.resultStatus = "pending";
+      return true;
+    }
+    return false;
+  }
+  if (event.type === "image.analysis.start") {
+    state.hasReference = true;
+    state.analysisStatus = "pending";
+    return true;
+  }
+  if (event.type === "image.analysis") {
+    state.hasReference = true;
+    state.analysisStatus = "done";
+    state.imageAnalysis = event.analysis || event.summary || "";
+    state.imageAnalysisError = "";
+    return true;
+  }
+  if (event.type === "image.analysis.error") {
+    state.hasReference = true;
+    state.analysisStatus = "error";
+    state.imageAnalysisError = "图片分析未完成，已继续优化提示词并生成。";
+    return true;
+  }
+  if (event.type === "prompt.optimizer.start") {
+    state.promptStatus = "pending";
+    return true;
+  }
+  if (event.type === "prompt.optimized") {
+    state.promptStatus = "done";
+    state.optimizedPrompt = event.optimizedPrompt || state.optimizedPrompt || prompt;
+    state.taskType = event.taskType || state.taskType;
+    state.promptError = event.optimizerError || "";
+    return true;
+  }
+  return false;
+}
+
 export function buildAgentProgressBlocks(state = {}) {
   const blocks = [];
   const hasReference = Boolean(state.hasReference);

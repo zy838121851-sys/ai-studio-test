@@ -1,8 +1,10 @@
 import {
+  applyAgentProgressStreamEvent,
   buildAgentCompletionSummary,
   buildAgentProgressBlocks,
   buildAgentResultBlocks,
   buildAnalysisCardContent,
+  createAgentProgressState,
   formatAgentModelLabel,
   inferAgentResultTitle
 } from "../src/client/features/workspace/chat/workflows/prompt-agent-block-utils.js";
@@ -72,6 +74,75 @@ assert(progressBlocks[3].text === "完成", "Progress summary should be preserve
 assert(
   buildAgentCompletionSummary({ hasReference: true, generationType: "video" }) === "已完成！我已根据参考图生成了视频，并放入画布中。",
   "Completion summary should preserve reference video wording"
+);
+
+const progressState = createAgentProgressState({
+  prompt: "create image",
+  model: "gpt-image-2",
+  generationType: "image"
+});
+assert(progressState.prompt === "create image", "Progress state should keep prompts");
+assert(progressState.model === "gpt-image-2", "Progress state should keep models");
+assert(progressState.generationType === "image", "Progress state should keep generation types");
+assert(progressState.analysisStatus === "idle", "Progress state should initialize analysis status");
+assert(progressState.promptStatus === "idle", "Progress state should initialize prompt status");
+assert(progressState.resultStatus === "idle", "Progress state should initialize result status");
+assert(Array.isArray(progressState.imageUrls) && progressState.imageUrls.length === 0, "Progress state should initialize image URLs");
+assert(Array.isArray(progressState.videoUrls) && progressState.videoUrls.length === 0, "Progress state should initialize video URLs");
+
+assert(
+  applyAgentProgressStreamEvent(progressState, {
+    type: "agent.intent",
+    taskType: "poster_design",
+    generationType: "image",
+    shouldGenerate: true
+  }) === true,
+  "Agent intent events should request progress refresh when generation starts"
+);
+assert(progressState.taskType === "poster_design", "Agent intent events should update task type");
+assert(progressState.resultStatus === "pending", "Agent intent events should mark pending generation");
+
+assert(
+  applyAgentProgressStreamEvent(progressState, { type: "image.analysis.start" }) === true,
+  "Image analysis start should request progress refresh"
+);
+assert(progressState.hasReference === true, "Image analysis start should mark reference presence");
+assert(progressState.analysisStatus === "pending", "Image analysis start should mark pending status");
+
+assert(
+  applyAgentProgressStreamEvent(progressState, {
+    type: "image.analysis",
+    analysis: "subject"
+  }) === true,
+  "Image analysis events should request progress refresh"
+);
+assert(progressState.analysisStatus === "done", "Image analysis events should mark done status");
+assert(progressState.imageAnalysis === "subject", "Image analysis events should store analysis text");
+assert(progressState.imageAnalysisError === "", "Image analysis events should clear analysis errors");
+
+assert(
+  applyAgentProgressStreamEvent(progressState, { type: "prompt.optimizer.start" }) === true,
+  "Prompt optimizer start should request progress refresh"
+);
+assert(progressState.promptStatus === "pending", "Prompt optimizer start should mark pending status");
+
+assert(
+  applyAgentProgressStreamEvent(progressState, {
+    type: "prompt.optimized",
+    optimizedPrompt: "",
+    taskType: "product_render",
+    optimizerError: "timeout"
+  }, { prompt: "fallback prompt" }) === true,
+  "Prompt optimized events should request progress refresh"
+);
+assert(progressState.promptStatus === "done", "Prompt optimized events should mark done status");
+assert(progressState.optimizedPrompt === "fallback prompt", "Prompt optimized events should fall back to original prompts");
+assert(progressState.taskType === "product_render", "Prompt optimized events should update task type");
+assert(progressState.promptError === "timeout", "Prompt optimized events should keep optimizer errors");
+
+assert(
+  applyAgentProgressStreamEvent(progressState, { type: "unknown.event" }) === false,
+  "Unknown progress events should not request progress refresh"
 );
 
 console.log("Prompt agent block utility checks passed.");
