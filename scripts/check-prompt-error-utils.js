@@ -1,5 +1,7 @@
 import {
+  buildImageTo3DFailureMessage,
   buildClientFailure,
+  buildVisibleGenerationFailureMessage,
   classifyGenerationClientError,
   getRetryAfterDelayMs
 } from "../src/client/features/workspace/chat/workflows/prompt-error-utils.js";
@@ -14,6 +16,26 @@ assert(failure.failureCode === "CODE", "Client failure should preserve failureCo
 assert(failure.failureMessage === "Message", "Client failure should preserve failureMessage");
 assert(failure.stage === "stage", "Client failure should preserve stage");
 assert(Object.keys(failure).join(",") === "failureCode,failureMessage,stage", "Client failure shape should stay stable");
+assert(
+  buildVisibleGenerationFailureMessage({ stage: "attachments", failureMessage: "Attachment failed" }, { generationType: "image" }) === "Attachment failed",
+  "Visible failure messages should preserve attachment failures"
+);
+assert(
+  buildVisibleGenerationFailureMessage({ stage: "provider", failureMessage: "Provider failed" }, { generationType: "3d" }) === "3D 模型生成失败：Provider failed",
+  "Visible failure messages should preserve 3D generation failures"
+);
+assert(
+  buildVisibleGenerationFailureMessage({ stage: "provider", failureMessage: "Provider failed" }, { generationType: "image" }) === "Generation failed: Provider failed",
+  "Visible failure messages should preserve standard generation failures"
+);
+assert(
+  buildImageTo3DFailureMessage({ message: "Image unavailable" }) === "3D 模型生成失败：Image unavailable",
+  "Image-to-3D failures should preserve error messages"
+);
+assert(
+  buildImageTo3DFailureMessage("raw failure") === "3D 模型生成失败：raw failure",
+  "Image-to-3D failures should stringify non-error values"
+);
 assert(getRetryAfterDelayMs(makeResponse("3"), 4000) === 3000, "Retry-After should be interpreted as seconds");
 assert(getRetryAfterDelayMs(makeResponse("0"), 4000) === 4000, "Non-positive Retry-After should use fallback");
 assert(getRetryAfterDelayMs(makeResponse("invalid"), 2500) === 2500, "Invalid Retry-After should use fallback");

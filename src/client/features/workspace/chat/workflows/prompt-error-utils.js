@@ -34,6 +34,18 @@ export function buildClientFailure(failureCode, failureMessage, stage) {
   return { failureCode, failureMessage, stage };
 }
 
+export function buildVisibleGenerationFailureMessage(failure = {}, debugRecord = {}) {
+  if (failure.stage === "attachments") return failure.failureMessage;
+  if (debugRecord?.generationType === "3d") {
+    return `3D 模型生成失败：${failure.failureMessage}`;
+  }
+  return `Generation failed: ${failure.failureMessage}`;
+}
+
+export function buildImageTo3DFailureMessage(error = {}) {
+  return `3D 模型生成失败：${error?.message || String(error)}`;
+}
+
 export function getRetryAfterDelayMs(response, fallbackMs = 4000) {
   const value = Number.parseInt(response?.headers?.get?.("Retry-After") || "", 10);
   if (Number.isFinite(value) && value > 0) return value * 1000;

@@ -14,6 +14,8 @@ import {
   isMidjourneyModel
 } from "./prompt-result-utils.js";
 import {
+  buildImageTo3DFailureMessage,
+  buildVisibleGenerationFailureMessage,
   classifyGenerationClientError
 } from "./prompt-error-utils.js";
 import {
@@ -1045,11 +1047,7 @@ export function bindPromptSubmit({
         refreshAgentBlocks();
       }
       updateThinking(thinking, 0, true);
-      const visibleFailureMessage = failure.stage === "attachments"
-        ? failure.failureMessage
-        : (agentDebug.generationType === "3d"
-          ? `3D 模型生成失败：${failure.failureMessage}`
-          : `Generation failed: ${failure.failureMessage}`);
+      const visibleFailureMessage = buildVisibleGenerationFailureMessage(failure, agentDebug);
       if (progress) {
         updateChat(progress, visibleFailureMessage);
       } else {
@@ -1148,7 +1146,7 @@ function bindImageTo3DRequests({
       window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
     } catch (error) {
       markPromptPreviewsFailed(previewNode);
-      const message = `3D 模型生成失败：${error?.message || String(error)}`;
+      const message = buildImageTo3DFailureMessage(error);
       if (progress) updateChat(progress, message);
       else notify(message);
     }
