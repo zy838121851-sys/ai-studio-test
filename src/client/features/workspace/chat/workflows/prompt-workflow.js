@@ -73,6 +73,7 @@ import {
 } from "./prompt-canvas-context-utils.js";
 import {
   createPromptPreviewBatch,
+  markPromptPreviewsFailed,
   updatePromptPreviewStatus
 } from "./prompt-preview-utils.js";
 import {
@@ -1038,10 +1039,7 @@ export function bindPromptSubmit({
         logAgentDebug,
         agentDebug
       });
-      previewNodes.forEach((node) => {
-        node?.classList?.add("generation-failed");
-        updatePromptPreviewStatus(node, "Generation failed, please try again.");
-      });
+      markPromptPreviewsFailed(previewNodes);
       if (typeof addChatBlocks === "function" && agentBlocksMessage) {
         applyAgentProgressFailureState(agentBlocksState);
         refreshAgentBlocks();
@@ -1149,8 +1147,7 @@ function bindImageTo3DRequests({
       modelNode?.scrollIntoView?.({ block: "nearest", inline: "nearest" });
       window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
     } catch (error) {
-      previewNode?.classList?.add("generation-failed");
-      updatePromptPreviewStatus(previewNode, "Generation failed, please try again.");
+      markPromptPreviewsFailed(previewNode);
       const message = `3D 模型生成失败：${error?.message || String(error)}`;
       if (progress) updateChat(progress, message);
       else notify(message);

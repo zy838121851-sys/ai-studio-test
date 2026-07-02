@@ -37,3 +37,15 @@ export function updatePromptPreviewStatus(previewNode, text = "") {
   const statusText = previewNode?.querySelector?.(".generation-frame span");
   if (statusText && text) statusText.textContent = text;
 }
+
+export function markPromptPreviewsFailed(previewNodes = [], text = "Generation failed, please try again.") {
+  const nodes = Array.isArray(previewNodes) ? previewNodes : [previewNodes];
+  let updatedCount = 0;
+  nodes.forEach((node) => {
+    if (!node) return;
+    node?.classList?.add("generation-failed");
+    updatePromptPreviewStatus(node, text);
+    updatedCount += 1;
+  });
+  return updatedCount;
+}

@@ -1,5 +1,6 @@
 import {
   createPromptPreviewBatch,
+  markPromptPreviewsFailed,
   updatePromptPreviewStatus
 } from "../src/client/features/workspace/chat/workflows/prompt-preview-utils.js";
 
@@ -81,6 +82,20 @@ updatePromptPreviewStatus({
 }, "");
 assert(status.textContent === "Generation failed, please try again.", "Prompt preview status should ignore empty text");
 
+const failedNodes = [
+  makePreviewNode(),
+  makePreviewNode()
+];
+assert(markPromptPreviewsFailed(failedNodes) === 2, "Prompt preview failure helper should update all preview nodes");
+assert(failedNodes.every((node) => node.classList.has("generation-failed")), "Prompt preview failure helper should mark failed classes");
+assert(failedNodes.every((node) => node.status.textContent === "Generation failed, please try again."), "Prompt preview failure helper should apply default failure status");
+
+const singleFailedNode = makePreviewNode();
+assert(markPromptPreviewsFailed(singleFailedNode, "Custom failure") === 1, "Prompt preview failure helper should accept single preview nodes");
+assert(singleFailedNode.classList.has("generation-failed"), "Prompt preview failure helper should mark single nodes failed");
+assert(singleFailedNode.status.textContent === "Custom failure", "Prompt preview failure helper should apply custom failure text");
+assert(markPromptPreviewsFailed([null]) === 0, "Prompt preview failure helper should ignore missing nodes");
+
 console.log("Prompt preview utility checks passed.");
 
 function collectPreviewCalls(options = {}) {
@@ -94,4 +109,23 @@ function collectPreviewCalls(options = {}) {
   });
   assert(nodes.length === calls.length, "Prompt preview batch should return created preview nodes");
   return calls;
+}
+
+function makePreviewNode() {
+  const statusNode = { textContent: "" };
+  const classes = new Set();
+  return {
+    status: statusNode,
+    classList: {
+      add(name) {
+        classes.add(name);
+      },
+      has(name) {
+        return classes.has(name);
+      }
+    },
+    querySelector(selector) {
+      return selector === ".generation-frame span" ? statusNode : null;
+    }
+  };
 }
