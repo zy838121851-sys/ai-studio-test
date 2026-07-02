@@ -42,10 +42,12 @@ import {
   buildMessageDoneGenerationDecisionPayload,
   createAgentDebugRecord,
   markAgentGeneratePayloadBuilt,
+  markAgentGenerateRequestStarted,
   markAgentGuardPass,
   markAgentGuardSkip,
   markAgentPreviewCreationFailed,
   sanitizeDebugValue,
+  storeAgentGenerateResult,
   setAgentGenerationStage as applyAgentGenerationStage
 } from "./prompt-agent-debug-utils.js";
 import {
@@ -841,14 +843,10 @@ export function bindPromptSubmit({
         model,
         generationType: videoModel ? "video" : "image"
       });
-      agentDebug.generateRequestStarted = true;
-      logMessageDoneGenerationDecision(agentDebug, {
-        stage: "request.started",
-        generateRequestStarted: true
-      });
+      logMessageDoneGenerationDecision(agentDebug, markAgentGenerateRequestStarted(agentDebug));
       updateAgentDebugPanel(agentDebug);
       const result = await postJsonRequest("/api/ai/generate", generationPayload);
-      agentDebug.generateResult = summarizeGenerationResult(result);
+      storeAgentGenerateResult(agentDebug, summarizeGenerationResult(result));
       logAgentDebug(agentDebug, "generate.response.initial", agentDebug.generateResult);
       const finalResult = result.imageUrl || result.videoUrl || !result.jobId
         ? result
@@ -878,7 +876,7 @@ export function bindPromptSubmit({
         });
         return;
       }
-      agentDebug.generateResult = summarizeGenerationResult(finalResult);
+      storeAgentGenerateResult(agentDebug, summarizeGenerationResult(finalResult));
       logAgentDebug(agentDebug, "generate.response.final", agentDebug.generateResult);
       setAgentGenerationStage(agentDebug, "outputPersist", {
         jobId: finalResult.jobId || finalResult.job?.id || "",

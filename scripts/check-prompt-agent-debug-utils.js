@@ -4,10 +4,12 @@ import {
   buildMessageDoneGenerationDecisionPayload,
   createAgentDebugRecord,
   markAgentGeneratePayloadBuilt,
+  markAgentGenerateRequestStarted,
   markAgentGuardPass,
   markAgentGuardSkip,
   markAgentPreviewCreationFailed,
   sanitizeDebugValue,
+  storeAgentGenerateResult,
   setAgentGenerationStage
 } from "../src/client/features/workspace/chat/workflows/prompt-agent-debug-utils.js";
 
@@ -257,5 +259,23 @@ assert(generatePayloadRecord.generatePayload === payloadSummary, "Payload built 
 assert(generatePayloadRecord.generatePayloadBuilt === true, "Payload built helper should mark payload state");
 assert(payloadBuiltPayload.stage === "payload.built", "Payload built helper should build payload stage");
 assert(payloadBuiltPayload.generatePayloadBuilt === true, "Payload built helper should build payload flag");
+
+const requestStartedRecord = createAgentDebugRecord({}, {
+  now: () => fixedDate,
+  random: () => 0.5
+});
+const requestStartedPayload = markAgentGenerateRequestStarted(requestStartedRecord);
+assert(requestStartedRecord.generateRequestStarted === true, "Request started helper should mark request state");
+assert(requestStartedPayload.stage === "request.started", "Request started helper should build request stage");
+assert(requestStartedPayload.generateRequestStarted === true, "Request started helper should build request flag");
+
+const resultRecord = createAgentDebugRecord({}, {
+  now: () => fixedDate,
+  random: () => 0.5
+});
+const resultSummary = { imageUrl: "/uploads/generated.png", jobId: "job-1" };
+const storedResultSummary = storeAgentGenerateResult(resultRecord, resultSummary);
+assert(resultRecord.generateResult === resultSummary, "Generate result helper should store result summaries by reference");
+assert(storedResultSummary === resultSummary, "Generate result helper should return stored summaries");
 
 console.log("Prompt agent debug utility checks passed.");

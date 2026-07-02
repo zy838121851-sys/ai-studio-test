@@ -183,6 +183,19 @@ export function markAgentGeneratePayloadBuilt(record, payloadSummary = null) {
   };
 }
 
+export function markAgentGenerateRequestStarted(record) {
+  if (record) record.generateRequestStarted = true;
+  return {
+    stage: "request.started",
+    generateRequestStarted: true
+  };
+}
+
+export function storeAgentGenerateResult(record, resultSummary = null) {
+  if (record) record.generateResult = resultSummary;
+  return resultSummary;
+}
+
 export function buildMessageDoneGenerationDecisionPayload(record, data = {}, {
   activeRunId = "",
   autoExecute = false
