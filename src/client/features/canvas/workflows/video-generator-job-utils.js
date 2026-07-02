@@ -74,6 +74,10 @@ export function hasVideoGenerationServices({
     && typeof replacePreviewWithVideo === "function";
 }
 
+export function hasVideoGenerationModel(model = "") {
+  return Boolean(model);
+}
+
 export function ratioToAspect(value = "16:9", fallback = "16:9") {
   return String(value || fallback).replace(":", " / ");
 }

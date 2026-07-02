@@ -17,6 +17,7 @@ import {
   buildVideoGenerationInputs,
   getResultVideoUrl,
   hasVideoGenerationInput,
+  hasVideoGenerationModel,
   hasVideoGenerationServices,
   postVideoJson,
   runVideoRequest
@@ -202,7 +203,7 @@ export function createVideoGeneratorWorkflow({
     }
 
     const model = getSelectedVideoModelId();
-    if (!model) {
+    if (!hasVideoGenerationModel(model)) {
       setVideoStatus("No video model is available.");
       return;
     }
