@@ -4,9 +4,6 @@ import {
   getSelectedModelId
 } from "../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 import {
-  fileToDataUrl
-} from "./video-generator-file-utils.js";
-import {
   escapeAttribute,
   escapeHtml
 } from "./video-generator-escape-utils.js";
@@ -33,6 +30,12 @@ import {
   markVideoPreviewFailed,
   updatePreviewStatus
 } from "./video-generator-preview-utils.js";
+import {
+  getVideoReferences,
+  mergeVideoReferences,
+  readVideoReferenceFiles,
+  removeVideoReferenceAt
+} from "./video-generator-reference-utils.js";
 
 const VIDEO_SELECTOR = ".node-video";
 const VIDEO_POPOVER_SELECTOR = "#videoGeneratorPopover";
@@ -370,11 +373,8 @@ export function createVideoGeneratorWorkflow({
   }
 
   function addVideoReferenceFiles(node, files = []) {
-    Promise.all(files.filter((file) => file?.type?.startsWith?.("image/")).map(async (file) => ({
-      name: file.name || "reference.png",
-      dataUrl: await fileToDataUrl(file)
-    }))).then((items) => {
-      node._videoGeneratorReferences = [...getVideoReferences(node), ...items].filter((item) => item?.dataUrl).slice(0, 3);
+    readVideoReferenceFiles(files).then((items) => {
+      node._videoGeneratorReferences = mergeVideoReferences(getVideoReferences(node), items);
       renderVideoReferences(node);
       saveVideoDraft(node);
     }).catch((error) => {
@@ -395,7 +395,7 @@ export function createVideoGeneratorWorkflow({
       button.addEventListener("click", (event) => {
         event.preventDefault();
         const index = Number(button.dataset.videoReferenceIndex);
-        node._videoGeneratorReferences = getVideoReferences(node).filter((_, itemIndex) => itemIndex !== index);
+        node._videoGeneratorReferences = removeVideoReferenceAt(getVideoReferences(node), index);
         renderVideoReferences(node);
         saveVideoDraft(node);
       });
@@ -500,10 +500,6 @@ export function createVideoGeneratorWorkflow({
 
   function getVideoModelById(modelId) {
     return getVideoModelByIdFromList(getVideoModels(), modelId);
-  }
-
-  function getVideoReferences(node) {
-    return Array.isArray(node?._videoGeneratorReferences) ? node._videoGeneratorReferences : [];
   }
 
   function getVideoControls() {
