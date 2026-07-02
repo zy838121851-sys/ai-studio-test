@@ -30,7 +30,8 @@ assert(
   "generator polling must emit local diagnostic logs"
 );
 assert(
-  generatorWorkflow.includes("getMissingGeneratorResultMessage(lastPayload, expectedType)"),
+  generatorWorkflow.includes("getMissingGeneratorResultError(lastPayload, expectedType)") &&
+  generatorWorkflow.includes("return new Error(getMissingGeneratorResultMessage(result, expectedType));"),
   "generator polling must fail clearly when a terminal job has no image URL"
 );
 

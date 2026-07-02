@@ -475,7 +475,7 @@ export function createImageGeneratorWorkflow({
           }
         });
         const videoUrl = getPrimaryGeneratorResultUrl(result, "video");
-        if (!videoUrl) throw new Error(getMissingGeneratorResultMessage(result, "video"));
+        if (!videoUrl) throw getMissingGeneratorResultError(result, "video");
         resultModel = getGeneratorResultModel(result, model);
         warnIfGeneratorModelMismatch(model, resultModel, result);
         modelUsage = formatModelUsage(result, resultModel);
@@ -538,7 +538,7 @@ export function createImageGeneratorWorkflow({
           }
         });
         const imageUrl = getPrimaryGeneratorResultUrl(result);
-        if (!imageUrl) throw new Error(getMissingGeneratorResultMessage(result));
+        if (!imageUrl) throw getMissingGeneratorResultError(result);
         resultModel = getGeneratorResultModel(result, model);
         warnIfGeneratorModelMismatch(model, resultModel, result);
         modelUsage = formatModelUsage(result, resultModel);
@@ -1169,13 +1169,13 @@ export function createImageGeneratorWorkflow({
     if (lastPayload.status !== "succeeded") {
       return {
         retryMissingUrl: false,
-        error: new Error(lastPayload.failureMessage || lastPayload.errorMessage || lastPayload.error || lastPayload.status)
+        error: getFailedGeneratorJobError(lastPayload)
       };
     }
     const resultUrls = getGeneratorResultUrls(lastPayload, expectedType);
     return {
       retryMissingUrl: !resultUrls.length,
-      error: resultUrls.length ? null : new Error(getMissingGeneratorResultMessage(lastPayload, expectedType))
+      error: resultUrls.length ? null : getMissingGeneratorResultError(lastPayload, expectedType)
     };
   }
 
@@ -1283,6 +1283,14 @@ export function createImageGeneratorWorkflow({
 
   function getPrimaryResultVideoUrl(result = {}) {
     return getResultVideoUrls(result)[0] || "";
+  }
+
+  function getFailedGeneratorJobError(result = {}) {
+    return new Error(result?.failureMessage || result?.errorMessage || result?.error || result?.status);
+  }
+
+  function getMissingGeneratorResultError(result = {}, expectedType = "image") {
+    return new Error(getMissingGeneratorResultMessage(result, expectedType));
   }
 
   function getMissingGeneratorResultMessage(result = {}, expectedType = "image") {
