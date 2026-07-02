@@ -34,6 +34,9 @@ const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./legacy-ai-core-ambient.css",
   "./menu-select-overrides.css"
 ];
+const ALLOWED_UNREACHABLE_CSS = [
+  "styles/legacy.css"
+];
 
 const errors = [];
 
@@ -43,6 +46,10 @@ function readText(filePath) {
 
 function stripQuery(value = "") {
   return String(value || "").split("?")[0];
+}
+
+function toPosixPath(filePath) {
+  return filePath.split(path.sep).join("/");
 }
 
 function fail(message) {
@@ -94,6 +101,68 @@ function checkImportedFilesExist(imports, baseDir) {
   });
 }
 
+function collectCssFiles(dirPath) {
+  const entries = fs.readdirSync(path.resolve(ROOT, dirPath), { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries) {
+    const entryPath = path.join(dirPath, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...collectCssFiles(entryPath));
+      continue;
+    }
+    if (entry.isFile() && entry.name.endsWith(".css")) {
+      files.push(toPosixPath(entryPath));
+    }
+  }
+
+  return files.sort();
+}
+
+function resolveCssImport(importerPath, specifier) {
+  if (!specifier.startsWith(".")) return "";
+  const importerDir = path.dirname(importerPath);
+  const resolvedPath = path.normalize(path.join(importerDir, specifier));
+  return toPosixPath(resolvedPath);
+}
+
+function buildReachableCssGraph(entryPath = "styles.css") {
+  const reachable = new Set();
+  const stack = [entryPath];
+
+  while (stack.length) {
+    const filePath = toPosixPath(stack.pop());
+    if (reachable.has(filePath)) continue;
+    reachable.add(filePath);
+
+    for (const specifier of parseCssImports(filePath)) {
+      const resolved = resolveCssImport(filePath, specifier);
+      if (!resolved) continue;
+      assertFileExists(resolved);
+      if (!reachable.has(resolved)) stack.push(resolved);
+    }
+  }
+
+  return reachable;
+}
+
+function checkCssReachability() {
+  const reachable = buildReachableCssGraph();
+  const allowedUnreachable = new Set(ALLOWED_UNREACHABLE_CSS);
+  const cssFiles = ["styles.css", ...collectCssFiles("styles")];
+  const unexpectedUnreachable = cssFiles
+    .filter((filePath) => !reachable.has(filePath) && !allowedUnreachable.has(filePath));
+  const importedCompatibilityShims = ALLOWED_UNREACHABLE_CSS
+    .filter((filePath) => reachable.has(filePath));
+
+  if (unexpectedUnreachable.length) {
+    fail(`Unexpected unreachable CSS files:\n${unexpectedUnreachable.join("\n")}`);
+  }
+  if (importedCompatibilityShims.length) {
+    fail(`Compatibility shim CSS files should stay outside the active entry graph:\n${importedCompatibilityShims.join("\n")}`);
+  }
+}
+
 const stylesImports = parseCssImports("styles.css");
 const workspaceImports = parseCssImports("styles/workspace.css");
 const legacySplitImports = parseCssImports("styles/legacy-split.css");
@@ -105,6 +174,7 @@ assertListEqual("styles/legacy-split.css", legacySplitImports, EXPECTED_LEGACY_S
 checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(legacySplitImports, "styles");
+checkCssReachability();
 
 if (errors.length > 0) {
   console.error("Style entry check failed:");
