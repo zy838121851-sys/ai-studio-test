@@ -15,6 +15,12 @@ import {
   resolveImageModelId
 } from "../../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 import { getChatPreviewAttachmentFile } from "../components/chat-image-preview.js?v=20260627-chat-agent-2";
+import {
+  getResultImageUrls,
+  getResultUrls,
+  getResultVideoUrls,
+  isMidjourneyModel
+} from "./prompt-result-utils.js";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
 const CONVERSATION_THINKING_STEPS = [
@@ -2836,45 +2842,6 @@ function createPromptPreviewBatch({
 function updatePromptPreviewStatus(previewNode, text = "") {
   const statusText = previewNode?.querySelector?.(".generation-frame span");
   if (statusText && text) statusText.textContent = text;
-}
-
-function getResultImageUrls(result = {}) {
-  const urls = [];
-  if (Array.isArray(result?.imageUrls)) urls.push(...result.imageUrls);
-  if (Array.isArray(result?.outputs)) {
-    result.outputs.forEach((output) => {
-      if (output?.type === "image" && output.url) urls.push(output.url);
-    });
-  }
-  if (result?.imageUrl) urls.unshift(result.imageUrl);
-  return Array.from(new Set(urls.filter(Boolean)));
-}
-
-function getResultVideoUrls(result = {}) {
-  const urls = [];
-  if (Array.isArray(result?.videoUrls)) urls.push(...result.videoUrls);
-  if (Array.isArray(result?.outputs)) {
-    result.outputs.forEach((output) => {
-      const type = String(output?.type || "").toLowerCase();
-      const mimeType = String(output?.mimeType || output?.mime_type || "").toLowerCase();
-      if (output?.url && (type === "video" || mimeType.startsWith("video/"))) {
-        urls.push(output.url);
-      }
-    });
-  }
-  if (result?.videoUrl) urls.unshift(result.videoUrl);
-  return Array.from(new Set(urls.filter(Boolean)));
-}
-
-function getResultUrls(result = {}) {
-  return Array.from(new Set([
-    ...getResultImageUrls(result),
-    ...getResultVideoUrls(result)
-  ]));
-}
-
-function isMidjourneyModel(model = "") {
-  return String(model || "").trim().toLowerCase() === "midjourney";
 }
 
 async function waitForAIJob(jobId, { attempts = 180, delayMs = 2000, onProgress = null } = {}) {
