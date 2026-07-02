@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import {
+  getRecoveredGeneratorPreviewUrl,
   markGeneratorPreviewFailed,
   updateGeneratorPreviewStatus
 } from "../src/client/features/canvas/workflows/image-generator-preview-job-utils.js";
@@ -19,6 +20,7 @@ const generatorPreviewJobUtils = read("src/client/features/canvas/workflows/imag
 assert(
   generatorWorkflow.includes("onJobCreated")
     && generatorWorkflow.includes("tagGeneratorPreviewJobs")
+    && generatorWorkflow.includes("getRecoveredGeneratorPreviewUrl")
     && generatorWorkflow.includes("markGeneratorPreviewFailed")
     && generatorWorkflow.includes("updateGeneratorPreviewStatus as updatePreviewStatus")
     && generatorPreviewJobUtils.includes("applyGeneratorPreviewJobMetadata"),
@@ -112,6 +114,24 @@ assert(failedClasses.has("generation-failed"), "generator preview failure helper
 assert(failedTitleNode.textContent, "generator preview failure helper should update title text");
 assert(failedStatusNode.textContent === "Custom failure", "generator preview failure helper should prefer explicit error messages");
 markGeneratorPreviewFailed(null, new Error("ignored"));
+
+const recoveredUrls = ["/uploads/one.png", "/uploads/two.png", "/uploads/three.png"];
+assert(
+  getRecoveredGeneratorPreviewUrl({ dataset: { generatorBatchIndex: "2" } }, recoveredUrls, 0) === "/uploads/two.png",
+  "recovered generator preview URL should prefer stored batch index"
+);
+assert(
+  getRecoveredGeneratorPreviewUrl({ dataset: {} }, recoveredUrls, 2) === "/uploads/three.png",
+  "recovered generator preview URL should fall back to loop index"
+);
+assert(
+  getRecoveredGeneratorPreviewUrl({ dataset: { generatorBatchIndex: "9" } }, recoveredUrls, 1) === "/uploads/two.png",
+  "recovered generator preview URL should fall back to loop index when batch index is out of range"
+);
+assert(
+  getRecoveredGeneratorPreviewUrl({ dataset: { generatorBatchIndex: "9" } }, recoveredUrls, 9) === "/uploads/one.png",
+  "recovered generator preview URL should fall back to first URL when no indexed URL matches"
+);
 
 const appInit = read("src/client/core/app-init.js");
 assert(

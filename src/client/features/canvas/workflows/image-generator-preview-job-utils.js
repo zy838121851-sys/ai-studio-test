@@ -81,6 +81,10 @@ export function getGeneratorPreviewBatchIndex(previewNode, fallbackIndex = 0) {
   return Math.max(0, Number(previewNode?.dataset?.generatorBatchIndex || fallbackIndex + 1) - 1);
 }
 
+export function getRecoveredGeneratorPreviewUrl(previewNode, urls = [], index = 0) {
+  return urls[getGeneratorPreviewBatchIndex(previewNode, index)] || urls[index] || urls[0] || "";
+}
+
 function isPendingGeneratorPreviewNode(previewNode) {
   return previewNode?.isConnected
     && previewNode.dataset.generatorResuming !== "true"

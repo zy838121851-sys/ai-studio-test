@@ -35,6 +35,7 @@ import {
   buildGeneratorPreviewJobMeta,
   getGeneratorPreviewBatchIndex,
   getPendingGeneratorPreviewGroups,
+  getRecoveredGeneratorPreviewUrl,
   markGeneratorPreviewFailed,
   tagGeneratorPreviewJobs,
   updateGeneratorPreviewStatus as updatePreviewStatus
@@ -718,10 +719,6 @@ export function createImageGeneratorWorkflow({
     }));
     window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
     saveCurrentProjectAfterGeneration?.();
-  }
-
-  function getRecoveredGeneratorPreviewUrl(previewNode, urls = [], index = 0) {
-    return urls[getGeneratorPreviewBatchIndex(previewNode, index)] || urls[index] || urls[0] || "";
   }
 
   function replaceRecoveredGeneratorPreview(previewNode, { jobId, result = {}, url = "", index = 0, count = 1 } = {}) {
