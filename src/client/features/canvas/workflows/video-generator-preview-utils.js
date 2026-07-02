@@ -54,6 +54,33 @@ export function buildGeneratedVideoNodeOptions({
   };
 }
 
+export function replaceVideoPreviewWithResult({
+  replacePreviewWithVideo = null,
+  selectNode = null,
+  previewNode = null,
+  prompt = "",
+  videoUrl = "",
+  aspectRatio = "",
+  sourceNode = null,
+  result = {},
+  model = ""
+} = {}) {
+  if (typeof replacePreviewWithVideo !== "function") return null;
+  const createdNode = replacePreviewWithVideo(previewNode, buildGeneratedVideoNodeOptions({
+    previewNode,
+    prompt,
+    videoUrl,
+    aspectRatio,
+    sourceNode,
+    result,
+    model
+  }));
+  if (!createdNode) return null;
+  createdNode.dataset.videoGeneratorSourceNodeId = sourceNode?.dataset?.nodeId || "";
+  selectNode?.(createdNode);
+  return createdNode;
+}
+
 export function updatePreviewStatus(previewNode, text = "") {
   const statusText = previewNode?.querySelector?.(".generation-frame span");
   if (statusText && text) statusText.textContent = text;

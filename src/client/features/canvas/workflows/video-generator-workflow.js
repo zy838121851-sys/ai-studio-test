@@ -33,10 +33,10 @@ import {
   toOptions
 } from "./video-generator-option-utils.js";
 import {
-  buildGeneratedVideoNodeOptions,
   createVideoPreviewNode,
   getVideoProgressStatusText,
   markVideoPreviewFailed,
+  replaceVideoPreviewWithResult,
   updatePreviewStatus
 } from "./video-generator-preview-utils.js";
 import {
@@ -230,7 +230,9 @@ export function createVideoGeneratorWorkflow({
       });
       const videoUrl = getResultVideoUrl(result);
       if (!videoUrl) throw new Error(result?.failureMessage || result?.errorMessage || result?.error || "Model returned without a video URL");
-      const createdNode = replacePreviewWithVideo(previewNode, buildGeneratedVideoNodeOptions({
+      const createdNode = replaceVideoPreviewWithResult({
+        replacePreviewWithVideo,
+        selectNode,
         previewNode,
         prompt,
         videoUrl,
@@ -238,10 +240,8 @@ export function createVideoGeneratorWorkflow({
         sourceNode: node,
         result,
         model
-      }));
+      });
       if (!createdNode) throw new Error("Unable to replace video preview");
-      createdNode.dataset.videoGeneratorSourceNodeId = node.dataset.nodeId || "";
-      selectNode(createdNode);
       hideVideoGeneratorPopover();
       await saveCurrentProjectAfterGeneration?.();
       globalThis.window?.dispatchEvent?.(new CustomEvent("ai-studio-credits-refresh"));
