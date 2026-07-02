@@ -46,6 +46,18 @@ export function createVideoGenerationPayload({
   };
 }
 
+export async function postVideoJson(path, payload = {}, fetchImpl = globalThis.fetch) {
+  const response = await fetchImpl(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    credentials: "include",
+    body: JSON.stringify(payload)
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.failureMessage || data.errorMessage || data.message || `Request failed: ${response.status}`);
+  return data;
+}
+
 export function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

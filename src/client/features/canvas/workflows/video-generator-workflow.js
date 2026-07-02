@@ -18,7 +18,8 @@ import {
   delay,
   getResultVideoUrl,
   getRetryAfterDelayMs,
-  isTerminalVideoJobStatus
+  isTerminalVideoJobStatus,
+  postVideoJson
 } from "./video-generator-job-utils.js";
 import {
   formatRatioLabel,
@@ -66,7 +67,7 @@ export function createVideoGeneratorWorkflow({
 
   const {
     addGenerationPreview = null,
-    postJsonRequest = postJson,
+    postJsonRequest = postVideoJson,
     replacePreviewWithVideo = null,
     saveCurrentProjectAfterGeneration = null,
     selectNode = () => {}
@@ -498,16 +499,4 @@ function getSavedOption(kind) {
 
 function ratioToAspect(value = DEFAULT_VIDEO_RATIO) {
   return String(value || DEFAULT_VIDEO_RATIO).replace(":", " / ");
-}
-
-async function postJson(path, payload = {}) {
-  const response = await fetch(path, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-    body: JSON.stringify(payload)
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.failureMessage || data.errorMessage || data.message || `Request failed: ${response.status}`);
-  return data;
 }
