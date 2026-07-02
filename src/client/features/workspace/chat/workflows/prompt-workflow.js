@@ -38,6 +38,7 @@ import {
 } from "./prompt-debug-summary-utils.js";
 import {
   applyConversationResultToAgentDebug,
+  applyAgentFailureState,
   buildAgentOutputStageData,
   buildAgentDebugPanelSnapshot,
   buildMessageDoneGenerationDecisionPayload,
@@ -1018,16 +1019,8 @@ export function bindPromptSubmit({
         return;
       }
       const failure = classifyGenerationClientError(error, agentDebug);
-      agentDebug.error = failure.failureMessage;
-      agentDebug.failureCode = failure.failureCode;
-      agentDebug.failureMessage = failure.failureMessage;
-      setAgentGenerationStage(agentDebug, failure.stage || "failed", {
-        failureCode: failure.failureCode,
-        failureMessage: failure.failureMessage
-      });
-      if (agentDebug.previewCreationAttempted && !agentDebug.pendingPreviewCreated && !agentDebug.previewCreationError) {
-        agentDebug.previewCreationError = agentDebug.error;
-      }
+      const failureState = applyAgentFailureState(agentDebug, failure);
+      setAgentGenerationStage(agentDebug, failureState.stage, failureState.data);
       logAgentDebug(agentDebug, "error", {
         message: agentDebug.error,
         pendingPreviewCreated: previewNodes.length > 0

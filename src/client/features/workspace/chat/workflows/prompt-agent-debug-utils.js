@@ -203,6 +203,26 @@ export function buildAgentOutputStageData({ jobId = "", outputCount = 0 } = {}) 
   };
 }
 
+export function applyAgentFailureState(record, failure = {}) {
+  const failureCode = failure?.failureCode || "";
+  const failureMessage = failure?.failureMessage || "";
+  if (record) {
+    record.error = failureMessage;
+    record.failureCode = failureCode;
+    record.failureMessage = failureMessage;
+    if (record.previewCreationAttempted && !record.pendingPreviewCreated && !record.previewCreationError) {
+      record.previewCreationError = record.error;
+    }
+  }
+  return {
+    stage: failure?.stage || "failed",
+    data: {
+      failureCode,
+      failureMessage
+    }
+  };
+}
+
 export function syncAgentChatBlocksAvailability(record, addChatBlocks) {
   const available = typeof addChatBlocks === "function";
   if (record) record.addChatBlocksAvailable = available;

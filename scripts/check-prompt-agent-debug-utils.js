@@ -1,5 +1,6 @@
 import {
   applyConversationResultToAgentDebug,
+  applyAgentFailureState,
   buildAgentDebugPanelSnapshot,
   buildAgentOutputStageData,
   buildMessageDoneGenerationDecisionPayload,
@@ -286,6 +287,44 @@ const outputStageData = buildAgentOutputStageData({
 });
 assert(outputStageData.jobId === "job-1", "Output stage helper should keep job ids");
 assert(outputStageData.outputCount === 3, "Output stage helper should normalize output counts");
+
+const failureRecord = createAgentDebugRecord({}, {
+  now: () => fixedDate,
+  random: () => 0.5
+});
+failureRecord.previewCreationAttempted = true;
+const failureState = applyAgentFailureState(failureRecord, {
+  stage: "request",
+  failureCode: "MOCK_FAILURE",
+  failureMessage: "Mock generation failed"
+});
+assert(failureRecord.error === "Mock generation failed", "Failure helper should store user-visible errors");
+assert(failureRecord.failureCode === "MOCK_FAILURE", "Failure helper should store failure codes");
+assert(failureRecord.failureMessage === "Mock generation failed", "Failure helper should store failure messages");
+assert(failureRecord.previewCreationError === "Mock generation failed", "Failure helper should fill missing preview creation errors");
+assert(failureState.stage === "request", "Failure helper should return failure stages");
+assert(failureState.data.failureCode === "MOCK_FAILURE", "Failure helper should return stage failure codes");
+assert(failureState.data.failureMessage === "Mock generation failed", "Failure helper should return stage failure messages");
+
+const existingPreviewFailureRecord = createAgentDebugRecord({}, {
+  now: () => fixedDate,
+  random: () => 0.5
+});
+existingPreviewFailureRecord.previewCreationAttempted = true;
+existingPreviewFailureRecord.previewCreationError = "Existing preview error";
+applyAgentFailureState(existingPreviewFailureRecord, {
+  failureCode: "LATE_FAILURE",
+  failureMessage: "Late generation failed"
+});
+assert(existingPreviewFailureRecord.previewCreationError === "Existing preview error", "Failure helper should preserve existing preview errors");
+
+const emptyFailureState = applyAgentFailureState(null, {
+  failureCode: "EMPTY_FAILURE",
+  failureMessage: "Empty record failed"
+});
+assert(emptyFailureState.stage === "failed", "Failure helper should default missing stages");
+assert(emptyFailureState.data.failureCode === "EMPTY_FAILURE", "Failure helper should return failure payloads without records");
+assert(emptyFailureState.data.failureMessage === "Empty record failed", "Failure helper should return failure messages without records");
 
 const blocksAvailableRecord = createAgentDebugRecord({}, {
   now: () => fixedDate,
