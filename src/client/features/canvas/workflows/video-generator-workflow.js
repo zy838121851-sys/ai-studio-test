@@ -35,6 +35,7 @@ import {
 import {
   buildGeneratedVideoNodeOptions,
   createVideoPreviewNode,
+  getVideoProgressStatusText,
   markVideoPreviewFailed,
   updatePreviewStatus
 } from "./video-generator-preview-utils.js";
@@ -224,8 +225,7 @@ export function createVideoGeneratorWorkflow({
         defaultSize: DEFAULT_VIDEO_RATIO,
         postJsonRequest,
         onProgress: (payload) => {
-          const progress = Number(payload?.progress || 0);
-          updatePreviewStatus(previewNode, progress > 0 ? `Waiting for video (${Math.min(99, progress)}%)` : "Waiting for video...");
+          updatePreviewStatus(previewNode, getVideoProgressStatusText(payload?.progress));
         }
       });
       const videoUrl = getResultVideoUrl(result);

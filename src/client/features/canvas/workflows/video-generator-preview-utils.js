@@ -59,6 +59,13 @@ export function updatePreviewStatus(previewNode, text = "") {
   if (statusText && text) statusText.textContent = text;
 }
 
+export function getVideoProgressStatusText(progressValue = 0) {
+  const progress = Number(progressValue || 0);
+  return progress > 0
+    ? `Waiting for video (${Math.min(99, progress)}%)`
+    : "Waiting for video...";
+}
+
 export function markVideoPreviewFailed(previewNode, error) {
   if (!previewNode) return;
   previewNode.dataset.videoGeneratorFailed = "true";
