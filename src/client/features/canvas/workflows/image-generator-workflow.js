@@ -419,7 +419,7 @@ export function createImageGeneratorWorkflow({
         return createdNode;
       };
       const replaceGeneratorImagePreview = (previewNode, url, index = 0) => {
-        const createdNode = ensureGeneratorPreviewReplacement(replaceGeneratorImagePreviewNode(previewNode, {
+        const createdNode = ensureGeneratorPreviewReplacement(replaceGeneratorImagePreviewNode(previewNode, buildGeneratorImagePreviewReplacementOptions({
           title: getGeneratorResultTitle(index, count),
           desc: prompt || "Image generator result",
           url,
@@ -427,7 +427,7 @@ export function createImageGeneratorWorkflow({
           prompt,
           actionType,
           model: resultModel
-        }));
+        })));
         applyGeneratedImageNodeResult(createdNode, url, {
           prompt,
           model: resultModel,
@@ -590,6 +590,26 @@ export function createImageGeneratorWorkflow({
       actionType,
       model
     });
+  }
+
+  function buildGeneratorImagePreviewReplacementOptions({
+    title = "Image Generator Result.png",
+    desc = "Image generator result",
+    url = "",
+    aspectRatio = "",
+    prompt = "",
+    actionType = "",
+    model = ""
+  } = {}) {
+    return {
+      title,
+      desc,
+      url,
+      aspectRatio,
+      prompt,
+      actionType,
+      model
+    };
   }
 
   function ensureGeneratorPreviewReplacement(createdNode) {
@@ -775,7 +795,7 @@ export function createImageGeneratorWorkflow({
     if (!previewNode?.isConnected) return null;
     if (!url) throw new Error(getMissingGeneratorResultMessage(result));
     const batchIndex = getGeneratorPreviewBatchIndex(previewNode, index);
-    const createdNode = ensureGeneratorPreviewReplacement(replaceGeneratorImagePreviewNode(previewNode, {
+    const createdNode = ensureGeneratorPreviewReplacement(replaceGeneratorImagePreviewNode(previewNode, buildGeneratorImagePreviewReplacementOptions({
       title: getGeneratorResultTitle(batchIndex, count),
       desc: previewNode.dataset.generatorPrompt || "Image generator result",
       url,
@@ -783,7 +803,7 @@ export function createImageGeneratorWorkflow({
       prompt: previewNode.dataset.generatorPrompt || "",
       actionType: previewNode.dataset.generatorActionType || "",
       model: result.requestedModel || result.model || previewNode.dataset.generatorModel || ""
-    }));
+    })));
     createdNode.dataset.generatorJobId = jobId;
     return createdNode;
   }
