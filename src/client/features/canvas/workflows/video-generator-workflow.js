@@ -3,6 +3,9 @@ import {
   getModelType,
   getSelectedModelId
 } from "../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
+import {
+  fileToDataUrl
+} from "./video-generator-file-utils.js";
 
 const VIDEO_SELECTOR = ".node-video";
 const VIDEO_POPOVER_SELECTOR = "#videoGeneratorPopover";
@@ -589,15 +592,6 @@ async function postJson(path, payload = {}) {
   const data = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(data.failureMessage || data.errorMessage || data.message || `Request failed: ${response.status}`);
   return data;
-}
-
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(reader.error || new Error("Unable to read image file"));
-    reader.readAsDataURL(file);
-  });
 }
 
 function delay(ms) {
