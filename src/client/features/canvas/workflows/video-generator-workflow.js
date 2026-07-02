@@ -8,6 +8,7 @@ import {
   escapeHtml
 } from "./video-generator-escape-utils.js";
 import {
+  isVideoGenerationBusy,
   restoreVideoDraftState,
   saveVideoDraftState,
   setVideoBusyState,
@@ -188,7 +189,7 @@ export function createVideoGeneratorWorkflow({
   }
 
   async function runVideoGeneration(node) {
-    if (!node || node.dataset.videoGeneratorBusy === "true") return;
+    if (!node || isVideoGenerationBusy(node)) return;
     const controls = getVideoControls();
     const prompt = controls.promptInput?.value?.trim?.() || "";
     const references = getVideoReferences(node);

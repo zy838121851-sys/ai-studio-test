@@ -32,6 +32,10 @@ export function setVideoBusyState(node, popover, busy) {
   });
 }
 
+export function isVideoGenerationBusy(node) {
+  return node?.dataset?.videoGeneratorBusy === "true";
+}
+
 export function setVideoStatusText(status, text = "") {
   if (status) status.textContent = text;
 }
