@@ -1112,40 +1112,65 @@ export function createImageGeneratorWorkflow({
       const payload = await response.json().catch(() => ({}));
       if (response.status === 429) {
         const retryDelay = getRetryAfterDelayMs(response, delayMs * 2);
-        onProgress?.({
-          ...lastPayload,
-          status: "running",
-          rateLimited: true,
-          message: payload?.message || "Waiting for job status"
-        });
+        onProgress?.(buildGeneratorRateLimitProgressPayload(lastPayload, payload));
         await delay(retryDelay);
         continue;
       }
       if (!response.ok) throw new Error(payload?.failureMessage || payload?.errorMessage || payload?.message || `Job request failed: ${response.status}`);
       lastPayload = { ...fallback, ...payload };
       logGeneratorJobPoll(lastPayload);
-      if (["succeeded", "failed", "cancelled", "timeout", "save_failed"].includes(payload?.status)) {
-        if (payload.status !== "succeeded") throw new Error(payload.failureMessage || payload.errorMessage || payload.error || payload.status);
-        const resultUrls = expectedType === "video"
-          ? getResultVideoUrls(lastPayload)
-          : getResultImageUrls(lastPayload);
-        if (!resultUrls.length) {
+      if (isTerminalGeneratorJobStatus(payload?.status)) {
+        const terminalResult = getTerminalGeneratorJobResult(lastPayload, expectedType);
+        if (terminalResult.retryMissingUrl) {
           missingUrlAttempts += 1;
           if (missingUrlAttempts <= missingUrlRetries) {
-            onProgress?.({
-              ...lastPayload,
-              status: "running",
-              message: expectedType === "video" ? "Waiting for saved video URL" : "Waiting for saved image URL"
-            });
+            onProgress?.(buildGeneratorMissingUrlProgressPayload(lastPayload, expectedType));
             continue;
           }
-          throw new Error(getMissingGeneratorResultMessage(lastPayload, expectedType));
         }
+        if (terminalResult.error) throw terminalResult.error;
         return lastPayload;
       }
       onProgress?.(payload);
     }
     throw new Error(`Generation is still running. Job ID: ${lastPayload.jobId || jobId}`);
+  }
+
+  function buildGeneratorRateLimitProgressPayload(lastPayload = {}, payload = {}) {
+    return {
+      ...lastPayload,
+      status: "running",
+      rateLimited: true,
+      message: payload?.message || "Waiting for job status"
+    };
+  }
+
+  function isTerminalGeneratorJobStatus(status = "") {
+    return ["succeeded", "failed", "cancelled", "timeout", "save_failed"].includes(status);
+  }
+
+  function getTerminalGeneratorJobResult(lastPayload = {}, expectedType = "image") {
+    if (lastPayload.status !== "succeeded") {
+      return {
+        retryMissingUrl: false,
+        error: new Error(lastPayload.failureMessage || lastPayload.errorMessage || lastPayload.error || lastPayload.status)
+      };
+    }
+    const resultUrls = expectedType === "video"
+      ? getResultVideoUrls(lastPayload)
+      : getResultImageUrls(lastPayload);
+    return {
+      retryMissingUrl: !resultUrls.length,
+      error: resultUrls.length ? null : new Error(getMissingGeneratorResultMessage(lastPayload, expectedType))
+    };
+  }
+
+  function buildGeneratorMissingUrlProgressPayload(lastPayload = {}, expectedType = "image") {
+    return {
+      ...lastPayload,
+      status: "running",
+      message: expectedType === "video" ? "Waiting for saved video URL" : "Waiting for saved image URL"
+    };
   }
 
   function delay(ms) {
