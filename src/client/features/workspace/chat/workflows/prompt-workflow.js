@@ -1,13 +1,4 @@
-import {
-  getImageNodePreviewMetrics,
-  getPreviewHeight,
-  readImageFilePreviewMetrics
-} from "../../../canvas/upload-nodes.js";
 import { getRecentCanvasEvents } from "../../../canvas/canvas-events.js";
-import {
-  getQwenImageSizeForDimensions,
-  getQwenImageSizeForElement
-} from "../../../ai/image-generator.js";
 import {
   DEFAULT_3D_MODEL,
   formatModelUsage,
@@ -50,6 +41,11 @@ import {
   inferSubmitTriggerSource,
   restoreComposerAttachmentsOnFailure
 } from "./prompt-input-utils.js";
+import {
+  findActiveImageNode,
+  getGenerationPlacement,
+  resolveGenerationMetrics
+} from "./prompt-generation-metrics-utils.js";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
 const CONVERSATION_THINKING_STEPS = [
@@ -338,60 +334,6 @@ function positionAgentDebugPanel(panel) {
     pre.style.maxHeight = wideEnough ? "calc(44vh - 32px)" : "calc(30vh - 32px)";
     if (!wideEnough && !panel.dataset.userExpandedOnNarrow) pre.hidden = true;
   }
-}
-
-function findActiveImageNode(root = globalThis.document) {
-  return root?.querySelector?.("#canvasWorld .node-image.selected[data-active-selection='true']")
-    || root?.querySelector?.("#canvasWorld .node-image.selected")
-    || null;
-}
-
-async function resolveGenerationMetrics(files = []) {
-  const sourceNode = findActiveImageNode();
-  if (sourceNode) {
-    const metrics = getImageNodePreviewMetrics(sourceNode);
-    return {
-      ...metrics,
-      sourceNode,
-      outputSize: metrics.naturalWidth && metrics.naturalHeight
-        ? getQwenImageSizeForDimensions(metrics.naturalWidth, metrics.naturalHeight)
-        : (metrics.image ? getQwenImageSizeForElement(metrics.image) : "")
-    };
-  }
-
-  const fileMetrics = await readImageFilePreviewMetrics(files[0]);
-  if (fileMetrics) {
-    return {
-      ...fileMetrics,
-      sourceNode: null,
-      outputSize: getQwenImageSizeForDimensions(fileMetrics.naturalWidth, fileMetrics.naturalHeight)
-    };
-  }
-
-  return {
-    width: 320,
-    height: 320,
-    aspectRatio: "",
-    sourceNode: null,
-    outputSize: ""
-  };
-}
-
-function getGenerationPlacement(metrics, target) {
-  const width = metrics.width || 320;
-  const height = metrics.height || getPreviewHeight(width, metrics.aspectRatio, width);
-  if (metrics.sourceNode) {
-    const sourceX = Number.parseFloat(metrics.sourceNode.style.left || "0");
-    const sourceY = Number.parseFloat(metrics.sourceNode.style.top || "0");
-    return {
-      x: sourceX + (metrics.sourceNode.offsetWidth || width) + 48,
-      y: sourceY
-    };
-  }
-  return {
-    x: target.x - width / 2,
-    y: target.y - height / 2
-  };
 }
 
 export function bindPromptSubmit({
