@@ -113,6 +113,7 @@ assert(savedSnapshot.nodes[0].media.url === "/uploads/a.png", "Saved media URLs 
 assert(savedSnapshot.nodes[0].dataset.objectUrl === "/uploads/a.png", "Saved dataset media URLs should be stable relative paths");
 assert(savedSnapshot.nodes[0].html.includes("src=\"/uploads/a.png\""), "Saved snapshot HTML should use stable relative media paths");
 
+process.env.APP_BASE_URL = "https://ai-studio.example.test";
 const serverSanitizedSnapshot = JSON.parse(sanitizeCanvasSnapshotJson(JSON.stringify({
   version: 1,
   savedAt: 2000,
@@ -126,12 +127,12 @@ const serverSanitizedSnapshot = JSON.parse(sanitizeCanvasSnapshotJson(JSON.strin
     {
       kind: "image",
       className: "node-card node-image",
-      html: "<figure><img src=\"http://localhost:3000/uploads/server.png?cache=1\" /></figure>",
+      html: "<figure><img src=\"https://ai-studio.example.test/uploads/server.png?cache=1\" /></figure>",
       dataset: {
-        objectUrl: "http://localhost:3000/uploads/server.png?cache=1",
+        objectUrl: "https://ai-studio.example.test/uploads/server.png?cache=1",
         externalUrl: "https://cdn.example.com/uploads/server.png"
       },
-      media: { url: "http://localhost:3000/uploads/server.png?cache=1" }
+      media: { url: "https://ai-studio.example.test/uploads/server.png?cache=1" }
     }
   ]
 })));

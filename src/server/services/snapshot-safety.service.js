@@ -108,9 +108,34 @@ function sanitizeUrl(value) {
 function normalizePersistentMediaUrl(value = "") {
   const text = String(value || "").trim();
   if (!text || text.startsWith("blob:")) return "";
-  const match = text.match(/^https?:\/\/(?:localhost|127\.0\.0\.1|\[?::1\]?)(?::\d+)?(\/uploads\/[^?#]*)([?#][\s\S]*)?$/i);
-  if (match) return `${match[1]}${match[2] || ""}`;
+  try {
+    const parsed = new URL(text);
+    if (
+      /^https?:$/i.test(parsed.protocol)
+      && parsed.pathname.startsWith("/uploads/")
+      && (isLocalUploadHost(parsed.hostname) || isAppBaseUrlOrigin(parsed))
+    ) {
+      return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    }
+  } catch {
+    return text;
+  }
   return text;
+}
+
+function isLocalUploadHost(hostname = "") {
+  const host = String(hostname || "").toLowerCase();
+  return host === "localhost" || host === "127.0.0.1" || host === "::1" || host === "[::1]";
+}
+
+function isAppBaseUrlOrigin(url) {
+  const baseUrl = String(process.env.APP_BASE_URL || "").trim();
+  if (!baseUrl) return false;
+  try {
+    return new URL(baseUrl).origin === url.origin;
+  } catch {
+    return false;
+  }
 }
 
 function normalizeSnapshotHtmlMediaUrls(html = "") {
