@@ -4,6 +4,9 @@ import {
   markGeneratorPreviewFailed,
   updateGeneratorPreviewStatus
 } from "../src/client/features/canvas/workflows/image-generator-preview-job-utils.js";
+import {
+  getGeneratorResultTitle
+} from "../src/client/features/canvas/workflows/image-generator-result-utils.js";
 
 function read(path) {
   return readFileSync(path, "utf8");
@@ -23,6 +26,7 @@ assert(
     && generatorWorkflow.includes("getRecoveredGeneratorPreviewUrl")
     && generatorWorkflow.includes("markGeneratorPreviewFailed")
     && generatorWorkflow.includes("updateGeneratorPreviewStatus as updatePreviewStatus")
+    && generatorWorkflow.includes("getGeneratorResultTitle")
     && generatorPreviewJobUtils.includes("applyGeneratorPreviewJobMetadata"),
   "generator must tag preview nodes with job ids when async jobs are created"
 );
@@ -132,6 +136,9 @@ assert(
   getRecoveredGeneratorPreviewUrl({ dataset: { generatorBatchIndex: "9" } }, recoveredUrls, 9) === "/uploads/one.png",
   "recovered generator preview URL should fall back to first URL when no indexed URL matches"
 );
+assert(getGeneratorResultTitle(0, 1) === "Image Generator Result.png", "single image generator result title should stay stable");
+assert(getGeneratorResultTitle(1, 3) === "Image Generator Result 2.png", "multi image generator result title should include one-based index");
+assert(getGeneratorResultTitle(0, 4) === "Image Generator Result 1.png", "generator replacement title should preserve first numbered result");
 
 const appInit = read("src/client/core/app-init.js");
 assert(

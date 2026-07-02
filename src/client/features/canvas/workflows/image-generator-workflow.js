@@ -11,6 +11,7 @@ import { renderModelPreferenceMenu } from "../../ai/model-preference-menu.js";
 import {
   getMissingGeneratorResultError,
   getMissingGeneratorResultMessage,
+  getGeneratorResultTitle,
   getPrimaryResultImageUrl,
   getResultImageUrls,
   getResultVideoUrls,
@@ -660,12 +661,6 @@ export function createImageGeneratorWorkflow({
     }).filter(Boolean);
   }
 
-  function getGeneratorResultTitle(index = 0, count = 1) {
-    return count > 1
-      ? `Image Generator Result ${index + 1}.png`
-      : "Image Generator Result.png";
-  }
-
   function getGeneratorPreviewDescription(prompt = "", index = 0, count = 1) {
     if (count > 1) return `正在生成第 ${index + 1}/${count} 张`;
     return prompt ? "正在根据当前提示生成结果" : "正在生成图片";
@@ -749,9 +744,7 @@ export function createImageGeneratorWorkflow({
   } = {}) {
     const placement = getGeneratedImagePlacement(node, index);
     const dimensions = getGeneratorOutputDimensions(node, getGeneratorRatioValue(node), getGeneratorReferences(node));
-    const title = count > 1
-      ? `Image Generator Result ${index + 1}.png`
-      : "Image Generator Result.png";
+    const title = getGeneratorResultTitle(index, count);
     const createdNode = addNode?.({
       kind: "image",
       title,
@@ -793,7 +786,7 @@ export function createImageGeneratorWorkflow({
     if (!node || typeof addNode !== "function") return null;
     const dimensions = getGeneratorOutputDimensions(node, getGeneratorRatioValue(node), getGeneratorReferences(node));
     const placement = getGeneratorReplacementPlacement(node);
-    const title = count > 1 ? "Image Generator Result 1.png" : "Image Generator Result.png";
+    const title = getGeneratorResultTitle(0, count);
     const createdNode = addNode({
       kind: "image",
       title,

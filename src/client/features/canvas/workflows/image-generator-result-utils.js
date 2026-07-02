@@ -6,6 +6,12 @@ export function getGeneratorResultModel(result = {}, fallbackModel = "") {
   return result?.requestedModel || result?.model || fallbackModel;
 }
 
+export function getGeneratorResultTitle(index = 0, count = 1) {
+  return count > 1
+    ? `Image Generator Result ${index + 1}.png`
+    : "Image Generator Result.png";
+}
+
 export function parseGeneratorResult(result = {}, selectedModel = "", expectedType = "image") {
   const urls = getGeneratorResultUrls(result, expectedType);
   return {
