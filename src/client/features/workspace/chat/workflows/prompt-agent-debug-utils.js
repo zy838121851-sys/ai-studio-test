@@ -150,6 +150,19 @@ export function markAgentGuardSkip(record, reason = "") {
   };
 }
 
+export function markAgentGuardPass(record) {
+  if (record) {
+    record.generationStarted = true;
+    record.executeGeneration = true;
+    record.messageDoneHandled = true;
+    record.messageDoneSkipReason = "";
+  }
+  return {
+    stage: "guard.pass",
+    enterExecuteGeneration: true
+  };
+}
+
 export function buildMessageDoneGenerationDecisionPayload(record, data = {}, {
   activeRunId = "",
   autoExecute = false

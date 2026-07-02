@@ -41,6 +41,7 @@ import {
   buildAgentDebugPanelSnapshot,
   buildMessageDoneGenerationDecisionPayload,
   createAgentDebugRecord,
+  markAgentGuardPass,
   markAgentGuardSkip,
   sanitizeDebugValue,
   setAgentGenerationStage as applyAgentGenerationStage
@@ -760,15 +761,9 @@ export function bindPromptSubmit({
         throw new Error("missing replacePreviewWithImage");
       }
       generationStarted = true;
-      agentDebug.generationStarted = true;
-      agentDebug.executeGeneration = true;
-      agentDebug.messageDoneHandled = true;
-      agentDebug.messageDoneSkipReason = "";
+      const guardPassPayload = markAgentGuardPass(agentDebug);
       updateAgentDebugPanel(agentDebug);
-      logMessageDoneGenerationDecision(agentDebug, {
-        stage: "guard.pass",
-        enterExecuteGeneration: true
-      });
+      logMessageDoneGenerationDecision(agentDebug, guardPassPayload);
       logAgentDebug(agentDebug, "generation.execute", {
         intent: agentDebug.intent,
         optimizedPrompt: summarizePrompt(agentDebug.optimizedPrompt)

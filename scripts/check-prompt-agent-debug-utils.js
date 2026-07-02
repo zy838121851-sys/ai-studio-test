@@ -3,6 +3,7 @@ import {
   buildAgentDebugPanelSnapshot,
   buildMessageDoneGenerationDecisionPayload,
   createAgentDebugRecord,
+  markAgentGuardPass,
   markAgentGuardSkip,
   sanitizeDebugValue,
   setAgentGenerationStage
@@ -217,5 +218,22 @@ assert(guardSkipPayload.reason === "skipped because missing payload", "Guard ski
 const emptyGuardSkipPayload = markAgentGuardSkip(null, "");
 assert(emptyGuardSkipPayload.stage === "guard.skip", "Guard skip helper should return payloads without a record");
 assert(emptyGuardSkipPayload.reason === "", "Guard skip helper should default missing reasons");
+
+const guardPassRecord = createAgentDebugRecord({}, {
+  now: () => fixedDate,
+  random: () => 0.5
+});
+guardPassRecord.messageDoneSkipReason = "waiting";
+const guardPassPayload = markAgentGuardPass(guardPassRecord);
+assert(guardPassRecord.generationStarted === true, "Guard pass helper should mark generation as started");
+assert(guardPassRecord.executeGeneration === true, "Guard pass helper should mark execution state");
+assert(guardPassRecord.messageDoneHandled === true, "Guard pass helper should mark message.done as handled");
+assert(guardPassRecord.messageDoneSkipReason === "", "Guard pass helper should clear skip reasons");
+assert(guardPassPayload.stage === "guard.pass", "Guard pass helper should build guard pass payload stage");
+assert(guardPassPayload.enterExecuteGeneration === true, "Guard pass helper should build execution entry payload");
+
+const emptyGuardPassPayload = markAgentGuardPass(null);
+assert(emptyGuardPassPayload.stage === "guard.pass", "Guard pass helper should return payloads without a record");
+assert(emptyGuardPassPayload.enterExecuteGeneration === true, "Guard pass helper should keep execution entry payload without a record");
 
 console.log("Prompt agent debug utility checks passed.");
