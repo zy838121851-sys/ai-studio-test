@@ -334,6 +334,13 @@ export function bindPromptSubmit({
     onProjectTitleRefresh();
   }
 
+  function centerPendingHomeGenerationNode(node) {
+    if (!getPendingHomeGenerationFocus()) return false;
+    setPendingHomeGenerationFocus(false);
+    centerViewOnNode(node, 1);
+    return true;
+  }
+
   resolvedPromptForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const prompt = resolvedPromptInput.value.trim();
@@ -688,10 +695,7 @@ export function bindPromptSubmit({
           actionType: isImageTo3D ? "image_to_3d" : "text_to_3d",
           model
         }));
-        if (getPendingHomeGenerationFocus()) {
-          setPendingHomeGenerationFocus(false);
-          centerViewOnNode(modelNode, 1);
-        }
+        centerPendingHomeGenerationNode(modelNode);
         await commitGeneratedProjectPatch(buildGeneratedModelProjectPatch({
           project: getActiveProject(),
           titlePrompt: prompt,
@@ -944,10 +948,7 @@ export function bindPromptSubmit({
           generationPrompt,
           model: resultModel
         }));
-        if (getPendingHomeGenerationFocus()) {
-          setPendingHomeGenerationFocus(false);
-          centerViewOnNode(videoNode, 1);
-        }
+        centerPendingHomeGenerationNode(videoNode);
         await commitGeneratedProjectPatch(buildGeneratedProjectPatch({
           project: getActiveProject(),
           prompt,
@@ -993,10 +994,7 @@ export function bindPromptSubmit({
           model: resultModel
         }))).filter(Boolean);
         const imageNode = imageNodes[0] || null;
-        if (getPendingHomeGenerationFocus()) {
-          setPendingHomeGenerationFocus(false);
-          centerViewOnNode(imageNode, 1);
-        }
+        centerPendingHomeGenerationNode(imageNode);
         await commitGeneratedProjectPatch(buildGeneratedProjectPatch({
           project: getActiveProject(),
           prompt,
