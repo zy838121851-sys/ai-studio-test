@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { updateGeneratorPreviewStatus } from "../src/client/features/canvas/workflows/image-generator-preview-job-utils.js";
 
 function read(path) {
   return readFileSync(path, "utf8");
@@ -15,6 +16,7 @@ const generatorPreviewJobUtils = read("src/client/features/canvas/workflows/imag
 assert(
   generatorWorkflow.includes("onJobCreated")
     && generatorWorkflow.includes("tagGeneratorPreviewJobs")
+    && generatorWorkflow.includes("updateGeneratorPreviewStatus as updatePreviewStatus")
     && generatorPreviewJobUtils.includes("applyGeneratorPreviewJobMetadata"),
   "generator must tag preview nodes with job ids when async jobs are created"
 );
@@ -68,6 +70,21 @@ assert(
   aiJobService.includes('status === "save_failed" && shouldCompleteMissingOutputs(job)'),
   "save_failed must be able to replace succeeded jobs that have no saved outputs"
 );
+
+const statusNode = { textContent: "" };
+updateGeneratorPreviewStatus({
+  querySelector(selector) {
+    return selector === ".generation-frame span" ? statusNode : null;
+  }
+}, "Waiting for image result...");
+assert(statusNode.textContent === "Waiting for image result...", "generator preview status helper should update status text");
+updateGeneratorPreviewStatus({
+  querySelector() {
+    return statusNode;
+  }
+}, "");
+assert(statusNode.textContent === "Waiting for image result...", "generator preview status helper should ignore empty text");
+updateGeneratorPreviewStatus(null, "ignored");
 
 const appInit = read("src/client/core/app-init.js");
 assert(

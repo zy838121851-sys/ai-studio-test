@@ -34,6 +34,11 @@ export function applyGeneratorPreviewDimensions(previewNode, dimensions = {}) {
   if (dimensions.height > 0) previewNode.dataset.outputHeight = String(dimensions.height);
 }
 
+export function updateGeneratorPreviewStatus(previewNode, text = "") {
+  const statusText = previewNode?.querySelector?.(".generation-frame span");
+  if (statusText && text) statusText.textContent = text;
+}
+
 export function applyGeneratorPreviewJobMetadata(previewNode, { jobId = "", payload = {}, meta = {} } = {}) {
   if (!previewNode || !jobId) return;
   previewNode.dataset.generatorJobId = jobId;

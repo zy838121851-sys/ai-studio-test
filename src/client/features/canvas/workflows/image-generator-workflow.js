@@ -35,7 +35,8 @@ import {
   buildGeneratorPreviewJobMeta,
   getGeneratorPreviewBatchIndex,
   getPendingGeneratorPreviewGroups,
-  tagGeneratorPreviewJobs
+  tagGeneratorPreviewJobs,
+  updateGeneratorPreviewStatus as updatePreviewStatus
 } from "./image-generator-preview-job-utils.js";
 import {
   getGeneratorReferenceStatusText,
@@ -671,11 +672,6 @@ export function createImageGeneratorWorkflow({
   function getPreviewNodeWidth(previewNode) {
     const frame = previewNode?.querySelector?.(".image-frame");
     return Math.max(160, frame?.offsetWidth || previewNode?.offsetWidth || 560);
-  }
-
-  function updatePreviewStatus(previewNode, text = "") {
-    const statusText = previewNode?.querySelector?.(".generation-frame span");
-    if (statusText && text) statusText.textContent = text;
   }
 
   function markGeneratorPreviewFailed(previewNode, error) {
