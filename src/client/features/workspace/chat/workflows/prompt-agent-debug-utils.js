@@ -1,0 +1,142 @@
+import {
+  summarizeDataUrl
+} from "./prompt-debug-summary-utils.js";
+
+export function createAgentDebugRecord(input = {}, { autoExecute = false, now = () => new Date(), random = Math.random } = {}) {
+  const currentTime = now();
+  const timestamp = typeof currentTime?.getTime === "function" ? currentTime.getTime() : Date.now();
+  const startedAt = typeof currentTime?.toISOString === "function" ? currentTime.toISOString() : new Date(timestamp).toISOString();
+  return {
+    runId: `${timestamp.toString(36)}-${random().toString(36).slice(2, 7)}`,
+    startedAt,
+    originalPrompt: input.originalPrompt || "",
+    modelId: input.modelId || "",
+    generationType: "",
+    composerAttachmentCount: Number(input.composerAttachmentCount || 0),
+    pendingHomeAttachmentCount: Number(input.pendingHomeAttachmentCount || 0),
+    copiedAttachmentCount: 0,
+    dataUrlSuccessCount: 0,
+    dataUrlFailureCount: 0,
+    referenceImageCount: 0,
+    referenceImages: [],
+    intent: "",
+    taskType: "",
+    promptStrategy: "",
+    strategyTags: [],
+    promptDriftDetected: false,
+    usedConservativeFallback: false,
+    optimizedPrompt: "",
+    qwenVlMode: "",
+    promptOptimizerMode: "",
+    skippedOptimizer: false,
+    optimizerStarted: false,
+    optimizerFinished: false,
+    optimizerTimedOut: false,
+    optimizerError: "",
+    usedFallbackPrompt: false,
+    totalBudgetExceeded: false,
+    imageAnalysisPresent: false,
+    imageAnalysisStarted: false,
+    imageAnalysisFinished: false,
+    imageAnalysisTimedOut: false,
+    imageAnalysisError: "",
+    messageDoneReceived: false,
+    messageDoneHandled: false,
+    messageDoneSkipReason: "",
+    startGenerationAttempted: false,
+    previewCreationAttempted: false,
+    previewCreationError: "",
+    generatePayloadBuilt: false,
+    generateRequestStarted: false,
+    addChatBlocksAvailable: Boolean(input.addChatBlocksAvailable),
+    streamEventTypes: [],
+    lastStreamEventType: "",
+    streamAbortReason: "",
+    streamParseError: "",
+    streamFinished: false,
+    streamError: "",
+    streamTimeout: false,
+    shouldGenerate: false,
+    autoExecute,
+    executeGeneration: false,
+    pendingPreviewCreated: false,
+    generationStarted: false,
+    generationStage: "idle",
+    stageHistory: [],
+    failureCode: "",
+    failureMessage: "",
+    generatePayload: null,
+    generateResult: null,
+    error: ""
+  };
+}
+
+export function sanitizeDebugValue(value) {
+  if (typeof value === "string") return summarizeDataUrl(value);
+  if (Array.isArray(value)) return value.map(sanitizeDebugValue);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, sanitizeDebugValue(item)]));
+}
+
+export function buildAgentDebugPanelSnapshot(record, {
+  workflowVersion = "",
+  loadedWorkflowVersion = ""
+} = {}) {
+  return {
+    runId: record.runId,
+    originalPrompt: record.originalPrompt,
+    intent: record.intent,
+    taskType: record.taskType,
+    promptStrategy: record.promptStrategy,
+    optimizedPrompt: record.optimizedPrompt,
+    qwenVlMode: record.qwenVlMode,
+    promptOptimizerMode: record.promptOptimizerMode,
+    skippedOptimizer: record.skippedOptimizer,
+    optimizerStarted: record.optimizerStarted,
+    optimizerFinished: record.optimizerFinished,
+    optimizerTimedOut: record.optimizerTimedOut,
+    optimizerError: record.optimizerError,
+    usedFallbackPrompt: record.usedFallbackPrompt,
+    totalBudgetExceeded: record.totalBudgetExceeded,
+    imageAnalysisPresent: record.imageAnalysisPresent,
+    imageAnalysisStarted: record.imageAnalysisStarted,
+    imageAnalysisFinished: record.imageAnalysisFinished,
+    imageAnalysisTimedOut: record.imageAnalysisTimedOut,
+    imageAnalysisError: record.imageAnalysisError,
+    referenceImageCount: record.referenceImageCount,
+    referenceImagesCount: record.referenceImageCount,
+    referenceImages: record.referenceImages,
+    generatePayload: record.generatePayload,
+    modelId: record.modelId,
+    generationType: record.generationType || record.generatePayload?.generationType || "",
+    generateResult: record.generateResult,
+    autoExecute: record.autoExecute,
+    shouldGenerate: record.shouldGenerate,
+    messageDoneReceived: record.messageDoneReceived,
+    messageDoneHandled: record.messageDoneHandled,
+    messageDoneSkipReason: record.messageDoneSkipReason,
+    startGenerationAttempted: record.startGenerationAttempted,
+    executeGeneration: record.executeGeneration,
+    previewCreationAttempted: record.previewCreationAttempted,
+    pendingPreviewCreated: record.pendingPreviewCreated,
+    previewCreationError: record.previewCreationError,
+    generatePayloadBuilt: record.generatePayloadBuilt,
+    generateRequestStarted: record.generateRequestStarted,
+    addChatBlocksAvailable: record.addChatBlocksAvailable,
+    workflowVersion,
+    loadedWorkflowVersion,
+    streamEventTypes: record.streamEventTypes,
+    lastStreamEventType: record.lastStreamEventType,
+    streamAbortReason: record.streamAbortReason,
+    streamParseError: record.streamParseError,
+    generationStarted: record.generationStarted,
+    generationStage: record.generationStage,
+    stageHistory: record.stageHistory,
+    failureCode: record.failureCode,
+    failureMessage: record.failureMessage,
+    streamFinished: record.streamFinished,
+    streamError: record.streamError,
+    streamTimeout: record.streamTimeout,
+    error: record.error
+  };
+}

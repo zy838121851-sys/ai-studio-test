@@ -24,13 +24,17 @@ import {
 } from "./prompt-agent-block-utils.js";
 import {
   summarizeConversationPayload,
-  summarizeDataUrl,
   summarizeFiles,
   summarizeGeneratePayload,
   summarizeGenerationResult,
   summarizePrompt,
   summarizeReferenceImages
 } from "./prompt-debug-summary-utils.js";
+import {
+  buildAgentDebugPanelSnapshot,
+  createAgentDebugRecord,
+  sanitizeDebugValue
+} from "./prompt-agent-debug-utils.js";
 import {
   clearComposerAttachments,
   copyReferenceFiles,
@@ -107,72 +111,6 @@ function isChatAgentDev() {
   return ["localhost", "127.0.0.1"].includes(host);
 }
 
-function createAgentDebugRecord(input = {}) {
-  return {
-    runId: `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
-    startedAt: new Date().toISOString(),
-    originalPrompt: input.originalPrompt || "",
-    modelId: input.modelId || "",
-    generationType: "",
-    composerAttachmentCount: Number(input.composerAttachmentCount || 0),
-    pendingHomeAttachmentCount: Number(input.pendingHomeAttachmentCount || 0),
-    copiedAttachmentCount: 0,
-    dataUrlSuccessCount: 0,
-    dataUrlFailureCount: 0,
-    referenceImageCount: 0,
-    referenceImages: [],
-    intent: "",
-    taskType: "",
-    promptStrategy: "",
-    strategyTags: [],
-    promptDriftDetected: false,
-    usedConservativeFallback: false,
-    optimizedPrompt: "",
-    qwenVlMode: "",
-    promptOptimizerMode: "",
-    skippedOptimizer: false,
-    optimizerStarted: false,
-    optimizerFinished: false,
-    optimizerTimedOut: false,
-    optimizerError: "",
-    usedFallbackPrompt: false,
-    totalBudgetExceeded: false,
-    imageAnalysisPresent: false,
-    imageAnalysisStarted: false,
-    imageAnalysisFinished: false,
-    imageAnalysisTimedOut: false,
-    imageAnalysisError: "",
-    messageDoneReceived: false,
-    messageDoneHandled: false,
-    messageDoneSkipReason: "",
-    startGenerationAttempted: false,
-    previewCreationAttempted: false,
-    previewCreationError: "",
-    generatePayloadBuilt: false,
-    generateRequestStarted: false,
-    addChatBlocksAvailable: Boolean(input.addChatBlocksAvailable),
-    streamEventTypes: [],
-    lastStreamEventType: "",
-    streamAbortReason: "",
-    streamParseError: "",
-    streamFinished: false,
-    streamError: "",
-    streamTimeout: false,
-    shouldGenerate: false,
-    autoExecute: CHAT_AGENT_CONFIG.autoExecute,
-    executeGeneration: false,
-    pendingPreviewCreated: false,
-    generationStarted: false,
-    generationStage: "idle",
-    stageHistory: [],
-    failureCode: "",
-    failureMessage: "",
-    generatePayload: null,
-    generateResult: null,
-    error: ""
-  };
-}
-
 function logAgentDebug(record, label, data = {}) {
   if (!isChatAgentDev()) return;
   const payload = sanitizeDebugValue(data);
@@ -213,76 +151,16 @@ function logMessageDoneGenerationDecision(record, data = {}) {
   });
 }
 
-function sanitizeDebugValue(value) {
-  if (typeof value === "string") return summarizeDataUrl(value);
-  if (Array.isArray(value)) return value.map(sanitizeDebugValue);
-  if (!value || typeof value !== "object") return value;
-  return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, sanitizeDebugValue(item)]));
-}
-
 function updateAgentDebugPanel(record) {
   if (!record || !isChatAgentDev()) return;
   const panel = ensureAgentDebugPanel();
   if (!panel) return;
   const pre = panel.querySelector("[data-agent-debug-output]");
   if (!pre) return;
-  pre.textContent = JSON.stringify({
-    runId: record.runId,
-    originalPrompt: record.originalPrompt,
-    intent: record.intent,
-    taskType: record.taskType,
-    promptStrategy: record.promptStrategy,
-    optimizedPrompt: record.optimizedPrompt,
-    qwenVlMode: record.qwenVlMode,
-    promptOptimizerMode: record.promptOptimizerMode,
-    skippedOptimizer: record.skippedOptimizer,
-    optimizerStarted: record.optimizerStarted,
-    optimizerFinished: record.optimizerFinished,
-    optimizerTimedOut: record.optimizerTimedOut,
-    optimizerError: record.optimizerError,
-    usedFallbackPrompt: record.usedFallbackPrompt,
-    totalBudgetExceeded: record.totalBudgetExceeded,
-    imageAnalysisPresent: record.imageAnalysisPresent,
-    imageAnalysisStarted: record.imageAnalysisStarted,
-    imageAnalysisFinished: record.imageAnalysisFinished,
-    imageAnalysisTimedOut: record.imageAnalysisTimedOut,
-    imageAnalysisError: record.imageAnalysisError,
-    referenceImageCount: record.referenceImageCount,
-    referenceImagesCount: record.referenceImageCount,
-    referenceImages: record.referenceImages,
-    generatePayload: record.generatePayload,
-    modelId: record.modelId,
-    generationType: record.generationType || record.generatePayload?.generationType || "",
-    generateResult: record.generateResult,
-    autoExecute: record.autoExecute,
-    shouldGenerate: record.shouldGenerate,
-    messageDoneReceived: record.messageDoneReceived,
-    messageDoneHandled: record.messageDoneHandled,
-    messageDoneSkipReason: record.messageDoneSkipReason,
-    startGenerationAttempted: record.startGenerationAttempted,
-    executeGeneration: record.executeGeneration,
-    previewCreationAttempted: record.previewCreationAttempted,
-    pendingPreviewCreated: record.pendingPreviewCreated,
-    previewCreationError: record.previewCreationError,
-    generatePayloadBuilt: record.generatePayloadBuilt,
-    generateRequestStarted: record.generateRequestStarted,
-    addChatBlocksAvailable: record.addChatBlocksAvailable,
+  pre.textContent = JSON.stringify(buildAgentDebugPanelSnapshot(record, {
     workflowVersion: CHAT_AGENT_WORKFLOW_VERSION,
-    loadedWorkflowVersion: globalThis.__chatAgentWorkflowVersion || "",
-    streamEventTypes: record.streamEventTypes,
-    lastStreamEventType: record.lastStreamEventType,
-    streamAbortReason: record.streamAbortReason,
-    streamParseError: record.streamParseError,
-    generationStarted: record.generationStarted,
-    generationStage: record.generationStage,
-    stageHistory: record.stageHistory,
-    failureCode: record.failureCode,
-    failureMessage: record.failureMessage,
-    streamFinished: record.streamFinished,
-    streamError: record.streamError,
-    streamTimeout: record.streamTimeout,
-    error: record.error
-  }, null, 2);
+    loadedWorkflowVersion: globalThis.__chatAgentWorkflowVersion || ""
+  }), null, 2);
 }
 
 function ensureAgentDebugPanel() {
@@ -470,6 +348,8 @@ export function bindPromptSubmit({
       composerAttachmentCount: currentFiles.length,
       pendingHomeAttachmentCount: pendingHomeFiles.length,
       addChatBlocksAvailable: typeof addChatBlocks === "function"
+    }, {
+      autoExecute: CHAT_AGENT_CONFIG.autoExecute
     });
     activeChatAgentRunId = agentDebug.runId;
     logAgentDebug(agentDebug, "submit.before", {
