@@ -46,6 +46,10 @@ import {
   getGenerationPlacement,
   resolveGenerationMetrics
 } from "./prompt-generation-metrics-utils.js";
+import {
+  imageSourceToDataUrl,
+  inferMimeTypeFromDataUrl
+} from "./prompt-reference-image-utils.js";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
 const CONVERSATION_THINKING_STEPS = [
@@ -2361,30 +2365,6 @@ async function readDomPreviewReferences({
     sources: references.map((item) => item.source)
   });
   return references;
-}
-
-async function imageSourceToDataUrl(source = "") {
-  const src = String(source || "");
-  if (!src) return "";
-  if (src.startsWith("data:")) return src;
-  const response = await fetch(src);
-  if (!response.ok) throw new Error(`preview fetch failed: ${response.status}`);
-  const blob = await response.blob();
-  return blobToDataUrl(blob);
-}
-
-function blobToDataUrl(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(reader.error || new Error("blob read failed"));
-    reader.readAsDataURL(blob);
-  });
-}
-
-function inferMimeTypeFromDataUrl(dataUrl = "") {
-  const match = String(dataUrl || "").match(/^data:([^;,]+)/);
-  return match?.[1] || "";
 }
 
 async function readSelectedImageReference(readImageSourceAsDataUrl) {
