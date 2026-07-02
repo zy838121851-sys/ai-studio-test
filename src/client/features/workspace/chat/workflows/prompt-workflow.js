@@ -49,6 +49,10 @@ import {
 import {
   collectCanvasContext
 } from "./prompt-canvas-context-utils.js";
+import {
+  createPromptPreviewBatch,
+  updatePromptPreviewStatus
+} from "./prompt-preview-utils.js";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
 const CONVERSATION_THINKING_STEPS = [
@@ -2187,46 +2191,6 @@ function escapeHtml(value = "") {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-}
-
-function createPromptPreviewBatch({
-  addGenerationPreview,
-  placement,
-  generationMetrics,
-  files = [],
-  count = 1,
-  outputType = "image"
-} = {}) {
-  const safeCount = Math.max(1, Math.ceil(Number(count || 1)));
-  const gap = 28;
-  return Array.from({ length: safeCount }, (_, index) => {
-    const desc = safeCount > 1
-      ? `Waiting for result ${index + 1}/${safeCount}...`
-      : (outputType === "3d"
-        ? "Waiting for 3D model result..."
-        : outputType === "video"
-        ? "Waiting for video result..."
-        : generationMetrics.sourceNode
-        ? "Generating from the selected image"
-        : (files.length ? "Generating from reference images" : "Generating from prompt"));
-    return addGenerationPreview({
-      title: outputType === "3d"
-        ? "Tripo 3D Model"
-        : outputType === "video"
-        ? "Generated Video.mp4"
-        : (safeCount > 1 ? `Generated Image ${index + 1}.png` : "Generated Image.png"),
-      desc,
-      x: placement.x + index * ((generationMetrics.width || 320) + gap),
-      y: placement.y,
-      width: generationMetrics.width,
-      aspectRatio: generationMetrics.aspectRatio
-    });
-  }).filter(Boolean);
-}
-
-function updatePromptPreviewStatus(previewNode, text = "") {
-  const statusText = previewNode?.querySelector?.(".generation-frame span");
-  if (statusText && text) statusText.textContent = text;
 }
 
 async function waitForAIJob(jobId, { attempts = 180, delayMs = 2000, onProgress = null } = {}) {
