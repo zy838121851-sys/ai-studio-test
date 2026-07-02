@@ -474,9 +474,10 @@ export function createImageGeneratorWorkflow({
               : "Waiting for video result...");
           }
         });
-        const videoUrl = getPrimaryGeneratorResultUrl(result, "video");
+        const parsedResult = parseGeneratorResult(result, model, "video");
+        const videoUrl = parsedResult.primaryUrl;
         if (!videoUrl) throw getMissingGeneratorResultError(result, "video");
-        ({ resultModel, modelUsage } = getGeneratorResultSummary(result, model));
+        ({ resultModel, modelUsage } = parsedResult);
         replaceGeneratorVideoPreview(previewNodes[0], videoUrl);
       } else if (midjourney) {
         previewNodes.forEach((previewNode, index) => {
@@ -503,9 +504,10 @@ export function createImageGeneratorWorkflow({
             });
           }
         });
-        const resultUrls = getResultImageUrls(result);
+        const parsedResult = parseGeneratorResult(result, model);
+        const resultUrls = parsedResult.urls;
         if (resultUrls.length < count) throw new Error(`Midjourney returned ${resultUrls.length || 0}/${count} images`);
-        ({ resultModel, modelUsage } = getGeneratorResultSummary(result, model));
+        ({ resultModel, modelUsage } = parsedResult);
         resultUrls.slice(0, count).forEach((url, index) => {
           replaceGeneratorImagePreview(previewNodes[index], url, index);
         });
@@ -533,9 +535,10 @@ export function createImageGeneratorWorkflow({
               : `正在生成第 ${index + 1}/${count} 张`);
           }
         });
-        const imageUrl = getPrimaryGeneratorResultUrl(result);
+        const parsedResult = parseGeneratorResult(result, model);
+        const imageUrl = parsedResult.primaryUrl;
         if (!imageUrl) throw getMissingGeneratorResultError(result);
-        ({ resultModel, modelUsage } = getGeneratorResultSummary(result, model));
+        ({ resultModel, modelUsage } = parsedResult);
 
         replaceGeneratorImagePreview(previewNode, imageUrl, index);
       }
@@ -1204,6 +1207,15 @@ export function createImageGeneratorWorkflow({
     };
   }
 
+  function parseGeneratorResult(result = {}, selectedModel = "", expectedType = "image") {
+    const urls = getGeneratorResultUrls(result, expectedType);
+    return {
+      ...getGeneratorResultSummary(result, selectedModel),
+      urls,
+      primaryUrl: urls[0] || ""
+    };
+  }
+
   function warnIfGeneratorModelMismatch(selectedModel, returnedModel, result = {}) {
     const selected = String(selectedModel || "").trim();
     const returned = String(returnedModel || "").trim();
@@ -1262,10 +1274,6 @@ export function createImageGeneratorWorkflow({
     return expectedType === "video"
       ? getResultVideoUrls(result)
       : getResultImageUrls(result);
-  }
-
-  function getPrimaryGeneratorResultUrl(result = {}, expectedType = "image") {
-    return getGeneratorResultUrls(result, expectedType)[0] || "";
   }
 
   function getResultVideoUrls(result = {}) {
