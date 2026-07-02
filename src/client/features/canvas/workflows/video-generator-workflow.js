@@ -48,7 +48,8 @@ import {
   getVideoReferences,
   mergeVideoReferences,
   readVideoReferenceFiles,
-  removeVideoReferenceAt
+  removeVideoReferenceAt,
+  renderVideoReferenceThumbnails
 } from "./video-generator-reference-utils.js";
 
 const VIDEO_SELECTOR = ".node-video";
@@ -367,11 +368,7 @@ export function createVideoGeneratorWorkflow({
     const list = getVideoControls().referenceList;
     if (!list) return;
     const references = getVideoReferences(node);
-    list.innerHTML = references.map((reference, index) => `
-      <button type="button" class="video-generator-reference-thumb" data-video-reference-index="${index}" title="${escapeAttribute(reference.name)}">
-        <img src="${escapeAttribute(reference.dataUrl)}" alt="${escapeAttribute(reference.name)}" />
-      </button>
-    `).join("");
+    list.innerHTML = renderVideoReferenceThumbnails(references, escapeAttribute);
     list.querySelectorAll("[data-video-reference-index]").forEach((button) => {
       button.addEventListener("click", (event) => {
         event.preventDefault();

@@ -24,3 +24,11 @@ export function mergeVideoReferences(current = [], nextItems = [], limit = 3) {
 export function removeVideoReferenceAt(references = [], index = -1) {
   return references.filter((_, itemIndex) => itemIndex !== index);
 }
+
+export function renderVideoReferenceThumbnails(references = [], escapeAttribute = (value) => String(value)) {
+  return Array.from(references || []).map((reference, index) => `
+      <button type="button" class="video-generator-reference-thumb" data-video-reference-index="${index}" title="${escapeAttribute(reference.name)}">
+        <img src="${escapeAttribute(reference.dataUrl)}" alt="${escapeAttribute(reference.name)}" />
+      </button>
+    `).join("");
+}
