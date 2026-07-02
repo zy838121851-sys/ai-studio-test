@@ -1,9 +1,11 @@
 import { createWorkspaceCompositionDependencyBundle } from "./workspace-composition-dependencies.js";
 import { eventBus } from "../../../core/event-bus.js";
 import {
-  createWorkspaceCompositionDefaults,
-  createWorkspaceCompositionElements
-} from "./workspace-app-bootstrap-composition.js";
+  createWorkspaceAppDefaults as createWorkspaceCompositionDefaults
+} from "../runtime/workspace-app-defaults.js";
+import {
+  createWorkspaceAppElements as createWorkspaceCompositionElements
+} from "../runtime/workspace-app-elements.js";
 import { createWorkspaceChatAssetsCompositionRuntime } from "./workspace-chat-assets-composition.js?v=20260628-boot-inline-1";
 import {
   createWorkspaceCanvasCompositionBundle
