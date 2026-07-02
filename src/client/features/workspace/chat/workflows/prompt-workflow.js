@@ -328,6 +328,12 @@ export function bindPromptSubmit({
     notify: (message) => addChat("assistant", message)
   });
 
+  async function commitGeneratedProjectPatch(patch) {
+    updateActiveProject(patch);
+    await saveCurrentProjectAfterGeneration?.();
+    onProjectTitleRefresh();
+  }
+
   resolvedPromptForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     const prompt = resolvedPromptInput.value.trim();
@@ -656,7 +662,7 @@ export function bindPromptSubmit({
           setPendingHomeGenerationFocus(false);
           centerViewOnNode(modelNode, 1);
         }
-        updateActiveProject(buildGeneratedModelProjectPatch({
+        await commitGeneratedProjectPatch(buildGeneratedModelProjectPatch({
           project: getActiveProject(),
           titlePrompt: prompt,
           storedPrompt: prompt,
@@ -664,8 +670,6 @@ export function bindPromptSubmit({
           itemCountIncrement: 1,
           makeProjectTitle
         }));
-        await saveCurrentProjectAfterGeneration?.();
-        onProjectTitleRefresh();
         progress?.classList?.remove("loading");
         updateChat(progress, "3D 模型生成完成");
         updateThinking(thinking, CONVERSATION_THINKING_STEPS.length, true);
@@ -914,7 +918,7 @@ export function bindPromptSubmit({
           setPendingHomeGenerationFocus(false);
           centerViewOnNode(videoNode, 1);
         }
-        updateActiveProject(buildGeneratedProjectPatch({
+        await commitGeneratedProjectPatch(buildGeneratedProjectPatch({
           project: getActiveProject(),
           prompt,
           generationPrompt,
@@ -922,8 +926,6 @@ export function bindPromptSubmit({
           itemCountIncrement: 1,
           makeProjectTitle
         }));
-        await saveCurrentProjectAfterGeneration?.();
-        onProjectTitleRefresh();
         videoUrls.length = 0;
         if (typeof addChatBlocks === "function") {
           progress?.remove?.();
@@ -966,7 +968,7 @@ export function bindPromptSubmit({
           setPendingHomeGenerationFocus(false);
           centerViewOnNode(imageNode, 1);
         }
-        updateActiveProject(buildGeneratedProjectPatch({
+        await commitGeneratedProjectPatch(buildGeneratedProjectPatch({
           project: getActiveProject(),
           prompt,
           generationPrompt,
@@ -974,8 +976,6 @@ export function bindPromptSubmit({
           itemCountIncrement: imageUrls.length,
           makeProjectTitle
         }));
-        await saveCurrentProjectAfterGeneration?.();
-        onProjectTitleRefresh();
         if (typeof addChatBlocks === "function") {
           progress?.remove?.();
           progress = null;

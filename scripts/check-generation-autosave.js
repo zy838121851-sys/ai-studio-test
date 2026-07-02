@@ -39,6 +39,13 @@ assert(
   promptWorkflow.includes("await saveCurrentProjectAfterGeneration?.();"),
   "prompt workflow must autosave after successful image generation"
 );
+assert(
+  promptWorkflow.includes("async function commitGeneratedProjectPatch(patch)") &&
+    promptWorkflow.includes("updateActiveProject(patch);") &&
+    promptWorkflow.includes("await saveCurrentProjectAfterGeneration?.();") &&
+    promptWorkflow.includes("onProjectTitleRefresh();"),
+  "prompt workflow must keep generated project update, autosave, and title refresh sequenced"
+);
 
 const generatorWorkflow = read("src/client/features/canvas/workflows/image-generator-workflow.js");
 assert(
@@ -70,7 +77,7 @@ assert(
 
 const imageEditCommand = read("src/client/features/ai/runtime/image-edit-command.js");
 assert(
-  imageEditCommand.includes("result?.imageUrl && !result?.error") &&
+  imageEditCommand.includes("(result?.imageUrl || result?.videoUrl) && !result?.error") &&
   imageEditCommand.includes("await saveCurrentProjectAfterGeneration?.();"),
   "image edit command must autosave only successful image outputs"
 );
