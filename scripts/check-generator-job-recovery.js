@@ -11,14 +11,18 @@ function assert(condition, message) {
 const generatorWorkflow = read("src/client/features/canvas/workflows/image-generator-workflow.js");
 const generatorResultUtils = read("src/client/features/canvas/workflows/image-generator-result-utils.js");
 const generatorJobPollingUtils = read("src/client/features/canvas/workflows/image-generator-job-polling-utils.js");
+const generatorPreviewJobUtils = read("src/client/features/canvas/workflows/image-generator-preview-job-utils.js");
 assert(
-  generatorWorkflow.includes("onJobCreated") && generatorWorkflow.includes("tagGeneratorPreviewJobs"),
+  generatorWorkflow.includes("onJobCreated")
+    && generatorWorkflow.includes("tagGeneratorPreviewJobs")
+    && generatorPreviewJobUtils.includes("applyGeneratorPreviewJobMetadata"),
   "generator must tag preview nodes with job ids when async jobs are created"
 );
 assert(
   generatorWorkflow.includes("resumePendingGeneratorPreviews") &&
   generatorWorkflow.includes("visibilitychange") &&
-  generatorWorkflow.includes("focus"),
+  generatorWorkflow.includes("focus") &&
+  generatorPreviewJobUtils.includes("getPendingGeneratorPreviewGroups"),
   "generator must resume pending preview jobs on focus and visibility restore"
 );
 assert(
