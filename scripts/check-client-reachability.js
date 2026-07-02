@@ -74,6 +74,13 @@ const RETURN_SURFACE_EXPECTATIONS = [
     ]
   }
 ];
+const OBJECT_KEY_UNIQUENESS_EXPECTATIONS = [
+  {
+    filePath: "src/client/features/workspace/runtime/workspace-app-runtime-launch.js",
+    marker: "    actions: {\n      setChatCollapsed,",
+    endMarker: "\n    },\n    workflows:"
+  }
+];
 
 const errors = [];
 
@@ -184,6 +191,27 @@ function checkReturnSurfaceExpectations() {
   }
 }
 
+function checkObjectKeyUniquenessExpectations() {
+  for (const expectation of OBJECT_KEY_UNIQUENESS_EXPECTATIONS) {
+    const source = readSource(expectation.filePath).replace(/\r\n/g, "\n");
+    const start = source.indexOf(expectation.marker);
+    if (start === -1) {
+      errors.push(`${expectation.filePath} must keep expected object marker ${expectation.marker.trim()}`);
+      continue;
+    }
+    const end = source.indexOf(expectation.endMarker, start);
+    const block = end === -1 ? source.slice(start) : source.slice(start, end);
+    const seen = new Set();
+    for (const match of block.matchAll(/^\s{6}([A-Za-z_$][\w$]*)\s*:/gm)) {
+      const key = match[1];
+      if (seen.has(key)) {
+        errors.push(`${expectation.filePath} must not declare duplicate object key ${key}`);
+      }
+      seen.add(key);
+    }
+  }
+}
+
 function buildReachabilityGraph() {
   const allFiles = new Set([
     ...collectJsFiles(CLIENT_DIR),
@@ -218,6 +246,7 @@ const { allFiles, reachable } = buildReachabilityGraph();
 checkEntryImportExpectations();
 checkModuleSurfaceExpectations();
 checkReturnSurfaceExpectations();
+checkObjectKeyUniquenessExpectations();
 const deprecatedClientFiles = DEPRECATED_CLIENT_MODULES
   .filter((filePath) => fs.existsSync(path.resolve(ROOT, filePath)));
 const unreachableClientFiles = Array.from(allFiles)

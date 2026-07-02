@@ -153,7 +153,6 @@ export function launchWorkspaceAppRuntime({
       openProject: projectHomeRuntime.openProject,
       deleteProject: projectHomeRuntime.deleteProject,
       newBlankProject: projectHomeRuntime.newBlankProject,
-      saveCurrentProject: projectHomeRuntime.saveCurrentProject,
       generateHomeProject: projectHomeRuntime.generateHomeProject,
       addChatImageFiles: canvasGenerationRuntime.addChatImageFiles,
       recordCanvasEvent,
