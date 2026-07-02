@@ -408,6 +408,52 @@ export function createImageGeneratorWorkflow({
       if (node.isConnected) node.remove();
 
       const createdNodes = [];
+      const registerGeneratedNode = (createdNode, index = 0, { trackBatch = false } = {}) => {
+        if (sourceNodeId) createdNode.dataset.generatorSourceNodeId = sourceNodeId;
+        if (trackBatch) {
+          createdNode.dataset.generatorBatchCount = String(count);
+          createdNode.dataset.generatorBatchIndex = String(index + 1);
+        }
+        createdNodes.push(createdNode);
+        if (!firstSuccessfulNode) firstSuccessfulNode = createdNode;
+        return createdNode;
+      };
+      const replaceGeneratorImagePreview = (previewNode, url, index = 0) => {
+        const createdNode = replacePreviewWithImage(previewNode, {
+          title: getGeneratorResultTitle(index, count),
+          desc: prompt || "Image generator result",
+          url,
+          width: getPreviewNodeWidth(previewNode),
+          aspectRatio,
+          prompt,
+          sourceNode: null,
+          actionType,
+          model: resultModel
+        });
+        if (!createdNode) throw new Error("Unable to replace generation preview");
+        applyGeneratedImageNodeResult(createdNode, url, {
+          prompt,
+          model: resultModel,
+          dimensions,
+          sourceNode: null
+        });
+        return registerGeneratedNode(createdNode, index, { trackBatch: true });
+      };
+      const replaceGeneratorVideoPreview = (previewNode, url) => {
+        const createdNode = replacePreviewWithVideo(previewNode, {
+          title: "Generated Video.mp4",
+          desc: prompt || "Image generator video result",
+          url,
+          width: getPreviewNodeWidth(previewNode),
+          aspectRatio,
+          prompt,
+          sourceNode: null,
+          actionType: "video_generation",
+          model: resultModel
+        });
+        if (!createdNode) throw new Error("Unable to replace generation preview");
+        return registerGeneratedNode(createdNode);
+      };
       if (videoModel) {
         updatePreviewStatus(previewNodes[0], "Waiting for video result...");
         const result = await runImageGenerationRequest({
@@ -435,21 +481,7 @@ export function createImageGeneratorWorkflow({
         resultModel = result.requestedModel || result.model || model;
         warnIfGeneratorModelMismatch(model, resultModel, result);
         modelUsage = formatModelUsage(result, resultModel);
-        const createdNode = replacePreviewWithVideo(previewNodes[0], {
-          title: "Generated Video.mp4",
-          desc: prompt || "Image generator video result",
-          url: videoUrl,
-          width: getPreviewNodeWidth(previewNodes[0]),
-          aspectRatio,
-          prompt,
-          sourceNode: null,
-          actionType: "video_generation",
-          model: resultModel
-        });
-        if (!createdNode) throw new Error("Unable to replace generation preview");
-        if (sourceNodeId) createdNode.dataset.generatorSourceNodeId = sourceNodeId;
-        createdNodes.push(createdNode);
-        firstSuccessfulNode = createdNode;
+        replaceGeneratorVideoPreview(previewNodes[0], videoUrl);
       } else if (midjourney) {
         previewNodes.forEach((previewNode, index) => {
           updatePreviewStatus(previewNode, `正在等待第 ${index + 1}/${count} 张结果`);
@@ -481,30 +513,7 @@ export function createImageGeneratorWorkflow({
         warnIfGeneratorModelMismatch(model, resultModel, result);
         modelUsage = formatModelUsage(result, resultModel);
         resultUrls.slice(0, count).forEach((url, index) => {
-          const previewNode = previewNodes[index];
-          const createdNode = replacePreviewWithImage(previewNode, {
-            title: getGeneratorResultTitle(index, count),
-            desc: prompt || "Image generator result",
-            url,
-            width: getPreviewNodeWidth(previewNode),
-            aspectRatio,
-            prompt,
-            sourceNode: null,
-            actionType,
-            model: resultModel
-          });
-          if (!createdNode) throw new Error("Unable to replace generation preview");
-          applyGeneratedImageNodeResult(createdNode, url, {
-            prompt,
-            model: resultModel,
-            dimensions,
-            sourceNode: null
-          });
-          if (sourceNodeId) createdNode.dataset.generatorSourceNodeId = sourceNodeId;
-          createdNode.dataset.generatorBatchCount = String(count);
-          createdNode.dataset.generatorBatchIndex = String(index + 1);
-          createdNodes.push(createdNode);
-          if (!firstSuccessfulNode) firstSuccessfulNode = createdNode;
+          replaceGeneratorImagePreview(previewNodes[index], url, index);
         });
       } else {
       for (let index = 0; index < count; index += 1) {
@@ -536,29 +545,7 @@ export function createImageGeneratorWorkflow({
         warnIfGeneratorModelMismatch(model, resultModel, result);
         modelUsage = formatModelUsage(result, resultModel);
 
-        const createdNode = replacePreviewWithImage(previewNode, {
-          title: getGeneratorResultTitle(index, count),
-          desc: prompt || "Image generator result",
-          url: imageUrl,
-          width: getPreviewNodeWidth(previewNode),
-          aspectRatio,
-          prompt,
-          sourceNode: null,
-          actionType,
-          model: resultModel
-        });
-        if (!createdNode) throw new Error("Unable to replace generation preview");
-        applyGeneratedImageNodeResult(createdNode, imageUrl, {
-          prompt,
-          model: resultModel,
-          dimensions,
-          sourceNode: null
-        });
-        if (sourceNodeId) createdNode.dataset.generatorSourceNodeId = sourceNodeId;
-        createdNode.dataset.generatorBatchCount = String(count);
-        createdNode.dataset.generatorBatchIndex = String(index + 1);
-        createdNodes.push(createdNode);
-        if (!firstSuccessfulNode) firstSuccessfulNode = createdNode;
+        replaceGeneratorImagePreview(previewNode, imageUrl, index);
       }
       }
 
