@@ -35,6 +35,7 @@ import {
   applyGeneratorPreviewDimensions,
   buildGeneratorPreviewJobMeta,
   getGeneratorPreviewDescription,
+  getGeneratorPreviewNodeWidth as getPreviewNodeWidth,
   getGeneratorPreviewBatchIndex,
   getPendingGeneratorPreviewGroups,
   getRecoveredGeneratorPreviewUrl,
@@ -660,11 +661,6 @@ export function createImageGeneratorWorkflow({
       }
       return previewNode;
     }).filter(Boolean);
-  }
-
-  function getPreviewNodeWidth(previewNode) {
-    const frame = previewNode?.querySelector?.(".image-frame");
-    return Math.max(160, frame?.offsetWidth || previewNode?.offsetWidth || 560);
   }
 
   function resumePendingGeneratorPreviews() {

@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import {
   getGeneratorPreviewDescription,
+  getGeneratorPreviewNodeWidth,
   getRecoveredGeneratorPreviewUrl,
   markGeneratorPreviewFailed,
   updateGeneratorPreviewStatus
@@ -26,6 +27,7 @@ assert(
     && generatorWorkflow.includes("tagGeneratorPreviewJobs")
     && generatorWorkflow.includes("getRecoveredGeneratorPreviewUrl")
     && generatorWorkflow.includes("getGeneratorPreviewDescription")
+    && generatorWorkflow.includes("getGeneratorPreviewNodeWidth as getPreviewNodeWidth")
     && generatorWorkflow.includes("markGeneratorPreviewFailed")
     && generatorWorkflow.includes("updateGeneratorPreviewStatus as updatePreviewStatus")
     && generatorWorkflow.includes("getGeneratorResultTitle")
@@ -144,6 +146,28 @@ assert(getGeneratorResultTitle(0, 4) === "Image Generator Result 1.png", "genera
 assert(getGeneratorPreviewDescription("", 0, 1) === "正在生成图片", "promptless generator preview description should stay stable");
 assert(getGeneratorPreviewDescription("A prompt", 0, 1) === "正在根据当前提示生成结果", "prompt generator preview description should stay stable");
 assert(getGeneratorPreviewDescription("A prompt", 1, 3) === "正在生成第 2/3 张", "multi preview description should include one-based progress");
+assert(
+  getGeneratorPreviewNodeWidth({
+    offsetWidth: 320,
+    querySelector: () => ({ offsetWidth: 480 })
+  }) === 480,
+  "generator preview width helper should prefer image frame width"
+);
+assert(
+  getGeneratorPreviewNodeWidth({
+    offsetWidth: 320,
+    querySelector: () => null
+  }) === 320,
+  "generator preview width helper should fall back to node width"
+);
+assert(getGeneratorPreviewNodeWidth(null) === 560, "generator preview width helper should keep default fallback width");
+assert(
+  getGeneratorPreviewNodeWidth({
+    offsetWidth: 120,
+    querySelector: () => ({ offsetWidth: 100 })
+  }) === 160,
+  "generator preview width helper should preserve minimum width"
+);
 
 const appInit = read("src/client/core/app-init.js");
 assert(
