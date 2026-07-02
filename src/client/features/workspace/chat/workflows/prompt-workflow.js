@@ -56,6 +56,10 @@ import {
   waitForAIJob,
   waitForTripo3DTask
 } from "./prompt-job-utils.js";
+import {
+  getGenerationToolNameFromEvent,
+  isGenerationIntent
+} from "./prompt-conversation-event-utils.js";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
 const CONVERSATION_THINKING_STEPS = [
@@ -1986,25 +1990,6 @@ async function restoreProjectConversation({ projectId, conversationId = "", addC
     }
     if (text) addChat(message.role === "user" ? "user" : "assistant", text);
   });
-}
-
-function getGenerationToolNameFromEvent(event = {}) {
-  const names = [
-    event.toolCall?.name,
-    event.tool?.name,
-    event.name,
-    ...(Array.isArray(event.toolCalls) ? event.toolCalls.map((item) => item?.name) : []),
-    ...(Array.isArray(event.message?.toolCalls) ? event.message.toolCalls.map((item) => item?.name) : [])
-  ];
-  return names.map((name) => String(name || "").trim()).find(isGenerationTool) || "";
-}
-
-function isGenerationTool(name = "") {
-  return ["generate_image", "edit_image", "generate_video"].includes(String(name || "").trim());
-}
-
-function isGenerationIntent(intent = "") {
-  return ["generate_image", "edit_image", "generate_video"].includes(String(intent || "").trim());
 }
 
 function bindConversationControls({ getProjectId, addChat, addChatImage } = {}) {
