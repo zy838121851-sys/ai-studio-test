@@ -9,8 +9,6 @@ import {
 } from "../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 import { renderModelPreferenceMenu } from "../../ai/model-preference-menu.js";
 import {
-  getFailedGeneratorJobError,
-  getGeneratorResultUrls,
   getMissingGeneratorResultError,
   getMissingGeneratorResultMessage,
   getPrimaryResultImageUrl,
@@ -18,6 +16,13 @@ import {
   getResultVideoUrls,
   parseGeneratorResult
 } from "./image-generator-result-utils.js";
+import {
+  buildGeneratorMissingUrlProgressPayload,
+  buildGeneratorRateLimitProgressPayload,
+  getRetryAfterDelayMs,
+  getTerminalGeneratorJobResult,
+  isTerminalGeneratorJobStatus
+} from "./image-generator-job-polling-utils.js";
 import {
   buildGeneratorImagePreviewReplacementOptions,
   buildGeneratorVideoPreviewReplacementOptions,
@@ -1142,49 +1147,8 @@ export function createImageGeneratorWorkflow({
     throw new Error(`Generation is still running. Job ID: ${lastPayload.jobId || jobId}`);
   }
 
-  function buildGeneratorRateLimitProgressPayload(lastPayload = {}, payload = {}) {
-    return {
-      ...lastPayload,
-      status: "running",
-      rateLimited: true,
-      message: payload?.message || "Waiting for job status"
-    };
-  }
-
-  function isTerminalGeneratorJobStatus(status = "") {
-    return ["succeeded", "failed", "cancelled", "timeout", "save_failed"].includes(status);
-  }
-
-  function getTerminalGeneratorJobResult(lastPayload = {}, expectedType = "image") {
-    if (lastPayload.status !== "succeeded") {
-      return {
-        retryMissingUrl: false,
-        error: getFailedGeneratorJobError(lastPayload)
-      };
-    }
-    const resultUrls = getGeneratorResultUrls(lastPayload, expectedType);
-    return {
-      retryMissingUrl: !resultUrls.length,
-      error: resultUrls.length ? null : getMissingGeneratorResultError(lastPayload, expectedType)
-    };
-  }
-
-  function buildGeneratorMissingUrlProgressPayload(lastPayload = {}, expectedType = "image") {
-    return {
-      ...lastPayload,
-      status: "running",
-      message: expectedType === "video" ? "Waiting for saved video URL" : "Waiting for saved image URL"
-    };
-  }
-
   function delay(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  function getRetryAfterDelayMs(response, fallbackMs = 4000) {
-    const value = Number.parseInt(response?.headers?.get?.("Retry-After") || "", 10);
-    if (Number.isFinite(value) && value > 0) return value * 1000;
-    return fallbackMs;
   }
 
   function logSubmittedGeneratorModel(model) {
