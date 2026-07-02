@@ -24,6 +24,28 @@ export function applyGeneratedImageNodeSize(node, { width, dimensions } = {}) {
   if (dimensions?.height > 0) node.dataset.imageNaturalHeight = String(dimensions.height);
 }
 
+export function applyGeneratedImageNodeResult(node, url, {
+  prompt = "",
+  model = "",
+  dimensions = {},
+  sourceNode = null
+} = {}) {
+  if (!node || !url) return;
+  const image = node.querySelector(".image-frame img");
+  if (image) {
+    image.src = url;
+    image.removeAttribute?.("srcset");
+    image.dataset.localSourceReady = "true";
+  }
+  node.dataset.objectUrl = url;
+  node.dataset.sourceMode = "generated";
+  node.dataset.generationPrompt = prompt;
+  node.dataset.generationModel = model;
+  if (sourceNode?.dataset?.nodeId) node.dataset.generatorSourceNodeId = sourceNode.dataset.nodeId;
+  if (dimensions?.width > 0) node.dataset.outputWidth = String(dimensions.width);
+  if (dimensions?.height > 0) node.dataset.outputHeight = String(dimensions.height);
+}
+
 export function parseGeneratorResult(result = {}, selectedModel = "", expectedType = "image") {
   const urls = getGeneratorResultUrls(result, expectedType);
   return {

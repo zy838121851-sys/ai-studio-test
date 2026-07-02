@@ -9,6 +9,7 @@ import {
 } from "../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 import { renderModelPreferenceMenu } from "../../ai/model-preference-menu.js";
 import {
+  applyGeneratedImageNodeResult,
   applyGeneratedImageNodeSize,
   getMissingGeneratorResultError,
   getMissingGeneratorResultMessage,
@@ -816,28 +817,6 @@ export function createImageGeneratorWorkflow({
     hideGeneratorPopover();
     if (node.isConnected) node.remove();
     return createdNode;
-  }
-
-  function applyGeneratedImageNodeResult(node, url, {
-    prompt = "",
-    model = "",
-    dimensions = {},
-    sourceNode = null
-  } = {}) {
-    if (!node || !url) return;
-    const image = node.querySelector(".image-frame img");
-    if (image) {
-      image.src = url;
-      image.removeAttribute?.("srcset");
-      image.dataset.localSourceReady = "true";
-    }
-    node.dataset.objectUrl = url;
-    node.dataset.sourceMode = "generated";
-    node.dataset.generationPrompt = prompt;
-    node.dataset.generationModel = model;
-    if (sourceNode?.dataset?.nodeId) node.dataset.generatorSourceNodeId = sourceNode.dataset.nodeId;
-    if (dimensions?.width > 0) node.dataset.outputWidth = String(dimensions.width);
-    if (dimensions?.height > 0) node.dataset.outputHeight = String(dimensions.height);
   }
 
   async function handleDrop(node, dataTransfer) {

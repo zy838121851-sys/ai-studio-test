@@ -11,6 +11,7 @@ import {
   getGeneratorReplacementPlacement
 } from "../src/client/features/canvas/workflows/image-generator-placement-utils.js";
 import {
+  applyGeneratedImageNodeResult,
   applyGeneratedImageNodeSize,
   getGeneratorResultTitle
 } from "../src/client/features/canvas/workflows/image-generator-result-utils.js";
@@ -37,6 +38,7 @@ assert(
     && generatorWorkflow.includes("getGeneratorReplacementPlacement")
     && generatorWorkflow.includes("markGeneratorPreviewFailed")
     && generatorWorkflow.includes("updateGeneratorPreviewStatus as updatePreviewStatus")
+    && generatorWorkflow.includes("applyGeneratedImageNodeResult")
     && generatorWorkflow.includes("applyGeneratedImageNodeSize")
     && generatorWorkflow.includes("getGeneratorResultTitle")
     && generatorPreviewJobUtils.includes("applyGeneratorPreviewJobMetadata"),
@@ -234,6 +236,36 @@ assert(sizedFrame.style.aspectRatio === "1024 / 768", "generated image size help
 assert(sizedNode.dataset.manualSize === "true", "generated image size helper should mark manual sizing");
 assert(sizedNode.dataset.imageNaturalWidth === "1024", "generated image size helper should persist natural width");
 assert(sizedNode.dataset.imageNaturalHeight === "768", "generated image size helper should persist natural height");
+const resultImage = {
+  src: "",
+  dataset: {},
+  removed: [],
+  removeAttribute(name) {
+    this.removed.push(name);
+  }
+};
+const resultNode = {
+  dataset: {},
+  querySelector(selector) {
+    return selector === ".image-frame img" ? resultImage : null;
+  }
+};
+applyGeneratedImageNodeResult(resultNode, "/uploads/result.png", {
+  prompt: "Prompt",
+  model: "model-1",
+  dimensions: { width: 640, height: 480 },
+  sourceNode: { dataset: { nodeId: "source-1" } }
+});
+assert(resultImage.src === "/uploads/result.png", "generated image result helper should update image src");
+assert(resultImage.removed.includes("srcset"), "generated image result helper should remove stale srcset");
+assert(resultImage.dataset.localSourceReady === "true", "generated image result helper should mark local source ready");
+assert(resultNode.dataset.objectUrl === "/uploads/result.png", "generated image result helper should persist object URL");
+assert(resultNode.dataset.sourceMode === "generated", "generated image result helper should mark generated source mode");
+assert(resultNode.dataset.generationPrompt === "Prompt", "generated image result helper should persist prompt");
+assert(resultNode.dataset.generationModel === "model-1", "generated image result helper should persist model");
+assert(resultNode.dataset.generatorSourceNodeId === "source-1", "generated image result helper should persist source node id");
+assert(resultNode.dataset.outputWidth === "640", "generated image result helper should persist output width");
+assert(resultNode.dataset.outputHeight === "480", "generated image result helper should persist output height");
 
 const appInit = read("src/client/core/app-init.js");
 assert(
