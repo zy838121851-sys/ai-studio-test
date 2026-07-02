@@ -1,9 +1,3 @@
-import {
-  applyProjectLibraryClasses,
-  renderHomeHistoryContent,
-  renderProjectLibraryContent,
-  showProjectSaveStatus
-} from "./components/project-library.js?v=20260627-library-bulk-select-1";
 import { createProjectRuntime } from "./runtime.js";
 import { createProjectRuntimeBootstrap } from "./runtime-bootstrap.js";
 import { createProjectWorkflowRuntime } from "./project-workflow-bootstrap.js?v=20260627-library-bulk-select-1";
@@ -18,6 +12,7 @@ import {
   setActiveProjectId
 } from "./store.js";
 import { createProjectWorkflowState } from "./project-workflow-state.js";
+import { createProjectWorkflowUi } from "./project-workflow-ui.js";
 
 export function createProjectFeatureRuntime({
   elements = {},
@@ -53,19 +48,7 @@ export function createProjectFeatureRuntime({
     services: createProjectWorkflowServices({ remoteProjectsEnabled, services }),
     projectRuntime: runtimeBootstrap.projectRuntime,
     elements,
-    ui: {
-      applyProjectLibraryClasses,
-      renderProjectLibraryContent,
-      renderHomeHistoryContent,
-      showProjectSaveStatus,
-      applyViewState: ui.applyViewState,
-      addNode: ui.addNode,
-      markGeneratedNodeContext: ui.markGeneratedNodeContext,
-      removeNodeDeep: ui.removeNodeDeep,
-      applyTransform: ui.applyTransform,
-      setChatCollapsed: ui.setChatCollapsed,
-      updateProjectTitleView: ui.updateProjectTitleView
-    },
+    ui: createProjectWorkflowUi({ ui }),
     chat
   });
 
