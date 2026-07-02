@@ -52,6 +52,10 @@ import {
   getGeneratorOutputDimensions
 } from "./image-generator-sizing-utils.js";
 import {
+  fileToDataUrl,
+  readImageDataUrlMetrics
+} from "./image-generator-image-read-utils.js";
+import {
   getElementOffsetWithinNode,
   getGeneratorPopoverMetrics,
   getVisibleGeneratorPopoverPosition
@@ -1566,19 +1570,6 @@ function resolveGeneratorOutputSize(node, references = []) {
   return `${dimensions.width}*${dimensions.height}`;
 }
 
-function readImageDataUrlMetrics(dataUrl) {
-  if (!dataUrl || typeof Image !== "function") return Promise.resolve({ width: 0, height: 0 });
-  return new Promise((resolve) => {
-    const image = new Image();
-    image.onload = () => resolve({
-      width: image.naturalWidth || 0,
-      height: image.naturalHeight || 0
-    });
-    image.onerror = () => resolve({ width: 0, height: 0 });
-    image.src = dataUrl;
-  });
-}
-
 function escapeAttribute(value = "") {
   return String(value || "")
     .replaceAll("&", "&amp;")
@@ -1594,13 +1585,4 @@ function escapeHtml(value = "") {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-}
-
-function fileToDataUrl(file) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || ""));
-    reader.onerror = () => reject(reader.error || new Error("Unable to read image file"));
-    reader.readAsDataURL(file);
-  });
 }
