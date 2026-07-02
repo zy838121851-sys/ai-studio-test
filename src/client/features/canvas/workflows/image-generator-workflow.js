@@ -619,10 +619,8 @@ export function createImageGeneratorWorkflow({
       });
       if (previewNode) {
         previewNode.dataset.generatorPreview = "true";
-        previewNode.dataset.generatorBatchCount = String(count);
-        previewNode.dataset.generatorBatchIndex = String(index + 1);
-        if (dimensions.width > 0) previewNode.dataset.outputWidth = String(dimensions.width);
-        if (dimensions.height > 0) previewNode.dataset.outputHeight = String(dimensions.height);
+        applyGeneratorPreviewBatchMetadata(previewNode, { count, index });
+        applyGeneratorPreviewDimensions(previewNode, dimensions);
         if (count > 1) updatePreviewStatus(previewNode, `正在生成第 ${index + 1}/${count} 张`);
       }
       return previewNode;
@@ -664,15 +662,31 @@ export function createImageGeneratorWorkflow({
     const jobId = String(payload?.jobId || payload?.job?.id || "").trim();
     if (!jobId) return;
     previewNodes.filter(Boolean).forEach((previewNode) => {
-      previewNode.dataset.generatorJobId = jobId;
-      previewNode.dataset.generatorJobStatus = payload?.status || payload?.job?.status || "queued";
-      previewNode.dataset.generatorPrompt = meta.prompt || "";
-      previewNode.dataset.generatorModel = meta.model || payload?.model || payload?.requestedModel || "";
-      previewNode.dataset.generatorActionType = meta.actionType || "";
-      previewNode.dataset.generatorAspectRatio = meta.aspectRatio || "";
-      if (meta.dimensions?.width > 0) previewNode.dataset.outputWidth = String(meta.dimensions.width);
-      if (meta.dimensions?.height > 0) previewNode.dataset.outputHeight = String(meta.dimensions.height);
+      applyGeneratorPreviewJobMetadata(previewNode, { jobId, payload, meta });
     });
+  }
+
+  function applyGeneratorPreviewBatchMetadata(previewNode, { count = 1, index = 0 } = {}) {
+    if (!previewNode) return;
+    previewNode.dataset.generatorBatchCount = String(count);
+    previewNode.dataset.generatorBatchIndex = String(index + 1);
+  }
+
+  function applyGeneratorPreviewDimensions(previewNode, dimensions = {}) {
+    if (!previewNode) return;
+    if (dimensions.width > 0) previewNode.dataset.outputWidth = String(dimensions.width);
+    if (dimensions.height > 0) previewNode.dataset.outputHeight = String(dimensions.height);
+  }
+
+  function applyGeneratorPreviewJobMetadata(previewNode, { jobId = "", payload = {}, meta = {} } = {}) {
+    if (!previewNode || !jobId) return;
+    previewNode.dataset.generatorJobId = jobId;
+    previewNode.dataset.generatorJobStatus = payload?.status || payload?.job?.status || "queued";
+    previewNode.dataset.generatorPrompt = meta.prompt || "";
+    previewNode.dataset.generatorModel = meta.model || payload?.model || payload?.requestedModel || "";
+    previewNode.dataset.generatorActionType = meta.actionType || "";
+    previewNode.dataset.generatorAspectRatio = meta.aspectRatio || "";
+    applyGeneratorPreviewDimensions(previewNode, meta.dimensions);
   }
 
   function resumePendingGeneratorPreviews() {
@@ -714,7 +728,7 @@ export function createImageGeneratorWorkflow({
       nodes.forEach((previewNode, index) => replaceRecoveredGeneratorPreview(previewNode, {
         jobId,
         result,
-        url: urls[Math.max(0, Number(previewNode.dataset.generatorBatchIndex || index + 1) - 1)] || urls[index] || urls[0] || "",
+        url: urls[getGeneratorPreviewBatchIndex(previewNode, index)] || urls[index] || urls[0] || "",
         index,
         count: urls.length || nodes.length || 1
       }));
@@ -731,7 +745,7 @@ export function createImageGeneratorWorkflow({
   function replaceRecoveredGeneratorPreview(previewNode, { jobId, result = {}, url = "", index = 0, count = 1 } = {}) {
     if (!previewNode?.isConnected) return null;
     if (!url) throw new Error(getMissingGeneratorResultMessage(result));
-    const batchIndex = Math.max(0, Number(previewNode.dataset.generatorBatchIndex || index + 1) - 1);
+    const batchIndex = getGeneratorPreviewBatchIndex(previewNode, index);
     const createdNode = replaceGeneratorImagePreviewNode(previewNode, {
       title: getGeneratorResultTitle(batchIndex, count),
       desc: previewNode.dataset.generatorPrompt || "Image generator result",
@@ -744,6 +758,10 @@ export function createImageGeneratorWorkflow({
     if (!createdNode) throw new Error("Unable to replace generation preview");
     createdNode.dataset.generatorJobId = jobId;
     return createdNode;
+  }
+
+  function getGeneratorPreviewBatchIndex(previewNode, fallbackIndex = 0) {
+    return Math.max(0, Number(previewNode?.dataset?.generatorBatchIndex || fallbackIndex + 1) - 1);
   }
 
   async function addGeneratedImageBesideGenerator(node, {
