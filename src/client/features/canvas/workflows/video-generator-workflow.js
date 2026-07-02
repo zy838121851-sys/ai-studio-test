@@ -27,6 +27,8 @@ import {
   getVideoOptionGroupValue,
   getVideoSavedOption,
   getVideoSelectedModelId,
+  chooseVideoOptionElement,
+  renderVideoOptionGroup,
   toOptions
 } from "./video-generator-option-utils.js";
 import {
@@ -342,27 +344,11 @@ export function createVideoGeneratorWorkflow({
 
   function renderOptionGroup(kind, options = [], selectedValue = "") {
     const group = getVideoPopover()?.querySelector?.(`[data-video-option-group="${kind}"]`);
-    if (!group) return;
-    group.hidden = !options.length;
-    group.innerHTML = options.map((option) => {
-      const selected = String(option.value) === String(selectedValue);
-      return `<button type="button" class="${selected ? "selected" : ""}" data-video-option="${escapeAttribute(kind)}" data-value="${escapeAttribute(option.value)}" aria-pressed="${selected ? "true" : "false"}">${escapeHtml(option.label)}</button>`;
-    }).join("");
-    if (!options.some((option) => String(option.value) === String(selectedValue)) && options[0]) {
-      group.querySelector("[data-video-option]")?.classList.add("selected");
-    }
+    renderVideoOptionGroup(group, { kind, options, selectedValue, escapeAttribute, escapeHtml });
   }
 
   function chooseVideoOption(option) {
-    const kind = option.dataset.videoOption || "";
-    const group = option.closest("[data-video-option-group]");
-    if (!group) return;
-    group.querySelectorAll("[data-video-option]").forEach((item) => {
-      const selected = item === option;
-      item.classList.toggle("selected", selected);
-      item.setAttribute("aria-pressed", selected ? "true" : "false");
-    });
-    group.dataset.value = option.dataset.value || "";
+    chooseVideoOptionElement(option);
     saveVideoDraft(activeVideoNode);
   }
 
