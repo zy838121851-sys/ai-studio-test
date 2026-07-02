@@ -48,21 +48,16 @@ import {
   getGeneratorSelectKind,
   getGeneratorSelectTriggerText
 } from "./image-generator-select-utils.js";
+import {
+  getGeneratorOutputDimensions
+} from "./image-generator-sizing-utils.js";
 
 const GENERATOR_SELECTOR = ".node-image-generator";
 const GENERATOR_POPOVER_SELECTOR = "#imageGeneratorPopover";
-const OUTPUT_SIZE = "1024*1024";
 const DEFAULT_GENERATOR_MODEL = "doubao-seedream-5-0-lite-260128";
 const DEFAULT_GENERATOR_RATIO = "1:1";
 const DEFAULT_GENERATOR_COUNT = "1";
 const MIDJOURNEY_IMAGE_COUNT = 4;
-const GENERATOR_FIXED_SIZES = {
-  "1:1": { width: 1024, height: 1024 },
-  "4:3": { width: 1024, height: 768 },
-  "3:4": { width: 768, height: 1024 },
-  "16:9": { width: 1344, height: 768 },
-  "9:16": { width: 768, height: 1344 }
-};
 
 export function createImageGeneratorWorkflow({
   elements = {},
@@ -1629,27 +1624,6 @@ function resolveGeneratorOutputSize(node, references = []) {
     references
   );
   return `${dimensions.width}*${dimensions.height}`;
-}
-
-function getGeneratorOutputDimensions(node, ratio = DEFAULT_GENERATOR_RATIO, references = []) {
-  if (ratio === "original" || ratio === "auto") {
-    return GENERATOR_FIXED_SIZES[DEFAULT_GENERATOR_RATIO] || parseImageSize(OUTPUT_SIZE);
-  }
-  if (GENERATOR_FIXED_SIZES[ratio]) return GENERATOR_FIXED_SIZES[ratio];
-  const width = Number(node?.dataset?.outputWidth || 0);
-  const height = Number(node?.dataset?.outputHeight || 0);
-  if (width > 0 && height > 0) return { width, height };
-  return parseImageSize(OUTPUT_SIZE);
-}
-
-function parseImageSize(value = OUTPUT_SIZE) {
-  const [width, height] = String(value || OUTPUT_SIZE)
-    .split("*")
-    .map((part) => Number.parseInt(part, 10));
-  return {
-    width: Number.isFinite(width) && width > 0 ? width : 1024,
-    height: Number.isFinite(height) && height > 0 ? height : 1024
-  };
 }
 
 function readImageDataUrlMetrics(dataUrl) {
