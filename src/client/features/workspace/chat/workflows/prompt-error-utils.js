@@ -33,3 +33,9 @@ export function classifyGenerationClientError(error = {}, debugRecord = {}) {
 export function buildClientFailure(failureCode, failureMessage, stage) {
   return { failureCode, failureMessage, stage };
 }
+
+export function getRetryAfterDelayMs(response, fallbackMs = 4000) {
+  const value = Number.parseInt(response?.headers?.get?.("Retry-After") || "", 10);
+  if (Number.isFinite(value) && value > 0) return value * 1000;
+  return fallbackMs;
+}

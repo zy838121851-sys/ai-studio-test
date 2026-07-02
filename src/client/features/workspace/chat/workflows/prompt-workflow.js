@@ -21,7 +21,10 @@ import {
   getResultVideoUrls,
   isMidjourneyModel
 } from "./prompt-result-utils.js";
-import { classifyGenerationClientError } from "./prompt-error-utils.js";
+import {
+  classifyGenerationClientError,
+  getRetryAfterDelayMs
+} from "./prompt-error-utils.js";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
 const CONVERSATION_THINKING_STEPS = [
@@ -2926,12 +2929,6 @@ async function waitForTripo3DTask(taskId, { attempts = 180, delayMs = 2000, onPr
 
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-function getRetryAfterDelayMs(response, fallbackMs = 4000) {
-  const value = Number.parseInt(response?.headers?.get?.("Retry-After") || "", 10);
-  if (Number.isFinite(value) && value > 0) return value * 1000;
-  return fallbackMs;
 }
 
 function warnIfModelMismatch(selectedModel, returnedModel, result = {}) {
