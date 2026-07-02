@@ -61,8 +61,6 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
   let setChatCollapsed = appState.setChatCollapsed;
   let getNodeBounds = appState.getNodeBounds;
   let addNode = appState.addNode;
-  let ensureResizeHandles = appState.ensureResizeHandles;
-  let ensureNodeControls = appState.ensureNodeControls;
   let recordUndoAction = () => {};
   let undoLastCanvasAction = () => false;
   let redoLastCanvasAction = () => false;
@@ -71,7 +69,6 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
   let canvasOperationsRuntime;
   let canvasSelectionRuntime;
   let canvasSurfaceRuntime;
-  let makeDraggable = () => {};
   let renderStackTray = () => {};
   let stackNode = () => false;
   let assetRuntime;
@@ -249,11 +246,8 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
     canvasOperationsRuntime,
     canvasSelectionRuntime,
     canvasSurfaceRuntime,
-    makeDraggable,
     renderStackTray,
     stackNode,
-    ensureResizeHandles,
-    ensureNodeControls,
     getNodeBounds,
     addNode,
     applyTransform,

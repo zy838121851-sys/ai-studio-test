@@ -63,6 +63,17 @@ const MODULE_SURFACE_EXPECTATIONS = [
     ]
   }
 ];
+const RETURN_SURFACE_EXPECTATIONS = [
+  {
+    filePath: "src/client/features/workspace/workflows/workspace-canvas-composition.js",
+    marker: "  return {\n    canvasGenerationRuntime,",
+    forbidden: [
+      "    makeDraggable,",
+      "    ensureResizeHandles:",
+      "    ensureNodeControls:"
+    ]
+  }
+];
 
 const errors = [];
 
@@ -155,6 +166,24 @@ function checkModuleSurfaceExpectations() {
   }
 }
 
+function checkReturnSurfaceExpectations() {
+  for (const expectation of RETURN_SURFACE_EXPECTATIONS) {
+    const source = readSource(expectation.filePath).replace(/\r\n/g, "\n");
+    const start = source.indexOf(expectation.marker);
+    if (start === -1) {
+      errors.push(`${expectation.filePath} must keep expected return surface marker ${expectation.marker.trim()}`);
+      continue;
+    }
+    const end = source.indexOf("\n  };", start);
+    const block = end === -1 ? source.slice(start) : source.slice(start, end);
+    for (const forbidden of expectation.forbidden) {
+      if (block.includes(forbidden)) {
+        errors.push(`${expectation.filePath} must not expose return field ${forbidden.trim()}`);
+      }
+    }
+  }
+}
+
 function buildReachabilityGraph() {
   const allFiles = new Set([
     ...collectJsFiles(CLIENT_DIR),
@@ -188,6 +217,7 @@ function buildReachabilityGraph() {
 const { allFiles, reachable } = buildReachabilityGraph();
 checkEntryImportExpectations();
 checkModuleSurfaceExpectations();
+checkReturnSurfaceExpectations();
 const deprecatedClientFiles = DEPRECATED_CLIENT_MODULES
   .filter((filePath) => fs.existsSync(path.resolve(ROOT, filePath)));
 const unreachableClientFiles = Array.from(allFiles)
