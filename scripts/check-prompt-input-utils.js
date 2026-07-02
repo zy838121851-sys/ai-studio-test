@@ -2,7 +2,8 @@ import {
   clearComposerAttachments,
   copyReferenceFiles,
   getChatPreviewDomSummaries,
-  inferSubmitTriggerSource
+  inferSubmitTriggerSource,
+  restoreComposerAttachmentsOnFailure
 } from "../src/client/features/workspace/chat/workflows/prompt-input-utils.js";
 
 function assert(condition, message) {
@@ -66,6 +67,36 @@ clearComposerAttachments({
 assert(calls.length === 2, "Clearing composer attachments should update files and render preview");
 assert(calls[0][0] === "set" && Array.isArray(calls[0][1]) && calls[0][1].length === 0, "Clearing composer attachments should set an empty file list");
 assert(calls[1][0] === "render", "Clearing composer attachments should render preview");
+
+const restoredCalls = [];
+const restoredFiles = [blob];
+restoreComposerAttachmentsOnFailure({
+  files: restoredFiles,
+  setChatImageFiles(files) {
+    restoredCalls.push(["set", files]);
+  },
+  renderChatImagePreview() {
+    restoredCalls.push(["render"]);
+  },
+  onRestored(files) {
+    restoredCalls.push(["restored", files]);
+  }
+});
+assert(restoredCalls.length === 3, "Restoring composer attachments should update files, render preview, and notify");
+assert(restoredCalls[0][0] === "set" && restoredCalls[0][1] !== restoredFiles, "Restoring composer attachments should set a copied file list");
+assert(restoredCalls[0][1][0] === blob, "Restoring composer attachments should keep original file entries");
+assert(restoredCalls[1][0] === "render", "Restoring composer attachments should render preview");
+assert(restoredCalls[2][0] === "restored" && restoredCalls[2][1] === restoredFiles, "Restoring composer attachments should notify with original files");
+restoreComposerAttachmentsOnFailure({
+  files: [],
+  setChatImageFiles() {
+    restoredCalls.push(["empty-set"]);
+  },
+  renderChatImagePreview() {
+    restoredCalls.push(["empty-render"]);
+  }
+});
+assert(!restoredCalls.some(([name]) => name.startsWith("empty-")), "Restoring composer attachments should ignore empty files");
 
 const domSummaries = getChatPreviewDomSummaries(makePreviewRoot([
   makePreviewButton({

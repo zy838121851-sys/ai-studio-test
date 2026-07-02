@@ -18,6 +18,18 @@ export function clearComposerAttachments({ setChatImageFiles, renderChatImagePre
   renderChatImagePreview();
 }
 
+export function restoreComposerAttachmentsOnFailure({
+  files = [],
+  setChatImageFiles,
+  renderChatImagePreview,
+  onRestored = null
+} = {}) {
+  if (!files.length) return;
+  setChatImageFiles(files.slice());
+  renderChatImagePreview();
+  onRestored?.(files);
+}
+
 export function getChatPreviewDomSummaries(root = globalThis.document) {
   return Array.from(root?.querySelectorAll?.(".chat-image-preview button") || []).map((button, index) => {
     const image = button.querySelector("img");

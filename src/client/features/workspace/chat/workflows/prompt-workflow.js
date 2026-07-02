@@ -47,7 +47,8 @@ import {
   clearComposerAttachments,
   copyReferenceFiles,
   getChatPreviewDomSummaries,
-  inferSubmitTriggerSource
+  inferSubmitTriggerSource,
+  restoreComposerAttachmentsOnFailure
 } from "./prompt-input-utils.js";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
@@ -337,18 +338,6 @@ function positionAgentDebugPanel(panel) {
     pre.style.maxHeight = wideEnough ? "calc(44vh - 32px)" : "calc(30vh - 32px)";
     if (!wideEnough && !panel.dataset.userExpandedOnNarrow) pre.hidden = true;
   }
-}
-
-function restoreComposerAttachmentsOnFailure({
-  files = [],
-  setChatImageFiles,
-  renderChatImagePreview,
-  debugRecord = null
-} = {}) {
-  if (!files.length) return;
-  setChatImageFiles(files.slice());
-  renderChatImagePreview();
-  logAgentDebug(debugRecord, "attachments.restored", summarizeFiles(files));
 }
 
 function findActiveImageNode(root = globalThis.document) {
@@ -1322,7 +1311,9 @@ export function bindPromptSubmit({
           files,
           setChatImageFiles,
           renderChatImagePreview,
-          debugRecord: agentDebug
+          onRestored: (restoredFiles) => {
+            logAgentDebug(agentDebug, "attachments.restored", summarizeFiles(restoredFiles));
+          }
         });
       }
       previewNodes.forEach((node) => {
