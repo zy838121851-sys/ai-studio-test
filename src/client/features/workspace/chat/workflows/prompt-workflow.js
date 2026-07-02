@@ -21,6 +21,7 @@ import {
   getResultVideoUrls,
   isMidjourneyModel
 } from "./prompt-result-utils.js";
+import { buildClientFailure } from "./prompt-error-utils.js";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
 const CONVERSATION_THINKING_STEPS = [
@@ -2953,10 +2954,6 @@ function classifyGenerationClientError(error = {}, debugRecord = {}) {
     return buildClientFailure(explicitCode || "PROVIDER_FAILED", message, error.stage || "generateRequest");
   }
   return buildClientFailure(explicitCode || "CONVERSATION_FAILED", message, error.stage || debugRecord?.generationStage || "conversation");
-}
-
-function buildClientFailure(failureCode, failureMessage, stage) {
-  return { failureCode, failureMessage, stage };
 }
 
 function delay(ms) {
