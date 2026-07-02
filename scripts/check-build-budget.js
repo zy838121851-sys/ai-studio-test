@@ -65,6 +65,32 @@ function checkBudget(label, actualBytes, budgetBytes) {
   console.log(`${label}: ${formatKiB(actualBytes)} / ${formatKiB(budgetBytes)}`);
 }
 
+function checkBuiltCssEntrypoint(appCss) {
+  const indexPath = path.join(DIST_DIR, "index.html");
+  if (!fs.existsSync(indexPath)) {
+    fail("missing dist/index.html");
+    return;
+  }
+
+  const html = fs.readFileSync(indexPath, "utf8");
+  const stylesheetMatches = Array.from(html.matchAll(/<link\s+[^>]*rel=["']stylesheet["'][^>]*href=["']([^"']+)["'][^>]*>/gi));
+  const stylesheets = stylesheetMatches.map((match) => match[1]);
+  if (stylesheets.length !== 1) {
+    fail(`expected exactly one built stylesheet link, found ${stylesheets.length}`);
+    return;
+  }
+
+  const expectedHref = `/assets/${appCss.name}`;
+  if (stylesheets[0] !== expectedHref) {
+    fail(`built stylesheet href is ${stylesheets[0]}, expected ${expectedHref}`);
+    return;
+  }
+
+  if (!fs.existsSync(path.join(ASSETS_DIR, appCss.name))) {
+    fail(`built stylesheet asset missing: ${appCss.name}`);
+  }
+}
+
 const files = readAssetFiles();
 
 const appJs = findRequiredChunk(
@@ -138,6 +164,8 @@ const totalAssetsBytes = files.reduce((sum, file) => sum + file.bytes, 0);
 if (process.exitCode) {
   process.exit();
 }
+
+checkBuiltCssEntrypoint(appCss);
 
 console.log("Build budget summary:");
 checkBudget("app JS", appJs.bytes, BUDGETS.appJsBytes);
