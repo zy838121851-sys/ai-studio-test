@@ -36,3 +36,20 @@ export function getResultUrls(result = {}) {
 export function isMidjourneyModel(model = "") {
   return String(model || "").trim().toLowerCase() === "midjourney";
 }
+
+export function buildGeneratedProjectPatch({
+  project = null,
+  prompt = "",
+  generationPrompt = "",
+  thumbnail = "",
+  itemCountIncrement = 1,
+  makeProjectTitle = null
+} = {}) {
+  const titlePrompt = prompt || generationPrompt;
+  return {
+    title: project?.title || (typeof makeProjectTitle === "function" ? makeProjectTitle(titlePrompt) : titlePrompt),
+    prompt: generationPrompt,
+    thumbnail,
+    itemCount: (project?.itemCount || 0) + itemCountIncrement
+  };
+}

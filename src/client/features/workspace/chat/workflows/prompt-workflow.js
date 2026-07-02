@@ -5,6 +5,7 @@ import {
   resolveImageModelId
 } from "../../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 import {
+  buildGeneratedProjectPatch,
   getResultImageUrls,
   getResultUrls,
   getResultVideoUrls,
@@ -966,12 +967,14 @@ export function bindPromptSubmit({
           setPendingHomeGenerationFocus(false);
           centerViewOnNode(videoNode, 1);
         }
-        updateActiveProject({
-          title: getActiveProject()?.title || makeProjectTitle(prompt || generationPrompt),
-          prompt: generationPrompt,
+        updateActiveProject(buildGeneratedProjectPatch({
+          project: getActiveProject(),
+          prompt,
+          generationPrompt,
           thumbnail: videoUrls[0],
-          itemCount: (getActiveProject()?.itemCount || 0) + 1
-        });
+          itemCountIncrement: 1,
+          makeProjectTitle
+        }));
         await saveCurrentProjectAfterGeneration?.();
         onProjectTitleRefresh();
         videoUrls.length = 0;
@@ -1015,12 +1018,14 @@ export function bindPromptSubmit({
           setPendingHomeGenerationFocus(false);
           centerViewOnNode(imageNode, 1);
         }
-        updateActiveProject({
-          title: getActiveProject()?.title || makeProjectTitle(prompt || generationPrompt),
-          prompt: generationPrompt,
+        updateActiveProject(buildGeneratedProjectPatch({
+          project: getActiveProject(),
+          prompt,
+          generationPrompt,
           thumbnail: imageUrls[0],
-          itemCount: (getActiveProject()?.itemCount || 0) + imageUrls.length
-        });
+          itemCountIncrement: imageUrls.length,
+          makeProjectTitle
+        }));
         await saveCurrentProjectAfterGeneration?.();
         onProjectTitleRefresh();
         if (typeof addChatBlocks === "function") {
