@@ -8,13 +8,18 @@ import {
   escapeHtml
 } from "./video-generator-escape-utils.js";
 import {
+  restoreVideoDraftState,
+  saveVideoDraftState,
+  setVideoBusyState,
+  setVideoStatusText
+} from "./video-generator-form-state-utils.js";
+import {
   delay,
   getResultVideoUrl,
   getRetryAfterDelayMs,
   isTerminalVideoJobStatus
 } from "./video-generator-job-utils.js";
 import {
-  capitalize,
   formatRatioLabel,
   getModeOptions,
   getVideoModelByIdFromList,
@@ -449,36 +454,23 @@ export function createVideoGeneratorWorkflow({
   }
 
   function saveVideoDraft(node) {
-    if (!node) return;
-    const controls = getVideoControls();
-    node._videoGeneratorPromptDraft = controls.promptInput?.value || "";
-    node.dataset.videoGeneratorModel = controls.modelSelect?.value || "";
-    ["mode", "size", "resolution", "duration", "audio"].forEach((kind) => {
-      const value = getGroupValue(kind);
-      if (value) node.dataset[`videoGenerator${capitalize(kind)}`] = value;
+    saveVideoDraftState(node, {
+      controls: getVideoControls(),
+      optionKinds: ["mode", "size", "resolution", "duration", "audio"],
+      getOptionValue: getGroupValue
     });
   }
 
   function restoreVideoDraft(node) {
-    const controls = getVideoControls();
-    if (controls.promptInput) controls.promptInput.value = node?._videoGeneratorPromptDraft || "";
-    if (controls.modelSelect && node?.dataset?.videoGeneratorModel) {
-      controls.modelSelect.dataset.selectedModelId = node.dataset.videoGeneratorModel;
-    }
+    restoreVideoDraftState(node, getVideoControls());
   }
 
   function setVideoBusy(node, busy) {
-    if (!node) return;
-    node.dataset.videoGeneratorBusy = busy ? "true" : "false";
-    getVideoPopover()?.querySelectorAll?.("button, select, textarea, input").forEach((control) => {
-      if (control.matches("[data-video-generator-reference-input]")) return;
-      control.disabled = busy;
-    });
+    setVideoBusyState(node, getVideoPopover(), busy);
   }
 
   function setVideoStatus(text = "") {
-    const status = getVideoControls().status;
-    if (status) status.textContent = text;
+    setVideoStatusText(getVideoControls().status, text);
   }
 
   function getSelectedVideoModelId(models = getVideoModels()) {
