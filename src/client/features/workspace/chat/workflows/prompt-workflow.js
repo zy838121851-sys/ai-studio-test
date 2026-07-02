@@ -70,6 +70,9 @@ import {
   requestConversation,
   requestConversationRestore
 } from "./prompt-conversation-api-utils.js";
+import {
+  parseStreamEventLine
+} from "./prompt-stream-debug-utils.js";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
 const CONVERSATION_THINKING_STEPS = [
@@ -1838,39 +1841,6 @@ async function ensureActiveProjectReadyForGeneration({
   }
 }
 
-function recordStreamEvent(debugRecord, eventType = "") {
-  if (!debugRecord) return;
-  const type = eventType || "unknown";
-  debugRecord.lastStreamEventType = type;
-  if (!Array.isArray(debugRecord.streamEventTypes)) debugRecord.streamEventTypes = [];
-  debugRecord.streamEventTypes.push(type);
-  if (debugRecord.streamEventTypes.length > 80) debugRecord.streamEventTypes.splice(0, debugRecord.streamEventTypes.length - 80);
-  updateAgentDebugPanel(debugRecord);
-}
-
-function parseStreamEventLine(text, debugRecord = null) {
-  try {
-    const event = JSON.parse(text);
-    recordStreamEvent(debugRecord, event?.type || "");
-    logAgentDebug(debugRecord, "stream.event.parsed", {
-      type: event?.type || "",
-      textLength: text.length
-    });
-    return event;
-  } catch (error) {
-    if (debugRecord) {
-      debugRecord.streamParseError = error.message || String(error);
-      debugRecord.lastStreamEventType = "parse.error";
-      updateAgentDebugPanel(debugRecord);
-    }
-    console.warn("[chat-agent] stream event parse failed", {
-      message: error.message || String(error),
-      textLength: text.length
-    });
-    throw error;
-  }
-}
-
 async function streamConversationRun(conversationId, payload, onEvent, { timeoutMs = CONVERSATION_STREAM_TIMEOUT_MS, debugRecord = null } = {}) {
   currentConversationAbort?.abort?.();
   const controller = new AbortController();
@@ -1908,7 +1878,11 @@ async function streamConversationRun(conversationId, payload, onEvent, { timeout
       for (const line of lines) {
         const text = line.trim();
         if (!text) continue;
-        const event = parseStreamEventLine(text, debugRecord);
+        const event = parseStreamEventLine(text, {
+          debugRecord,
+          logAgentDebug,
+          updateAgentDebugPanel
+        });
         const shouldContinue = onEvent(event);
         logAgentDebug(debugRecord, "stream.event.handled", {
           type: event?.type || "",
@@ -1925,7 +1899,11 @@ async function streamConversationRun(conversationId, payload, onEvent, { timeout
       }
     }
     if (buffer.trim()) {
-      const event = parseStreamEventLine(buffer.trim(), debugRecord);
+      const event = parseStreamEventLine(buffer.trim(), {
+        debugRecord,
+        logAgentDebug,
+        updateAgentDebugPanel
+      });
       const shouldContinue = onEvent(event);
       logAgentDebug(debugRecord, "stream.event.handled", {
         type: event?.type || "",
