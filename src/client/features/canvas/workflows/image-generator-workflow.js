@@ -476,9 +476,7 @@ export function createImageGeneratorWorkflow({
         });
         const videoUrl = getPrimaryGeneratorResultUrl(result, "video");
         if (!videoUrl) throw getMissingGeneratorResultError(result, "video");
-        resultModel = getGeneratorResultModel(result, model);
-        warnIfGeneratorModelMismatch(model, resultModel, result);
-        modelUsage = formatModelUsage(result, resultModel);
+        ({ resultModel, modelUsage } = getGeneratorResultSummary(result, model));
         replaceGeneratorVideoPreview(previewNodes[0], videoUrl);
       } else if (midjourney) {
         previewNodes.forEach((previewNode, index) => {
@@ -507,9 +505,7 @@ export function createImageGeneratorWorkflow({
         });
         const resultUrls = getResultImageUrls(result);
         if (resultUrls.length < count) throw new Error(`Midjourney returned ${resultUrls.length || 0}/${count} images`);
-        resultModel = getGeneratorResultModel(result, model);
-        warnIfGeneratorModelMismatch(model, resultModel, result);
-        modelUsage = formatModelUsage(result, resultModel);
+        ({ resultModel, modelUsage } = getGeneratorResultSummary(result, model));
         resultUrls.slice(0, count).forEach((url, index) => {
           replaceGeneratorImagePreview(previewNodes[index], url, index);
         });
@@ -539,9 +535,7 @@ export function createImageGeneratorWorkflow({
         });
         const imageUrl = getPrimaryGeneratorResultUrl(result);
         if (!imageUrl) throw getMissingGeneratorResultError(result);
-        resultModel = getGeneratorResultModel(result, model);
-        warnIfGeneratorModelMismatch(model, resultModel, result);
-        modelUsage = formatModelUsage(result, resultModel);
+        ({ resultModel, modelUsage } = getGeneratorResultSummary(result, model));
 
         replaceGeneratorImagePreview(previewNode, imageUrl, index);
       }
@@ -1199,6 +1193,15 @@ export function createImageGeneratorWorkflow({
 
   function getGeneratorResultModel(result = {}, fallbackModel = "") {
     return result?.requestedModel || result?.model || fallbackModel;
+  }
+
+  function getGeneratorResultSummary(result = {}, selectedModel = "") {
+    const resultModel = getGeneratorResultModel(result, selectedModel);
+    warnIfGeneratorModelMismatch(selectedModel, resultModel, result);
+    return {
+      resultModel,
+      modelUsage: formatModelUsage(result, resultModel)
+    };
   }
 
   function warnIfGeneratorModelMismatch(selectedModel, returnedModel, result = {}) {
