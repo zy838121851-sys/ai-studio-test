@@ -10,6 +10,17 @@ import {
   escapeAttribute,
   escapeHtml
 } from "./video-generator-escape-utils.js";
+import {
+  capitalize,
+  clamp,
+  formatRatioLabel,
+  getModeOptions,
+  getVideoModelByIdFromList,
+  getVideoOptionGroupValue,
+  getVideoSavedOption,
+  getVideoSelectedModelId,
+  toOptions
+} from "./video-generator-option-utils.js";
 
 const VIDEO_SELECTOR = ".node-video";
 const VIDEO_POPOVER_SELECTOR = "#videoGeneratorPopover";
@@ -472,11 +483,11 @@ export function createVideoGeneratorWorkflow({
 
   function getSelectedVideoModelId(models = getVideoModels()) {
     const controls = getVideoControls();
-    const selected = controls.modelSelect?.value || controls.modelSelect?.dataset?.selectedModelId || "";
-    if (models.some((model) => model.id === selected)) return selected;
-    const globalModel = getSelectedModelId();
-    if (models.some((model) => model.id === globalModel)) return globalModel;
-    return models[0]?.id || "";
+    return getVideoSelectedModelId({
+      controls,
+      models,
+      selectedModelId: getSelectedModelId()
+    });
   }
 
   function getVideoModels() {
@@ -487,8 +498,7 @@ export function createVideoGeneratorWorkflow({
   }
 
   function getVideoModelById(modelId) {
-    const id = String(modelId || "").trim();
-    return getVideoModels().find((model) => model.id === id) || getVideoModels()[0] || null;
+    return getVideoModelByIdFromList(getVideoModels(), modelId);
   }
 
   function getVideoReferences(node) {
@@ -520,32 +530,15 @@ export function createVideoGeneratorWorkflow({
   };
 }
 
-function getModeOptions(allowed = {}) {
-  const options = [{ value: "reference", label: "All ref" }];
-  if (Array.isArray(allowed.return_last_frame) && allowed.return_last_frame.includes(true)) {
-    options.push({ value: "last-frame", label: "First/last" });
-  }
-  return options;
-}
-
-function toOptions(values = [], format = (value) => String(value)) {
-  return Array.from(values || []).map((value) => ({ value: String(value), label: format(value) }));
-}
-
 function getGroupValue(kind) {
   const group = globalThis.document?.querySelector?.(`${VIDEO_POPOVER_SELECTOR} [data-video-option-group="${kind}"]`);
-  const selected = group?.querySelector?.("[data-video-option].selected");
-  return selected?.dataset?.value || group?.dataset?.value || "";
+  return getVideoOptionGroupValue(group);
 }
 
 function getSavedOption(kind) {
   const active = globalThis.document?.querySelector?.(`${VIDEO_SELECTOR}.selected[data-active-selection='true']`)
     || globalThis.document?.querySelector?.(`${VIDEO_SELECTOR}.selected`);
-  return active?.dataset?.[`videoGenerator${capitalize(kind)}`] || "";
-}
-
-function formatRatioLabel(value) {
-  return String(value || DEFAULT_VIDEO_RATIO);
+  return getVideoSavedOption(active, kind);
 }
 
 function ratioToAspect(value = DEFAULT_VIDEO_RATIO) {
@@ -606,13 +599,4 @@ function getRetryAfterDelayMs(response, fallbackMs = 4000) {
   const value = Number.parseInt(response?.headers?.get?.("Retry-After") || "", 10);
   if (Number.isFinite(value) && value > 0) return value * 1000;
   return fallbackMs;
-}
-
-function capitalize(value = "") {
-  const text = String(value || "");
-  return text ? `${text[0].toUpperCase()}${text.slice(1)}` : "";
-}
-
-function clamp(value, min, max) {
-  return Math.min(max, Math.max(min, value));
 }
