@@ -1,3 +1,5 @@
+import { findActiveImageNode } from "./prompt-generation-metrics-utils.js";
+
 export async function imageSourceToDataUrl(source = "", {
   fetchImpl = globalThis.fetch,
   blobToDataUrlImpl = blobToDataUrl
@@ -23,4 +25,28 @@ export function blobToDataUrl(blob) {
 export function inferMimeTypeFromDataUrl(dataUrl = "") {
   const match = String(dataUrl || "").match(/^data:([^;,]+)/);
   return match?.[1] || "";
+}
+
+export async function readSelectedImageReference(readImageSourceAsDataUrl, {
+  root = globalThis.document,
+  warn = console.warn
+} = {}) {
+  if (typeof readImageSourceAsDataUrl !== "function") return null;
+  const node = findActiveImageNode(root);
+  const image = node?.querySelector?.("img");
+  const source = image?.currentSrc || image?.src || node?.dataset?.objectUrl || "";
+  if (!source) return null;
+  try {
+    const dataUrl = await readImageSourceAsDataUrl(source);
+    if (!dataUrl) return null;
+    return {
+      type: "image",
+      name: node?.dataset?.title || node?.querySelector?.(".node-title")?.textContent?.trim?.() || "Selected canvas image",
+      source: "canvas-selection",
+      dataUrl
+    };
+  } catch (error) {
+    warn?.("[conversation] Failed to read selected image reference", error);
+    return null;
+  }
 }

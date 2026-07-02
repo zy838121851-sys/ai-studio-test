@@ -1,6 +1,7 @@
 import {
   imageSourceToDataUrl,
-  inferMimeTypeFromDataUrl
+  inferMimeTypeFromDataUrl,
+  readSelectedImageReference
 } from "../src/client/features/workspace/chat/workflows/prompt-reference-image-utils.js";
 
 function assert(condition, message) {
@@ -44,4 +45,83 @@ assert(inferMimeTypeFromDataUrl("data:image/png;base64,abcd") === "image/png", "
 assert(inferMimeTypeFromDataUrl("data:image/svg+xml;charset=utf-8,<svg></svg>") === "image/svg+xml", "MIME inference should ignore parameters");
 assert(inferMimeTypeFromDataUrl("https://example.com/a.png") === "", "MIME inference should ignore non-data URLs");
 
+const selectedRoot = makeSelectedImageRoot({
+  title: "Canvas title",
+  imageSource: "/uploads/selected.png"
+});
+const selectedReference = await readSelectedImageReference(async (source) => {
+  assert(source === "/uploads/selected.png", "Selected image reference should read the selected image source");
+  return "data:image/png;base64,selected";
+}, { root: selectedRoot });
+assert(selectedReference.type === "image", "Selected image reference should use image type");
+assert(selectedReference.name === "Canvas title", "Selected image reference should prefer dataset title");
+assert(selectedReference.source === "canvas-selection", "Selected image reference should keep canvas source marker");
+assert(selectedReference.dataUrl === "data:image/png;base64,selected", "Selected image reference should include data URL");
+
+const fallbackTitleReference = await readSelectedImageReference(async () => "data:image/png;base64,fallback", {
+  root: makeSelectedImageRoot({
+    title: "",
+    nodeTitle: "Visible node title",
+    objectUrl: "/uploads/object.png"
+  })
+});
+assert(fallbackTitleReference.name === "Visible node title", "Selected image reference should use visible title fallback");
+
+const defaultTitleReference = await readSelectedImageReference(async () => "data:image/png;base64,default", {
+  root: makeSelectedImageRoot({
+    title: "",
+    nodeTitle: "",
+    imageSource: "/uploads/default.png"
+  })
+});
+assert(defaultTitleReference.name === "Selected canvas image", "Selected image reference should use default title fallback");
+
+assert(await readSelectedImageReference(null, { root: selectedRoot }) === null, "Selected image reference should ignore missing reader");
+assert(await readSelectedImageReference(async () => "", { root: selectedRoot }) === null, "Selected image reference should ignore empty data URLs");
+assert(await readSelectedImageReference(async () => "data:image/png;base64,none", { root: { querySelector: () => null } }) === null, "Selected image reference should ignore missing selection");
+
+const warnings = [];
+const failedReference = await readSelectedImageReference(async () => {
+  throw new Error("read failed");
+}, {
+  root: selectedRoot,
+  warn: (...args) => warnings.push(args)
+});
+assert(failedReference === null, "Selected image reference should return null after read failure");
+assert(warnings.length === 1, "Selected image reference should warn on read failure");
+
 console.log("Prompt reference image utility checks passed.");
+
+function makeSelectedImageRoot({
+  title = "Canvas title",
+  nodeTitle = "",
+  imageSource = "",
+  objectUrl = ""
+} = {}) {
+  const node = {
+    dataset: {
+      title,
+      objectUrl
+    },
+    querySelector(selector) {
+      if (selector === "img" && imageSource) {
+        return {
+          currentSrc: imageSource,
+          src: imageSource
+        };
+      }
+      if (selector === ".node-title") {
+        return {
+          textContent: nodeTitle
+        };
+      }
+      return null;
+    }
+  };
+  return {
+    querySelector(selector) {
+      if (selector === "#canvasWorld .node-image.selected[data-active-selection='true']") return node;
+      return null;
+    }
+  };
+}
