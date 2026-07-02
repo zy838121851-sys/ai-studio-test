@@ -35,6 +35,19 @@ function listen(app) {
   });
 }
 
+function summarizeStartupRequests(requestedUrls = [], origin = "") {
+  const sameOriginUrls = requestedUrls
+    .filter((url) => !origin || url.startsWith(origin))
+    .map((url) => origin ? url.slice(origin.length) || "/" : url);
+  const scriptUrls = sameOriginUrls.filter((url) => /\.js(?:$|\?)/.test(url));
+  return {
+    total: requestedUrls.length,
+    sameOrigin: sameOriginUrls.length,
+    scripts: scriptUrls.length,
+    scriptEntries: scriptUrls.slice(0, 8)
+  };
+}
+
 const app = createServer();
 const server = await listen(app);
 const browser = await chromium.launch();
@@ -93,6 +106,11 @@ try {
     `browser startup console errors: ${failedConsoleErrors.join(" | ")}`
   );
 
+  const requestSummary = summarizeStartupRequests(requestedUrls, `http://127.0.0.1:${port}`);
+  console.log(
+    `Browser startup requests: total=${requestSummary.total} same_origin=${requestSummary.sameOrigin} scripts=${requestSummary.scripts}`
+  );
+  console.log(`Browser startup script entries: ${requestSummary.scriptEntries.join(", ") || "(none)"}`);
   console.log("Browser startup lazy-load checks passed.");
 } finally {
   await browser.close();
