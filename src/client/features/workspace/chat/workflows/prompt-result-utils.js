@@ -74,6 +74,28 @@ export function buildGeneratedModelProjectPatch({
   };
 }
 
+export function buildGeneratedModelNodeOptions({
+  url = "",
+  previewWidth = 0,
+  generationPrompt = "",
+  sourceNode = null,
+  actionType = "text_to_3d",
+  model = "",
+  desc = "Generated 3D model from your prompt."
+} = {}) {
+  return {
+    title: "Tripo 3D Model",
+    desc,
+    url,
+    width: previewWidth || 360,
+    aspectRatio: "1 / 1",
+    prompt: generationPrompt,
+    sourceNode,
+    actionType,
+    model
+  };
+}
+
 export function buildGeneratedVideoNodeOptions({
   url = "",
   previewWidth = 0,

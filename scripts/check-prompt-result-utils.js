@@ -1,5 +1,6 @@
 import {
   buildGeneratedImageNodeOptions,
+  buildGeneratedModelNodeOptions,
   buildGeneratedModelProjectPatch,
   buildGeneratedProjectPatch,
   buildGeneratedVideoNodeOptions,
@@ -119,6 +120,37 @@ const fallbackModelProjectPatch = buildGeneratedModelProjectPatch({
   fallbackTitle: "3D Project"
 });
 assert(fallbackModelProjectPatch.title === "3D Project", "Generated model project patches should use fallback titles");
+
+const modelNodeOptions = buildGeneratedModelNodeOptions({
+  url: "/uploads/model.glb",
+  previewWidth: 420,
+  generationPrompt: "3D prompt",
+  actionType: "text_to_3d",
+  model: "tripo"
+});
+assert(modelNodeOptions.title === "Tripo 3D Model", "Generated model node options should preserve titles");
+assert(modelNodeOptions.desc === "Generated 3D model from your prompt.", "Generated model node options should preserve default descriptions");
+assert(modelNodeOptions.url === "/uploads/model.glb", "Generated model node options should preserve URLs");
+assert(modelNodeOptions.width === 420, "Generated model node options should prefer preview widths");
+assert(modelNodeOptions.aspectRatio === "1 / 1", "Generated model node options should preserve aspect ratios");
+assert(modelNodeOptions.prompt === "3D prompt", "Generated model node options should preserve prompts");
+assert(modelNodeOptions.actionType === "text_to_3d", "Generated model node options should preserve action types");
+assert(modelNodeOptions.model === "tripo", "Generated model node options should preserve models");
+
+const sourceNode = { dataset: { nodeId: "source-1" } };
+const imageTo3DNodeOptions = buildGeneratedModelNodeOptions({
+  url: "/uploads/image-model.glb",
+  previewWidth: 0,
+  generationPrompt: "Image to 3D",
+  sourceNode,
+  actionType: "image_to_3d",
+  model: "tripo-image",
+  desc: "Generated 3D model from your image."
+});
+assert(imageTo3DNodeOptions.width === 360, "Generated model node options should fall back to default widths");
+assert(imageTo3DNodeOptions.sourceNode === sourceNode, "Generated model node options should preserve source nodes");
+assert(imageTo3DNodeOptions.desc === "Generated 3D model from your image.", "Generated model node options should preserve custom descriptions");
+assert(imageTo3DNodeOptions.actionType === "image_to_3d", "Generated model node options should preserve image-to-3D action types");
 
 const videoNodeOptions = buildGeneratedVideoNodeOptions({
   url: "/uploads/video.mp4",

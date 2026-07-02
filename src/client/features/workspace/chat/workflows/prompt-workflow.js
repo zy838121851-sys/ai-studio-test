@@ -6,6 +6,7 @@ import {
 } from "../../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 import {
   buildGeneratedImageNodeOptions,
+  buildGeneratedModelNodeOptions,
   buildGeneratedModelProjectPatch,
   buildGeneratedProjectPatch,
   buildGeneratedVideoNodeOptions,
@@ -644,16 +645,13 @@ export function bindPromptSubmit({
           taskId: finalResult.taskId || createResult.taskId || "",
           outputCount: 1
         });
-        const modelNode = replacePreviewWithModel(previewNode, {
-          title: "Tripo 3D Model",
-          desc: "Generated 3D model from your prompt.",
+        const modelNode = replacePreviewWithModel(previewNode, buildGeneratedModelNodeOptions({
           url: modelUrl,
-          width: previewNode?.offsetWidth || 360,
-          aspectRatio: "1 / 1",
-          prompt,
+          previewWidth: previewNode?.offsetWidth,
+          generationPrompt: prompt,
           actionType: isImageTo3D ? "image_to_3d" : "text_to_3d",
           model
-        });
+        }));
         if (getPendingHomeGenerationFocus()) {
           setPendingHomeGenerationFocus(false);
           centerViewOnNode(modelNode, 1);
@@ -1125,17 +1123,15 @@ function bindImageTo3DRequests({
       const modelUrl = finalResult.localModelUrl || finalResult.modelUrl || "";
       if (!modelUrl) throw new Error("3D 模型生成完成，但没有返回模型地址。");
       updateChat(progress, "3D 模型生成完成\n正在添加到画布...");
-      const modelNode = replacePreviewWithModel(previewNode, {
-        title: "Tripo 3D Model",
-        desc: "Generated 3D model from your image.",
+      const modelNode = replacePreviewWithModel(previewNode, buildGeneratedModelNodeOptions({
         url: modelUrl,
-        width: previewNode?.offsetWidth || 360,
-        aspectRatio: "1 / 1",
-        prompt: "Image to 3D",
+        previewWidth: previewNode?.offsetWidth,
+        generationPrompt: "Image to 3D",
         sourceNode: node,
         actionType: "image_to_3d",
-        model: modelId
-      });
+        model: modelId,
+        desc: "Generated 3D model from your image."
+      }));
       const activeProject = getActiveProject?.();
       updateActiveProject?.(buildGeneratedModelProjectPatch({
         project: activeProject,
