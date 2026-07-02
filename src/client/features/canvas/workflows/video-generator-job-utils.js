@@ -93,6 +93,26 @@ export async function waitForVideoJob(jobId, {
   throw new Error(`Generation is still running. Job ID: ${lastPayload.jobId || jobId}`);
 }
 
+export async function runVideoRequest({
+  model,
+  prompt,
+  images = [],
+  videoOptions = {},
+  defaultSize = "16:9",
+  onProgress = null,
+  postJsonRequest = postVideoJson
+} = {}) {
+  const result = await postJsonRequest("/api/ai/generate", createVideoGenerationPayload({
+    model,
+    prompt,
+    images,
+    videoOptions,
+    defaultSize
+  }));
+  if (result?.videoUrl || !result?.jobId) return result;
+  return waitForVideoJob(result.jobId, { fallback: result, onProgress });
+}
+
 export function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

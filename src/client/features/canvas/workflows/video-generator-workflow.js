@@ -14,10 +14,9 @@ import {
   setVideoStatusText
 } from "./video-generator-form-state-utils.js";
 import {
-  createVideoGenerationPayload,
   getResultVideoUrl,
   postVideoJson,
-  waitForVideoJob
+  runVideoRequest
 } from "./video-generator-job-utils.js";
 import {
   formatRatioLabel,
@@ -222,6 +221,8 @@ export function createVideoGeneratorWorkflow({
         prompt,
         images,
         videoOptions,
+        defaultSize: DEFAULT_VIDEO_RATIO,
+        postJsonRequest,
         onProgress: (payload) => {
           const progress = Number(payload?.progress || 0);
           updatePreviewStatus(previewNode, progress > 0 ? `Waiting for video (${Math.min(99, progress)}%)` : "Waiting for video...");
@@ -250,18 +251,6 @@ export function createVideoGeneratorWorkflow({
     } finally {
       if (node?.isConnected) setVideoBusy(node, false);
     }
-  }
-
-  async function runVideoRequest({ model, prompt, images = [], videoOptions = {}, onProgress = null } = {}) {
-    const result = await postJsonRequest("/api/ai/generate", createVideoGenerationPayload({
-      model,
-      prompt,
-      images,
-      videoOptions,
-      defaultSize: DEFAULT_VIDEO_RATIO
-    }));
-    if (result?.videoUrl || !result?.jobId) return result;
-    return waitForVideoJob(result.jobId, { fallback: result, onProgress });
   }
 
   function createVideoPreviewNode(node, { prompt = "", aspectRatio = "16 / 9" } = {}) {
