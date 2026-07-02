@@ -103,9 +103,9 @@ function applyNodeSnapshot(node, item) {
   if (item.className) node.className = item.className;
   if (item.style) node.setAttribute("style", item.style);
   Object.entries(item.dataset || {}).forEach(([key, value]) => {
-    if (key === "objectUrl" && isTransientUrl(value)) return;
-    const nextValue = key === "objectUrl" ? normalizePersistentMediaUrl(value) : value;
-    if (key === "objectUrl" && !nextValue) return;
+    if (isTransientUrl(value)) return;
+    const nextValue = normalizeSnapshotDatasetValue(value);
+    if (!nextValue && looksLikeMediaDatasetKey(key)) return;
     node.dataset[key] = nextValue;
   });
   if ((item.kind || item.dataset?.kind) === "image" && node.style.width) {
@@ -164,11 +164,16 @@ function sanitizeSnapshotDataset(dataset = {}, resolveAssetUrl = null, title = "
     const resolved = resolvePersistentUrl(resolveAssetUrl, { title, url: next.objectUrl });
     if (resolved) next.objectUrl = resolved;
     else delete next.objectUrl;
-  } else if (next.objectUrl) {
-    const normalized = normalizePersistentMediaUrl(next.objectUrl);
-    if (normalized) next.objectUrl = normalized;
-    else delete next.objectUrl;
   }
+  Object.entries(next).forEach(([key, value]) => {
+    if (isTransientUrl(value)) {
+      delete next[key];
+      return;
+    }
+    const normalized = normalizeSnapshotDatasetValue(value);
+    if (looksLikeMediaDatasetKey(key) && !normalized) delete next[key];
+    else next[key] = normalized;
+  });
   return next;
 }
 
@@ -187,7 +192,7 @@ function snapshotNodeHtml(node, kind = "", mediaUrl = "") {
     const src = item.getAttribute("src") || item.src || "";
     if (isTransientUrl(src)) item.removeAttribute("src");
   });
-  return stripTransientUrls(clone.innerHTML || rawHtml);
+  return normalizeSnapshotHtmlMediaUrls(stripTransientUrls(clone.innerHTML || rawHtml));
 }
 
 function sanitizeMediaElementSource(element, mediaUrl = "") {
@@ -208,6 +213,19 @@ function extractSnapshotHtmlMediaUrl(html = "") {
 
 function stripTransientUrls(html = "") {
   return String(html || "").replace(/blob:[^"'<>\s]+/g, "");
+}
+
+function normalizeSnapshotHtmlMediaUrls(html = "") {
+  return String(html || "").replace(
+    /\s(src|href|poster)=("([^"]*)"|'([^']*)')/gi,
+    (match, attribute, _quoted, doubleValue, singleValue) => {
+      const rawValue = doubleValue ?? singleValue ?? "";
+      const normalized = normalizePersistentMediaUrl(rawValue);
+      if (!normalized) return "";
+      const quote = doubleValue === undefined ? "'" : "\"";
+      return ` ${attribute}=${quote}${normalized}${quote}`;
+    }
+  );
 }
 
 function decodeHtmlAttribute(value = "") {
@@ -252,6 +270,7 @@ export function isRestorableSnapshotItem(item = {}) {
   const html = String(item?.html || "");
   return kind !== "loading-image"
     && !/\bnode-loading-image\b/.test(className)
+    && !/\bgeneration-frame\b/.test(className)
     && !/\bgeneration-frame\b/.test(html);
 }
 
@@ -283,6 +302,14 @@ function resolvePersistentUrl(resolveAssetUrl, details = {}) {
   } catch {
     return "";
   }
+}
+
+function normalizeSnapshotDatasetValue(value = "") {
+  return normalizePersistentMediaUrl(value);
+}
+
+function looksLikeMediaDatasetKey(key = "") {
+  return /(?:url|src|poster|thumbnail|media|model|object)/i.test(String(key || ""));
 }
 
 function parseSnapshot(snapshotJson) {

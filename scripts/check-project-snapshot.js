@@ -33,7 +33,7 @@ assert(
 assert(
   !isRestorableSnapshotItem({
     kind: "loading-image",
-    className: "node-card node-loading-image",
+    className: "node-card node-loading-image generation-frame",
     html: "<figure class=\"image-frame generation-frame\"></figure>"
   }),
   "Loading image snapshot nodes should not be restorable"
@@ -114,6 +114,24 @@ assert(savedSnapshot.nodes[0].media.url === "/uploads/a.png", "Saved media URLs 
 assert(savedSnapshot.nodes[0].dataset.objectUrl === "/uploads/a.png", "Saved dataset media URLs should be stable relative paths");
 assert(savedSnapshot.nodes[0].html.includes("src=\"/uploads/a.png\""), "Saved snapshot HTML should use stable relative media paths");
 
+const savedVideoPatch = createProjectSavePatch({
+  project: { title: "Video snapshot test" },
+  canvasWorld: makeCanvasWorld([
+    makeCanvasNode({
+      kind: "video",
+      className: "node-card node-video",
+      objectUrl: "http://localhost:3000/uploads/video.mp4",
+      videoUrl: "http://localhost:3000/uploads/video.mp4",
+      html: "<video src=\"http://localhost:3000/uploads/video.mp4\" poster=\"http://localhost:3000/uploads/poster.png\"></video>"
+    })
+  ])
+});
+const savedVideoSnapshot = JSON.parse(savedVideoPatch.canvasSnapshotJson);
+assert(savedVideoSnapshot.nodes[0].media.url === "/uploads/video.mp4", "Saved video media URLs should be stable relative paths");
+assert(savedVideoSnapshot.nodes[0].dataset.objectUrl === "/uploads/video.mp4", "Saved video dataset URLs should be stable relative paths");
+assert(savedVideoSnapshot.nodes[0].html.includes("src=\"/uploads/video.mp4\""), "Saved video HTML src should use stable relative media paths");
+assert(savedVideoSnapshot.nodes[0].html.includes("poster=\"/uploads/poster.png\""), "Saved video HTML poster should use stable relative media paths");
+
 const projectWorkflowSource = readFileSync(
   new URL("../src/client/features/projects/workflows/project-workflow.js", import.meta.url),
   "utf8"
@@ -177,9 +195,11 @@ function makeCanvasNode({
   className = "node-card node-image",
   objectUrl = "",
   imageUrl = "",
+  videoUrl = "",
   html = ""
 } = {}) {
   const image = imageUrl ? makeImageElement(imageUrl) : null;
+  const video = videoUrl ? makeVideoElement(videoUrl) : null;
   return {
     dataset: {
       kind,
@@ -204,7 +224,8 @@ function makeCanvasNode({
     querySelector(selector) {
       if (selector === ".generation-frame") return className.includes("node-loading-image") ? {} : null;
       if (selector === ".image-frame img") return image;
-      if (selector === "video" || selector === ".canvas-text-editor" || selector === "p") return null;
+      if (selector === "video") return video;
+      if (selector === ".canvas-text-editor" || selector === "p") return null;
       if (selector === ".image-file-name" || selector === "h3") return { textContent: "Generated Image.png" };
       return null;
     },
@@ -213,6 +234,7 @@ function makeCanvasNode({
         innerHTML: html,
         querySelector(selector) {
           if (selector === ".image-frame img") return makeSnapshotImageElement(clone, imageUrl);
+          if (selector === "video") return makeSnapshotImageElement(clone, videoUrl);
           return null;
         },
         querySelectorAll() {
@@ -235,6 +257,10 @@ function makeImageElement(url = "") {
       if (name === "src") this.src = "";
     }
   };
+}
+
+function makeVideoElement(url = "") {
+  return makeImageElement(url);
 }
 
 function makeSnapshotImageElement(clone, url = "") {
