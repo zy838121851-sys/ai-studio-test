@@ -1,9 +1,9 @@
 import { createWorkspaceCanvasGenerationCompositionRuntime } from "./workspace-canvas-generation-composition.js";
 import { createWorkspaceCanvasInteractionCompositionRuntime } from "./workspace-canvas-interaction-composition.js";
 import { createWorkspaceCanvasOperationsCompositionRuntime } from "./workspace-canvas-operations-composition.js";
-import { createWorkspaceCanvasSelectionCompositionRuntime } from "./workspace-canvas-selection-composition.js";
 import { createWorkspaceCanvasSurfaceCompositionRuntime } from "./workspace-canvas-surface-composition.js";
 import { createWorkspaceCanvasNodeDragAppRuntime } from "../runtime/canvas-node-drag-runtime.js";
+import { createWorkspaceCanvasSelectionAppRuntime } from "../runtime/canvas-selection-runtime.js";
 import { createCanvasGenerationRuntimeInputs } from "./workspace-canvas-generation-inputs.js";
 import { createCanvasInteractionRuntimeInputs } from "./workspace-canvas-interaction-inputs.js";
 import { createCanvasNodeDragRuntimeInputs } from "./workspace-canvas-node-drag-inputs.js";
@@ -53,6 +53,38 @@ function createWorkspaceCanvasNodeDragCompositionRuntime({
       setTextNodeEditing: services.setTextNodeEditing,
       findCanvasNodeById: services.findCanvasNodeById,
       recordUndoAction: services.recordUndoAction
+    }
+  });
+}
+
+function createWorkspaceCanvasSelectionCompositionRuntime({
+  document,
+  elements,
+  state,
+  toolbars,
+  services,
+  actions
+}) {
+  return createWorkspaceCanvasSelectionAppRuntime({
+    document,
+    elements,
+    state,
+    services: {
+      hideTextToolbar: () => services.hideTextToolbar(toolbars.textFormatToolbar),
+      hideShapeToolbar: services.hideShapeToolbar,
+      getTextFormatToolbar: () => toolbars.textFormatToolbar,
+      positionTextFormatToolbar: services.positionTextFormatToolbar,
+      positionShapeFormatToolbar: services.positionShapeFormatToolbar,
+      recordCanvasEvent: actions.recordCanvasEvent,
+      scheduleAICoreAgent: (...args) => {
+        globalThis.scheduleAICoreAgent?.(...args);
+      },
+      clearSelectedNodeElements: services.clearSelectedNodeElements,
+      addSelectedNodeElement: services.addSelectedNodeElement,
+      replaceSelectedNodeElements: services.replaceSelectedNodeElements,
+      getSelectedNodeDeletePayload: services.getSelectedNodeDeletePayload,
+      recordUndoAction: actions.recordUndoAction,
+      removeCanvasNodeDeep: services.removeCanvasNodeDeep
     }
   });
 }
