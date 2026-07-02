@@ -56,6 +56,15 @@ import {
   getGeneratorPopoverMetrics,
   getVisibleGeneratorPopoverPosition
 } from "./image-generator-popover-position-utils.js";
+import {
+  getGeneratorCountValue,
+  getGeneratorModelValue,
+  getGeneratorRatioValueFromControls,
+  getSyncedGeneratorModelValue,
+  saveGeneratorControlDataset,
+  setGeneratorModelSelectValue,
+  setSelectValue
+} from "./image-generator-control-state-utils.js";
 
 const GENERATOR_SELECTOR = ".node-image-generator";
 const GENERATOR_POPOVER_SELECTOR = "#imageGeneratorPopover";
@@ -1138,10 +1147,10 @@ export function createImageGeneratorWorkflow({
   }
 
   function saveGeneratorControlState(node) {
-    if (!node) return;
-    const controls = getGeneratorControls();
-    if (controls.ratioSelect) node.dataset.generatorRatio = controls.ratioSelect.value || DEFAULT_GENERATOR_RATIO;
-    if (controls.countSelect) node.dataset.generatorCount = controls.countSelect.value || DEFAULT_GENERATOR_COUNT;
+    saveGeneratorControlDataset(node, getGeneratorControls(), {
+      defaultRatio: DEFAULT_GENERATOR_RATIO,
+      defaultCount: DEFAULT_GENERATOR_COUNT
+    });
   }
 
   function restoreGeneratorControlState(node) {
@@ -1162,31 +1171,15 @@ export function createImageGeneratorWorkflow({
   }
 
   function getSyncedGeneratorModel() {
-    return getSelectedModelId() || DEFAULT_GENERATOR_MODEL;
-  }
-
-  function setGeneratorModelSelectValue(select, value) {
-    if (!select) return;
-    setSelectValue(select, value);
-    select.dataset.selectedModelId = select.value || "";
-    select.dataset.modelUserSelected = "true";
-    select.dataset.modelAuto = "false";
-  }
-
-  function setSelectValue(select, value) {
-    if (!select) return;
-    const hasValue = Array.from(select.options || []).some((option) => option.value === value);
-    select.value = hasValue ? value : select.options?.[0]?.value || "";
+    return getSyncedGeneratorModelValue(getSelectedModelId(), DEFAULT_GENERATOR_MODEL);
   }
 
   function getGeneratorRatioValue(node) {
-    return getGeneratorControls().ratioSelect?.value || node?.dataset.generatorRatio || DEFAULT_GENERATOR_RATIO;
+    return getGeneratorRatioValueFromControls(getGeneratorControls(), node, DEFAULT_GENERATOR_RATIO);
   }
 
   function getGeneratorCount() {
-    const value = Number.parseInt(getGeneratorControls().countSelect?.value || DEFAULT_GENERATOR_COUNT, 10);
-    if (!Number.isFinite(value) || value <= 0) return Number(DEFAULT_GENERATOR_COUNT);
-    return Math.max(1, Math.min(4, value));
+    return getGeneratorCountValue(getGeneratorControls(), DEFAULT_GENERATOR_COUNT);
   }
 
   function syncGeneratorFrameToRatio(node, ratio = DEFAULT_GENERATOR_RATIO) {
@@ -1555,11 +1548,11 @@ function getActiveGeneratorNode() {
 function getGeneratorModel() {
   const generatorSelect = globalThis.document?.querySelector?.(`${GENERATOR_POPOVER_SELECTOR} [data-generator-model]`);
   const chatSelect = globalThis.document?.querySelector?.("#chatModelSelect");
-  return generatorSelect?.dataset?.selectedModelId
-    || generatorSelect?.value
-    || chatSelect?.dataset?.selectedModelId
-    || chatSelect?.value
-    || DEFAULT_GENERATOR_MODEL;
+  return getGeneratorModelValue({
+    generatorSelect,
+    chatSelect,
+    defaultModel: DEFAULT_GENERATOR_MODEL
+  });
 }
 
 function resolveGeneratorOutputSize(node, references = []) {
