@@ -474,7 +474,7 @@ export function createImageGeneratorWorkflow({
               : "Waiting for video result...");
           }
         });
-        const videoUrl = getPrimaryResultVideoUrl(result);
+        const videoUrl = getPrimaryGeneratorResultUrl(result, "video");
         if (!videoUrl) throw new Error(getMissingGeneratorResultMessage(result, "video"));
         resultModel = getGeneratorResultModel(result, model);
         warnIfGeneratorModelMismatch(model, resultModel, result);
@@ -537,7 +537,7 @@ export function createImageGeneratorWorkflow({
               : `正在生成第 ${index + 1}/${count} 张`);
           }
         });
-        const imageUrl = getPrimaryResultImageUrl(result);
+        const imageUrl = getPrimaryGeneratorResultUrl(result);
         if (!imageUrl) throw new Error(getMissingGeneratorResultMessage(result));
         resultModel = getGeneratorResultModel(result, model);
         warnIfGeneratorModelMismatch(model, resultModel, result);
@@ -1172,9 +1172,7 @@ export function createImageGeneratorWorkflow({
         error: new Error(lastPayload.failureMessage || lastPayload.errorMessage || lastPayload.error || lastPayload.status)
       };
     }
-    const resultUrls = expectedType === "video"
-      ? getResultVideoUrls(lastPayload)
-      : getResultImageUrls(lastPayload);
+    const resultUrls = getGeneratorResultUrls(lastPayload, expectedType);
     return {
       retryMissingUrl: !resultUrls.length,
       error: resultUrls.length ? null : new Error(getMissingGeneratorResultMessage(lastPayload, expectedType))
@@ -1255,6 +1253,16 @@ export function createImageGeneratorWorkflow({
 
   function getPrimaryResultImageUrl(result = {}) {
     return getResultImageUrls(result)[0] || "";
+  }
+
+  function getGeneratorResultUrls(result = {}, expectedType = "image") {
+    return expectedType === "video"
+      ? getResultVideoUrls(result)
+      : getResultImageUrls(result);
+  }
+
+  function getPrimaryGeneratorResultUrl(result = {}, expectedType = "image") {
+    return getGeneratorResultUrls(result, expectedType)[0] || "";
   }
 
   function getResultVideoUrls(result = {}) {
