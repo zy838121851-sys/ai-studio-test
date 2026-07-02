@@ -476,7 +476,7 @@ export function createImageGeneratorWorkflow({
         });
         const videoUrl = getPrimaryResultVideoUrl(result);
         if (!videoUrl) throw new Error(getMissingGeneratorResultMessage(result, "video"));
-        resultModel = result.requestedModel || result.model || model;
+        resultModel = getGeneratorResultModel(result, model);
         warnIfGeneratorModelMismatch(model, resultModel, result);
         modelUsage = formatModelUsage(result, resultModel);
         replaceGeneratorVideoPreview(previewNodes[0], videoUrl);
@@ -507,7 +507,7 @@ export function createImageGeneratorWorkflow({
         });
         const resultUrls = getResultImageUrls(result);
         if (resultUrls.length < count) throw new Error(`Midjourney returned ${resultUrls.length || 0}/${count} images`);
-        resultModel = result.requestedModel || result.model || model;
+        resultModel = getGeneratorResultModel(result, model);
         warnIfGeneratorModelMismatch(model, resultModel, result);
         modelUsage = formatModelUsage(result, resultModel);
         resultUrls.slice(0, count).forEach((url, index) => {
@@ -539,7 +539,7 @@ export function createImageGeneratorWorkflow({
         });
         const imageUrl = getPrimaryResultImageUrl(result);
         if (!imageUrl) throw new Error(getMissingGeneratorResultMessage(result));
-        resultModel = result.requestedModel || result.model || model;
+        resultModel = getGeneratorResultModel(result, model);
         warnIfGeneratorModelMismatch(model, resultModel, result);
         modelUsage = formatModelUsage(result, resultModel);
 
@@ -1197,6 +1197,10 @@ export function createImageGeneratorWorkflow({
     const value = Number.parseInt(response?.headers?.get?.("Retry-After") || "", 10);
     if (Number.isFinite(value) && value > 0) return value * 1000;
     return fallbackMs;
+  }
+
+  function getGeneratorResultModel(result = {}, fallbackModel = "") {
+    return result?.requestedModel || result?.model || fallbackModel;
   }
 
   function warnIfGeneratorModelMismatch(selectedModel, returnedModel, result = {}) {
