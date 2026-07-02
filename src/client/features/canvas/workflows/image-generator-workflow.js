@@ -43,6 +43,11 @@ import {
   mergeGeneratorReferences,
   removeGeneratorReferenceAtIndex
 } from "./image-generator-reference-utils.js";
+import {
+  getGeneratorSelectByKind,
+  getGeneratorSelectKind,
+  getGeneratorSelectTriggerText
+} from "./image-generator-select-utils.js";
 
 const GENERATOR_SELECTOR = ".node-image-generator";
 const GENERATOR_POPOVER_SELECTOR = "#imageGeneratorPopover";
@@ -1245,8 +1250,7 @@ export function createImageGeneratorWorkflow({
     const menu = wrap?.querySelector?.("[data-generator-select-menu]");
     if (!wrap || !trigger || !menu) return;
     wrap.classList.remove("open");
-    const selectedOption = select.selectedOptions?.[0] || select.options?.[select.selectedIndex] || select.options?.[0];
-    trigger.textContent = selectedOption?.dataset?.modelLabel || selectedOption?.textContent || "";
+    trigger.textContent = getGeneratorSelectTriggerText(select);
     trigger.disabled = select.disabled;
     trigger.dataset.value = select.value || "";
     menu.classList.remove("model-preference-menu");
@@ -1297,7 +1301,7 @@ export function createImageGeneratorWorkflow({
 
   function chooseGeneratorCustomSelectOption(option) {
     const kind = option.dataset.generatorSelectOption;
-    const select = getGeneratorSelectByKind(kind);
+    const select = getGeneratorSelectByKind(getGeneratorControls(), kind);
     if (!select) return;
     select.value = option.dataset.value || "";
     select.dispatchEvent(new Event("change", { bubbles: true }));
@@ -1307,21 +1311,6 @@ export function createImageGeneratorWorkflow({
   function closeGeneratorCustomSelects() {
     getGeneratorPopover()?.querySelectorAll?.(".generator-select-wrap.open")
       .forEach((wrap) => wrap.classList.remove("open"));
-  }
-
-  function getGeneratorSelectByKind(kind) {
-    const controls = getGeneratorControls();
-    if (kind === "model") return controls.modelSelect;
-    if (kind === "ratio") return controls.ratioSelect;
-    if (kind === "count") return controls.countSelect;
-    return null;
-  }
-
-  function getGeneratorSelectKind(select) {
-    if (select?.matches?.("[data-generator-model]")) return "model";
-    if (select?.matches?.("[data-generator-ratio]")) return "ratio";
-    if (select?.matches?.("[data-generator-count]")) return "count";
-    return "unknown";
   }
 
   function observeGeneratorPosition(node) {
