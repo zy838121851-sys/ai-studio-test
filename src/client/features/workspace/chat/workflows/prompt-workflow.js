@@ -478,6 +478,34 @@ export function bindPromptSubmit({
       }));
       refreshAgentBlocks();
     };
+    const createGeneratedVideoNode = ({ url = "", generationPrompt = "", resultModel = "" } = {}) => {
+      if (typeof replacePreviewWithVideo !== "function") {
+        throw new Error("Video preview workflow is unavailable.");
+      }
+      return replacePreviewWithVideo(previewNode, buildGeneratedVideoNodeOptions({
+        url,
+        previewWidth: previewNode?.offsetWidth,
+        generationMetrics,
+        generationPrompt,
+        model: resultModel
+      }));
+    };
+    const createGeneratedImageNodes = ({
+      imageUrls = [],
+      generationPrompt = "",
+      resultModel = ""
+    } = {}) => imageUrls
+      .map((imageUrl, index) => replacePreviewWithImage(previewNodes[index] || previewNodes[0], buildGeneratedImageNodeOptions({
+        url: imageUrl,
+        index,
+        total: imageUrls.length,
+        previewWidth: (previewNodes[index] || previewNodes[0])?.offsetWidth,
+        generationMetrics,
+        generationPrompt,
+        actionType: detectGenerationKind(generationPrompt),
+        model: resultModel
+      })))
+      .filter(Boolean);
     const handleAgentStreamEvent = (event = {}) => {
       if (activeChatAgentRunId !== agentDebug.runId) return;
       if (applyAgentProgressStreamEvent(agentBlocksState, event, { prompt })) {
@@ -938,16 +966,11 @@ export function bindPromptSubmit({
 
       const videoUrls = getResultVideoUrls(finalResult);
       if (videoModel && videoUrls.length) {
-        if (typeof replacePreviewWithVideo !== "function") {
-          throw new Error("Video preview workflow is unavailable.");
-        }
-        const videoNode = replacePreviewWithVideo(previewNode, buildGeneratedVideoNodeOptions({
+        const videoNode = createGeneratedVideoNode({
           url: videoUrls[0],
-          previewWidth: previewNode?.offsetWidth,
-          generationMetrics,
           generationPrompt,
-          model: resultModel
-        }));
+          resultModel
+        });
         centerPendingHomeGenerationNode(videoNode);
         await commitGeneratedProjectPatch(buildGeneratedProjectPatch({
           project: getActiveProject(),
@@ -983,16 +1006,11 @@ export function bindPromptSubmit({
         window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
       } else if (getResultImageUrls(finalResult).length) {
         const imageUrls = getResultImageUrls(finalResult);
-        const imageNodes = imageUrls.map((imageUrl, index) => replacePreviewWithImage(previewNodes[index] || previewNodes[0], buildGeneratedImageNodeOptions({
-          url: imageUrl,
-          index,
-          total: imageUrls.length,
-          previewWidth: (previewNodes[index] || previewNodes[0])?.offsetWidth,
-          generationMetrics,
+        const imageNodes = createGeneratedImageNodes({
+          imageUrls,
           generationPrompt,
-          actionType: detectGenerationKind(generationPrompt),
-          model: resultModel
-        }))).filter(Boolean);
+          resultModel
+        });
         const imageNode = imageNodes[0] || null;
         centerPendingHomeGenerationNode(imageNode);
         await commitGeneratedProjectPatch(buildGeneratedProjectPatch({
