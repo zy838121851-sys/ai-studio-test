@@ -54,6 +54,26 @@ export function buildGeneratedProjectPatch({
   };
 }
 
+export function buildGeneratedModelProjectPatch({
+  project = null,
+  titlePrompt = "",
+  storedPrompt = "",
+  thumbnail = "",
+  itemCountIncrement = 1,
+  makeProjectTitle = null,
+  fallbackTitle = ""
+} = {}) {
+  const title = project?.title
+    || (typeof makeProjectTitle === "function" ? makeProjectTitle(titlePrompt) : titlePrompt)
+    || fallbackTitle;
+  return {
+    title,
+    prompt: storedPrompt,
+    thumbnail,
+    itemCount: (project?.itemCount || 0) + itemCountIncrement
+  };
+}
+
 export function buildGeneratedVideoNodeOptions({
   url = "",
   previewWidth = 0,

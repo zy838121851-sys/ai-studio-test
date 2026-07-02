@@ -1,5 +1,6 @@
 import {
   buildGeneratedImageNodeOptions,
+  buildGeneratedModelProjectPatch,
   buildGeneratedProjectPatch,
   buildGeneratedVideoNodeOptions,
   getResultImageUrls,
@@ -85,6 +86,39 @@ const newProjectPatch = buildGeneratedProjectPatch({
 });
 assert(newProjectPatch.title === "Title: Optimized prompt", "Generated project patches should title new projects from generation prompts");
 assert(newProjectPatch.itemCount === 1, "Generated project patches should handle missing item counts");
+
+const modelProjectPatch = buildGeneratedModelProjectPatch({
+  project: { title: "3D title", itemCount: 1 },
+  titlePrompt: "3D prompt",
+  storedPrompt: "3D prompt",
+  thumbnail: "/uploads/model.glb",
+  itemCountIncrement: 1,
+  makeProjectTitle: (value) => `Title: ${value}`
+});
+assert(modelProjectPatch.title === "3D title", "Generated model project patches should preserve existing titles");
+assert(modelProjectPatch.prompt === "3D prompt", "Generated model project patches should store selected prompts");
+assert(modelProjectPatch.thumbnail === "/uploads/model.glb", "Generated model project patches should store thumbnails");
+assert(modelProjectPatch.itemCount === 2, "Generated model project patches should increment item counts");
+
+const newModelProjectPatch = buildGeneratedModelProjectPatch({
+  project: { itemCount: 0 },
+  titlePrompt: "Image to 3D",
+  storedPrompt: "Existing prompt",
+  thumbnail: "/uploads/model.glb",
+  makeProjectTitle: null,
+  fallbackTitle: "3D Project"
+});
+assert(newModelProjectPatch.title === "Image to 3D", "Generated model project patches should use title prompts before fallback titles");
+assert(newModelProjectPatch.prompt === "Existing prompt", "Generated model project patches should preserve stored prompt overrides");
+assert(newModelProjectPatch.itemCount === 1, "Generated model project patches should handle missing model item counts");
+
+const fallbackModelProjectPatch = buildGeneratedModelProjectPatch({
+  project: null,
+  titlePrompt: "",
+  storedPrompt: "Image to 3D",
+  fallbackTitle: "3D Project"
+});
+assert(fallbackModelProjectPatch.title === "3D Project", "Generated model project patches should use fallback titles");
 
 const videoNodeOptions = buildGeneratedVideoNodeOptions({
   url: "/uploads/video.mp4",

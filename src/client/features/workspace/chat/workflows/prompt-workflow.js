@@ -6,6 +6,7 @@ import {
 } from "../../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 import {
   buildGeneratedImageNodeOptions,
+  buildGeneratedModelProjectPatch,
   buildGeneratedProjectPatch,
   buildGeneratedVideoNodeOptions,
   getResultImageUrls,
@@ -657,12 +658,14 @@ export function bindPromptSubmit({
           setPendingHomeGenerationFocus(false);
           centerViewOnNode(modelNode, 1);
         }
-        updateActiveProject({
-          title: getActiveProject()?.title || makeProjectTitle(prompt),
-          prompt,
+        updateActiveProject(buildGeneratedModelProjectPatch({
+          project: getActiveProject(),
+          titlePrompt: prompt,
+          storedPrompt: prompt,
           thumbnail: finalResult.renderedImageUrl || modelUrl,
-          itemCount: (getActiveProject()?.itemCount || 0) + 1
-        });
+          itemCountIncrement: 1,
+          makeProjectTitle
+        }));
         await saveCurrentProjectAfterGeneration?.();
         onProjectTitleRefresh();
         progress?.classList?.remove("loading");
@@ -1133,12 +1136,16 @@ function bindImageTo3DRequests({
         actionType: "image_to_3d",
         model: modelId
       });
-      updateActiveProject?.({
-        title: getActiveProject?.()?.title || makeProjectTitle?.("Image to 3D") || "3D Project",
-        prompt: getActiveProject?.()?.prompt || "Image to 3D",
+      const activeProject = getActiveProject?.();
+      updateActiveProject?.(buildGeneratedModelProjectPatch({
+        project: activeProject,
+        titlePrompt: "Image to 3D",
+        storedPrompt: activeProject?.prompt || "Image to 3D",
         thumbnail: finalResult.renderedImageUrl || modelUrl,
-        itemCount: (getActiveProject?.()?.itemCount || 0) + 1
-      });
+        itemCountIncrement: 1,
+        makeProjectTitle,
+        fallbackTitle: "3D Project"
+      }));
       await saveCurrentProjectAfterGeneration?.();
       progress?.classList?.remove("loading");
       updateChat(progress, "3D 模型生成完成");
