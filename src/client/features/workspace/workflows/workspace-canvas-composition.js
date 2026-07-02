@@ -1,7 +1,7 @@
 import { createWorkspaceCanvasGenerationCompositionRuntime } from "./workspace-canvas-generation-composition.js";
-import { createWorkspaceCanvasInteractionCompositionRuntime } from "./workspace-canvas-interaction-composition.js";
 import { createWorkspaceCanvasOperationsCompositionRuntime } from "./workspace-canvas-operations-composition.js";
 import { createWorkspaceCanvasSurfaceCompositionRuntime } from "./workspace-canvas-surface-composition.js";
+import { createWorkspaceCanvasInteractionAppRuntime } from "../runtime/canvas-interaction-runtime.js";
 import { createWorkspaceCanvasNodeDragAppRuntime } from "../runtime/canvas-node-drag-runtime.js";
 import { createWorkspaceCanvasSelectionAppRuntime } from "../runtime/canvas-selection-runtime.js";
 import { createCanvasGenerationRuntimeInputs } from "./workspace-canvas-generation-inputs.js";
@@ -54,6 +54,44 @@ function createWorkspaceCanvasNodeDragCompositionRuntime({
       findCanvasNodeById: services.findCanvasNodeById,
       recordUndoAction: services.recordUndoAction
     }
+  });
+}
+
+function createWorkspaceCanvasInteractionCompositionRuntime({
+  elements,
+  state,
+  services,
+  defaults
+}) {
+  return createWorkspaceCanvasInteractionAppRuntime({
+    elements,
+    state,
+    services: {
+      createImageTextPanel: services.createImageTextPanel,
+      getImageTextEdits: services.getImageTextEdits,
+      renderImageTextInputs: services.renderImageTextInputs,
+      positionImageTextPanelElement: services.positionImageTextPanelElement,
+      readImageSourceAsDataUrl: services.readImageSourceAsDataUrl,
+      postJsonRequest: services.postJsonRequest,
+      runImageEditCommand: services.runImageEditCommand,
+      getImageEditModel: services.getImageEditModel,
+      buildImageTextEditPrompt: services.buildImageTextEditPrompt,
+      hideCanvasContextMenu: (...args) => services.hideCanvasContextMenu(...args),
+      hideAddNodeMenu: (...args) => services.hideAddNodeMenu(...args),
+      selectNode: (...args) => services.selectNode(...args),
+      positionImageEditPopoverElement: services.positionImageEditPopoverElement,
+      showViewportMenu: (...args) => services.showViewportMenu(...args),
+      isFixedStrokeToolName: services.isFixedStrokeToolName,
+      isLinearDrawToolName: services.isLinearDrawToolName,
+      getTextEditorFromNode: services.getTextEditorFromNode,
+      setTextNodeEditingState: services.setTextNodeEditingState,
+      focusTextEditorAtEnd: services.focusTextEditorAtEnd,
+      hideTextToolbar: services.hideTextToolbar,
+      positionTextToolbar: services.positionTextToolbar,
+      applyTextEditorStyle: services.applyTextEditorStyle,
+      recordUndoAction: services.recordUndoAction
+    },
+    defaults
   });
 }
 
