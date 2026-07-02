@@ -27,6 +27,12 @@ import {
   getVideoSelectedModelId,
   toOptions
 } from "./video-generator-option-utils.js";
+import {
+  getPreviewNodeWidth,
+  getVideoPreviewPlacement,
+  markVideoPreviewFailed,
+  updatePreviewStatus
+} from "./video-generator-preview-utils.js";
 
 const VIDEO_SELECTOR = ".node-video";
 const VIDEO_POPOVER_SELECTOR = "#videoGeneratorPopover";
@@ -294,17 +300,6 @@ export function createVideoGeneratorWorkflow({
     return previewNode;
   }
 
-  function getVideoPreviewPlacement(node) {
-    const x = Number.parseFloat(node?.style?.left || "0") || 0;
-    const y = Number.parseFloat(node?.style?.top || "0") || 0;
-    const width = Math.max(260, Math.min(640, node?.offsetWidth || 420));
-    return {
-      x: x + Math.max(36, Math.min(96, width * 0.18)),
-      y: y + Math.max(36, Math.min(96, (node?.offsetHeight || width * 0.56) * 0.18)),
-      width
-    };
-  }
-
   function refreshVideoModelOptions() {
     const controls = getVideoControls();
     const select = controls.modelSelect;
@@ -549,26 +544,6 @@ function getSavedOption(kind) {
 
 function ratioToAspect(value = DEFAULT_VIDEO_RATIO) {
   return String(value || DEFAULT_VIDEO_RATIO).replace(":", " / ");
-}
-
-function getPreviewNodeWidth(previewNode) {
-  const frame = previewNode?.querySelector?.(".image-frame");
-  return Math.max(160, frame?.offsetWidth || previewNode?.offsetWidth || 560);
-}
-
-function updatePreviewStatus(previewNode, text = "") {
-  const statusText = previewNode?.querySelector?.(".generation-frame span");
-  if (statusText && text) statusText.textContent = text;
-}
-
-function markVideoPreviewFailed(previewNode, error) {
-  if (!previewNode) return;
-  previewNode.dataset.videoGeneratorFailed = "true";
-  previewNode.classList.add("generation-failed");
-  const title = previewNode.querySelector(".generation-frame strong");
-  const statusText = previewNode.querySelector(".generation-frame span");
-  if (title) title.textContent = "Video failed";
-  if (statusText) statusText.textContent = error?.message || "Video generation failed.";
 }
 
 async function postJson(path, payload = {}) {
