@@ -1,6 +1,7 @@
 import {
   imageSourceToDataUrl,
   inferMimeTypeFromDataUrl,
+  readDomPreviewReferences,
   readSelectedImageReference
 } from "../src/client/features/workspace/chat/workflows/prompt-reference-image-utils.js";
 
@@ -44,6 +45,83 @@ assert(failed, "Image source conversion should surface fetch failures");
 assert(inferMimeTypeFromDataUrl("data:image/png;base64,abcd") === "image/png", "MIME inference should read base64 data URLs");
 assert(inferMimeTypeFromDataUrl("data:image/svg+xml;charset=utf-8,<svg></svg>") === "image/svg+xml", "MIME inference should ignore parameters");
 assert(inferMimeTypeFromDataUrl("https://example.com/a.png") === "", "MIME inference should ignore non-data URLs");
+
+const registeredLogs = [];
+const registeredReferences = await readDomPreviewReferences({
+  root: makePreviewRoot([
+    makePreviewButton({
+      attachmentId: "att-1",
+      attachmentName: "button-name.png",
+      attachmentType: "image/jpeg",
+      attachmentSize: "999",
+      imageAlt: "alt-name.png"
+    })
+  ]),
+  getAttachmentFile: () => ({
+    name: "registered.png",
+    type: "image/png",
+    size: 123
+  }),
+  readFileAsDataUrl: async () => "data:image/png;base64,registered",
+  logDebug: (label, data) => registeredLogs.push({ label, data })
+});
+assert(registeredReferences.length === 1, "DOM preview references should recover registered files");
+assert(registeredReferences[0].type === "image/png", "DOM preview references should prefer registered file type");
+assert(registeredReferences[0].name === "registered.png", "DOM preview references should prefer registered file name");
+assert(registeredReferences[0].source === "upload", "DOM preview references should mark upload source");
+assert(registeredReferences[0].attachmentId === "att-1", "DOM preview references should preserve attachment id");
+assert(registeredLogs[0].label === "attachments.dom_preview_complete", "DOM preview references should log completion");
+assert(registeredLogs[0].data.recoveredReferenceCount === 1, "DOM preview completion log should include recovered count");
+
+const fallbackLogs = [];
+const fallbackReferences = await readDomPreviewReferences({
+  root: makePreviewRoot([
+    makePreviewButton({
+      attachmentId: "att-2",
+      attachmentName: "fallback-name.png",
+      attachmentType: "",
+      attachmentSize: "456",
+      imageSrc: "/uploads/fallback.png",
+      imageAlt: "fallback-alt.png"
+    })
+  ]),
+  getAttachmentFile: () => ({
+    name: "broken.png",
+    type: "",
+    size: 456
+  }),
+  readFileAsDataUrl: async () => {
+    throw new Error("registry failed");
+  },
+  imageSourceToDataUrlImpl: async (source) => {
+    assert(source === "/uploads/fallback.png", "DOM preview fallback should read image source");
+    return "data:image/webp;base64,fallback";
+  },
+  logDebug: (label, data) => fallbackLogs.push({ label, data })
+});
+assert(fallbackReferences.length === 1, "DOM preview references should fall back to image sources");
+assert(fallbackReferences[0].type === "image/webp", "DOM preview fallback should infer MIME type");
+assert(fallbackReferences[0].name === "fallback-name.png", "DOM preview fallback should prefer attachment name");
+assert(fallbackLogs.some((item) => item.label === "attachments.dom_registry_failed"), "DOM preview fallback should log registry failure");
+assert(fallbackLogs.some((item) => item.label === "attachments.dom_preview_complete"), "DOM preview fallback should log completion");
+
+const failedPreviewLogs = [];
+const failedPreviewReferences = await readDomPreviewReferences({
+  root: makePreviewRoot([
+    makePreviewButton({
+      attachmentId: "att-3",
+      imageSrc: "/uploads/missing.png"
+    })
+  ]),
+  getAttachmentFile: () => null,
+  imageSourceToDataUrlImpl: async () => {
+    throw new Error("preview failed");
+  },
+  logDebug: (label, data) => failedPreviewLogs.push({ label, data })
+});
+assert(failedPreviewReferences.length === 0, "DOM preview references should skip unreadable previews");
+assert(failedPreviewLogs.some((item) => item.label === "attachments.dom_preview_failed"), "DOM preview references should log preview failures");
+assert(failedPreviewLogs.at(-1).data.recoveredReferenceCount === 0, "DOM preview completion should report zero recovered references");
 
 const selectedRoot = makeSelectedImageRoot({
   title: "Canvas title",
@@ -122,6 +200,40 @@ function makeSelectedImageRoot({
     querySelector(selector) {
       if (selector === "#canvasWorld .node-image.selected[data-active-selection='true']") return node;
       return null;
+    }
+  };
+}
+
+function makePreviewRoot(buttons = []) {
+  return {
+    querySelectorAll(selector) {
+      return selector === ".chat-image-preview button" ? buttons : [];
+    }
+  };
+}
+
+function makePreviewButton({
+  attachmentId = "",
+  attachmentName = "",
+  attachmentType = "",
+  attachmentSize = "",
+  imageSrc = "",
+  imageAlt = ""
+} = {}) {
+  return {
+    dataset: {
+      attachmentId,
+      attachmentName,
+      attachmentType,
+      attachmentSize
+    },
+    querySelector(selector) {
+      if (selector !== "img") return null;
+      return {
+        currentSrc: imageSrc,
+        src: imageSrc,
+        alt: imageAlt
+      };
     }
   };
 }

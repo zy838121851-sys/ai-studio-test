@@ -5,7 +5,6 @@ import {
   getModelType,
   resolveImageModelId
 } from "../../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
-import { getChatPreviewAttachmentFile } from "../components/chat-image-preview.js?v=20260627-chat-agent-2";
 import {
   getResultImageUrls,
   getResultUrls,
@@ -46,8 +45,7 @@ import {
   resolveGenerationMetrics
 } from "./prompt-generation-metrics-utils.js";
 import {
-  imageSourceToDataUrl,
-  inferMimeTypeFromDataUrl,
+  readDomPreviewReferences,
   readSelectedImageReference
 } from "./prompt-reference-image-utils.js";
 
@@ -2269,8 +2267,8 @@ async function collectReferenceImages({
 
   if (!attachments.length && !files.length && domPreviewAttachments.length) {
     const domReferences = await readDomPreviewReferences({
-      debugRecord,
-      readFileAsDataUrl
+      readFileAsDataUrl,
+      logDebug: (label, data) => logAgentDebug(debugRecord, label, data)
     });
     attachments.push(...domReferences);
     if (!attachments.length) {
@@ -2301,70 +2299,6 @@ async function collectReferenceImages({
     attachments,
     images: attachments.map((item) => item.dataUrl).filter(Boolean)
   };
-}
-
-async function readDomPreviewReferences({
-  debugRecord = null,
-  readFileAsDataUrl = null,
-  root = globalThis.document
-} = {}) {
-  const items = Array.from(root?.querySelectorAll?.(".chat-image-preview button") || []);
-  const references = [];
-  for (const [index, button] of items.entries()) {
-    const image = button.querySelector("img");
-    const attachmentId = button.dataset.attachmentId || "";
-    const registeredFile = getChatPreviewAttachmentFile(attachmentId);
-    if (registeredFile && typeof readFileAsDataUrl === "function") {
-      try {
-        const dataUrl = await readFileAsDataUrl(registeredFile);
-        if (!dataUrl) throw new Error("empty dataURL");
-        references.push({
-          type: registeredFile.type || button.dataset.attachmentType || inferMimeTypeFromDataUrl(dataUrl) || "image",
-          name: registeredFile.name || button.dataset.attachmentName || image?.alt || `Reference ${index + 1}`,
-          source: "upload",
-          attachmentId,
-          dataUrl
-        });
-        continue;
-      } catch (error) {
-        logAgentDebug(debugRecord, "attachments.dom_registry_failed", {
-          index,
-          attachmentId,
-          name: registeredFile.name || button.dataset.attachmentName || image?.alt || "",
-          type: registeredFile.type || button.dataset.attachmentType || "",
-          size: Number(registeredFile.size || button.dataset.attachmentSize || 0),
-          error: error.message || String(error)
-        });
-      }
-    }
-    const source = image?.currentSrc || image?.src || "";
-    if (!source) continue;
-    try {
-      const dataUrl = await imageSourceToDataUrl(source);
-      if (!dataUrl) throw new Error("empty dataURL");
-      references.push({
-        type: button.dataset.attachmentType || inferMimeTypeFromDataUrl(dataUrl) || "image",
-        name: button.dataset.attachmentName || image?.alt || `Reference ${index + 1}`,
-        source: "upload",
-        attachmentId,
-        dataUrl
-      });
-    } catch (error) {
-      logAgentDebug(debugRecord, "attachments.dom_preview_failed", {
-        index,
-        attachmentId,
-        name: button.dataset.attachmentName || image?.alt || "",
-        src: summarizeDataUrl(source),
-        error: error.message || String(error)
-      });
-    }
-  }
-  logAgentDebug(debugRecord, "attachments.dom_preview_complete", {
-    domPreviewCount: items.length,
-    recoveredReferenceCount: references.length,
-    sources: references.map((item) => item.source)
-  });
-  return references;
 }
 
 function parseDatasetJson(text) {
