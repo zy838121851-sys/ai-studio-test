@@ -1,4 +1,3 @@
-import { getRecentCanvasEvents } from "../../../canvas/canvas-events.js";
 import {
   DEFAULT_3D_MODEL,
   formatModelUsage,
@@ -47,6 +46,9 @@ import {
 import {
   collectReferenceImages
 } from "./prompt-reference-image-utils.js";
+import {
+  collectCanvasContext
+} from "./prompt-canvas-context-utils.js";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
 const CONVERSATION_THINKING_STEPS = [
@@ -2185,49 +2187,6 @@ function escapeHtml(value = "") {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
-}
-
-function collectCanvasContext(root = globalThis.document) {
-  const nodes = Array.from(root?.querySelectorAll?.("#canvasWorld .node-card") || [])
-    .filter((node) => !node.classList.contains("stack-member-hidden"))
-    .slice(-20)
-    .map((node) => snapshotCanvasNode(node));
-  const selected = nodes.filter((node) => node.selected);
-  return {
-    target: selected[0] || nodes[nodes.length - 1] || null,
-    selected,
-    nodes,
-    recentEvents: getRecentCanvasEvents(12)
-  };
-}
-
-function snapshotCanvasNode(node) {
-  const image = node?.querySelector?.("img");
-  return {
-    id: node?.dataset?.nodeId || "",
-    kind: node?.dataset?.kind || "",
-    title: node?.dataset?.title || node?.querySelector?.(".node-title")?.textContent?.trim?.() || "",
-    assetType: node?.dataset?.assetType || "",
-    productName: node?.dataset?.productName || "",
-    sourceMode: node?.dataset?.sourceMode || "",
-    createdBy: node?.dataset?.createdBy || "",
-    generationPrompt: node?.dataset?.generationPrompt || node?.dataset?.editPrompt || "",
-    generationModel: node?.dataset?.generationModel || node?.dataset?.editModel || "",
-    analysisStatus: node?.dataset?.aiCoreAnalysisStatus || "",
-    analysis: parseDatasetJson(node?.dataset?.aiCoreAnalysis),
-    selected: node?.classList?.contains("selected") || node?.dataset?.activeSelection === "true",
-    hasImage: Boolean(image?.src),
-    imageUrl: image?.src?.startsWith?.("data:") ? "" : (image?.src || "")
-  };
-}
-
-function parseDatasetJson(text) {
-  if (!text) return null;
-  try {
-    return JSON.parse(text);
-  } catch {
-    return null;
-  }
 }
 
 function createPromptPreviewBatch({
