@@ -62,6 +62,10 @@ export function buildVideoGenerationInputs({
   };
 }
 
+export function hasVideoGenerationInput(prompt = "", references = []) {
+  return Boolean(prompt || Array.from(references || []).length);
+}
+
 export function ratioToAspect(value = "16:9", fallback = "16:9") {
   return String(value || fallback).replace(":", " / ");
 }

@@ -16,6 +16,7 @@ import {
 import {
   buildVideoGenerationInputs,
   getResultVideoUrl,
+  hasVideoGenerationInput,
   postVideoJson,
   runVideoRequest
 } from "./video-generator-job-utils.js";
@@ -189,7 +190,7 @@ export function createVideoGeneratorWorkflow({
     const controls = getVideoControls();
     const prompt = controls.promptInput?.value?.trim?.() || "";
     const references = getVideoReferences(node);
-    if (!prompt && !references.length) {
+    if (!hasVideoGenerationInput(prompt, references)) {
       setVideoStatus("Enter a prompt or add a reference image.");
       controls.promptInput?.focus?.();
       return;
