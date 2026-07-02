@@ -1,3 +1,0 @@
-﻿/* Legacy compatibility shim: keep direct imports working while main entry moves to legacy-split.css. */
-@import url("./globals.css");
-@import url("./legacy-split.css");
