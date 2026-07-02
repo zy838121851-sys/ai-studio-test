@@ -46,6 +46,26 @@ export function createVideoGenerationPayload({
   };
 }
 
+export function buildVideoGenerationInputs({
+  model = "",
+  prompt = "",
+  references = [],
+  videoOptions = {},
+  defaultRatio = "16:9"
+} = {}) {
+  return {
+    model,
+    prompt,
+    images: Array.from(references || []).map((item) => item.dataUrl).filter(Boolean),
+    videoOptions,
+    aspectRatio: ratioToAspect(videoOptions.size || defaultRatio, defaultRatio)
+  };
+}
+
+export function ratioToAspect(value = "16:9", fallback = "16:9") {
+  return String(value || fallback).replace(":", " / ");
+}
+
 export async function postVideoJson(path, payload = {}, fetchImpl = globalThis.fetch) {
   const response = await fetchImpl(path, {
     method: "POST",

@@ -14,6 +14,7 @@ import {
   setVideoStatusText
 } from "./video-generator-form-state-utils.js";
 import {
+  buildVideoGenerationInputs,
   getResultVideoUrl,
   postVideoJson,
   runVideoRequest
@@ -205,9 +206,17 @@ export function createVideoGeneratorWorkflow({
     }
     const modelConfig = getVideoModelById(model);
     const videoOptions = getSelectedVideoOptions(modelConfig);
-    const images = references.map((item) => item.dataUrl).filter(Boolean);
-    const aspectRatio = ratioToAspect(videoOptions.size || DEFAULT_VIDEO_RATIO);
-    const previewNode = createVideoPreviewNode(addGenerationPreview, node, { prompt, aspectRatio });
+    const generationInputs = buildVideoGenerationInputs({
+      model,
+      prompt,
+      references,
+      videoOptions,
+      defaultRatio: DEFAULT_VIDEO_RATIO
+    });
+    const previewNode = createVideoPreviewNode(addGenerationPreview, node, {
+      prompt: generationInputs.prompt,
+      aspectRatio: generationInputs.aspectRatio
+    });
     if (!previewNode) {
       setVideoStatus("Unable to create video preview.");
       return;
@@ -218,10 +227,10 @@ export function createVideoGeneratorWorkflow({
     saveVideoDraft(node);
     try {
       const result = await runVideoRequest({
-        model,
-        prompt,
-        images,
-        videoOptions,
+        model: generationInputs.model,
+        prompt: generationInputs.prompt,
+        images: generationInputs.images,
+        videoOptions: generationInputs.videoOptions,
         defaultSize: DEFAULT_VIDEO_RATIO,
         postJsonRequest,
         onProgress: (payload) => {
@@ -234,12 +243,12 @@ export function createVideoGeneratorWorkflow({
         replacePreviewWithVideo,
         selectNode,
         previewNode,
-        prompt,
+        prompt: generationInputs.prompt,
         videoUrl,
-        aspectRatio,
+        aspectRatio: generationInputs.aspectRatio,
         sourceNode: node,
         result,
-        model
+        model: generationInputs.model
       });
       if (!createdNode) throw new Error("Unable to replace video preview");
       hideVideoGeneratorPopover();
@@ -431,8 +440,4 @@ function getSavedOption(kind) {
   const active = globalThis.document?.querySelector?.(`${VIDEO_SELECTOR}.selected[data-active-selection='true']`)
     || globalThis.document?.querySelector?.(`${VIDEO_SELECTOR}.selected`);
   return getVideoSavedOption(active, kind);
-}
-
-function ratioToAspect(value = DEFAULT_VIDEO_RATIO) {
-  return String(value || DEFAULT_VIDEO_RATIO).replace(":", " / ");
 }
