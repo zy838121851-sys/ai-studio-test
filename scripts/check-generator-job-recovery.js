@@ -7,6 +7,7 @@ import {
   updateGeneratorPreviewStatus
 } from "../src/client/features/canvas/workflows/image-generator-preview-job-utils.js";
 import {
+  getGeneratedImagePlacement,
   getGeneratorReplacementPlacement
 } from "../src/client/features/canvas/workflows/image-generator-placement-utils.js";
 import {
@@ -31,6 +32,7 @@ assert(
     && generatorWorkflow.includes("getRecoveredGeneratorPreviewUrl")
     && generatorWorkflow.includes("getGeneratorPreviewDescription")
     && generatorWorkflow.includes("getGeneratorPreviewNodeWidth as getPreviewNodeWidth")
+    && generatorWorkflow.includes("getGeneratedImagePlacement")
     && generatorWorkflow.includes("getGeneratorReplacementPlacement")
     && generatorWorkflow.includes("markGeneratorPreviewFailed")
     && generatorWorkflow.includes("updateGeneratorPreviewStatus as updatePreviewStatus")
@@ -187,6 +189,31 @@ assert(
     querySelector: () => null
   }).width === 160,
   "replacement placement should preserve minimum width"
+);
+const placementNode = {
+  style: { left: "10px", top: "20px" },
+  offsetWidth: 400,
+  querySelector(selector) {
+    if (selector !== ".image-generator-frame") return null;
+    return {
+      offsetWidth: 300,
+      offsetLeft: 15,
+      offsetTop: 25,
+      offsetParent: placementNode
+    };
+  }
+};
+const generatedPlacement = getGeneratedImagePlacement(placementNode, 2);
+assert(generatedPlacement.x === 10 + 15 + 300 + 28 + 2 * (300 + 28), "generated placement should preserve horizontal spacing formula");
+assert(generatedPlacement.y === 20 + 25, "generated placement should preserve frame y offset");
+assert(generatedPlacement.width === 300, "generated placement should preserve frame width");
+assert(
+  getGeneratedImagePlacement({
+    style: {},
+    offsetWidth: 120,
+    querySelector: () => null
+  }).width === 160,
+  "generated placement should preserve minimum width"
 );
 
 const appInit = read("src/client/core/app-init.js");
