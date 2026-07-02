@@ -1,10 +1,15 @@
-import { readFileSync } from "node:fs";
 import {
   createProjectSavePatch,
   isRestorableSnapshotItem,
   normalizePersistentMediaUrl,
   restoreCanvasSnapshotJson
 } from "../src/client/features/projects/snapshot.js";
+import {
+  getProjectMediaUrls,
+  projectHasRestorableCanvasContent,
+  snapshotHasUnresolvedMedia,
+  snapshotNeedsUrlRepair
+} from "../src/client/features/projects/snapshot-repair-utils.js";
 import {
   sanitizeCanvasSnapshotJson
 } from "../src/server/services/snapshot-safety.service.js";
@@ -132,18 +137,71 @@ assert(savedVideoSnapshot.nodes[0].dataset.objectUrl === "/uploads/video.mp4", "
 assert(savedVideoSnapshot.nodes[0].html.includes("src=\"/uploads/video.mp4\""), "Saved video HTML src should use stable relative media paths");
 assert(savedVideoSnapshot.nodes[0].html.includes("poster=\"/uploads/poster.png\""), "Saved video HTML poster should use stable relative media paths");
 
-const projectWorkflowSource = readFileSync(
-  new URL("../src/client/features/projects/workflows/project-workflow.js", import.meta.url),
-  "utf8"
+assert(
+  projectHasRestorableCanvasContent({
+    thumbnail: "blob:http://localhost:3000/thumb",
+    canvasSnapshotJson: JSON.stringify({
+      nodes: [
+        {
+          kind: "loading-image",
+          className: "node-card node-loading-image",
+          html: "<figure class=\"image-frame generation-frame\"></figure>"
+        }
+      ]
+    }),
+    itemCount: 0
+  }) === false,
+  "Project restore content detection should ignore transient thumbnails and loading nodes"
 );
 assert(
-  projectWorkflowSource.includes("const restoredThumbnail = normalizePersistentMediaUrl(project.thumbnail);")
-    && projectWorkflowSource.includes("url: restoredThumbnail"),
-  "Project restore thumbnail fallback should use stable media URLs"
+  projectHasRestorableCanvasContent({
+    thumbnail: "http://localhost:3000/uploads/thumb.png",
+    canvasSnapshotJson: JSON.stringify({ nodes: [] }),
+    itemCount: 0
+  }) === true,
+  "Project restore content detection should accept stable thumbnails"
 );
 assert(
-  projectWorkflowSource.includes("if (normalizePersistentMediaUrl(project.thumbnail)) return true;"),
-  "Project restore content detection should ignore transient thumbnails"
+  snapshotNeedsUrlRepair(JSON.stringify({
+    nodes: [
+      {
+        kind: "image",
+        className: "node-card node-image",
+        html: "<img src=\"http://localhost:3000/uploads/repair.png\" />",
+        media: { url: "http://localhost:3000/uploads/repair.png" }
+      }
+    ]
+  })) === true,
+  "Snapshot repair detection should catch same-origin absolute media URLs"
+);
+assert(
+  snapshotHasUnresolvedMedia(JSON.stringify({
+    nodes: [
+      {
+        kind: "image",
+        className: "node-card node-image",
+        html: "<img src=\"/uploads/ready.png\" />",
+        media: { url: "/uploads/ready.png" }
+      }
+    ]
+  })) === false,
+  "Snapshot unresolved-media detection should allow stable upload URLs"
+);
+assert(
+  getProjectMediaUrls({
+    thumbnail: "http://localhost:3000/uploads/thumb.png",
+    canvasSnapshotJson: JSON.stringify({
+      nodes: [
+        {
+          kind: "image",
+          html: "<img src=\"/uploads/html.png\" />",
+          dataset: { objectUrl: "blob:http://localhost:3000/transient" },
+          media: { url: "/uploads/media.png" }
+        }
+      ]
+    })
+  }).join("|") === "/uploads/thumb.png|/uploads/media.png|/uploads/html.png",
+  "Project media preload URL detection should normalize stable media and skip transient URLs"
 );
 
 process.env.APP_BASE_URL = "https://ai-studio.example.test";

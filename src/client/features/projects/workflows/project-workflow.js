@@ -2,9 +2,14 @@ import {
   resolveImageModelId
 } from "../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 import {
-  isRestorableSnapshotItem,
   normalizePersistentMediaUrl
 } from "../snapshot.js";
+import {
+  getProjectMediaUrls,
+  projectHasRestorableCanvasContent,
+  snapshotHasUnresolvedMedia,
+  snapshotNeedsUrlRepair
+} from "../snapshot-repair-utils.js";
 
 export function createProjectWorkflow(ctx) {
   const { state, projectRuntime, services = {}, elements = {}, ui = {}, chat = {} } = ctx;
@@ -660,15 +665,6 @@ function getImageFilesFromList(files) {
   return Array.from(files || []).filter((item) => item?.type?.startsWith("image/") || /\.(?:png|jpe?g|webp|gif|bmp|heic)$/i.test(item?.name || ""));
 }
 
-function projectHasRestorableCanvasContent(project = {}) {
-  if (normalizePersistentMediaUrl(project.thumbnail)) return true;
-  const snapshot = parseSnapshotJson(project.canvasSnapshotJson);
-  if (Array.isArray(snapshot?.nodes)) {
-    return snapshot.nodes.some((node) => isRestorableSnapshotItem(node));
-  }
-  return Number(project.itemCount || 0) > 0;
-}
-
 async function preloadProjectMedia(project = {}, timeoutMs = 420) {
   const urls = getProjectMediaUrls(project);
   if (!urls.length || typeof Image !== "function") return;
@@ -676,24 +672,6 @@ async function preloadProjectMedia(project = {}, timeoutMs = 420) {
     Promise.allSettled(urls.map((url) => preloadImage(url))),
     new Promise((resolve) => setTimeout(resolve, timeoutMs))
   ]);
-}
-
-function getProjectMediaUrls(project = {}) {
-  const urls = new Set();
-  const thumbnail = normalizePersistentMediaUrl(project.thumbnail);
-  if (isPreloadableImageUrl(thumbnail)) urls.add(thumbnail);
-  const snapshot = parseSnapshotJson(project.canvasSnapshotJson);
-  (snapshot?.nodes || []).forEach((node) => {
-    [
-      node?.media?.url,
-      node?.dataset?.objectUrl,
-      extractSnapshotImageUrl(node?.html)
-    ].forEach((url) => {
-      const value = String(url || "").trim();
-      if (isPreloadableImageUrl(value)) urls.add(value);
-    });
-  });
-  return Array.from(urls).slice(0, 8);
 }
 
 function preloadImage(url) {
@@ -709,26 +687,6 @@ function preloadImage(url) {
   });
 }
 
-function extractSnapshotImageUrl(html = "") {
-  const match = String(html || "").match(/<img\b[^>]*\bsrc=["']([^"']+)["']/i);
-  return decodeHtmlAttribute(match?.[1] || "");
-}
-
-function decodeHtmlAttribute(value = "") {
-  return String(value || "")
-    .replaceAll("&amp;", "&")
-    .replaceAll("&quot;", "\"")
-    .replaceAll("&#39;", "'")
-    .replaceAll("&lt;", "<")
-    .replaceAll("&gt;", ">");
-}
-
-function isPreloadableImageUrl(url = "") {
-  const value = String(url || "").trim();
-  if (!value || value.startsWith("blob:")) return false;
-  return /^(?:https?:|data:image\/|\/)/i.test(value);
-}
-
 async function waitForPendingCanvasUploads(canvasWorld) {
   const pendingUploads = Array.from(canvasWorld?.querySelectorAll?.(".node-card") || [])
     .flatMap((node) => [
@@ -741,61 +699,3 @@ async function waitForPendingCanvasUploads(canvasWorld) {
   await Promise.allSettled(pendingUploads);
 }
 
-function snapshotNeedsUrlRepair(snapshotJson = "") {
-  const snapshot = parseSnapshotJson(snapshotJson);
-  return Array.isArray(snapshot?.nodes) && snapshot.nodes.some((node) => (
-    !isRestorableSnapshotItem(node)
-    || (isMediaSnapshotNode(node) && snapshotMediaNeedsRepair(node))
-  ));
-}
-
-function snapshotHasUnresolvedMedia(snapshotJson = "") {
-  const snapshot = parseSnapshotJson(snapshotJson);
-  return Array.isArray(snapshot?.nodes) && snapshot.nodes.some((node) => (
-    isMediaSnapshotNode(node) && !hasStableMediaUrl(node?.media?.url)
-  ));
-}
-
-function parseSnapshotJson(snapshotJson = "") {
-  if (!snapshotJson) return null;
-  try {
-    const parsed = typeof snapshotJson === "string" ? JSON.parse(snapshotJson) : snapshotJson;
-    return parsed && Array.isArray(parsed.nodes) ? parsed : null;
-  } catch {
-    return null;
-  }
-}
-
-function isMediaSnapshotNode(node = {}) {
-  const kind = String(node.kind || node.dataset?.kind || "").toLowerCase();
-  const html = String(node.html || "");
-  return kind === "image"
-    || kind === "video"
-    || /<(?:img|video)\b/i.test(html);
-}
-
-function snapshotMediaNeedsRepair(node = {}) {
-  return !hasStableMediaUrl(node?.media?.url)
-    || containsTransientUrl(node)
-    || [
-      node?.media?.url,
-      node?.dataset?.objectUrl,
-      extractSnapshotImageUrl(node?.html)
-    ].some((url) => mediaUrlNeedsNormalization(url));
-}
-
-function hasStableMediaUrl(url = "") {
-  const value = String(url || "").trim();
-  return Boolean(value && !value.startsWith("blob:") && normalizePersistentMediaUrl(value) === value);
-}
-
-function mediaUrlNeedsNormalization(url = "") {
-  const value = String(url || "").trim();
-  if (!value || value.startsWith("blob:")) return false;
-  const normalized = normalizePersistentMediaUrl(value);
-  return Boolean(normalized && normalized !== value);
-}
-
-function containsTransientUrl(value) {
-  return JSON.stringify(value || {}).includes("blob:");
-}
