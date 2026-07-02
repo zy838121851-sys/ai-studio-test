@@ -1,6 +1,6 @@
-import { createWorkspaceCanvasGenerationCompositionRuntime } from "./workspace-canvas-generation-composition.js";
 import { createWorkspaceCanvasOperationsCompositionRuntime } from "./workspace-canvas-operations-composition.js";
 import { createWorkspaceCanvasSurfaceCompositionRuntime } from "./workspace-canvas-surface-composition.js";
+import { createWorkspaceCanvasGenerationAppRuntime } from "../runtime/canvas-generation-runtime.js";
 import { createWorkspaceCanvasInteractionAppRuntime } from "../runtime/canvas-interaction-runtime.js";
 import { createWorkspaceCanvasNodeDragAppRuntime } from "../runtime/canvas-node-drag-runtime.js";
 import { createWorkspaceCanvasSelectionAppRuntime } from "../runtime/canvas-selection-runtime.js";
@@ -10,6 +10,55 @@ import { createCanvasNodeDragRuntimeInputs } from "./workspace-canvas-node-drag-
 import { createCanvasOperationsRuntimeInputs } from "./workspace-canvas-operations-inputs.js";
 import { createCanvasSelectionRuntimeInputs } from "./workspace-canvas-selection-inputs.js";
 import { createCanvasSurfaceRuntimeInputs } from "./workspace-canvas-surface-inputs.js";
+
+function createWorkspaceCanvasGenerationCompositionRuntime({
+  elements,
+  state,
+  services,
+  defaults
+}) {
+  return createWorkspaceCanvasGenerationAppRuntime({
+    elements,
+    state,
+    services: {
+      createGenerationPreviewNode: services.createGenerationPreviewNode,
+      addNode: services.addNode,
+      replacePreviewNodeWithImage: services.replacePreviewNodeWithImage,
+      replacePreviewNodeWithModel: services.replacePreviewNodeWithModel,
+      replacePreviewNodeWithVideo: services.replacePreviewNodeWithVideo,
+      markGeneratedNodeContext: services.markGeneratedNodeContext,
+      recordCanvasEvent: services.recordCanvasEvent,
+      addSourceBadgeElement: services.addSourceBadgeElement,
+      selectNode: services.selectNode,
+      initModelViewerPreview: services.initModelViewerPreview,
+      hideAddNodeMenu: services.hideAddNodeMenu,
+      getNodeBounds: services.getNodeBounds,
+      inferDirectorProductProfile: services.inferDirectorProductProfile,
+      escapeHtml: services.escapeHtml,
+      addChat: (...args) => services.addChat(...args),
+      buildPromptGenerationNodeConfig: services.buildPromptGenerationNodeConfig,
+      detectGenerationKind: services.detectGenerationKind,
+      resolveUploadKind: services.resolveUploadKind,
+      viewportPointToWorld: services.viewportPointToWorld,
+      scheduleAICoreAgent: (...args) => {
+        globalThis.scheduleAICoreAgent?.(...args);
+      },
+      getImageFilesFromList: services.getImageFilesFromList,
+      runDirectorAction: services.runDirectorAction,
+      setUploadChoiceHover: services.setUploadChoiceHover,
+      syncCanvasTransform: services.syncCanvasTransform,
+      registerUploadedAsset: services.registerUploadedAsset,
+      registerGeneratedAsset: services.registerGeneratedAsset,
+      postJsonRequest: services.postJsonRequest,
+      buildChatImagePayload: services.buildChatImagePayload,
+      readFileAsDataUrl: services.readFileAsDataUrl,
+      readImageSourceAsDataUrl: services.readImageSourceAsDataUrl,
+      saveCurrentProject: services.saveCurrentProject,
+      saveCurrentProjectAfterGeneration: services.saveCurrentProjectAfterGeneration
+    },
+    defaults
+  });
+}
 
 function createWorkspaceCanvasNodeDragCompositionRuntime({
   elements,
