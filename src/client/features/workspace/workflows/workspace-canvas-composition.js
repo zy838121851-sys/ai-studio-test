@@ -1,9 +1,9 @@
 import { createWorkspaceCanvasOperationsCompositionRuntime } from "./workspace-canvas-operations-composition.js";
-import { createWorkspaceCanvasSurfaceCompositionRuntime } from "./workspace-canvas-surface-composition.js";
 import { createWorkspaceCanvasGenerationAppRuntime } from "../runtime/canvas-generation-runtime.js";
 import { createWorkspaceCanvasInteractionAppRuntime } from "../runtime/canvas-interaction-runtime.js";
 import { createWorkspaceCanvasNodeDragAppRuntime } from "../runtime/canvas-node-drag-runtime.js";
 import { createWorkspaceCanvasSelectionAppRuntime } from "../runtime/canvas-selection-runtime.js";
+import { createWorkspaceCanvasSurfaceAppRuntime } from "../runtime/canvas-surface-runtime.js";
 import { createCanvasGenerationRuntimeInputs } from "./workspace-canvas-generation-inputs.js";
 import { createCanvasInteractionRuntimeInputs } from "./workspace-canvas-interaction-inputs.js";
 import { createCanvasNodeDragRuntimeInputs } from "./workspace-canvas-node-drag-inputs.js";
@@ -173,6 +173,66 @@ function createWorkspaceCanvasSelectionCompositionRuntime({
       recordUndoAction: actions.recordUndoAction,
       removeCanvasNodeDeep: services.removeCanvasNodeDeep
     }
+  });
+}
+
+function createWorkspaceCanvasSurfaceCompositionRuntime({
+  elements,
+  state,
+  services,
+  defaults
+}) {
+  return createWorkspaceCanvasSurfaceAppRuntime({
+    elements,
+    state,
+    services: {
+      attachDragBlocker: (node) => {
+        if (!node) return;
+        node.addEventListener("dragstart", (event) => event.preventDefault());
+      },
+      centerViewOnNode: (...args) => services.centerViewOnNode(...args),
+      hideImageEditPopover: services.hideImageEditPopover,
+      selectNode: (...args) => services.selectNode(...args),
+      recordUndoAction: services.recordUndoAction,
+      ensureImageLightbox: () => services.ensureImageLightbox({
+        onClose: services.hideImageLightboxElement,
+      }),
+      hideImageLightbox: services.hideImageLightboxElement,
+      showImageLightboxElement: services.showImageLightboxElement,
+      getNodeTitle: services.getNodeTitle,
+      positionTextFormatToolbar: (...args) => services.positionTextFormatToolbar(...args),
+      runImageEditCommand: (...args) => services.runImageEditCommand(...args),
+      registerImageAsset: (...args) => services.registerImageAsset?.(...args),
+      removeImageAsset: (...args) => services.removeImageAsset?.(...args),
+      getAssetCollections: (...args) => services.getAssetCollections?.(...args),
+      createAssetCollection: (...args) => services.createAssetCollection?.(...args),
+      showImageTextEditor: (...args) => services.showImageTextEditor(...args),
+      isEditingImageNode: (...args) => services.isEditingImageNode(...args),
+      isImageEditPopoverOpen: (...args) => services.isImageEditPopoverOpen(...args),
+      getRenderNodeTemplate: () => services.renderNodeTemplate,
+      createWorkspaceNode: services.createWorkspaceNode,
+      getNextCanvasNodeId: () => services.nextCanvasNodeId,
+      ensureCanvasNodeId: services.ensureCanvasNodeId,
+      getMakeDraggable: () => services.getMakeDraggable(),
+      getSelectNode: () => services.selectNode,
+      getInitModelViewer: () => services.initModelViewer,
+      getIsEditingImageNode: () => services.isEditingImageNode,
+      getIsImageEditPopoverOpen: () => services.isImageEditPopoverOpen,
+      getPositionImageEditPopover: () => services.positionImageEditPopover,
+      getShowImageEditPopover: () => services.showImageEditPopover,
+      getElementWorldBounds: services.getElementWorldBounds,
+      isImageTextPanelOpen: () => services.isImageTextPanelOpen(),
+      positionImageEditPopover: services.positionImageEditPopover,
+      positionTextPanel: services.positionImageTextPanel,
+      positionShapeFormatToolbar: services.positionShapeFormatToolbar,
+      positionAgentBubble: services.positionAgentBubble,
+      syncZoomControls: services.syncZoomControls,
+      getCanvasTransformStyle: services.getCanvasTransformStyle,
+      clampCanvasZoom: services.clampCanvasZoom,
+      centerPanOnWorldPoint: services.centerPanOnWorldPoint,
+      fitWorldBoundsInViewport: services.fitWorldBoundsInViewport
+    },
+    defaults
   });
 }
 

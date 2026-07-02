@@ -11,6 +11,7 @@ const DEPRECATED_CLIENT_MODULES = [
   "src/client/features/workspace/workflows/workspace-canvas-selection-composition.js",
   "src/client/features/workspace/workflows/workspace-canvas-interaction-composition.js",
   "src/client/features/workspace/workflows/workspace-canvas-generation-composition.js",
+  "src/client/features/workspace/workflows/workspace-canvas-surface-composition.js",
   "src/client/features/workspace/runtime/actions-context.js",
   "src/client/features/workspace/runtime/launch-config-base.js",
   "src/client/features/workspace/runtime/launcher-ai-context.js",
