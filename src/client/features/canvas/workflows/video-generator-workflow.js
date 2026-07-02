@@ -34,7 +34,7 @@ import {
 } from "./video-generator-option-utils.js";
 import {
   buildGeneratedVideoNodeOptions,
-  getVideoPreviewPlacement,
+  createVideoPreviewNode,
   markVideoPreviewFailed,
   updatePreviewStatus
 } from "./video-generator-preview-utils.js";
@@ -206,7 +206,7 @@ export function createVideoGeneratorWorkflow({
     const videoOptions = getSelectedVideoOptions(modelConfig);
     const images = references.map((item) => item.dataUrl).filter(Boolean);
     const aspectRatio = ratioToAspect(videoOptions.size || DEFAULT_VIDEO_RATIO);
-    const previewNode = createVideoPreviewNode(node, { prompt, aspectRatio });
+    const previewNode = createVideoPreviewNode(addGenerationPreview, node, { prompt, aspectRatio });
     if (!previewNode) {
       setVideoStatus("Unable to create video preview.");
       return;
@@ -251,23 +251,6 @@ export function createVideoGeneratorWorkflow({
     } finally {
       if (node?.isConnected) setVideoBusy(node, false);
     }
-  }
-
-  function createVideoPreviewNode(node, { prompt = "", aspectRatio = "16 / 9" } = {}) {
-    const placement = getVideoPreviewPlacement(node);
-    const previewNode = addGenerationPreview({
-      title: "Generated Video.mp4",
-      desc: prompt || "Generating video",
-      x: placement.x,
-      y: placement.y,
-      width: placement.width,
-      aspectRatio
-    });
-    if (previewNode) {
-      previewNode.dataset.videoGeneratorPreview = "true";
-      updatePreviewStatus(previewNode, "Waiting for video...");
-    }
-    return previewNode;
   }
 
   function refreshVideoModelOptions() {

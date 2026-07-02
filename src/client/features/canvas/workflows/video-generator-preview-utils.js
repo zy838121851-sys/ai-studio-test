@@ -14,6 +14,24 @@ export function getPreviewNodeWidth(previewNode) {
   return Math.max(160, frame?.offsetWidth || previewNode?.offsetWidth || 560);
 }
 
+export function createVideoPreviewNode(addGenerationPreview, node, { prompt = "", aspectRatio = "16 / 9" } = {}) {
+  if (typeof addGenerationPreview !== "function") return null;
+  const placement = getVideoPreviewPlacement(node);
+  const previewNode = addGenerationPreview({
+    title: "Generated Video.mp4",
+    desc: prompt || "Generating video",
+    x: placement.x,
+    y: placement.y,
+    width: placement.width,
+    aspectRatio
+  });
+  if (previewNode) {
+    previewNode.dataset.videoGeneratorPreview = "true";
+    updatePreviewStatus(previewNode, "Waiting for video...");
+  }
+  return previewNode;
+}
+
 export function buildGeneratedVideoNodeOptions({
   previewNode = null,
   prompt = "",
