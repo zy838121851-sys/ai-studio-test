@@ -22,6 +22,7 @@ import {
 } from "./prompt-model-log-utils.js";
 import {
   applyAgentProgressStreamEvent,
+  buildAgentProgressResultOptions,
   buildAgentProgressBlocks,
   buildAgentResultBlocks,
   applyAgentProgressResultState,
@@ -980,19 +981,20 @@ export function bindPromptSubmit({
         if (typeof addChatBlocks === "function") {
           progress?.remove?.();
           progress = null;
-          applyAgentProgressResultState(agentBlocksState, {
+          applyAgentProgressResultState(agentBlocksState, buildAgentProgressResultOptions({
             videoUrls: [],
             imageUrls: [],
             model: resultModel,
             modelUsage,
             generationType: "video",
-            taskType: conversationResult.taskType || agentDebug.taskType,
-            optimizedPrompt: generationPrompt,
-            size: generationMetrics.outputSize || "",
-            jobId: finalResult.jobId || finalResult.job?.id || "",
+            conversationResult,
+            agentDebug,
+            generationPrompt,
+            generationMetrics,
+            finalResult,
             resultStatus: "idle",
-            hasReference: imageAttachments.length > 0,
-          });
+            hasReference: imageAttachments.length > 0
+          }));
           refreshAgentBlocks();
         } else {
           progress?.remove?.();
@@ -1030,19 +1032,20 @@ export function bindPromptSubmit({
         if (typeof addChatBlocks === "function") {
           progress?.remove?.();
           progress = null;
-          applyAgentProgressResultState(agentBlocksState, {
+          applyAgentProgressResultState(agentBlocksState, buildAgentProgressResultOptions({
             imageUrls,
             videoUrls: [],
             model: resultModel,
             modelUsage,
             generationType: "image",
-            taskType: conversationResult.taskType || agentDebug.taskType,
-            optimizedPrompt: generationPrompt,
-            size: generationMetrics.outputSize || "",
-            jobId: finalResult.jobId || finalResult.job?.id || "",
+            conversationResult,
+            agentDebug,
+            generationPrompt,
+            generationMetrics,
+            finalResult,
             resultStatus: "succeeded",
-            hasReference: imageAttachments.length > 0,
-          });
+            hasReference: imageAttachments.length > 0
+          }));
           refreshAgentBlocks();
         } else {
           progress?.remove?.();

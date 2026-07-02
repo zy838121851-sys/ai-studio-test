@@ -2,6 +2,7 @@ import {
   applyAgentProgressStreamEvent,
   applyAgentProgressResultState,
   buildAgentCompletionSummary,
+  buildAgentProgressResultOptions,
   buildAgentProgressBlocks,
   buildAgentResultBlocks,
   buildAnalysisCardContent,
@@ -193,5 +194,41 @@ assert(
 assert(progressState.generationType === "video", "Progress result state should store video generation type");
 assert(progressState.resultStatus === "idle", "Progress result state should preserve video idle status");
 assert(progressState.summary === buildAgentCompletionSummary({ hasReference: false, generationType: "video" }), "Progress result state should build video summaries");
+
+const progressResultOptions = buildAgentProgressResultOptions({
+  generationType: "image",
+  imageUrls: ["/uploads/result.png"],
+  videoUrls: [],
+  model: "gpt-image-2",
+  modelUsage: "GPT Image 2",
+  conversationResult: { taskType: "poster_design" },
+  agentDebug: { taskType: "fallback_task" },
+  generationPrompt: "optimized prompt",
+  generationMetrics: { outputSize: "1536x1024" },
+  finalResult: { job: { id: "nested-job" } },
+  resultStatus: "succeeded",
+  hasReference: true
+});
+assert(progressResultOptions.imageUrls[0] === "/uploads/result.png", "Progress result options should preserve image URLs");
+assert(progressResultOptions.videoUrls.length === 0, "Progress result options should preserve video URLs");
+assert(progressResultOptions.model === "gpt-image-2", "Progress result options should preserve models");
+assert(progressResultOptions.modelUsage === "GPT Image 2", "Progress result options should preserve model usage");
+assert(progressResultOptions.generationType === "image", "Progress result options should preserve generation types");
+assert(progressResultOptions.taskType === "poster_design", "Progress result options should prefer conversation task types");
+assert(progressResultOptions.optimizedPrompt === "optimized prompt", "Progress result options should preserve optimized prompts");
+assert(progressResultOptions.size === "1536x1024", "Progress result options should preserve output sizes");
+assert(progressResultOptions.jobId === "nested-job", "Progress result options should use nested job ids");
+assert(progressResultOptions.resultStatus === "succeeded", "Progress result options should preserve result statuses");
+assert(progressResultOptions.hasReference === true, "Progress result options should preserve reference flags");
+
+const fallbackProgressResultOptions = buildAgentProgressResultOptions({
+  generationType: "video",
+  conversationResult: {},
+  agentDebug: { taskType: "video_generation" },
+  finalResult: { jobId: "direct-job" }
+});
+assert(fallbackProgressResultOptions.taskType === "video_generation", "Progress result options should fall back to debug task types");
+assert(fallbackProgressResultOptions.jobId === "direct-job", "Progress result options should prefer direct job ids");
+assert(fallbackProgressResultOptions.resultStatus === "succeeded", "Progress result options should default succeeded statuses");
 
 console.log("Prompt agent block utility checks passed.");

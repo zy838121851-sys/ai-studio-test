@@ -263,6 +263,35 @@ export function applyAgentProgressResultState(state, {
   return true;
 }
 
+export function buildAgentProgressResultOptions({
+  generationType = "image",
+  imageUrls = [],
+  videoUrls = [],
+  model = "",
+  modelUsage = "",
+  conversationResult = {},
+  agentDebug = {},
+  generationPrompt = "",
+  generationMetrics = {},
+  finalResult = {},
+  resultStatus = "succeeded",
+  hasReference = false
+} = {}) {
+  return {
+    imageUrls,
+    videoUrls,
+    model,
+    modelUsage,
+    generationType,
+    taskType: conversationResult.taskType || agentDebug.taskType,
+    optimizedPrompt: generationPrompt,
+    size: generationMetrics.outputSize || "",
+    jobId: finalResult.jobId || finalResult.job?.id || "",
+    resultStatus,
+    hasReference
+  };
+}
+
 export function buildAgentProgressBlocks(state = {}) {
   const blocks = [];
   const hasReference = Boolean(state.hasReference);
