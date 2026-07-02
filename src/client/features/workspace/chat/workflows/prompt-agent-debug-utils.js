@@ -141,6 +141,15 @@ export function applyConversationResultToAgentDebug(
   return true;
 }
 
+export function markAgentGuardSkip(record, reason = "") {
+  const skipReason = String(reason || "");
+  if (record) record.messageDoneSkipReason = skipReason;
+  return {
+    stage: "guard.skip",
+    reason: skipReason
+  };
+}
+
 export function buildMessageDoneGenerationDecisionPayload(record, data = {}, {
   activeRunId = "",
   autoExecute = false

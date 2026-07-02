@@ -41,6 +41,7 @@ import {
   buildAgentDebugPanelSnapshot,
   buildMessageDoneGenerationDecisionPayload,
   createAgentDebugRecord,
+  markAgentGuardSkip,
   sanitizeDebugValue,
   setAgentGenerationStage as applyAgentGenerationStage
 } from "./prompt-agent-debug-utils.js";
@@ -697,11 +698,7 @@ export function bindPromptSubmit({
         conversationShouldGenerate: Boolean(conversationResult.shouldGenerate)
       });
       if (activeChatAgentRunId !== agentDebug.runId) {
-        agentDebug.messageDoneSkipReason = "skipped because runId mismatch";
-        logMessageDoneGenerationDecision(agentDebug, {
-          stage: "guard.skip",
-          reason: agentDebug.messageDoneSkipReason
-        });
+        logMessageDoneGenerationDecision(agentDebug, markAgentGuardSkip(agentDebug, "skipped because runId mismatch"));
         logAgentDebug(agentDebug, "run.stale_after_conversation", {
           activeRunId: activeChatAgentRunId,
           reason: agentDebug.messageDoneSkipReason
@@ -718,11 +715,7 @@ export function bindPromptSubmit({
         agentDebug.autoExecute = CHAT_AGENT_CONFIG.autoExecute;
         agentDebug.shouldGenerate = false;
         agentDebug.executeGeneration = false;
-        agentDebug.messageDoneSkipReason = "skipped because shouldGenerate false";
-        logMessageDoneGenerationDecision(agentDebug, {
-          stage: "guard.skip",
-          reason: agentDebug.messageDoneSkipReason
-        });
+        logMessageDoneGenerationDecision(agentDebug, markAgentGuardSkip(agentDebug, "skipped because shouldGenerate false"));
         logAgentDebug(agentDebug, "generation.skip", {
           intent: agentDebug.intent,
           reason: agentDebug.messageDoneSkipReason
@@ -738,11 +731,7 @@ export function bindPromptSubmit({
         autoExecute: CHAT_AGENT_CONFIG.autoExecute
       });
       if (!CHAT_AGENT_CONFIG.autoExecute) {
-        agentDebug.messageDoneSkipReason = "skipped because autoExecute false";
-        logMessageDoneGenerationDecision(agentDebug, {
-          stage: "guard.skip",
-          reason: agentDebug.messageDoneSkipReason
-        });
+        logMessageDoneGenerationDecision(agentDebug, markAgentGuardSkip(agentDebug, "skipped because autoExecute false"));
         logAgentDebug(agentDebug, "generation.waiting_for_confirmation", {
           intent: agentDebug.intent,
           optimizedPrompt: summarizePrompt(agentDebug.optimizedPrompt),
@@ -754,11 +743,7 @@ export function bindPromptSubmit({
         return;
       }
       if (generationStarted) {
-        agentDebug.messageDoneSkipReason = "skipped because generationStarted already true";
-        logMessageDoneGenerationDecision(agentDebug, {
-          stage: "guard.skip",
-          reason: agentDebug.messageDoneSkipReason
-        });
+        logMessageDoneGenerationDecision(agentDebug, markAgentGuardSkip(agentDebug, "skipped because generationStarted already true"));
         logAgentDebug(agentDebug, "generation.duplicate_ignored", {
           runId: agentDebug.runId,
           reason: agentDebug.messageDoneSkipReason
@@ -767,19 +752,11 @@ export function bindPromptSubmit({
         return;
       }
       if (typeof addGenerationPreview !== "function") {
-        agentDebug.messageDoneSkipReason = "skipped because missing preview creation fn";
-        logMessageDoneGenerationDecision(agentDebug, {
-          stage: "guard.skip",
-          reason: agentDebug.messageDoneSkipReason
-        });
+        logMessageDoneGenerationDecision(agentDebug, markAgentGuardSkip(agentDebug, "skipped because missing preview creation fn"));
         throw new Error("missing createPreview function");
       }
       if (typeof replacePreviewWithImage !== "function") {
-        agentDebug.messageDoneSkipReason = "skipped because missing replacePreviewWithImage";
-        logMessageDoneGenerationDecision(agentDebug, {
-          stage: "guard.skip",
-          reason: agentDebug.messageDoneSkipReason
-        });
+        logMessageDoneGenerationDecision(agentDebug, markAgentGuardSkip(agentDebug, "skipped because missing replacePreviewWithImage"));
         throw new Error("missing replacePreviewWithImage");
       }
       generationStarted = true;
@@ -802,11 +779,7 @@ export function bindPromptSubmit({
       const generationPrompt = conversationResult.optimizedPrompt || prompt;
       const videoModel = getModelType(model) === "video" || conversationResult.outputType === "video";
       if (videoModel && typeof replacePreviewWithVideo !== "function") {
-        agentDebug.messageDoneSkipReason = "skipped because missing replacePreviewWithVideo";
-        logMessageDoneGenerationDecision(agentDebug, {
-          stage: "guard.skip",
-          reason: agentDebug.messageDoneSkipReason
-        });
+        logMessageDoneGenerationDecision(agentDebug, markAgentGuardSkip(agentDebug, "skipped because missing replacePreviewWithVideo"));
         throw new Error("missing replacePreviewWithVideo");
       }
       agentDebug.generationType = videoModel ? "video" : "image";
@@ -862,11 +835,7 @@ export function bindPromptSubmit({
         size: generationMetrics.outputSize
       });
       if (!generationPayload?.prompt && !Array.isArray(generationPayload?.images)) {
-        agentDebug.messageDoneSkipReason = "skipped because missing payload";
-        logMessageDoneGenerationDecision(agentDebug, {
-          stage: "guard.skip",
-          reason: agentDebug.messageDoneSkipReason
-        });
+        logMessageDoneGenerationDecision(agentDebug, markAgentGuardSkip(agentDebug, "skipped because missing payload"));
         throw new Error("missing payload");
       }
       agentDebug.generatePayload = summarizeGeneratePayload(generationPayload, videoModel ? "video" : "image");
@@ -1284,7 +1253,7 @@ async function runConversationAgent({
     await streamConversationRun(conversation.id, conversationPayload, (event) => {
     if (runId && activeChatAgentRunId !== runId) {
       if (debugRecord) {
-        debugRecord.messageDoneSkipReason = "skipped because runId mismatch";
+        markAgentGuardSkip(debugRecord, "skipped because runId mismatch");
         debugRecord.streamAbortReason = `stale event ignored: ${event.type || ""}`;
       }
       if (event.type === "message.done") {

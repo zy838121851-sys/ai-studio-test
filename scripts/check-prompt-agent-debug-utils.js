@@ -3,6 +3,7 @@ import {
   buildAgentDebugPanelSnapshot,
   buildMessageDoneGenerationDecisionPayload,
   createAgentDebugRecord,
+  markAgentGuardSkip,
   sanitizeDebugValue,
   setAgentGenerationStage
 } from "../src/client/features/workspace/chat/workflows/prompt-agent-debug-utils.js";
@@ -201,5 +202,20 @@ assert(executeRecord.imageAnalysisPresent === true, "Execute debug sync should r
 assert(executeRecord.autoExecute === true, "Execute debug sync should store auto execute config");
 assert(executeRecord.shouldGenerate === true, "Execute debug sync should force generation after guard pass");
 assert(executeRecord.executeGeneration === true, "Execute debug sync should mirror auto execute for execution state");
+
+const guardSkipRecord = createAgentDebugRecord({}, {
+  now: () => fixedDate,
+  random: () => 0.5
+});
+guardSkipRecord.intent = "generate_image";
+const guardSkipPayload = markAgentGuardSkip(guardSkipRecord, "skipped because missing payload");
+assert(guardSkipRecord.messageDoneSkipReason === "skipped because missing payload", "Guard skip helper should store skip reasons");
+assert(guardSkipRecord.intent === "generate_image", "Guard skip helper should not rewrite unrelated debug state");
+assert(guardSkipPayload.stage === "guard.skip", "Guard skip helper should build guard skip payload stage");
+assert(guardSkipPayload.reason === "skipped because missing payload", "Guard skip helper should build guard skip payload reason");
+
+const emptyGuardSkipPayload = markAgentGuardSkip(null, "");
+assert(emptyGuardSkipPayload.stage === "guard.skip", "Guard skip helper should return payloads without a record");
+assert(emptyGuardSkipPayload.reason === "", "Guard skip helper should default missing reasons");
 
 console.log("Prompt agent debug utility checks passed.");
