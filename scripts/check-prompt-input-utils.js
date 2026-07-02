@@ -3,6 +3,7 @@ import {
   copyReferenceFiles,
   getChatPreviewDomSummaries,
   inferSubmitTriggerSource,
+  restoreComposerAttachmentsForPromptFailure,
   restoreComposerAttachmentsOnFailure
 } from "../src/client/features/workspace/chat/workflows/prompt-input-utils.js";
 
@@ -97,6 +98,58 @@ restoreComposerAttachmentsOnFailure({
   }
 });
 assert(!restoredCalls.some(([name]) => name.startsWith("empty-")), "Restoring composer attachments should ignore empty files");
+
+const promptFailureCalls = [];
+const promptFailureRestored = restoreComposerAttachmentsForPromptFailure({
+  files: restoredFiles,
+  previewNodes: [],
+  setChatImageFiles(files) {
+    promptFailureCalls.push(["set", files]);
+  },
+  renderChatImagePreview() {
+    promptFailureCalls.push(["render"]);
+  },
+  logAgentDebug(record, label, data) {
+    promptFailureCalls.push(["log", record, label, data]);
+  },
+  agentDebug: { runId: "run-1" }
+});
+assert(promptFailureRestored === true, "Prompt failure restoration should report restored attachments");
+assert(promptFailureCalls[0][0] === "set" && promptFailureCalls[0][1] !== restoredFiles, "Prompt failure restoration should set a copied file list");
+assert(promptFailureCalls[1][0] === "render", "Prompt failure restoration should render restored previews");
+assert(promptFailureCalls[2][0] === "log", "Prompt failure restoration should log restored attachments");
+assert(promptFailureCalls[2][1].runId === "run-1", "Prompt failure restoration should log with the debug record");
+assert(promptFailureCalls[2][2] === "attachments.restored", "Prompt failure restoration should preserve the debug label");
+assert(promptFailureCalls[2][3].count === 1, "Prompt failure restoration should log summarized file counts");
+assert(promptFailureCalls[2][3].files[0].type === "image/png", "Prompt failure restoration should log summarized files");
+
+const skippedPromptFailureCalls = [];
+const promptFailureSkipped = restoreComposerAttachmentsForPromptFailure({
+  files: restoredFiles,
+  previewNodes: [{}],
+  setChatImageFiles(files) {
+    skippedPromptFailureCalls.push(["set", files]);
+  },
+  renderChatImagePreview() {
+    skippedPromptFailureCalls.push(["render"]);
+  }
+});
+assert(promptFailureSkipped === false, "Prompt failure restoration should skip when preview nodes exist");
+assert(skippedPromptFailureCalls.length === 0, "Prompt failure restoration should not mutate attachments when preview nodes exist");
+assert(
+  restoreComposerAttachmentsForPromptFailure({
+    files: [],
+    previewNodes: [],
+    setChatImageFiles() {
+      skippedPromptFailureCalls.push(["empty-set"]);
+    },
+    renderChatImagePreview() {
+      skippedPromptFailureCalls.push(["empty-render"]);
+    }
+  }) === false,
+  "Prompt failure restoration should skip empty files"
+);
+assert(!skippedPromptFailureCalls.some(([name]) => name.startsWith("empty-")), "Prompt failure restoration should not mutate empty file lists");
 
 const domSummaries = getChatPreviewDomSummaries(makePreviewRoot([
   makePreviewButton({

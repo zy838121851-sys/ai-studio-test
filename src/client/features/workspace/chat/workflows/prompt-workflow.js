@@ -59,7 +59,7 @@ import {
   copyReferenceFiles,
   getChatPreviewDomSummaries,
   inferSubmitTriggerSource,
-  restoreComposerAttachmentsOnFailure
+  restoreComposerAttachmentsForPromptFailure
 } from "./prompt-input-utils.js";
 import {
   getGenerationPlacement,
@@ -1030,16 +1030,14 @@ export function bindPromptSubmit({
       if (getPendingHomeGenerationFocus()) {
         setPendingHomeGenerationFocus(false);
       }
-      if (!previewNodes.length && files.length) {
-        restoreComposerAttachmentsOnFailure({
-          files,
-          setChatImageFiles,
-          renderChatImagePreview,
-          onRestored: (restoredFiles) => {
-            logAgentDebug(agentDebug, "attachments.restored", summarizeFiles(restoredFiles));
-          }
-        });
-      }
+      restoreComposerAttachmentsForPromptFailure({
+        files,
+        previewNodes,
+        setChatImageFiles,
+        renderChatImagePreview,
+        logAgentDebug,
+        agentDebug
+      });
       previewNodes.forEach((node) => {
         node?.classList?.add("generation-failed");
         updatePromptPreviewStatus(node, "Generation failed, please try again.");

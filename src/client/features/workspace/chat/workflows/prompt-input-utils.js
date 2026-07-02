@@ -1,4 +1,7 @@
-import { summarizeDataUrl } from "./prompt-debug-summary-utils.js";
+import {
+  summarizeDataUrl,
+  summarizeFiles
+} from "./prompt-debug-summary-utils.js";
 
 export function inferSubmitTriggerSource(event, form) {
   const submitter = event?.submitter || null;
@@ -28,6 +31,26 @@ export function restoreComposerAttachmentsOnFailure({
   setChatImageFiles(files.slice());
   renderChatImagePreview();
   onRestored?.(files);
+}
+
+export function restoreComposerAttachmentsForPromptFailure({
+  files = [],
+  previewNodes = [],
+  setChatImageFiles,
+  renderChatImagePreview,
+  logAgentDebug = null,
+  agentDebug = null
+} = {}) {
+  if (Array.from(previewNodes || []).length || !files.length) return false;
+  restoreComposerAttachmentsOnFailure({
+    files,
+    setChatImageFiles,
+    renderChatImagePreview,
+    onRestored: (restoredFiles) => {
+      logAgentDebug?.(agentDebug, "attachments.restored", summarizeFiles(restoredFiles));
+    }
+  });
+  return true;
 }
 
 export function getChatPreviewDomSummaries(root = globalThis.document) {
