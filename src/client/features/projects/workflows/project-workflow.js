@@ -351,7 +351,8 @@ export function createProjectWorkflow(ctx) {
         }
       }) || 0;
       let restoredFromThumbnail = false;
-      if (!restoredCount && project.thumbnail) {
+      const restoredThumbnail = normalizePersistentMediaUrl(project.thumbnail);
+      if (!restoredCount && restoredThumbnail) {
         const node = addNode({
           kind: "image",
           title: `${project.title}.png`,
@@ -359,7 +360,7 @@ export function createProjectWorkflow(ctx) {
           x: -160,
           y: -120,
           media: {
-            url: project.thumbnail,
+            url: restoredThumbnail,
             name: `${project.title}.png`,
             type: "image/png"
           }
@@ -660,7 +661,7 @@ function getImageFilesFromList(files) {
 }
 
 function projectHasRestorableCanvasContent(project = {}) {
-  if (String(project.thumbnail || "").trim()) return true;
+  if (normalizePersistentMediaUrl(project.thumbnail)) return true;
   const snapshot = parseSnapshotJson(project.canvasSnapshotJson);
   if (Array.isArray(snapshot?.nodes)) {
     return snapshot.nodes.some((node) => isRestorableSnapshotItem(node));
@@ -679,7 +680,7 @@ async function preloadProjectMedia(project = {}, timeoutMs = 420) {
 
 function getProjectMediaUrls(project = {}) {
   const urls = new Set();
-  const thumbnail = String(project.thumbnail || "").trim();
+  const thumbnail = normalizePersistentMediaUrl(project.thumbnail);
   if (isPreloadableImageUrl(thumbnail)) urls.add(thumbnail);
   const snapshot = parseSnapshotJson(project.canvasSnapshotJson);
   (snapshot?.nodes || []).forEach((node) => {

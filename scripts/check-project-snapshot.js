@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import {
   createProjectSavePatch,
   isRestorableSnapshotItem,
@@ -112,6 +113,20 @@ assert(savedSnapshot.nodes[0].kind === "image", "Saving snapshots should keep co
 assert(savedSnapshot.nodes[0].media.url === "/uploads/a.png", "Saved media URLs should be stable relative paths");
 assert(savedSnapshot.nodes[0].dataset.objectUrl === "/uploads/a.png", "Saved dataset media URLs should be stable relative paths");
 assert(savedSnapshot.nodes[0].html.includes("src=\"/uploads/a.png\""), "Saved snapshot HTML should use stable relative media paths");
+
+const projectWorkflowSource = readFileSync(
+  new URL("../src/client/features/projects/workflows/project-workflow.js", import.meta.url),
+  "utf8"
+);
+assert(
+  projectWorkflowSource.includes("const restoredThumbnail = normalizePersistentMediaUrl(project.thumbnail);")
+    && projectWorkflowSource.includes("url: restoredThumbnail"),
+  "Project restore thumbnail fallback should use stable media URLs"
+);
+assert(
+  projectWorkflowSource.includes("if (normalizePersistentMediaUrl(project.thumbnail)) return true;"),
+  "Project restore content detection should ignore transient thumbnails"
+);
 
 process.env.APP_BASE_URL = "https://ai-studio.example.test";
 const serverSanitizedSnapshot = JSON.parse(sanitizeCanvasSnapshotJson(JSON.stringify({
