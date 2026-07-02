@@ -15,11 +15,9 @@ import {
 } from "./video-generator-form-state-utils.js";
 import {
   createVideoGenerationPayload,
-  delay,
   getResultVideoUrl,
-  getRetryAfterDelayMs,
-  isTerminalVideoJobStatus,
-  postVideoJson
+  postVideoJson,
+  waitForVideoJob
 } from "./video-generator-job-utils.js";
 import {
   formatRatioLabel,
@@ -264,40 +262,6 @@ export function createVideoGeneratorWorkflow({
     }));
     if (result?.videoUrl || !result?.jobId) return result;
     return waitForVideoJob(result.jobId, { fallback: result, onProgress });
-  }
-
-  async function waitForVideoJob(jobId, {
-    attempts = 180,
-    delayMs = 2000,
-    fallback = {},
-    onProgress = null,
-    missingUrlRetries = 4
-  } = {}) {
-    let lastPayload = { jobId, ...fallback };
-    let missingUrlAttempts = 0;
-    for (let index = 0; index < attempts; index += 1) {
-      await delay(delayMs);
-      const response = await fetch(`/api/ai/jobs/${encodeURIComponent(jobId)}`, { credentials: "include" });
-      const payload = await response.json().catch(() => ({}));
-      if (response.status === 429) {
-        await delay(getRetryAfterDelayMs(response, delayMs * 2));
-        continue;
-      }
-      if (!response.ok) throw new Error(payload?.failureMessage || payload?.errorMessage || payload?.message || `Job request failed: ${response.status}`);
-      lastPayload = { ...fallback, ...payload };
-      onProgress?.(lastPayload);
-      if (isTerminalVideoJobStatus(payload?.status)) {
-        if (payload.status !== "succeeded") throw new Error(payload.failureMessage || payload.errorMessage || payload.error || payload.status);
-        const videoUrl = getResultVideoUrl(lastPayload);
-        if (!videoUrl) {
-          missingUrlAttempts += 1;
-          if (missingUrlAttempts <= missingUrlRetries) continue;
-          throw new Error(lastPayload.failureMessage || lastPayload.errorMessage || lastPayload.error || "Generation completed without a video URL");
-        }
-        return { ...lastPayload, videoUrl };
-      }
-    }
-    throw new Error(`Generation is still running. Job ID: ${lastPayload.jobId || jobId}`);
   }
 
   function createVideoPreviewNode(node, { prompt = "", aspectRatio = "16 / 9" } = {}) {
