@@ -163,6 +163,26 @@ export function markAgentGuardPass(record) {
   };
 }
 
+export function markAgentPreviewCreationFailed(record, reason = "") {
+  const failureReason = String(reason || "");
+  if (record) record.previewCreationError = failureReason;
+  return {
+    stage: "preview.failed",
+    reason: failureReason
+  };
+}
+
+export function markAgentGeneratePayloadBuilt(record, payloadSummary = null) {
+  if (record) {
+    record.generatePayload = payloadSummary;
+    record.generatePayloadBuilt = true;
+  }
+  return {
+    stage: "payload.built",
+    generatePayloadBuilt: true
+  };
+}
+
 export function buildMessageDoneGenerationDecisionPayload(record, data = {}, {
   activeRunId = "",
   autoExecute = false

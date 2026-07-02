@@ -3,8 +3,10 @@ import {
   buildAgentDebugPanelSnapshot,
   buildMessageDoneGenerationDecisionPayload,
   createAgentDebugRecord,
+  markAgentGeneratePayloadBuilt,
   markAgentGuardPass,
   markAgentGuardSkip,
+  markAgentPreviewCreationFailed,
   sanitizeDebugValue,
   setAgentGenerationStage
 } from "../src/client/features/workspace/chat/workflows/prompt-agent-debug-utils.js";
@@ -235,5 +237,25 @@ assert(guardPassPayload.enterExecuteGeneration === true, "Guard pass helper shou
 const emptyGuardPassPayload = markAgentGuardPass(null);
 assert(emptyGuardPassPayload.stage === "guard.pass", "Guard pass helper should return payloads without a record");
 assert(emptyGuardPassPayload.enterExecuteGeneration === true, "Guard pass helper should keep execution entry payload without a record");
+
+const previewFailureRecord = createAgentDebugRecord({}, {
+  now: () => fixedDate,
+  random: () => 0.5
+});
+const previewFailurePayload = markAgentPreviewCreationFailed(previewFailureRecord, "Unable to create pending generation preview.");
+assert(previewFailureRecord.previewCreationError === "Unable to create pending generation preview.", "Preview failure helper should store preview errors");
+assert(previewFailurePayload.stage === "preview.failed", "Preview failure helper should build failure payload stage");
+assert(previewFailurePayload.reason === "Unable to create pending generation preview.", "Preview failure helper should build failure payload reason");
+
+const generatePayloadRecord = createAgentDebugRecord({}, {
+  now: () => fixedDate,
+  random: () => 0.5
+});
+const payloadSummary = { generationType: "image", prompt: "short prompt" };
+const payloadBuiltPayload = markAgentGeneratePayloadBuilt(generatePayloadRecord, payloadSummary);
+assert(generatePayloadRecord.generatePayload === payloadSummary, "Payload built helper should store payload summaries by reference");
+assert(generatePayloadRecord.generatePayloadBuilt === true, "Payload built helper should mark payload state");
+assert(payloadBuiltPayload.stage === "payload.built", "Payload built helper should build payload stage");
+assert(payloadBuiltPayload.generatePayloadBuilt === true, "Payload built helper should build payload flag");
 
 console.log("Prompt agent debug utility checks passed.");

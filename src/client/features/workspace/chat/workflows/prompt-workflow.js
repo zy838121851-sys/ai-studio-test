@@ -41,8 +41,10 @@ import {
   buildAgentDebugPanelSnapshot,
   buildMessageDoneGenerationDecisionPayload,
   createAgentDebugRecord,
+  markAgentGeneratePayloadBuilt,
   markAgentGuardPass,
   markAgentGuardSkip,
+  markAgentPreviewCreationFailed,
   sanitizeDebugValue,
   setAgentGenerationStage as applyAgentGenerationStage
 } from "./prompt-agent-debug-utils.js";
@@ -804,11 +806,7 @@ export function bindPromptSubmit({
         });
       }
       if (!previewNodes.length) {
-        agentDebug.previewCreationError = "Unable to create pending generation preview.";
-        logMessageDoneGenerationDecision(agentDebug, {
-          stage: "preview.failed",
-          reason: agentDebug.previewCreationError
-        });
+        logMessageDoneGenerationDecision(agentDebug, markAgentPreviewCreationFailed(agentDebug, "Unable to create pending generation preview."));
         throw new Error(agentDebug.previewCreationError);
       }
       previewNode = previewNodes[0];
@@ -833,12 +831,10 @@ export function bindPromptSubmit({
         logMessageDoneGenerationDecision(agentDebug, markAgentGuardSkip(agentDebug, "skipped because missing payload"));
         throw new Error("missing payload");
       }
-      agentDebug.generatePayload = summarizeGeneratePayload(generationPayload, videoModel ? "video" : "image");
-      agentDebug.generatePayloadBuilt = true;
-      logMessageDoneGenerationDecision(agentDebug, {
-        stage: "payload.built",
-        generatePayloadBuilt: true
-      });
+      logMessageDoneGenerationDecision(agentDebug, markAgentGeneratePayloadBuilt(
+        agentDebug,
+        summarizeGeneratePayload(generationPayload, videoModel ? "video" : "image")
+      ));
       logAgentDebug(agentDebug, "generate.request", agentDebug.generatePayload);
       updateAgentDebugPanel(agentDebug);
       setAgentGenerationStage(agentDebug, "generateRequest", {
