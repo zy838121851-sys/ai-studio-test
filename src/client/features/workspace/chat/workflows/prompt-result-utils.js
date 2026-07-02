@@ -53,3 +53,44 @@ export function buildGeneratedProjectPatch({
     itemCount: (project?.itemCount || 0) + itemCountIncrement
   };
 }
+
+export function buildGeneratedVideoNodeOptions({
+  url = "",
+  previewWidth = 0,
+  generationMetrics = {},
+  generationPrompt = "",
+  model = ""
+} = {}) {
+  return {
+    title: "Generated Video.mp4",
+    desc: "Generated video from your prompt.",
+    url,
+    width: previewWidth || generationMetrics.width,
+    aspectRatio: generationMetrics.aspectRatio || "",
+    prompt: generationPrompt,
+    actionType: "video_generation",
+    model
+  };
+}
+
+export function buildGeneratedImageNodeOptions({
+  url = "",
+  index = 0,
+  total = 1,
+  previewWidth = 0,
+  generationMetrics = {},
+  generationPrompt = "",
+  actionType = "",
+  model = ""
+} = {}) {
+  return {
+    title: total > 1 ? `Generated Image ${index + 1}.png` : "Generated Image.png",
+    desc: "Generated image from your prompt.",
+    url,
+    width: previewWidth || generationMetrics.width,
+    aspectRatio: generationMetrics.aspectRatio || "",
+    prompt: generationPrompt,
+    actionType,
+    model
+  };
+}

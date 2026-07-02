@@ -1,5 +1,7 @@
 import {
+  buildGeneratedImageNodeOptions,
   buildGeneratedProjectPatch,
+  buildGeneratedVideoNodeOptions,
   getResultImageUrls,
   getResultUrls,
   getResultVideoUrls,
@@ -83,5 +85,53 @@ const newProjectPatch = buildGeneratedProjectPatch({
 });
 assert(newProjectPatch.title === "Title: Optimized prompt", "Generated project patches should title new projects from generation prompts");
 assert(newProjectPatch.itemCount === 1, "Generated project patches should handle missing item counts");
+
+const videoNodeOptions = buildGeneratedVideoNodeOptions({
+  url: "/uploads/video.mp4",
+  previewWidth: 320,
+  generationMetrics: { width: 512, aspectRatio: "16 / 9" },
+  generationPrompt: "Video prompt",
+  model: "video-model"
+});
+assert(videoNodeOptions.title === "Generated Video.mp4", "Generated video node options should preserve titles");
+assert(videoNodeOptions.desc === "Generated video from your prompt.", "Generated video node options should preserve descriptions");
+assert(videoNodeOptions.url === "/uploads/video.mp4", "Generated video node options should preserve URLs");
+assert(videoNodeOptions.width === 320, "Generated video node options should prefer preview widths");
+assert(videoNodeOptions.aspectRatio === "16 / 9", "Generated video node options should preserve aspect ratios");
+assert(videoNodeOptions.prompt === "Video prompt", "Generated video node options should preserve prompts");
+assert(videoNodeOptions.actionType === "video_generation", "Generated video node options should preserve action types");
+assert(videoNodeOptions.model === "video-model", "Generated video node options should preserve models");
+
+const singleImageNodeOptions = buildGeneratedImageNodeOptions({
+  url: "/uploads/image.png",
+  index: 0,
+  total: 1,
+  previewWidth: 0,
+  generationMetrics: { width: 768, aspectRatio: "1 / 1" },
+  generationPrompt: "Image prompt",
+  actionType: "text_to_image",
+  model: "image-model"
+});
+assert(singleImageNodeOptions.title === "Generated Image.png", "Single generated image node options should preserve titles");
+assert(singleImageNodeOptions.width === 768, "Generated image node options should fall back to metric widths");
+assert(singleImageNodeOptions.actionType === "text_to_image", "Generated image node options should preserve action types");
+
+const multiImageNodeOptions = buildGeneratedImageNodeOptions({
+  url: "/uploads/image-2.png",
+  index: 1,
+  total: 4,
+  previewWidth: 256,
+  generationMetrics: { width: 768, aspectRatio: "4 / 3" },
+  generationPrompt: "Image prompt",
+  actionType: "image_variation",
+  model: "image-model"
+});
+assert(multiImageNodeOptions.title === "Generated Image 2.png", "Multi generated image node options should preserve numbered titles");
+assert(multiImageNodeOptions.desc === "Generated image from your prompt.", "Generated image node options should preserve descriptions");
+assert(multiImageNodeOptions.url === "/uploads/image-2.png", "Generated image node options should preserve URLs");
+assert(multiImageNodeOptions.width === 256, "Generated image node options should prefer preview widths");
+assert(multiImageNodeOptions.aspectRatio === "4 / 3", "Generated image node options should preserve aspect ratios");
+assert(multiImageNodeOptions.prompt === "Image prompt", "Generated image node options should preserve prompts");
+assert(multiImageNodeOptions.model === "image-model", "Generated image node options should preserve models");
 
 console.log("Prompt result utility checks passed.");

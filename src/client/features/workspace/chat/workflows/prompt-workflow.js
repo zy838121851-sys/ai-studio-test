@@ -5,7 +5,9 @@ import {
   resolveImageModelId
 } from "../../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 import {
+  buildGeneratedImageNodeOptions,
   buildGeneratedProjectPatch,
+  buildGeneratedVideoNodeOptions,
   getResultImageUrls,
   getResultUrls,
   getResultVideoUrls,
@@ -953,16 +955,13 @@ export function bindPromptSubmit({
         if (typeof replacePreviewWithVideo !== "function") {
           throw new Error("Video preview workflow is unavailable.");
         }
-        const videoNode = replacePreviewWithVideo(previewNode, {
-          title: "Generated Video.mp4",
-          desc: "Generated video from your prompt.",
+        const videoNode = replacePreviewWithVideo(previewNode, buildGeneratedVideoNodeOptions({
           url: videoUrls[0],
-          width: previewNode?.offsetWidth || generationMetrics.width,
-          aspectRatio: generationMetrics.aspectRatio || "",
-          prompt: generationPrompt,
-          actionType: "video_generation",
+          previewWidth: previewNode?.offsetWidth,
+          generationMetrics,
+          generationPrompt,
           model: resultModel
-        });
+        }));
         if (getPendingHomeGenerationFocus()) {
           setPendingHomeGenerationFocus(false);
           centerViewOnNode(videoNode, 1);
@@ -1003,16 +1002,16 @@ export function bindPromptSubmit({
         window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
       } else if (getResultImageUrls(finalResult).length) {
         const imageUrls = getResultImageUrls(finalResult);
-        const imageNodes = imageUrls.map((imageUrl, index) => replacePreviewWithImage(previewNodes[index] || previewNodes[0], {
-          title: imageUrls.length > 1 ? `Generated Image ${index + 1}.png` : "Generated Image.png",
-          desc: "Generated image from your prompt.",
+        const imageNodes = imageUrls.map((imageUrl, index) => replacePreviewWithImage(previewNodes[index] || previewNodes[0], buildGeneratedImageNodeOptions({
           url: imageUrl,
-          width: (previewNodes[index] || previewNodes[0])?.offsetWidth || generationMetrics.width,
-          aspectRatio: generationMetrics.aspectRatio || "",
-          prompt: generationPrompt,
+          index,
+          total: imageUrls.length,
+          previewWidth: (previewNodes[index] || previewNodes[0])?.offsetWidth,
+          generationMetrics,
+          generationPrompt,
           actionType: detectGenerationKind(generationPrompt),
           model: resultModel
-        })).filter(Boolean);
+        }))).filter(Boolean);
         const imageNode = imageNodes[0] || null;
         if (getPendingHomeGenerationFocus()) {
           setPendingHomeGenerationFocus(false);
