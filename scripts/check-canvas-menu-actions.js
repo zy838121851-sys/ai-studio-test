@@ -1,5 +1,9 @@
 import { readFileSync } from "node:fs";
 import {
+  pasteNodeFromClipboard,
+  snapshotNodeForClipboard
+} from "../src/client/features/canvas/workflows/canvas-menu-clipboard-utils.js";
+import {
   areLayoutSnapshotsEqual,
   getLayoutUnionBounds,
   getNodeSortIndex,
@@ -28,15 +32,19 @@ function assertIncludes(source, value, message) {
 }
 
 const menuActions = read("src/client/features/canvas/workflows/canvas-menu-actions.js");
+const menuClipboardUtils = read("src/client/features/canvas/workflows/canvas-menu-clipboard-utils.js");
 const menuLayoutUtils = read("src/client/features/canvas/workflows/canvas-menu-layout-utils.js");
 const menuTextUtils = read("src/client/features/canvas/workflows/canvas-menu-text-utils.js");
 
 assertIncludes(menuActions, "export function bindCanvasMenuActions", "canvas menu must expose bindCanvasMenuActions");
 assertIncludes(menuActions, "export function runCanvasImageMenuCommand", "canvas image command wrapper must stay exported");
 assertIncludes(menuActions, "export function runCanvasObjectMenuCommand", "canvas object command runner must stay exported");
+assertIncludes(menuActions, 'from "./canvas-menu-clipboard-utils.js"', "canvas menu must import clipboard utility helpers");
 assertIncludes(menuActions, 'from "./canvas-menu-layout-utils.js"', "canvas menu must import layout utility helpers");
 assertIncludes(menuActions, 'from "./canvas-menu-text-utils.js"', "canvas menu must import text utility helpers");
 assertIncludes(menuActions, "const CANVAS_NODE_SELECTOR = \".node-card, .canvas-object\"", "canvas menu node selector must include node cards and canvas objects");
+assertIncludes(menuClipboardUtils, "export function snapshotNodeForClipboard", "canvas clipboard snapshot must live in clipboard utils");
+assertIncludes(menuClipboardUtils, "export function pasteNodeFromClipboard", "canvas clipboard paste must live in clipboard utils");
 assertIncludes(menuLayoutUtils, "export function areLayoutSnapshotsEqual", "canvas layout snapshot equality must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getLayoutUnionBounds", "canvas layout union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node sort index must live in layout utils");
@@ -99,9 +107,9 @@ assertIncludes(menuActions, 'button.dataset.canvasCommand || button.dataset.imag
 
 assertIncludes(menuActions, "snapshotNodeForClipboard", "canvas menu must keep node clipboard snapshots");
 assertIncludes(menuActions, "pasteNodeFromClipboard", "canvas menu must keep node clipboard paste");
-assertIncludes(menuActions, "x: point.x + 24", "clipboard paste must preserve x offset");
-assertIncludes(menuActions, "y: point.y + 24", "clipboard paste must preserve y offset");
-assertIncludes(menuActions, 'pasted.dataset.locked = "false"', "clipboard paste must unlock pasted nodes");
+assertIncludes(menuClipboardUtils, "x: point.x + 24", "clipboard paste must preserve x offset");
+assertIncludes(menuClipboardUtils, "y: point.y + 24", "clipboard paste must preserve y offset");
+assertIncludes(menuClipboardUtils, 'pasted.dataset.locked = "false"', "clipboard paste must unlock pasted nodes");
 
 assertIncludes(menuActions, 'data-selection-action="group-toggle"', "selection action bar must keep group toggle action");
 assertIncludes(menuActions, 'data-selection-action="compare"', "selection action bar must keep compare action");
@@ -191,5 +199,65 @@ assert(stripImageExtension("sample.preview.txt") === "sample.preview.txt", "stri
 assert(escapeAttributeValue('group"1') === 'group\\"1', "attribute escaping should preserve quote behavior");
 assert(escapeAttributeValue("group\\1") === "group\\\\1", "attribute escaping should preserve backslash behavior");
 assert(escapeHtml('<div title="A&B">') === "&lt;div title=&quot;A&amp;B&quot;&gt;", "html escaping should preserve export svg escaping");
+
+const clipboardImage = {
+  alt: "Alt title",
+  currentSrc: "/uploads/generated.png",
+  src: "/uploads/fallback.png",
+  dataset: { mimeType: "image/jpeg" }
+};
+const clipboardNode = {
+  dataset: { title: "Dataset title", desc: "Dataset desc" },
+  style: { width: "320px", minHeight: "180px" },
+  textContent: "Text title",
+  querySelector(selector) {
+    if (selector === ".image-frame img") return clipboardImage;
+    if (selector === "h3, .node-title, [data-node-title]") return { textContent: "  Snapshot\nTitle  " };
+    if (selector === "p, .node-desc, [data-node-desc]") return { textContent: "  Snapshot   Description  " };
+    return null;
+  }
+};
+const clipboardSnapshot = snapshotNodeForClipboard(clipboardNode, { getNodeKind: () => "image" });
+assert(clipboardSnapshot.kind === "image", "clipboard snapshot should preserve node kind");
+assert(clipboardSnapshot.title === "Snapshot Title", "clipboard snapshot should clean title text");
+assert(clipboardSnapshot.desc === "Snapshot Description", "clipboard snapshot should clean description text");
+assert(clipboardSnapshot.media.url === "/uploads/generated.png", "clipboard snapshot should prefer current image source");
+assert(clipboardSnapshot.media.type === "image/jpeg", "clipboard snapshot should preserve image mime type");
+assert(clipboardSnapshot.width === "320px", "clipboard snapshot should preserve width style");
+assert(clipboardSnapshot.minHeight === "180px", "clipboard snapshot should preserve min height style");
+
+let pasteArgs = null;
+let selectedPasteNode = null;
+const pastedNode = {
+  style: {},
+  dataset: { locked: "true" },
+  classList: {
+    removed: [],
+    contains: () => false,
+    remove(...names) {
+      this.removed.push(...names);
+    }
+  }
+};
+const pastedResult = pasteNodeFromClipboard({
+  snapshot: clipboardSnapshot,
+  point: { x: 10, y: 20 },
+  addNode(args) {
+    pasteArgs = args;
+    return pastedNode;
+  },
+  selectNode(node) {
+    selectedPasteNode = node;
+  }
+});
+assert(pastedResult === pastedNode, "clipboard paste should return pasted node");
+assert(pasteArgs.x === 34 && pasteArgs.y === 44, "clipboard paste should preserve paste offset");
+assert(pasteArgs.kind === "image", "clipboard paste should pass snapshot kind");
+assert(pastedNode.style.width === "320px", "clipboard paste should restore width");
+assert(pastedNode.style.minHeight === "180px", "clipboard paste should restore non-image min height");
+assert(pastedNode.dataset.locked === "false", "clipboard paste should unlock pasted node");
+assert(pastedNode.classList.removed.includes("node-locked") && pastedNode.classList.removed.includes("selected"), "clipboard paste should clear lock and selection classes");
+assert(selectedPasteNode === pastedNode, "clipboard paste should select pasted node");
+assert(pasteNodeFromClipboard({ snapshot: null, point: { x: 0, y: 0 }, addNode: () => pastedNode, selectNode: () => {} }) === null, "clipboard paste should ignore empty snapshot");
 
 console.log("Canvas menu action checks passed.");
