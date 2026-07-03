@@ -40,3 +40,64 @@ export function buildConversationRunPayload({
     canvasContext
   };
 }
+
+export function shouldEnterMessageDoneExecution({
+  shouldGenerate = false,
+  autoExecute = false,
+  runId = "",
+  activeRunId = ""
+} = {}) {
+  return Boolean(shouldGenerate && autoExecute && isActiveRun({ runId, activeRunId }));
+}
+
+export function getMessageDoneSkipReason({
+  shouldGenerate = false,
+  autoExecute = false,
+  runId = "",
+  activeRunId = ""
+} = {}) {
+  if (!isActiveRun({ runId, activeRunId })) return "skipped because runId mismatch";
+  if (!autoExecute) return "skipped because autoExecute false";
+  if (!shouldGenerate) return "skipped because shouldGenerate false";
+  return "";
+}
+
+export function buildMessageDoneReceivedPayload(details = {}) {
+  const {
+    runId = "",
+    activeRunId = "",
+    intent = "",
+    shouldGenerate = false,
+    generationType = "",
+    autoExecute = false,
+    generationStarted = false
+  } = details;
+  const payload = {
+    runId,
+    activeRunId,
+    intent,
+    shouldGenerate: Boolean(shouldGenerate),
+    generationType,
+    autoExecute: Boolean(autoExecute),
+    generationStarted: Boolean(generationStarted),
+    enterExecuteGeneration: shouldEnterMessageDoneExecution({
+      shouldGenerate,
+      autoExecute,
+      runId,
+      activeRunId
+    }),
+    skipReason: getMessageDoneSkipReason({
+      shouldGenerate,
+      autoExecute,
+      runId,
+      activeRunId
+    })
+  };
+  if (Object.prototype.hasOwnProperty.call(details, "taskType")) payload.taskType = details.taskType || "";
+  if (Object.prototype.hasOwnProperty.call(details, "promptStrategy")) payload.promptStrategy = details.promptStrategy || "";
+  return payload;
+}
+
+function isActiveRun({ runId = "", activeRunId = "" } = {}) {
+  return !runId || activeRunId === runId;
+}

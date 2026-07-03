@@ -86,6 +86,7 @@ import {
   waitForTripo3DTask
 } from "./prompt-job-utils.js";
 import {
+  buildMessageDoneReceivedPayload,
   buildConversationRunPayload,
   getGenerationToolNameFromEvent,
   isGenerationIntent
@@ -1276,17 +1277,15 @@ async function runConversationAgent({
         debugRecord.streamAbortReason = `stale event ignored: ${event.type || ""}`;
       }
       if (event.type === "message.done") {
-        console.debug("[message.done] received", {
+        console.debug("[message.done] received", buildMessageDoneReceivedPayload({
           runId,
           activeRunId: activeChatAgentRunId,
           intent: event.intent || event.message?.content?.intent || "",
           shouldGenerate: Boolean(event.shouldGenerate),
           generationType: event.generationType || "",
           autoExecute: CHAT_AGENT_CONFIG.autoExecute,
-          generationStarted: false,
-          enterExecuteGeneration: false,
-          skipReason: "skipped because runId mismatch"
-        });
+          generationStarted: false
+        }));
       }
       logAgentDebug(debugRecord, "conversation.event.stale_ignored", {
         activeRunId: activeChatAgentRunId,
@@ -1496,7 +1495,7 @@ async function runConversationAgent({
         debugRecord.messageDoneHandled = true;
         debugRecord.generationType = outputType;
       }
-      console.debug("[message.done] received", {
+      console.debug("[message.done] received", buildMessageDoneReceivedPayload({
         runId,
         activeRunId: activeChatAgentRunId,
         intent,
@@ -1505,14 +1504,8 @@ async function runConversationAgent({
         shouldGenerate,
         generationType: outputType,
         autoExecute: CHAT_AGENT_CONFIG.autoExecute,
-        generationStarted: false,
-        enterExecuteGeneration: shouldGenerate && CHAT_AGENT_CONFIG.autoExecute && (!runId || activeChatAgentRunId === runId),
-        skipReason: !(!runId || activeChatAgentRunId === runId)
-          ? "skipped because runId mismatch"
-          : (!CHAT_AGENT_CONFIG.autoExecute
-            ? "skipped because autoExecute false"
-            : (!shouldGenerate ? "skipped because shouldGenerate false" : ""))
-      });
+        generationStarted: false
+      }));
       logAgentDebug(debugRecord, "conversation.done", {
         intent,
         taskType,

@@ -1,8 +1,11 @@
 import {
+  buildMessageDoneReceivedPayload,
   buildConversationRunPayload,
+  getMessageDoneSkipReason,
   getGenerationToolNameFromEvent,
   isGenerationIntent,
-  isGenerationTool
+  isGenerationTool,
+  shouldEnterMessageDoneExecution
 } from "../src/client/features/workspace/chat/workflows/prompt-conversation-event-utils.js";
 
 function assert(condition, message) {
@@ -102,6 +105,105 @@ assert(
   uploadPayload.attachments[1].type === "image"
     && uploadPayload.attachments[1].name === "Reference 2",
   "Conversation payloads should preserve fallback upload metadata"
+);
+
+assert(
+  shouldEnterMessageDoneExecution({
+    shouldGenerate: true,
+    autoExecute: true,
+    runId: "run-1",
+    activeRunId: "run-1"
+  }) === true,
+  "Message done execution should enter for matching active generation runs"
+);
+assert(
+  shouldEnterMessageDoneExecution({
+    shouldGenerate: true,
+    autoExecute: true,
+    runId: "run-1",
+    activeRunId: "run-2"
+  }) === false,
+  "Message done execution should not enter stale runs"
+);
+assert(
+  shouldEnterMessageDoneExecution({
+    shouldGenerate: true,
+    autoExecute: false,
+    runId: "",
+    activeRunId: ""
+  }) === false,
+  "Message done execution should respect auto execution flags"
+);
+assert(
+  getMessageDoneSkipReason({
+    shouldGenerate: true,
+    autoExecute: true,
+    runId: "run-1",
+    activeRunId: "run-2"
+  }) === "skipped because runId mismatch",
+  "Message done skip reasons should report stale runs first"
+);
+assert(
+  getMessageDoneSkipReason({
+    shouldGenerate: true,
+    autoExecute: false,
+    runId: "run-1",
+    activeRunId: "run-1"
+  }) === "skipped because autoExecute false",
+  "Message done skip reasons should report disabled auto execution"
+);
+assert(
+  getMessageDoneSkipReason({
+    shouldGenerate: false,
+    autoExecute: true,
+    runId: "run-1",
+    activeRunId: "run-1"
+  }) === "skipped because shouldGenerate false",
+  "Message done skip reasons should report non-generation completions"
+);
+assert(
+  getMessageDoneSkipReason({
+    shouldGenerate: true,
+    autoExecute: true,
+    runId: "",
+    activeRunId: ""
+  }) === "",
+  "Message done skip reasons should be empty when execution can enter"
+);
+
+const messageDonePayload = buildMessageDoneReceivedPayload({
+  runId: "run-1",
+  activeRunId: "run-1",
+  intent: "generate_image",
+  taskType: "image",
+  promptStrategy: "optimized",
+  shouldGenerate: true,
+  generationType: "image",
+  autoExecute: true,
+  generationStarted: false
+});
+assert(messageDonePayload.enterExecuteGeneration === true, "Message done payloads should include execution entry decisions");
+assert(messageDonePayload.skipReason === "", "Message done payloads should leave skip reasons empty when entering");
+assert(messageDonePayload.intent === "generate_image", "Message done payloads should preserve intents");
+assert(messageDonePayload.taskType === "image", "Message done payloads should preserve task types");
+assert(messageDonePayload.promptStrategy === "optimized", "Message done payloads should preserve prompt strategies");
+
+const staleMessageDonePayload = buildMessageDoneReceivedPayload({
+  runId: "run-1",
+  activeRunId: "run-2",
+  shouldGenerate: true,
+  generationType: "image",
+  autoExecute: true
+});
+assert(staleMessageDonePayload.enterExecuteGeneration === false, "Message done payloads should not enter stale runs");
+assert(
+  staleMessageDonePayload.skipReason === "skipped because runId mismatch",
+  "Message done payloads should preserve stale run skip reasons"
+);
+assert(
+  !Object.prototype.hasOwnProperty.call(staleMessageDonePayload, "taskType")
+    && !Object.prototype.hasOwnProperty.call(staleMessageDonePayload, "promptStrategy"),
+  "Message done payloads should not add optional task fields unless provided"
 );
 
 console.log("Prompt conversation event utility checks passed.");
