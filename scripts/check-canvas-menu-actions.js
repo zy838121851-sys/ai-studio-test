@@ -1,7 +1,8 @@
 import { readFileSync } from "node:fs";
 import {
   areLayoutSnapshotsEqual,
-  getLayoutUnionBounds
+  getLayoutUnionBounds,
+  parseAspectRatio
 } from "../src/client/features/canvas/workflows/canvas-menu-layout-utils.js";
 
 function read(path) {
@@ -26,6 +27,7 @@ assertIncludes(menuActions, 'from "./canvas-menu-layout-utils.js"', "canvas menu
 assertIncludes(menuActions, "const CANVAS_NODE_SELECTOR = \".node-card, .canvas-object\"", "canvas menu node selector must include node cards and canvas objects");
 assertIncludes(menuLayoutUtils, "export function areLayoutSnapshotsEqual", "canvas layout snapshot equality must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getLayoutUnionBounds", "canvas layout union bounds must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function parseAspectRatio", "canvas aspect ratio parsing must live in layout utils");
 
 [
   "text:",
@@ -111,5 +113,11 @@ assert(unionBounds.y === -10, "layout union bounds should preserve minimum y");
 assert(unionBounds.width === 115, "layout union bounds should span to maximum right edge");
 assert(unionBounds.height === 130, "layout union bounds should span to maximum bottom edge");
 assert(getLayoutUnionBounds([]).width === -Infinity, "layout union bounds should preserve empty input behavior");
+
+assert(parseAspectRatio("16 / 9") === 16 / 9, "aspect ratio parser should support ratio strings");
+assert(parseAspectRatio("1.5") === 1.5, "aspect ratio parser should support numeric strings");
+assert(parseAspectRatio("auto") === 0, "aspect ratio parser should preserve auto fallback");
+assert(parseAspectRatio("0 / 3") === 0, "aspect ratio parser should reject non-positive ratio parts");
+assert(parseAspectRatio("invalid") === 0, "aspect ratio parser should reject invalid values");
 
 console.log("Canvas menu action checks passed.");

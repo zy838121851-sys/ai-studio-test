@@ -22,3 +22,14 @@ export function getLayoutUnionBounds(bounds = []) {
     height: bottom - top
   };
 }
+
+export function parseAspectRatio(value = "") {
+  const normalized = String(value || "").trim();
+  if (!normalized || normalized === "auto") return 0;
+  const parts = normalized.split("/").map((part) => Number.parseFloat(part.trim()));
+  if (parts.length === 2 && parts.every((part) => Number.isFinite(part) && part > 0)) {
+    return parts[0] / parts[1];
+  }
+  const numeric = Number.parseFloat(normalized);
+  return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
+}

@@ -2,7 +2,8 @@
 
 import {
   areLayoutSnapshotsEqual,
-  getLayoutUnionBounds
+  getLayoutUnionBounds,
+  parseAspectRatio
 } from "./canvas-menu-layout-utils.js";
 
 const NODE_PRESETS = {
@@ -1120,17 +1121,6 @@ function getImageFrameHeightFromAspect(node, width) {
   const frame = node?.querySelector?.(".image-frame");
   const ratio = parseAspectRatio(frame?.style?.aspectRatio || window.getComputedStyle(frame || node).aspectRatio || "");
   return ratio ? width / ratio : 0;
-}
-
-function parseAspectRatio(value = "") {
-  const normalized = String(value || "").trim();
-  if (!normalized || normalized === "auto") return 0;
-  const parts = normalized.split("/").map((part) => Number.parseFloat(part.trim()));
-  if (parts.length === 2 && parts.every((part) => Number.isFinite(part) && part > 0)) {
-    return parts[0] / parts[1];
-  }
-  const numeric = Number.parseFloat(normalized);
-  return Number.isFinite(numeric) && numeric > 0 ? numeric : 0;
 }
 
 function getNodeSortTitle(node) {
