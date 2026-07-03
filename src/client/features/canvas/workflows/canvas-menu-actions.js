@@ -13,7 +13,8 @@ import {
   setNodeLayoutHeight,
   setNodeLayoutSize,
   setNodeLayoutWidth,
-  snapshotLayoutNodes
+  snapshotLayoutNodes,
+  sortNodesByCanvasPosition
 } from "./canvas-menu-layout-utils.js";
 import {
   pasteNodeFromClipboard,
@@ -833,17 +834,6 @@ function layoutNodesByColumns(nodes, bounds, {
       cursorY += size.height + gap;
     });
     cursorX += column.width + gap;
-  });
-}
-
-function sortNodesByCanvasPosition(nodes) {
-  return [...nodes].sort((a, b) => {
-    const aBounds = getNodeLayoutBounds(a);
-    const bBounds = getNodeLayoutBounds(b);
-    const sameVisualRow = Math.abs(aBounds.y - bBounds.y) <= 48;
-    return (sameVisualRow ? 0 : aBounds.y - bBounds.y)
-      || aBounds.x - bBounds.x
-      || getNodeSortIndex(a) - getNodeSortIndex(b);
   });
 }
 

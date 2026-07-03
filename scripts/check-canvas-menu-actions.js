@@ -32,7 +32,8 @@ import {
   setNodeLayoutHeight,
   setNodeLayoutSize,
   setNodeLayoutWidth,
-  snapshotLayoutNodes
+  snapshotLayoutNodes,
+  sortNodesByCanvasPosition
 } from "../src/client/features/canvas/workflows/canvas-menu-layout-utils.js";
 import {
   getCommandNodesFromSelection,
@@ -226,6 +227,7 @@ const noDigitNode = { dataset: { nodeId: "node" }, parentElement: { children: [s
 assert(getNodeSortIndex(sortedNode) === 42, "node sort index should preserve numeric id parsing");
 assert(getNodeSortIndex(noDigitNode) === 0, "node sort index should preserve no-digit id behavior");
 assertIncludes(menuLayoutUtils, "parentElement?.children", "node sort index fallback must stay available");
+assertIncludes(menuLayoutUtils, "export function sortNodesByCanvasPosition", "canvas position sort must live in layout utils");
 assert(normalizeLayerZIndex("12", 3) === 12, "layer z-index normalization should parse numeric strings");
 assert(normalizeLayerZIndex("12px", 3) === 12, "layer z-index normalization should preserve parseInt behavior");
 assert(normalizeLayerZIndex("", 3) === 13, "layer z-index normalization should use fallback for empty values");
@@ -320,6 +322,42 @@ try {
   imageFrame.computedAspectRatio = "";
   const fallbackImageBounds = getNodeLayoutBounds(imageLayoutNode);
   assert(fallbackImageBounds.width === 1 && fallbackImageBounds.height === 120, "image layout bounds should preserve width minimum and minHeight fallback");
+
+  function createLayoutSortNode({ id, left, top }) {
+    return {
+      dataset: { nodeId: id },
+      offsetWidth: 20,
+      offsetHeight: 20,
+      style: { left: `${left}px`, top: `${top}px`, width: "20px", minHeight: "20px" },
+      parentElement: { children: [] },
+      classList: { contains: () => false }
+    };
+  }
+
+  const lowerRowNode = createLayoutSortNode({ id: "node-10", left: 0, top: 100 });
+  const sameRowRightNode = createLayoutSortNode({ id: "node-20", left: 50, top: 0 });
+  const sameRowFarRightNode = createLayoutSortNode({ id: "node-30", left: 200, top: 10 });
+  const sameRowLeftNode = createLayoutSortNode({ id: "node-40", left: 10, top: 22 });
+  const sortedCanvasNodes = sortNodesByCanvasPosition([
+    lowerRowNode,
+    sameRowRightNode,
+    sameRowFarRightNode,
+    sameRowLeftNode
+  ]);
+  assert(
+    sortedCanvasNodes[0] === sameRowLeftNode
+      && sortedCanvasNodes[1] === sameRowRightNode
+      && sortedCanvasNodes[2] === sameRowFarRightNode
+      && sortedCanvasNodes[3] === lowerRowNode,
+    "canvas position sort should preserve visual row threshold before y ordering"
+  );
+
+  const sameSpotEarlyNode = createLayoutSortNode({ id: "node-2", left: 10, top: 22 });
+  const sameSpotLateNode = createLayoutSortNode({ id: "node-9", left: 10, top: 22 });
+  assert(
+    sortNodesByCanvasPosition([sameSpotLateNode, sameSpotEarlyNode])[0] === sameSpotEarlyNode,
+    "canvas position sort should preserve node id fallback for identical bounds"
+  );
 
   function createLayoutWriterNode(classes = [], options = {}) {
     const frame = options.frame || { style: { aspectRatio: options.aspectRatio || "" } };

@@ -70,6 +70,17 @@ export function getNodeLayoutBounds(node) {
   };
 }
 
+export function sortNodesByCanvasPosition(nodes) {
+  return [...nodes].sort((a, b) => {
+    const aBounds = getNodeLayoutBounds(a);
+    const bBounds = getNodeLayoutBounds(b);
+    const sameVisualRow = Math.abs(aBounds.y - bBounds.y) <= 48;
+    return (sameVisualRow ? 0 : aBounds.y - bBounds.y)
+      || aBounds.x - bBounds.x
+      || getNodeSortIndex(a) - getNodeSortIndex(b);
+  });
+}
+
 export function getImageFrameHeightFromAspect(node, width) {
   const frame = node?.querySelector?.(".image-frame");
   const ratio = parseAspectRatio(frame?.style?.aspectRatio || window.getComputedStyle(frame || node).aspectRatio || "");
