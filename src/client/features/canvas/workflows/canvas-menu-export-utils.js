@@ -22,3 +22,7 @@ export function getUniqueExportFileName(existingFiles, fileName) {
   }
   return nextName;
 }
+
+export function isHttpUrl(value = "") {
+  return /^https?:\/\//i.test(String(value || ""));
+}

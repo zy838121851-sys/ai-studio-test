@@ -5,7 +5,8 @@ import {
 } from "../src/client/features/canvas/workflows/canvas-menu-clipboard-utils.js";
 import {
   getImageExportFileName,
-  getUniqueExportFileName
+  getUniqueExportFileName,
+  isHttpUrl
 } from "../src/client/features/canvas/workflows/canvas-menu-export-utils.js";
 import {
   areLayoutSnapshotsEqual,
@@ -73,6 +74,7 @@ assertIncludes(menuClipboardUtils, "export function snapshotNodeForClipboard", "
 assertIncludes(menuClipboardUtils, "export function pasteNodeFromClipboard", "canvas clipboard paste must live in clipboard utils");
 assertIncludes(menuExportUtils, "export function getImageExportFileName", "canvas image export filename must live in export utils");
 assertIncludes(menuExportUtils, "export function getUniqueExportFileName", "canvas unique export filename must live in export utils");
+assertIncludes(menuExportUtils, "export function isHttpUrl", "canvas HTTP URL check must live in export utils");
 assertIncludes(menuLayoutUtils, "export function areLayoutSnapshotsEqual", "canvas layout snapshot equality must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getLayoutUnionBounds", "canvas layout union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node sort index must live in layout utils");
@@ -379,6 +381,12 @@ assert(getImageExportFileName(exportNameNode) === "Scene-One.PNG.png", "image ex
 assert(getImageExportFileName(exportAltNameNode) === "Alt-Shot.png", "image export file name should fall back to image alt");
 assert(getUniqueExportFileName([], "Scene-One.png") === "Scene-One.png", "unique export file name should keep unused name");
 assert(getUniqueExportFileName([{ fileName: "Scene-One.png" }, { fileName: "Scene-One-2.png" }], "Scene-One.png") === "Scene-One-3.png", "unique export file name should increment conflicting names");
+assert(isHttpUrl("http://example.com/a.png") === true, "HTTP URL check should accept http URLs");
+assert(isHttpUrl("https://example.com/a.png") === true, "HTTP URL check should accept https URLs");
+assert(isHttpUrl("HTTPS://example.com/a.png") === true, "HTTP URL check should preserve case-insensitive behavior");
+assert(isHttpUrl("/uploads/a.png") === false, "HTTP URL check should reject relative uploads");
+assert(isHttpUrl("data:image/png;base64,abc") === false, "HTTP URL check should reject data URLs");
+assert(isHttpUrl(null) === false, "HTTP URL check should reject nullish values");
 
 assert(cleanText("  first\n\tsecond   third  ") === "first second third", "clean text should collapse whitespace");
 assert(cleanText("x".repeat(130)).length === 120, "clean text should preserve 120 character limit");

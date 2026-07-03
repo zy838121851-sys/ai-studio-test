@@ -14,7 +14,8 @@ import {
 } from "./canvas-menu-clipboard-utils.js";
 import {
   getImageExportFileName,
-  getUniqueExportFileName
+  getUniqueExportFileName,
+  isHttpUrl
 } from "./canvas-menu-export-utils.js";
 import {
   getCommandNodesFromSelection,
@@ -1425,10 +1426,6 @@ async function fetchProxiedImage(src, cause = null) {
     throw new Error("Image source cannot be proxied");
   }
   return fetch(`/api/image-proxy?url=${encodeURIComponent(src)}`, { credentials: "include" });
-}
-
-function isHttpUrl(value = "") {
-  return /^https?:\/\//i.test(String(value || ""));
 }
 
 function drawImageIntoRect({ context, image, x, y, width, height, objectFit = "cover" }) {
