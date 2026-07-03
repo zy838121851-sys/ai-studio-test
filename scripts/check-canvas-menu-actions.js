@@ -8,7 +8,8 @@ import {
   drawImageIntoRect,
   getImageExportFileName,
   getUniqueExportFileName,
-  isHttpUrl
+  isHttpUrl,
+  prepareExportClone
 } from "../src/client/features/canvas/workflows/canvas-menu-export-utils.js";
 import {
   areLayoutSnapshotsEqual,
@@ -79,6 +80,7 @@ assertIncludes(menuExportUtils, "export function drawImageIntoRect", "canvas ima
 assertIncludes(menuExportUtils, "export function getImageExportFileName", "canvas image export filename must live in export utils");
 assertIncludes(menuExportUtils, "export function getUniqueExportFileName", "canvas unique export filename must live in export utils");
 assertIncludes(menuExportUtils, "export function isHttpUrl", "canvas HTTP URL check must live in export utils");
+assertIncludes(menuExportUtils, "export function prepareExportClone", "canvas export clone cleanup must live in export utils");
 assertIncludes(menuLayoutUtils, "export function areLayoutSnapshotsEqual", "canvas layout snapshot equality must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getLayoutUnionBounds", "canvas layout union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node sort index must live in layout utils");
@@ -436,6 +438,23 @@ drawImageIntoRect({
   height: 200
 });
 assert(emptyDrawCalls.length === 0, "image draw helper should skip missing source dimensions");
+const removedCloneClasses = [];
+const removedExportSelectors = [];
+prepareExportClone({
+  classList: {
+    remove: (...classes) => removedCloneClasses.push(...classes)
+  },
+  querySelectorAll(selector) {
+    removedExportSelectors.push(selector);
+    return [
+      { remove: () => removedExportSelectors.push("resize-handle removed") },
+      { remove: () => removedExportSelectors.push("toolbar removed") }
+    ];
+  }
+});
+assert(JSON.stringify(removedCloneClasses) === JSON.stringify(["selected", "node-locked"]), "export clone cleanup should preserve removed classes");
+assert(removedExportSelectors[0] === ".resize-handle, .image-node-toolbar, .canvas-asset-savebar, .node-download, .node-expand, .stack-toggle, .stack-tray", "export clone cleanup should preserve removed selector list");
+assert(removedExportSelectors.includes("resize-handle removed") && removedExportSelectors.includes("toolbar removed"), "export clone cleanup should remove matched controls");
 
 assert(cleanText("  first\n\tsecond   third  ") === "first second third", "clean text should collapse whitespace");
 assert(cleanText("x".repeat(130)).length === 120, "clean text should preserve 120 character limit");

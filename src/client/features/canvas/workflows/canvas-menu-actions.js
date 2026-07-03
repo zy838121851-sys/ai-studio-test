@@ -17,7 +17,8 @@ import {
   drawImageIntoRect,
   getImageExportFileName,
   getUniqueExportFileName,
-  isHttpUrl
+  isHttpUrl,
+  prepareExportClone
 } from "./canvas-menu-export-utils.js";
 import {
   getCommandNodesFromSelection,
@@ -1482,11 +1483,6 @@ async function buildNodeSvg(node) {
     </body>
   </foreignObject>
 </svg>`.trim();
-}
-
-function prepareExportClone(clone) {
-  clone.classList.remove("selected", "node-locked");
-  clone.querySelectorAll(".resize-handle, .image-node-toolbar, .canvas-asset-savebar, .node-download, .node-expand, .stack-toggle, .stack-tray").forEach((item) => item.remove());
 }
 
 function inlineComputedTree(sourceNode, cloneNode) {

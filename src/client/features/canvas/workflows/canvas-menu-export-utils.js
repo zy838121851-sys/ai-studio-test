@@ -57,3 +57,8 @@ export function getUniqueExportFileName(existingFiles, fileName) {
 export function isHttpUrl(value = "") {
   return /^https?:\/\//i.test(String(value || ""));
 }
+
+export function prepareExportClone(clone) {
+  clone.classList.remove("selected", "node-locked");
+  clone.querySelectorAll(".resize-handle, .image-node-toolbar, .canvas-asset-savebar, .node-download, .node-expand, .stack-toggle, .stack-tray").forEach((item) => item.remove());
+}
