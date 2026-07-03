@@ -22,6 +22,7 @@ import {
   getImageNodesForExportFromSelection,
   getLayerCommandNodesFromSelection,
   getNodeKind,
+  getVisibleUniqueCanvasNodes,
   isExportableImageNode,
   isNodeLocked
 } from "./canvas-menu-node-utils.js";
@@ -644,11 +645,7 @@ function getViewportCenterWorldPoint(canvasViewport, viewportPointToWorld) {
 }
 
 function getMenuCanvasNodes() {
-  return Array.from(document.querySelectorAll(CANVAS_NODE_SELECTOR))
-    .filter((node, index, nodes) => nodes.indexOf(node) === index)
-    .filter((node) => node.isConnected
-      && !node.classList.contains("hidden")
-      && !node.classList.contains("stack-member-hidden"));
+  return getVisibleUniqueCanvasNodes(document.querySelectorAll(CANVAS_NODE_SELECTOR));
 }
 
 function getCommandNodes({ targetNode = null } = {}) {

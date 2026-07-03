@@ -21,6 +21,7 @@ import {
   getImageNodesForExportFromSelection,
   getLayerCommandNodesFromSelection,
   getNodeKind,
+  getVisibleUniqueCanvasNodes,
   isExportableImageNode,
   isNodeLocked
 } from "../src/client/features/canvas/workflows/canvas-menu-node-utils.js";
@@ -68,6 +69,7 @@ assertIncludes(menuLayoutUtils, "export function getViewportUnionRect", "canvas 
 assertIncludes(menuLayoutUtils, "export function parseAspectRatio", "canvas aspect ratio parsing must live in layout utils");
 assertIncludes(menuNodeUtils, "export function isNodeLocked", "canvas node lock check must live in node utils");
 assertIncludes(menuNodeUtils, "export function getNodeKind", "canvas node kind check must live in node utils");
+assertIncludes(menuNodeUtils, "export function getVisibleUniqueCanvasNodes", "canvas visible unique node filtering must live in node utils");
 assertIncludes(menuNodeUtils, "export function getGroupableSelection", "canvas groupable selection check must live in node utils");
 assertIncludes(menuNodeUtils, "export function getGroupMembers", "canvas group members check must live in node utils");
 assertIncludes(menuNodeUtils, "export function getGroupNodeForTarget", "canvas group target lookup must live in node utils");
@@ -237,6 +239,17 @@ assert(getNodeKind(fakeNode({ classes: ["node-video"] })) === "video", "node kin
 assert(getNodeKind(fakeNode({ classes: ["canvas-text"], dataset: { kind: "custom" } })) === "2d", "node kind should preserve canvas text class priority");
 assert(getNodeKind(fakeNode({ dataset: { kind: "custom" } })) === "custom", "node kind should fall back to dataset kind");
 assert(getNodeKind(fakeNode()) === "2d", "node kind should preserve default 2d fallback");
+
+const visibleNode = fakeNode();
+visibleNode.isConnected = true;
+const hiddenNode = fakeNode({ classes: ["hidden"] });
+hiddenNode.isConnected = true;
+const stackHiddenNode = fakeNode({ classes: ["stack-member-hidden"] });
+stackHiddenNode.isConnected = true;
+const disconnectedNode = fakeNode();
+disconnectedNode.isConnected = false;
+assert(getVisibleUniqueCanvasNodes([visibleNode, visibleNode, hiddenNode, stackHiddenNode, disconnectedNode]).length === 1, "visible unique canvas nodes should dedupe and filter hidden nodes");
+assert(getVisibleUniqueCanvasNodes([visibleNode, visibleNode])[0] === visibleNode, "visible unique canvas nodes should preserve first unique node");
 
 const selectedGroupable = fakeNode({ classes: ["selected"], dataset: {} });
 const selectedGrouped = fakeNode({ classes: ["selected"], dataset: { groupId: "group-a" } });

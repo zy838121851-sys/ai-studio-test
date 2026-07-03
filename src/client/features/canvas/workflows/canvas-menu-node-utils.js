@@ -13,6 +13,14 @@ export function getNodeKind(node) {
   return node.dataset.kind || "2d";
 }
 
+export function getVisibleUniqueCanvasNodes(nodes = []) {
+  return Array.from(nodes)
+    .filter((node, index, allNodes) => allNodes.indexOf(node) === index)
+    .filter((node) => node.isConnected
+      && !node.classList.contains("hidden")
+      && !node.classList.contains("stack-member-hidden"));
+}
+
 export function getGroupableSelection(targetNode = null, nodes = []) {
   const selected = nodes
     .filter((node) => node.classList.contains("selected"))
