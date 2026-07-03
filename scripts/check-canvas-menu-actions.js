@@ -25,6 +25,7 @@ import {
   normalizeLayerZIndex,
   recordLayoutMutation,
   getRectUnionBounds,
+  getViewportCenterWorldPoint,
   getViewportUnionRect,
   parseAspectRatio,
   restoreLayoutNodes,
@@ -109,6 +110,7 @@ assertIncludes(menuLayoutUtils, "export function getNodeLayoutBounds", "canvas n
 assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node sort index must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function normalizeLayerZIndex", "canvas layer z-index normalization must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getRectUnionBounds", "canvas rect union bounds must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function getViewportCenterWorldPoint", "canvas viewport center world point must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getViewportUnionRect", "canvas viewport union rect must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function parseAspectRatio", "canvas aspect ratio parsing must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function recordLayoutMutation", "canvas layout mutation recorder must live in layout utils");
@@ -256,6 +258,18 @@ assert(viewportRect.top === 20, "viewport union rect should preserve minimum top
 assert(viewportRect.width === 65, "viewport union rect should span maximum right");
 assert(viewportRect.height === 100, "viewport union rect should span maximum bottom");
 assert(getViewportUnionRect([]) === null, "viewport union rect should preserve empty input fallback");
+const viewportCenterPoint = getViewportCenterWorldPoint(
+  {
+    clientWidth: 300,
+    clientHeight: 180,
+    getBoundingClientRect: () => ({ left: 40, top: 60 })
+  },
+  (x, y) => ({ x: x / 2, y: y / 3 })
+);
+assert(
+  viewportCenterPoint.x === 95 && viewportCenterPoint.y === 50,
+  "viewport center world point should preserve viewport midpoint conversion"
+);
 
 const rectUnionBounds = getRectUnionBounds([
   { x: 12.2, y: 8.1, width: 20.4, height: 10.2 },

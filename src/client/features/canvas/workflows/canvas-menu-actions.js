@@ -8,6 +8,7 @@ import {
   recordLayoutMutation,
   getRectUnionBounds,
   getViewportUnionRect,
+  getViewportCenterWorldPoint,
   parseAspectRatio,
   setNodeLayoutFrameSize,
   setNodeLayoutHeight,
@@ -654,14 +655,6 @@ export function runCanvasObjectMenuCommand(command, {
   }
   if (!nodes.length) return false;
   return false;
-}
-
-function getViewportCenterWorldPoint(canvasViewport, viewportPointToWorld) {
-  const rect = canvasViewport.getBoundingClientRect();
-  return viewportPointToWorld(
-    rect.left + canvasViewport.clientWidth / 2,
-    rect.top + canvasViewport.clientHeight / 2
-  );
 }
 
 function getMenuCanvasNodes() {

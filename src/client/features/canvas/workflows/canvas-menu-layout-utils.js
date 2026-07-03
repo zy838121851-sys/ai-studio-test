@@ -182,6 +182,14 @@ export function getViewportUnionRect(nodes = []) {
   };
 }
 
+export function getViewportCenterWorldPoint(canvasViewport, viewportPointToWorld) {
+  const rect = canvasViewport.getBoundingClientRect();
+  return viewportPointToWorld(
+    rect.left + canvasViewport.clientWidth / 2,
+    rect.top + canvasViewport.clientHeight / 2
+  );
+}
+
 export function parseAspectRatio(value = "") {
   const normalized = String(value || "").trim();
   if (!normalized || normalized === "auto") return 0;
