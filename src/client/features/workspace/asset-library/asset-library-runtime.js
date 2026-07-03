@@ -1,10 +1,14 @@
 import {
   assetTypeFromMime,
-  normalizeAssets,
   normalizeCollection,
-  normalizeCollections
+  normalizeAsset
 } from "./asset-library-normalizers.js";
 import { createAssetLibraryState } from "./asset-library-state.js";
+import {
+  syncAllRemoteAssetsState,
+  syncRemoteAssetsState,
+  syncRemoteCollectionsState
+} from "./asset-library-sync.js";
 
 export function createAssetLibraryRuntime({
   eventBus,
@@ -235,41 +239,24 @@ export function createAssetLibraryRuntime({
   }
 
   async function syncRemoteAssets() {
-    if (typeof listRemoteAssets !== "function") return false;
-    try {
-      await syncRemoteCollections();
-      const result = libraryState.activeCollectionId && typeof listRemoteCollectionAssets === "function"
-        ? await listRemoteCollectionAssets(libraryState.activeCollectionId)
-        : await listRemoteAssets();
-      writeAssets(normalizeAssets(result.assets || []));
-      renderAssets();
-      return true;
-    } catch (error) {
-      if (error?.status !== 401) console.warn("Failed to load remote assets", error);
-      if (error?.status === 401) {
-        libraryState.resetRemoteState();
-      }
-      renderAssets();
-      return false;
-    }
+    const result = await syncRemoteAssetsState({
+      libraryState,
+      listRemoteAssets,
+      listRemoteCollectionAssets,
+      listRemoteAssetCollections
+    });
+    renderAssets();
+    return result;
   }
 
   async function syncAllRemoteAssets() {
-    if (typeof listRemoteAssets !== "function") return false;
-    try {
-      await syncRemoteCollections();
-      const result = await listRemoteAssets();
-      writeAssets(normalizeAssets(result.assets || []));
-      renderAssets();
-      return true;
-    } catch (error) {
-      if (error?.status !== 401) console.warn("Failed to load remote assets", error);
-      if (error?.status === 401) {
-        libraryState.resetRemoteState();
-      }
-      renderAssets();
-      return false;
-    }
+    const result = await syncAllRemoteAssetsState({
+      libraryState,
+      listRemoteAssets,
+      listRemoteAssetCollections
+    });
+    renderAssets();
+    return result;
   }
 
   async function uploadAssetFile(file, metadata = {}) {
@@ -354,21 +341,10 @@ export function createAssetLibraryRuntime({
   }
 
   async function syncRemoteCollections() {
-    if (typeof listRemoteAssetCollections !== "function") return false;
-    try {
-      const result = await listRemoteAssetCollections();
-      libraryState.replaceCollections(normalizeCollections(result.collections || []));
-      if (
-        libraryState.activeCollectionId
-        && !libraryState.collections.some((collection) => collection.id === libraryState.activeCollectionId)
-      ) {
-        libraryState.activeCollectionId = "";
-      }
-      return true;
-    } catch (error) {
-      if (error?.status !== 401) console.warn("Failed to load asset collections", error);
-      return false;
-    }
+    return syncRemoteCollectionsState({
+      libraryState,
+      listRemoteAssetCollections
+    });
   }
 
   async function createCollection(name) {

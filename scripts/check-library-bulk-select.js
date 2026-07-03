@@ -9,6 +9,11 @@ import {
   normalizeCollections
 } from "../src/client/features/workspace/asset-library/asset-library-normalizers.js";
 import { createAssetLibraryState } from "../src/client/features/workspace/asset-library/asset-library-state.js";
+import {
+  syncAllRemoteAssetsState,
+  syncRemoteAssetsState,
+  syncRemoteCollectionsState
+} from "../src/client/features/workspace/asset-library/asset-library-sync.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -84,6 +89,7 @@ assertContains("src/client/features/workspace/asset-library/asset-panel.js", [
 assertContains("src/client/features/workspace/asset-library/asset-library-runtime.js", [
   "asset-library-normalizers.js",
   "asset-library-state.js",
+  "asset-library-sync.js",
   "selectedAssetIds",
   "toggleAssetSelection",
   "toggleAllAssetSelection",
@@ -184,6 +190,86 @@ if (externalState.readAssets()[0].id !== "external") {
 externalState.writeAssets([{ id: "written" }]);
 if (externalWrites[0][0].id !== "written") {
   throw new Error("Asset library state should write through external asset providers");
+}
+
+const syncState = createAssetLibraryState();
+syncState.activeCollectionId = "board-1";
+const syncCalls = [];
+const syncResult = await syncRemoteAssetsState({
+  libraryState: syncState,
+  listRemoteAssetCollections: () => {
+    syncCalls.push("collections");
+    return { collections: [{ id: "board-1", name: "Board", asset_count: 2 }] };
+  },
+  listRemoteCollectionAssets: (collectionId) => {
+    syncCalls.push(`collection-assets:${collectionId}`);
+    return { assets: [{ id: "asset-1", name: "Asset" }] };
+  },
+  listRemoteAssets: () => {
+    syncCalls.push("all-assets");
+    return { assets: [{ id: "asset-all" }] };
+  }
+});
+if (
+  syncResult !== true
+  || syncCalls.join("|") !== "collections|collection-assets:board-1"
+  || syncState.readCollections()[0].assetCount !== 2
+  || syncState.readAssets()[0].title !== "Asset"
+) {
+  throw new Error("Asset sync helper should load collection assets for the active board");
+}
+
+const syncAllState = createAssetLibraryState();
+const syncAllCalls = [];
+const syncAllResult = await syncAllRemoteAssetsState({
+  libraryState: syncAllState,
+  listRemoteAssetCollections: () => {
+    syncAllCalls.push("collections");
+    return { collections: [{ id: "board-2" }] };
+  },
+  listRemoteAssets: () => {
+    syncAllCalls.push("all-assets");
+    return { assets: [{ id: "asset-all", name: "All Asset" }] };
+  }
+});
+if (
+  syncAllResult !== true
+  || syncAllCalls.join("|") !== "collections|all-assets"
+  || syncAllState.readAssets()[0].title !== "All Asset"
+) {
+  throw new Error("Asset sync helper should load all assets for full sync");
+}
+
+const missingCollectionState = createAssetLibraryState();
+missingCollectionState.activeCollectionId = "missing";
+await syncRemoteCollectionsState({
+  libraryState: missingCollectionState,
+  listRemoteAssetCollections: () => ({ collections: [{ id: "other" }] })
+});
+if (missingCollectionState.activeCollectionId !== "") {
+  throw new Error("Asset collection sync should clear missing active collections");
+}
+
+const unauthorizedState = createAssetLibraryState({ assets: [{ id: "existing" }] });
+unauthorizedState.replaceCollections([{ id: "board-1" }]);
+unauthorizedState.activeCollectionId = "board-1";
+unauthorizedState.assetPageMode = "recent";
+unauthorizedState.assetSelectionMode = true;
+unauthorizedState.selectedAssetIds.add("asset-1");
+const unauthorizedResult = await syncRemoteAssetsState({
+  libraryState: unauthorizedState,
+  listRemoteAssets: () => Promise.reject({ status: 401 }),
+  logger: { warn() { throw new Error("401 asset sync should not warn"); } }
+});
+if (
+  unauthorizedResult !== false
+  || unauthorizedState.readAssets().length !== 0
+  || unauthorizedState.readCollections().length !== 0
+  || unauthorizedState.activeCollectionId !== ""
+  || unauthorizedState.assetPageMode !== "boards"
+  || unauthorizedState.selectedAssetIds.size !== 0
+) {
+  throw new Error("Asset sync helper should reset remote state on 401");
 }
 
 assertContains("styles/workspace-layout.css", [
