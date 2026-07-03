@@ -1,6 +1,13 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  assetTypeFromMime,
+  normalizeAsset,
+  normalizeAssets,
+  normalizeCollection,
+  normalizeCollections
+} from "../src/client/features/workspace/asset-library/asset-library-normalizers.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -74,11 +81,64 @@ assertContains("src/client/features/workspace/asset-library/asset-panel.js", [
 ]);
 
 assertContains("src/client/features/workspace/asset-library/asset-library-runtime.js", [
+  "asset-library-normalizers.js",
   "selectedAssetIds",
   "toggleAssetSelection",
   "toggleAllAssetSelection",
   "deleteSelectedAssets"
 ]);
+
+const normalizedAsset = normalizeAsset({
+  id: "asset-1",
+  name: "File name",
+  collection_name: "Board",
+  collection_id: "board-1",
+  thumbnail_url: "/uploads/thumb.png",
+  created_at: 100,
+  updated_at: 200
+});
+if (
+  normalizedAsset.title !== "File name"
+  || normalizedAsset.collectionId !== "board-1"
+  || normalizedAsset.collectionName !== "Board"
+  || normalizedAsset.thumbnailUrl !== "/uploads/thumb.png"
+  || normalizedAsset.url !== ""
+  || normalizedAsset.createdAt !== 100
+  || normalizedAsset.updatedAt !== 200
+  || normalizedAsset.type !== "other"
+) {
+  throw new Error("Asset normalizer should preserve legacy asset field mapping");
+}
+if (normalizeAssets([{ id: "a" }])[0].title !== "Untitled asset") {
+  throw new Error("Asset list normalizer should apply asset defaults");
+}
+
+const normalizedCollection = normalizeCollection({
+  id: "board-1",
+  asset_count: "3",
+  cover_url: "/uploads/cover.png",
+  updated_at: 300
+});
+if (
+  normalizedCollection.name !== "Untitled board"
+  || normalizedCollection.assetCount !== 3
+  || normalizedCollection.coverUrl !== "/uploads/cover.png"
+  || normalizedCollection.updatedAt !== 300
+) {
+  throw new Error("Collection normalizer should preserve legacy collection field mapping");
+}
+if (normalizeCollections([{ name: "Board" }])[0].id !== "") {
+  throw new Error("Collection list normalizer should apply collection defaults");
+}
+if (
+  assetTypeFromMime("image/png") !== "image"
+  || assetTypeFromMime("video/mp4") !== "video"
+  || assetTypeFromMime("model/gltf+json") !== "model3d"
+  || assetTypeFromMime("application/pdf") !== "document"
+  || assetTypeFromMime("text/plain") !== "other"
+) {
+  throw new Error("Asset MIME type helper should preserve existing type mapping");
+}
 
 assertContains("styles/workspace-layout.css", [
   ".library-selection-bar",
