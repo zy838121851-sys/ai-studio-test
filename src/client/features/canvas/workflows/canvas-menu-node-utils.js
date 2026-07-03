@@ -39,3 +39,14 @@ export function getGroupNodeForTarget(targetNode = null, {
   const groupId = targetNode.dataset.groupId || "";
   return groupId ? querySelector(`.node-group[data-group-id="${escapeAttributeValue(groupId)}"]`) : null;
 }
+
+export function getEarliestDomNode(nodes = [], {
+  documentPositionPreceding = globalThis.Node?.DOCUMENT_POSITION_PRECEDING ?? 2
+} = {}) {
+  return nodes
+    .filter((node) => node?.parentElement)
+    .sort((a, b) => {
+      if (a === b) return 0;
+      return a.compareDocumentPosition(b) & documentPositionPreceding ? 1 : -1;
+    })[0] || null;
+}

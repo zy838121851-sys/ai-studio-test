@@ -12,6 +12,7 @@ import {
   parseAspectRatio
 } from "../src/client/features/canvas/workflows/canvas-menu-layout-utils.js";
 import {
+  getEarliestDomNode,
   getGroupableSelection,
   getGroupMembers,
   getGroupNodeForTarget,
@@ -65,6 +66,7 @@ assertIncludes(menuNodeUtils, "export function getNodeKind", "canvas node kind c
 assertIncludes(menuNodeUtils, "export function getGroupableSelection", "canvas groupable selection check must live in node utils");
 assertIncludes(menuNodeUtils, "export function getGroupMembers", "canvas group members check must live in node utils");
 assertIncludes(menuNodeUtils, "export function getGroupNodeForTarget", "canvas group target lookup must live in node utils");
+assertIncludes(menuNodeUtils, "export function getEarliestDomNode", "canvas earliest DOM node check must live in node utils");
 assertIncludes(menuTextUtils, "export function cleanText", "canvas clean text must live in text utils");
 assertIncludes(menuTextUtils, "export function cleanFileName", "canvas clean file name must live in text utils");
 assertIncludes(menuTextUtils, "export function stripImageExtension", "canvas strip image extension must live in text utils");
@@ -258,6 +260,23 @@ assert(getGroupNodeForTarget(groupedTarget, {
 }) === lookedUpGroup, "group target lookup should query grouped targets");
 assert(groupLookupSelector === '.node-group[data-group-id="group\\"1"]', "group target lookup should preserve escaped selector");
 assert(getGroupNodeForTarget(fakeNode()) === null, "group target lookup should reject disconnected targets");
+
+function fakeDomNode(order, { hasParent = true } = {}) {
+  return {
+    order,
+    parentElement: hasParent ? {} : null,
+    compareDocumentPosition(other) {
+      return other.order < this.order ? 2 : 4;
+    }
+  };
+}
+
+const firstNode = fakeDomNode(1);
+const middleNode = fakeDomNode(2);
+const lastNode = fakeDomNode(3);
+const detachedNode = fakeDomNode(0, { hasParent: false });
+assert(getEarliestDomNode([lastNode, detachedNode, middleNode, firstNode], { documentPositionPreceding: 2 }) === firstNode, "earliest DOM node should sort by document position");
+assert(getEarliestDomNode([detachedNode], { documentPositionPreceding: 2 }) === null, "earliest DOM node should reject detached nodes");
 
 assert(cleanText("  first\n\tsecond   third  ") === "first second third", "clean text should collapse whitespace");
 assert(cleanText("x".repeat(130)).length === 120, "clean text should preserve 120 character limit");

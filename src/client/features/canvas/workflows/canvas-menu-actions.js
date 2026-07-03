@@ -13,6 +13,7 @@ import {
   snapshotNodeForClipboard
 } from "./canvas-menu-clipboard-utils.js";
 import {
+  getEarliestDomNode,
   getGroupableSelection,
   getGroupMembers,
   getGroupNodeForTarget,
@@ -1216,15 +1217,6 @@ function configureGroupNode(groupNode, {
     <div class="canvas-group-label">Group</div>
     <div class="canvas-group-fill" aria-hidden="true"></div>
   `;
-}
-
-function getEarliestDomNode(nodes = []) {
-  return nodes
-    .filter((node) => node?.parentElement)
-    .sort((a, b) => {
-      if (a === b) return 0;
-      return a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_PRECEDING ? 1 : -1;
-    })[0] || null;
 }
 
 function ungroupNodes({ targetNode = null, selectNode = null, addChat = () => {} } = {}) {
