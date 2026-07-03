@@ -24,6 +24,9 @@ import {
   hydrateProjectRuntimeState,
   syncProjectRuntimeChange
 } from "../src/client/features/projects/project-runtime-sync.js";
+import {
+  createProjectWorkflowRuntimeConfig
+} from "../src/client/features/projects/project-workflow-runtime-config.js";
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -455,6 +458,44 @@ assert(
   ]),
   "Project bootstrap config should preserve runtime change sync behavior"
 );
+
+const workflowConfigCalls = [];
+const workflowConfigState = { label: "workflow-state" };
+const workflowConfigServices = { label: "workflow-services" };
+const workflowConfigUi = { label: "workflow-ui" };
+const workflowConfigProjectRuntime = { label: "project-runtime" };
+const workflowConfigElements = { label: "elements" };
+const workflowConfigChat = { label: "chat" };
+const workflowConfig = createProjectWorkflowRuntimeConfig({
+  state: { label: "state" },
+  elements: workflowConfigElements,
+  remoteProjectsEnabled: true,
+  services: { label: "services" },
+  projectRuntime: workflowConfigProjectRuntime,
+  ui: { label: "ui" },
+  chat: workflowConfigChat,
+  createWorkflowState(options) {
+    workflowConfigCalls.push(["state", options]);
+    return workflowConfigState;
+  },
+  createWorkflowServices(options) {
+    workflowConfigCalls.push(["services", options]);
+    return workflowConfigServices;
+  },
+  createWorkflowUi(options) {
+    workflowConfigCalls.push(["ui", options]);
+    return workflowConfigUi;
+  }
+});
+assert(workflowConfig.state === workflowConfigState, "Project workflow config should use the workflow state factory result");
+assert(workflowConfig.services === workflowConfigServices, "Project workflow config should use the workflow services factory result");
+assert(workflowConfig.ui === workflowConfigUi, "Project workflow config should use the workflow UI factory result");
+assert(workflowConfig.projectRuntime === workflowConfigProjectRuntime, "Project workflow config should preserve project runtime");
+assert(workflowConfig.elements === workflowConfigElements, "Project workflow config should preserve elements");
+assert(workflowConfig.chat === workflowConfigChat, "Project workflow config should preserve chat");
+assert(workflowConfigCalls.length === 3, "Project workflow config should call each workflow factory once");
+assert(workflowConfigCalls[0][1].remoteProjectsEnabled === true, "Project workflow state should receive remote project mode");
+assert(workflowConfigCalls[1][1].remoteProjectsEnabled === true, "Project workflow services should receive remote project mode");
 
 console.log("Project snapshot checks passed.");
 
