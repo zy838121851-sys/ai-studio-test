@@ -20,6 +20,10 @@ import {
   getSnapshotPreviewImage,
   insertAssetIntoProjectFlow
 } from "./asset-library-project-insert.js";
+import {
+  closeAssetPreviewOverlay,
+  showAssetPreviewOverlay
+} from "./asset-library-preview.js";
 
 export function createAssetLibraryRuntime({
   eventBus,
@@ -535,43 +539,28 @@ export function createAssetLibraryRuntime({
   function previewAsset(assetId) {
     const asset = readAssets().find((item) => item.id === assetId);
     if (!asset) return null;
-    const src = asset.url || asset.thumbnailUrl || asset.thumbnail || "";
-    if (!src) return null;
-
-    let overlay = document.querySelector(".asset-preview-overlay");
-    if (!overlay) {
-      overlay = document.createElement("div");
-      overlay.className = "asset-preview-overlay";
-      overlay.innerHTML = `
-        <button class="asset-preview-backdrop" type="button" data-close-asset-preview aria-label="关闭预览"></button>
-        <div class="asset-preview-dialog" role="dialog" aria-modal="true" aria-label="素材预览">
-          <button class="asset-preview-close" type="button" data-close-asset-preview aria-label="关闭预览">×</button>
-          <img alt="" />
-          <strong class="asset-preview-title"></strong>
-        </div>
-      `;
-      overlay.addEventListener("click", (event) => {
-        if (event.target.closest("[data-close-asset-preview]")) closeAssetPreview();
-      });
-      document.addEventListener("keydown", (event) => {
-        if (event.key === "Escape") closeAssetPreview();
-      });
-      document.body.appendChild(overlay);
-    }
-
-    const image = overlay.querySelector("img");
-    const title = overlay.querySelector(".asset-preview-title");
-    if (image) {
-      image.src = src;
-      image.alt = asset.title || asset.name || "素材预览";
-    }
-    if (title) title.textContent = asset.title || asset.name || "";
-    overlay.classList.add("open");
-    return asset;
+    return showAssetPreviewOverlay({
+      asset,
+      documentRef: document,
+      closePreview: closeAssetPreview,
+      createOverlay: () => {
+        const overlay = document.createElement("div");
+        overlay.className = "asset-preview-overlay";
+        overlay.innerHTML = `
+          <button class="asset-preview-backdrop" type="button" data-close-asset-preview aria-label="关闭预览"></button>
+          <div class="asset-preview-dialog" role="dialog" aria-modal="true" aria-label="素材预览">
+            <button class="asset-preview-close" type="button" data-close-asset-preview aria-label="关闭预览">×</button>
+            <img alt="" />
+            <strong class="asset-preview-title"></strong>
+          </div>
+        `;
+        return overlay;
+      }
+    });
   }
 
   function closeAssetPreview() {
-    document.querySelector(".asset-preview-overlay")?.classList.remove("open");
+    closeAssetPreviewOverlay(document);
   }
 
   function mergeAsset(asset) {

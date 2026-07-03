@@ -25,6 +25,12 @@ import {
   getSnapshotPreviewImage,
   insertAssetIntoProjectFlow
 } from "../src/client/features/workspace/asset-library/asset-library-project-insert.js";
+import {
+  closeAssetPreviewOverlay,
+  getAssetPreviewSource,
+  getAssetPreviewTitle,
+  showAssetPreviewOverlay
+} from "../src/client/features/workspace/asset-library/asset-library-preview.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -103,6 +109,7 @@ assertContains("src/client/features/workspace/asset-library/asset-library-runtim
   "asset-library-selection.js",
   "asset-library-sync.js",
   "asset-library-project-insert.js",
+  "asset-library-preview.js",
   "selectedAssetIds",
   "toggleAssetSelection",
   "toggleAllAssetSelection",
@@ -395,6 +402,85 @@ if (otherProjectInsertCalls.join("|") !== "save|open:project-2|insert:asset-2|sa
   throw new Error("Asset project insert helper should save, switch, insert, and save for another project");
 }
 
+if (
+  getAssetPreviewSource({ thumbnail: "/uploads/thumb.png" }) !== "/uploads/thumb.png"
+  || getAssetPreviewSource({ thumbnailUrl: "/uploads/thumb-url.png", thumbnail: "/uploads/thumb.png" }) !== "/uploads/thumb-url.png"
+  || getAssetPreviewSource({ url: "/uploads/full.png", thumbnailUrl: "/uploads/thumb-url.png" }) !== "/uploads/full.png"
+) {
+  throw new Error("Asset preview helper should preserve preview source priority");
+}
+if (
+  getAssetPreviewTitle({ name: "Name" }) !== "Name"
+  || getAssetPreviewTitle({ title: "Title", name: "Name" }) !== "Title"
+) {
+  throw new Error("Asset preview helper should preserve preview title priority");
+}
+
+const previewDocument = createPreviewDocument();
+let previewCloseCalls = 0;
+const previewAssetResult = showAssetPreviewOverlay({
+  asset: { url: "/uploads/full.png", title: "Preview title" },
+  documentRef: previewDocument,
+  closePreview: () => {
+    previewCloseCalls += 1;
+    closeAssetPreviewOverlay(previewDocument);
+  },
+  createOverlay: () => createPreviewOverlay()
+});
+const previewOverlay = previewDocument.querySelector(".asset-preview-overlay");
+if (
+  previewAssetResult?.title !== "Preview title"
+  || previewDocument.body.children.length !== 1
+  || !previewOverlay.classList.contains("open")
+  || previewOverlay.querySelector("img").src !== "/uploads/full.png"
+  || previewOverlay.querySelector("img").alt !== "Preview title"
+  || previewOverlay.querySelector(".asset-preview-title").textContent !== "Preview title"
+) {
+  throw new Error("Asset preview helper should create, populate, and open the preview overlay");
+}
+showAssetPreviewOverlay({
+  asset: { thumbnailUrl: "/uploads/second.png", name: "Second title" },
+  documentRef: previewDocument,
+  closePreview: () => {},
+  createOverlay: () => {
+    throw new Error("Asset preview helper should reuse the existing preview overlay");
+  }
+});
+if (
+  previewDocument.body.children.length !== 1
+  || previewOverlay.querySelector("img").src !== "/uploads/second.png"
+  || previewOverlay.querySelector("img").alt !== "Second title"
+  || previewOverlay.querySelector(".asset-preview-title").textContent !== "Second title"
+) {
+  throw new Error("Asset preview helper should update an existing preview overlay");
+}
+previewOverlay.dispatchClick("[data-close-asset-preview]");
+if (previewCloseCalls !== 1 || previewOverlay.classList.contains("open")) {
+  throw new Error("Asset preview helper should close when the preview close target is clicked");
+}
+showAssetPreviewOverlay({
+  asset: { url: "/uploads/full.png", title: "Preview title" },
+  documentRef: previewDocument,
+  closePreview: () => {
+    previewCloseCalls += 1;
+    closeAssetPreviewOverlay(previewDocument);
+  },
+  createOverlay: () => {
+    throw new Error("Asset preview helper should still reuse the existing overlay after close");
+  }
+});
+previewDocument.dispatchKeydown("Escape");
+if (previewCloseCalls !== 2 || previewOverlay.classList.contains("open")) {
+  throw new Error("Asset preview helper should close when Escape is pressed");
+}
+if (showAssetPreviewOverlay({
+  asset: { title: "No source" },
+  documentRef: previewDocument,
+  createOverlay: () => createPreviewOverlay()
+}) !== null) {
+  throw new Error("Asset preview helper should ignore assets without a preview source");
+}
+
 assertContains("styles/workspace-layout.css", [
   ".library-selection-bar",
   ".library-card-check",
@@ -408,3 +494,71 @@ assertContains("styles/legacy-assets.css", [
 ]);
 
 console.log("Library bulk select checks passed");
+
+function createPreviewDocument() {
+  const listeners = new Map();
+  const body = {
+    children: [],
+    appendChild(node) {
+      this.children.push(node);
+      return node;
+    }
+  };
+  return {
+    body,
+    addEventListener(type, listener) {
+      listeners.set(type, listener);
+    },
+    querySelector(selector) {
+      return body.children.find((node) => node.matchesSelector(selector)) || null;
+    },
+    dispatchKeydown(key) {
+      listeners.get("keydown")?.({ key });
+    }
+  };
+}
+
+function createPreviewOverlay() {
+  const image = {
+    src: "",
+    alt: ""
+  };
+  const title = {
+    textContent: ""
+  };
+  const classNames = new Set(["asset-preview-overlay"]);
+  return {
+    listeners: new Map(),
+    classList: {
+      add(name) {
+        classNames.add(name);
+      },
+      remove(name) {
+        classNames.delete(name);
+      },
+      contains(name) {
+        return classNames.has(name);
+      }
+    },
+    addEventListener(type, listener) {
+      this.listeners.set(type, listener);
+    },
+    matchesSelector(selector) {
+      return selector === ".asset-preview-overlay";
+    },
+    querySelector(selector) {
+      if (selector === "img") return image;
+      if (selector === ".asset-preview-title") return title;
+      return null;
+    },
+    dispatchClick(closeSelector) {
+      this.listeners.get("click")?.({
+        target: {
+          closest(selector) {
+            return selector === closeSelector ? {} : null;
+          }
+        }
+      });
+    }
+  };
+}
