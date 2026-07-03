@@ -90,28 +90,15 @@ import {
   isGenerationIntent
 } from "./prompt-conversation-event-utils.js";
 import {
-  clearConversationChatLog,
-  closeConversationHistoryPopover,
-  ensureConversationHistoryPopover,
-  positionConversationHistoryPopover
-} from "./prompt-conversation-dom-utils.js";
+  bindConversationControls,
+  restoreProjectConversation
+} from "./prompt-conversation-history-workflow.js";
 import {
-  getConversationRestoreEntries,
-  renderConversationHistoryListHtml,
-  renderConversationHistoryMessageHtml
-} from "./prompt-conversation-format-utils.js";
-import {
-  fetchConversationMessages,
-  listProjectConversations,
-  requestConversation,
-  requestConversationRestore
+  requestConversation
 } from "./prompt-conversation-api-utils.js";
 import {
   forgetConversationId,
   getCachedConversationId,
-  hasRestoredConversation,
-  markConversationNeedsRestore,
-  markConversationRestored,
   rememberConversationId
 } from "./prompt-conversation-state-utils.js";
 import {
@@ -315,17 +302,24 @@ export function bindPromptSubmit({
     restoreProjectConversation({
       projectId: getActiveProject?.()?.id,
       addChat,
-      addChatImage
+      addChatImage,
+      ensureConversation,
+      restoredConversationProjects
     }).catch((error) => {
       console.warn("[conversation] Failed to restore messages", error);
     });
   }, 600);
   bindConversationControls({
     getProjectId: () => getActiveProject?.()?.id,
-    promptInput: resolvedPromptInput,
-    promptForm: resolvedPromptForm,
     addChat,
-    addChatImage
+    addChatImage,
+    ensureConversation,
+    conversationIdsByProject,
+    restoredConversationProjects,
+    abortCurrentConversation: () => {
+      currentConversationAbort?.abort?.();
+      currentConversationAbort = null;
+    }
   });
   bindImageTo3DRequests({
     root: resolvedPromptForm.ownerDocument || document,
@@ -1727,128 +1721,6 @@ async function streamConversationRun(conversationId, payload, onEvent, { timeout
     if (timer) window.clearTimeout(timer);
     if (currentConversationAbort === controller) currentConversationAbort = null;
   }
-}
-
-async function restoreProjectConversation({ projectId, conversationId = "", addChat, addChatImage, force = false } = {}) {
-  const cleanProjectId = String(projectId || "").trim();
-  if (!cleanProjectId || (!force && hasRestoredConversation(restoredConversationProjects, cleanProjectId))) return;
-  const conversation = conversationId
-    ? { id: String(conversationId || "").trim(), projectId: cleanProjectId }
-    : await ensureConversation(cleanProjectId);
-  if (!conversation.id) return;
-  const messages = await fetchConversationMessages(conversation.id);
-  markConversationRestored(restoredConversationProjects, cleanProjectId);
-  getConversationRestoreEntries(messages).forEach((entry) => {
-    if (entry.type === "image") {
-      addChatImage(entry.role, entry.url, entry.caption);
-      return;
-    }
-    if (entry.type === "message") addChat(entry.role, entry.text);
-  });
-}
-
-function bindConversationControls({ getProjectId, addChat, addChatImage } = {}) {
-  const newButton = globalThis.document?.querySelector?.("#newConversation");
-  const historyButton = globalThis.document?.querySelector?.("#conversationHistory");
-
-  newButton?.addEventListener?.("click", async () => {
-    const projectId = getProjectId?.();
-    if (!projectId) return;
-    closeConversationHistoryPopover();
-    currentConversationAbort?.abort?.();
-    currentConversationAbort = null;
-    try {
-      const conversation = await ensureConversation(projectId, { reset: true });
-      rememberConversationId(conversationIdsByProject, projectId, conversation.id);
-      markConversationNeedsRestore(restoredConversationProjects, projectId);
-      clearConversationChatLog();
-    } catch (error) {
-      console.warn("[conversation] Failed to create a new conversation", error);
-    }
-  });
-
-  historyButton?.addEventListener?.("click", async (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const projectId = getProjectId?.();
-    if (!projectId) {
-      showConversationHistoryMessage(historyButton, "暂无当前项目");
-      return;
-    }
-    await toggleConversationHistoryPopover({
-      button: historyButton,
-      projectId,
-      addChat,
-      addChatImage
-    });
-  });
-}
-
-function showConversationHistoryMessage(button, message) {
-  const popover = ensureConversationHistoryPopover();
-  popover.hidden = false;
-  positionConversationHistoryPopover(button, popover);
-  popover.innerHTML = renderConversationHistoryMessageHtml(message);
-}
-
-async function toggleConversationHistoryPopover({ button, projectId, addChat, addChatImage } = {}) {
-  const popover = ensureConversationHistoryPopover();
-  if (!popover.hidden) {
-    closeConversationHistoryPopover();
-    return;
-  }
-  popover.hidden = false;
-  positionConversationHistoryPopover(button, popover);
-  popover.innerHTML = renderConversationHistoryMessageHtml("正在加载...");
-  try {
-    const conversations = await listProjectConversations(projectId);
-    renderConversationHistoryPopover(popover, {
-      projectId,
-      conversations,
-      addChat,
-      addChatImage
-    });
-    positionConversationHistoryPopover(button, popover);
-  } catch (error) {
-    popover.innerHTML = renderConversationHistoryMessageHtml(error.message || "加载失败");
-  }
-}
-
-function renderConversationHistoryPopover(popover, { projectId, conversations, addChat, addChatImage } = {}) {
-  const cleanProjectId = String(projectId || "").trim();
-  const currentId = getCachedConversationId(conversationIdsByProject, cleanProjectId);
-  if (!conversations.length) {
-    popover.innerHTML = renderConversationHistoryMessageHtml("暂无历史对话");
-    return;
-  }
-  popover.innerHTML = renderConversationHistoryListHtml(conversations, currentId);
-  popover.querySelectorAll("[data-conversation-id]").forEach((item) => {
-    item.addEventListener("click", async () => {
-      const conversationId = item.dataset.conversationId || "";
-      if (!conversationId) return;
-      await restoreConversationFromHistory({
-        projectId: cleanProjectId,
-        conversationId,
-        addChat,
-        addChatImage
-      });
-      closeConversationHistoryPopover();
-    });
-  });
-}
-
-async function restoreConversationFromHistory({ projectId, conversationId, addChat, addChatImage } = {}) {
-  const conversation = await requestConversationRestore(conversationId);
-  rememberConversationId(conversationIdsByProject, projectId, conversation.id);
-  markConversationNeedsRestore(restoredConversationProjects, projectId);
-  clearConversationChatLog();
-  await restoreProjectConversation({
-    projectId,
-    conversationId: conversation.id,
-    addChat,
-    addChatImage,
-    force: true
-  });
 }
 
 export function bindPromptShortcuts({
