@@ -34,6 +34,12 @@ const LAZY_SPLITS = [
     modulePath: "src/client/features/canvas/workflows/model-viewer-workflow.js",
     loaderPath: "src/client/features/canvas/workflows/model-viewer-workflow-loader.js",
     dynamicSpecifier: "./model-viewer-workflow.js"
+  },
+  {
+    label: "prompt workflow",
+    modulePath: "src/client/features/workspace/chat/workflows/prompt-workflow.js",
+    loaderPath: "src/client/features/workspace/chat/workflows/prompt-workflow-loader.js",
+    dynamicSpecifier: "./prompt-workflow.js"
   }
 ];
 
@@ -58,6 +64,24 @@ const ENTRY_EXPECTATIONS = [
       "from \"../workflows/image-generator-workflow.js\"",
       "from \"../workflows/video-generator-workflow.js\"",
       "from \"../workflows/model-viewer-workflow.js\""
+    ]
+  },
+  {
+    filePath: "src/client/features/workspace/chat/runtime/prompt-runtime.js",
+    required: [
+      "from \"../workflows/prompt-workflow-loader.js\""
+    ],
+    forbidden: [
+      "from \"../workflows/prompt-workflow.js\""
+    ]
+  },
+  {
+    filePath: "src/client/features/workspace/runtime/dependencies/workspace-ui-dependencies.js",
+    required: [
+      "from \"../../chat/workflows/prompt-workflow-loader.js\""
+    ],
+    forbidden: [
+      "from \"../../chat/workflows/prompt-workflow.js\""
     ]
   }
 ];

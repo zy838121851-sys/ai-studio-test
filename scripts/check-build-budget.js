@@ -11,6 +11,7 @@ const BUDGETS = {
   imageGeneratorWorkflowBytes: 35 * 1024,
   modelViewerBytes: 30 * 1024,
   modelViewerWorkflowBytes: 2 * 1024,
+  promptWorkflowBytes: 80 * 1024,
   videoGeneratorWorkflowBytes: 18 * 1024,
   lazyFeatureJsBytes: 90 * 1024,
   threeJsBytes: 750 * 1024,
@@ -123,6 +124,11 @@ const modelViewerWorkflow = findRequiredChunk(
   "model viewer workflow",
   (file) => /^model-viewer-workflow-[A-Za-z0-9_-]+\.js$/.test(file.name)
 );
+const promptWorkflow = findRequiredChunk(
+  files,
+  "prompt workflow",
+  (file) => /^prompt-workflow-[A-Za-z0-9_-]+\.js$/.test(file.name)
+);
 const videoGeneratorWorkflow = findRequiredChunk(
   files,
   "video generator workflow",
@@ -174,6 +180,7 @@ checkBudget("image edit workflow", imageEditWorkflow.bytes, BUDGETS.imageEditWor
 checkBudget("image generator workflow", imageGeneratorWorkflow.bytes, BUDGETS.imageGeneratorWorkflowBytes);
 checkBudget("model viewer", modelViewer.bytes, BUDGETS.modelViewerBytes);
 checkBudget("model viewer workflow", modelViewerWorkflow.bytes, BUDGETS.modelViewerWorkflowBytes);
+checkBudget("prompt workflow", promptWorkflow.bytes, BUDGETS.promptWorkflowBytes);
 checkBudget("video generator workflow", videoGeneratorWorkflow.bytes, BUDGETS.videoGeneratorWorkflowBytes);
 checkBudget("lazy feature JS", lazyFeatureJsBytes, BUDGETS.lazyFeatureJsBytes);
 checkBudget("Three.js vendor", threeJs.bytes, BUDGETS.threeJsBytes);
