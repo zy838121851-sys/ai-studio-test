@@ -16,6 +16,10 @@ import {
   toggleAllAssetSelectionState,
   toggleAssetSelectionState
 } from "./asset-library-selection.js";
+import {
+  getSnapshotPreviewImage,
+  insertAssetIntoProjectFlow
+} from "./asset-library-project-insert.js";
 
 export function createAssetLibraryRuntime({
   eventBus,
@@ -430,14 +434,14 @@ export function createAssetLibraryRuntime({
   async function insertAssetIntoProject(assetId, projectId = getActiveProjectId()) {
     const asset = readAssets().find((item) => item.id === assetId);
     if (!asset) return null;
-    const currentProjectId = getActiveProjectId();
-    if (projectId && projectId !== currentProjectId && typeof openProject === "function") {
-      await saveCurrentProject?.();
-      await openProject(projectId);
-    }
-    const node = insertAsset(assetId);
-    await saveCurrentProject?.();
-    return node;
+    return insertAssetIntoProjectFlow({
+      assetId,
+      projectId,
+      getActiveProjectId,
+      openProject,
+      saveCurrentProject,
+      insertAsset
+    });
   }
 
   function openAssetCanvasPicker(assetId) {
@@ -528,18 +532,6 @@ export function createAssetLibraryRuntime({
       </button>
     `;
   }
-  function getSnapshotPreviewImage(snapshotJson = "") {
-    if (!snapshotJson) return "";
-    try {
-      const snapshot = JSON.parse(snapshotJson);
-      const nodes = Array.isArray(snapshot?.nodes) ? snapshot.nodes : [];
-      const imageNode = nodes.find((node) => node?.media?.url || node?.media?.thumbnail || node?.thumbnail);
-      return imageNode?.media?.url || imageNode?.media?.thumbnail || imageNode?.thumbnail || "";
-    } catch {
-      return "";
-    }
-  }
-
   function previewAsset(assetId) {
     const asset = readAssets().find((item) => item.id === assetId);
     if (!asset) return null;

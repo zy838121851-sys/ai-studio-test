@@ -21,6 +21,10 @@ import {
   syncRemoteAssetsState,
   syncRemoteCollectionsState
 } from "../src/client/features/workspace/asset-library/asset-library-sync.js";
+import {
+  getSnapshotPreviewImage,
+  insertAssetIntoProjectFlow
+} from "../src/client/features/workspace/asset-library/asset-library-project-insert.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -98,6 +102,7 @@ assertContains("src/client/features/workspace/asset-library/asset-library-runtim
   "asset-library-state.js",
   "asset-library-selection.js",
   "asset-library-sync.js",
+  "asset-library-project-insert.js",
   "selectedAssetIds",
   "toggleAssetSelection",
   "toggleAllAssetSelection",
@@ -334,6 +339,60 @@ if (
   || unauthorizedState.selectedAssetIds.size !== 0
 ) {
   throw new Error("Asset sync helper should reset remote state on 401");
+}
+
+if (
+  getSnapshotPreviewImage(JSON.stringify({
+    nodes: [
+      { media: {} },
+      { media: { thumbnail: "/uploads/thumb.png" } }
+    ]
+  })) !== "/uploads/thumb.png"
+) {
+  throw new Error("Asset project insert helper should read snapshot media thumbnails");
+}
+if (
+  getSnapshotPreviewImage(JSON.stringify({
+    nodes: [
+      { thumbnail: "/uploads/fallback.png" }
+    ]
+  })) !== "/uploads/fallback.png"
+) {
+  throw new Error("Asset project insert helper should read snapshot thumbnail fallbacks");
+}
+if (getSnapshotPreviewImage("{invalid") !== "") {
+  throw new Error("Asset project insert helper should ignore invalid snapshot JSON");
+}
+
+const sameProjectInsertCalls = [];
+const sameProjectNode = await insertAssetIntoProjectFlow({
+  assetId: "asset-1",
+  projectId: "project-1",
+  getActiveProjectId: () => "project-1",
+  saveCurrentProject: () => sameProjectInsertCalls.push("save"),
+  insertAsset: (assetId) => {
+    sameProjectInsertCalls.push(`insert:${assetId}`);
+    return { id: "node-1" };
+  }
+});
+if (sameProjectNode?.id !== "node-1" || sameProjectInsertCalls.join("|") !== "insert:asset-1|save") {
+  throw new Error("Asset project insert helper should insert and save in the active project");
+}
+
+const otherProjectInsertCalls = [];
+await insertAssetIntoProjectFlow({
+  assetId: "asset-2",
+  projectId: "project-2",
+  getActiveProjectId: () => "project-1",
+  saveCurrentProject: () => otherProjectInsertCalls.push("save"),
+  openProject: (projectId) => otherProjectInsertCalls.push(`open:${projectId}`),
+  insertAsset: (assetId) => {
+    otherProjectInsertCalls.push(`insert:${assetId}`);
+    return { id: "node-2" };
+  }
+});
+if (otherProjectInsertCalls.join("|") !== "save|open:project-2|insert:asset-2|save") {
+  throw new Error("Asset project insert helper should save, switch, insert, and save for another project");
 }
 
 assertContains("styles/workspace-layout.css", [
