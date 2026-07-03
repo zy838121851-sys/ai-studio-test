@@ -3,6 +3,7 @@
 import {
   areLayoutSnapshotsEqual,
   getLayoutUnionBounds,
+  getNodeSortIndex,
   parseAspectRatio
 } from "./canvas-menu-layout-utils.js";
 
@@ -1130,12 +1131,6 @@ function getNodeSortTitle(node) {
       || node.dataset.title
       || ""
   );
-}
-
-function getNodeSortIndex(node) {
-  const idNumber = Number(String(node.dataset.nodeId || "").replace(/\D+/g, ""));
-  if (Number.isFinite(idNumber)) return idNumber;
-  return Array.from(node.parentElement?.children || []).indexOf(node);
 }
 
 function isNodeLocked(node) {

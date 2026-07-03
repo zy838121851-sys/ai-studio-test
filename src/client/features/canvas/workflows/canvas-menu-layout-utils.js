@@ -23,6 +23,12 @@ export function getLayoutUnionBounds(bounds = []) {
   };
 }
 
+export function getNodeSortIndex(node) {
+  const idNumber = Number(String(node.dataset.nodeId || "").replace(/\D+/g, ""));
+  if (Number.isFinite(idNumber)) return idNumber;
+  return Array.from(node.parentElement?.children || []).indexOf(node);
+}
+
 export function parseAspectRatio(value = "") {
   const normalized = String(value || "").trim();
   if (!normalized || normalized === "auto") return 0;

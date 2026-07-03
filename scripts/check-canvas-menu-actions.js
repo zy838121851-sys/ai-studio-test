@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import {
   areLayoutSnapshotsEqual,
   getLayoutUnionBounds,
+  getNodeSortIndex,
   parseAspectRatio
 } from "../src/client/features/canvas/workflows/canvas-menu-layout-utils.js";
 
@@ -27,6 +28,7 @@ assertIncludes(menuActions, 'from "./canvas-menu-layout-utils.js"', "canvas menu
 assertIncludes(menuActions, "const CANVAS_NODE_SELECTOR = \".node-card, .canvas-object\"", "canvas menu node selector must include node cards and canvas objects");
 assertIncludes(menuLayoutUtils, "export function areLayoutSnapshotsEqual", "canvas layout snapshot equality must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getLayoutUnionBounds", "canvas layout union bounds must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node sort index must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function parseAspectRatio", "canvas aspect ratio parsing must live in layout utils");
 
 [
@@ -113,6 +115,12 @@ assert(unionBounds.y === -10, "layout union bounds should preserve minimum y");
 assert(unionBounds.width === 115, "layout union bounds should span to maximum right edge");
 assert(unionBounds.height === 130, "layout union bounds should span to maximum bottom edge");
 assert(getLayoutUnionBounds([]).width === -Infinity, "layout union bounds should preserve empty input behavior");
+
+const sortedNode = { dataset: { nodeId: "node-42" }, parentElement: { children: [] } };
+const noDigitNode = { dataset: { nodeId: "node" }, parentElement: { children: [sortedNode] } };
+assert(getNodeSortIndex(sortedNode) === 42, "node sort index should preserve numeric id parsing");
+assert(getNodeSortIndex(noDigitNode) === 0, "node sort index should preserve no-digit id behavior");
+assertIncludes(menuLayoutUtils, "parentElement?.children", "node sort index fallback must stay available");
 
 assert(parseAspectRatio("16 / 9") === 16 / 9, "aspect ratio parser should support ratio strings");
 assert(parseAspectRatio("1.5") === 1.5, "aspect ratio parser should support numeric strings");
