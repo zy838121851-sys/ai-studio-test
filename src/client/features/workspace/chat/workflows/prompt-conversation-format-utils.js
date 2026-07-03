@@ -48,3 +48,13 @@ export function renderConversationHistoryItemHtml(conversation = {}, currentId =
       </button>
     `;
 }
+
+export function renderConversationHistoryMessageHtml(message = "") {
+  return `<strong>历史对话</strong><div class="conversation-history-empty">${escapeHtml(message)}</div>`;
+}
+
+export function renderConversationHistoryListHtml(conversations = [], currentId = "") {
+  return `<strong>历史对话</strong><div class="conversation-history-list">${
+    conversations.map((conversation) => renderConversationHistoryItemHtml(conversation, currentId)).join("")
+  }</div>`;
+}

@@ -3,7 +3,9 @@ import {
   formatConversationTime,
   getConversationHistoryDisplay,
   getConversationRestoreImageAttachments,
-  renderConversationHistoryItemHtml
+  renderConversationHistoryItemHtml,
+  renderConversationHistoryListHtml,
+  renderConversationHistoryMessageHtml
 } from "../src/client/features/workspace/chat/workflows/prompt-conversation-format-utils.js";
 
 function assert(condition, message) {
@@ -84,6 +86,26 @@ const archivedHistoryItemHtml = renderConversationHistoryItemHtml({ id: "convers
 assert(
   archivedHistoryItemHtml.includes("Project chat") && archivedHistoryItemHtml.includes("历史会话"),
   "Conversation history item HTML should preserve fallback display text"
+);
+
+const historyMessageHtml = renderConversationHistoryMessageHtml("<加载失败>");
+assert(
+  historyMessageHtml === '<strong>历史对话</strong><div class="conversation-history-empty">&lt;加载失败&gt;</div>',
+  "Conversation history message HTML should preserve shell markup and escape messages"
+);
+
+const historyListHtml = renderConversationHistoryListHtml([
+  { id: "conversation-1", title: "Active", summary: "Now" },
+  { id: "conversation-2", archived: true }
+], "conversation-1");
+assert(
+  historyListHtml.startsWith('<strong>历史对话</strong><div class="conversation-history-list">'),
+  "Conversation history list HTML should preserve shell markup"
+);
+assert(
+  historyListHtml.includes("conversation-history-item active")
+    && historyListHtml.includes('data-conversation-id="conversation-2"'),
+  "Conversation history list HTML should render history items through the shared item renderer"
 );
 
 console.log("Prompt conversation format utility checks passed.");

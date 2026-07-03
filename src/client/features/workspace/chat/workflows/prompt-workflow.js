@@ -90,9 +90,9 @@ import {
   isGenerationIntent
 } from "./prompt-conversation-event-utils.js";
 import {
-  escapeHtml,
   getConversationRestoreImageAttachments,
-  renderConversationHistoryItemHtml
+  renderConversationHistoryListHtml,
+  renderConversationHistoryMessageHtml
 } from "./prompt-conversation-format-utils.js";
 import {
   fetchConversationMessages,
@@ -1775,7 +1775,7 @@ function showConversationHistoryMessage(button, message) {
   const popover = ensureConversationHistoryPopover();
   popover.hidden = false;
   positionConversationHistoryPopover(button, popover);
-  popover.innerHTML = `<strong>历史对话</strong><div class="conversation-history-empty">${escapeHtml(message)}</div>`;
+  popover.innerHTML = renderConversationHistoryMessageHtml(message);
 }
 
 async function toggleConversationHistoryPopover({ button, projectId, addChat, addChatImage } = {}) {
@@ -1786,7 +1786,7 @@ async function toggleConversationHistoryPopover({ button, projectId, addChat, ad
   }
   popover.hidden = false;
   positionConversationHistoryPopover(button, popover);
-  popover.innerHTML = '<strong>历史对话</strong><div class="conversation-history-empty">正在加载...</div>';
+  popover.innerHTML = renderConversationHistoryMessageHtml("正在加载...");
   try {
     const conversations = await listProjectConversations(projectId);
     renderConversationHistoryPopover(popover, {
@@ -1797,7 +1797,7 @@ async function toggleConversationHistoryPopover({ button, projectId, addChat, ad
     });
     positionConversationHistoryPopover(button, popover);
   } catch (error) {
-    popover.innerHTML = `<strong>历史对话</strong><div class="conversation-history-empty">${escapeHtml(error.message || "加载失败")}</div>`;
+    popover.innerHTML = renderConversationHistoryMessageHtml(error.message || "加载失败");
   }
 }
 
@@ -1841,12 +1841,10 @@ function renderConversationHistoryPopover(popover, { projectId, conversations, a
   const cleanProjectId = String(projectId || "").trim();
   const currentId = conversationIdsByProject.get(cleanProjectId) || "";
   if (!conversations.length) {
-    popover.innerHTML = '<strong>历史对话</strong><div class="conversation-history-empty">暂无历史对话</div>';
+    popover.innerHTML = renderConversationHistoryMessageHtml("暂无历史对话");
     return;
   }
-  popover.innerHTML = `<strong>历史对话</strong><div class="conversation-history-list">${
-    conversations.map((conversation) => renderConversationHistoryItemHtml(conversation, currentId)).join("")
-  }</div>`;
+  popover.innerHTML = renderConversationHistoryListHtml(conversations, currentId);
   popover.querySelectorAll("[data-conversation-id]").forEach((item) => {
     item.addEventListener("click", async () => {
       const conversationId = item.dataset.conversationId || "";
