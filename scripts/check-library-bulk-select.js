@@ -8,6 +8,7 @@ import {
   normalizeCollection,
   normalizeCollections
 } from "../src/client/features/workspace/asset-library/asset-library-normalizers.js";
+import { createAssetLibraryState } from "../src/client/features/workspace/asset-library/asset-library-state.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -82,6 +83,7 @@ assertContains("src/client/features/workspace/asset-library/asset-panel.js", [
 
 assertContains("src/client/features/workspace/asset-library/asset-library-runtime.js", [
   "asset-library-normalizers.js",
+  "asset-library-state.js",
   "selectedAssetIds",
   "toggleAssetSelection",
   "toggleAllAssetSelection",
@@ -138,6 +140,50 @@ if (
   || assetTypeFromMime("text/plain") !== "other"
 ) {
   throw new Error("Asset MIME type helper should preserve existing type mapping");
+}
+
+const fallbackState = createAssetLibraryState({ assets: [{ id: "initial" }] });
+if (fallbackState.readAssets()[0].id !== "initial") {
+  throw new Error("Asset library state should read fallback assets");
+}
+fallbackState.writeAssets([{ id: "next" }]);
+if (fallbackState.readAssets()[0].id !== "next") {
+  throw new Error("Asset library state should update fallback assets");
+}
+fallbackState.replaceCollections([{ id: "board-1" }]);
+fallbackState.activeCollectionId = "board-1";
+fallbackState.assetPageMode = "recent";
+fallbackState.assetSelectionMode = true;
+fallbackState.selectedAssetIds.add("asset-1");
+if (
+  fallbackState.readCollections().length !== 1
+  || fallbackState.readCollections()[0].id !== "board-1"
+) {
+  throw new Error("Asset library state should expose collection snapshots");
+}
+fallbackState.resetRemoteState();
+if (
+  fallbackState.readAssets().length !== 0
+  || fallbackState.readCollections().length !== 0
+  || fallbackState.activeCollectionId !== ""
+  || fallbackState.assetPageMode !== "boards"
+  || fallbackState.assetSelectionMode !== false
+  || fallbackState.selectedAssetIds.size !== 0
+) {
+  throw new Error("Asset library state should reset remote runtime state");
+}
+
+const externalWrites = [];
+const externalState = createAssetLibraryState({
+  getAssets: () => [{ id: "external" }],
+  setAssets: (nextAssets) => externalWrites.push(nextAssets)
+});
+if (externalState.readAssets()[0].id !== "external") {
+  throw new Error("Asset library state should read external asset providers");
+}
+externalState.writeAssets([{ id: "written" }]);
+if (externalWrites[0][0].id !== "written") {
+  throw new Error("Asset library state should write through external asset providers");
 }
 
 assertContains("styles/workspace-layout.css", [

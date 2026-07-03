@@ -4,6 +4,7 @@ import {
   normalizeCollection,
   normalizeCollections
 } from "./asset-library-normalizers.js";
+import { createAssetLibraryState } from "./asset-library-state.js";
 
 export function createAssetLibraryRuntime({
   eventBus,
@@ -36,31 +37,19 @@ export function createAssetLibraryRuntime({
 } = {}) {
   const safeRenderAssetLibrary = typeof renderAssetLibraryFn === "function" ? renderAssetLibraryFn : () => {};
   const safeEvents = eventBus && typeof eventBus.emit === "function" ? eventBus : null;
-  const fallbackAssets = Array.isArray(assets) ? assets : [];
-  const collections = [];
-  let activeCollectionId = "";
-  let assetPageMode = "boards";
-  let assetSelectionMode = false;
-  const selectedAssetIds = new Set();
+  const libraryState = createAssetLibraryState({ assets, getAssets, setAssets });
 
   const getAssetLists = () => [assetList, pageAssetList].filter(Boolean);
   const getAssetsPageView = () => pageAssetList?.closest?.(".assets-page-view") || document.querySelector("#assetsPageView");
   const getFloatingLibrary = () => floatingLibrary;
   const safeEscapeHtml = escapeHtml || ((value) => String(value ?? ""));
-  const readCollections = () => collections.slice();
-  const getActiveCollectionId = () => activeCollectionId;
-  const readAssets = () => {
-    const value = typeof getAssets === "function" ? getAssets() : fallbackAssets;
-    return Array.isArray(value) ? value : [];
-  };
-  const writeAssets = (nextAssets = []) => {
-    if (typeof setAssets === "function") setAssets(nextAssets);
-    fallbackAssets.length = 0;
-    fallbackAssets.push(...nextAssets);
-  };
+  const readCollections = () => libraryState.readCollections();
+  const getActiveCollectionId = () => libraryState.activeCollectionId;
+  const readAssets = () => libraryState.readAssets();
+  const writeAssets = (nextAssets = []) => libraryState.writeAssets(nextAssets);
   const getVisibleAssetIds = () => {
     const assets = readAssets();
-    if (assetPageMode === "recent") {
+    if (libraryState.assetPageMode === "recent") {
       return assets
         .filter((asset) => asset.isFavorite || asset.favorite || asset.collectionName || asset.source === "generated")
         .map((asset) => asset.id)
@@ -71,44 +60,46 @@ export function createAssetLibraryRuntime({
 
   function pruneAssetSelection(currentAssets = readAssets()) {
     const assetIds = new Set((currentAssets || []).map((asset) => asset.id));
-    Array.from(selectedAssetIds).forEach((assetId) => {
-      if (!assetIds.has(assetId)) selectedAssetIds.delete(assetId);
+    Array.from(libraryState.selectedAssetIds).forEach((assetId) => {
+      if (!assetIds.has(assetId)) libraryState.selectedAssetIds.delete(assetId);
     });
-    if (assetPageMode === "boards" && !activeCollectionId) {
-      assetSelectionMode = false;
-      selectedAssetIds.clear();
+    if (libraryState.assetPageMode === "boards" && !libraryState.activeCollectionId) {
+      libraryState.assetSelectionMode = false;
+      libraryState.selectedAssetIds.clear();
     }
   }
 
   function setAssetSelectionMode(value) {
-    assetSelectionMode = Boolean(value) && (assetPageMode !== "boards" || Boolean(activeCollectionId));
-    if (!assetSelectionMode) selectedAssetIds.clear();
+    libraryState.assetSelectionMode = Boolean(value)
+      && (libraryState.assetPageMode !== "boards" || Boolean(libraryState.activeCollectionId));
+    if (!libraryState.assetSelectionMode) libraryState.selectedAssetIds.clear();
     renderAssets();
   }
 
   function toggleAssetSelection(assetId) {
-    if (!assetId || (assetPageMode === "boards" && !activeCollectionId)) return;
-    assetSelectionMode = true;
-    if (selectedAssetIds.has(assetId)) selectedAssetIds.delete(assetId);
-    else selectedAssetIds.add(assetId);
+    if (!assetId || (libraryState.assetPageMode === "boards" && !libraryState.activeCollectionId)) return;
+    libraryState.assetSelectionMode = true;
+    if (libraryState.selectedAssetIds.has(assetId)) libraryState.selectedAssetIds.delete(assetId);
+    else libraryState.selectedAssetIds.add(assetId);
     renderAssets();
   }
 
   function toggleAllAssetSelection() {
     const visibleAssetIds = getVisibleAssetIds();
-    const allSelected = visibleAssetIds.length > 0 && visibleAssetIds.every((assetId) => selectedAssetIds.has(assetId));
-    selectedAssetIds.clear();
-    if (!allSelected) visibleAssetIds.forEach((assetId) => selectedAssetIds.add(assetId));
-    assetSelectionMode = true;
+    const allSelected = visibleAssetIds.length > 0
+      && visibleAssetIds.every((assetId) => libraryState.selectedAssetIds.has(assetId));
+    libraryState.selectedAssetIds.clear();
+    if (!allSelected) visibleAssetIds.forEach((assetId) => libraryState.selectedAssetIds.add(assetId));
+    libraryState.assetSelectionMode = true;
     renderAssets();
   }
 
   async function deleteSelectedAssets() {
-    const assetIds = Array.from(selectedAssetIds);
+    const assetIds = Array.from(libraryState.selectedAssetIds);
     if (!assetIds.length) return;
     if (!window.confirm(`Delete ${assetIds.length} assets? This cannot be undone.`)) return;
-    assetSelectionMode = false;
-    selectedAssetIds.clear();
+    libraryState.assetSelectionMode = false;
+    libraryState.selectedAssetIds.clear();
     for (const assetId of assetIds) {
       await removeAsset(assetId);
     }
@@ -125,11 +116,13 @@ export function createAssetLibraryRuntime({
         assetList: list,
         assets: currentAssets,
         collections: currentCollections,
-        activeCollectionId,
-        assetPageMode,
+        activeCollectionId: libraryState.activeCollectionId,
+        assetPageMode: libraryState.assetPageMode,
         activeProjectId: getActiveProjectId(),
-        selectionMode: isAssetsPageList && assetSelectionMode && (assetPageMode !== "boards" || Boolean(activeCollectionId)),
-        selectedAssetIds: isAssetsPageList ? Array.from(selectedAssetIds) : [],
+        selectionMode: isAssetsPageList
+          && libraryState.assetSelectionMode
+          && (libraryState.assetPageMode !== "boards" || Boolean(libraryState.activeCollectionId)),
+        selectedAssetIds: isAssetsPageList ? Array.from(libraryState.selectedAssetIds) : [],
         escapeHtml: safeEscapeHtml
       });
     });
@@ -138,8 +131,8 @@ export function createAssetLibraryRuntime({
         safeEvents.emit("assets:render", {
           assets: currentAssets,
           collections: currentCollections,
-          activeCollectionId,
-          assetPageMode,
+          activeCollectionId: libraryState.activeCollectionId,
+          assetPageMode: libraryState.assetPageMode,
           activeProjectId: getActiveProjectId(),
           assetList: list
         });
@@ -245,8 +238,8 @@ export function createAssetLibraryRuntime({
     if (typeof listRemoteAssets !== "function") return false;
     try {
       await syncRemoteCollections();
-      const result = activeCollectionId && typeof listRemoteCollectionAssets === "function"
-        ? await listRemoteCollectionAssets(activeCollectionId)
+      const result = libraryState.activeCollectionId && typeof listRemoteCollectionAssets === "function"
+        ? await listRemoteCollectionAssets(libraryState.activeCollectionId)
         : await listRemoteAssets();
       writeAssets(normalizeAssets(result.assets || []));
       renderAssets();
@@ -254,10 +247,7 @@ export function createAssetLibraryRuntime({
     } catch (error) {
       if (error?.status !== 401) console.warn("Failed to load remote assets", error);
       if (error?.status === 401) {
-        writeAssets([]);
-        collections.length = 0;
-        activeCollectionId = "";
-        assetPageMode = "boards";
+        libraryState.resetRemoteState();
       }
       renderAssets();
       return false;
@@ -275,10 +265,7 @@ export function createAssetLibraryRuntime({
     } catch (error) {
       if (error?.status !== 401) console.warn("Failed to load remote assets", error);
       if (error?.status === 401) {
-        writeAssets([]);
-        collections.length = 0;
-        activeCollectionId = "";
-        assetPageMode = "boards";
+        libraryState.resetRemoteState();
       }
       renderAssets();
       return false;
@@ -290,7 +277,7 @@ export function createAssetLibraryRuntime({
     try {
       const result = await uploadRemoteAsset(file, {
         projectId: metadata.projectId || getActiveProjectId(),
-        collectionId: metadata.collectionId !== undefined ? metadata.collectionId : activeCollectionId,
+        collectionId: metadata.collectionId !== undefined ? metadata.collectionId : libraryState.activeCollectionId,
         type: metadata.type || assetTypeFromMime(file.type),
         title: metadata.title || file.name || "Uploaded asset",
         collection: metadata.collection || "",
@@ -321,7 +308,7 @@ export function createAssetLibraryRuntime({
         collection: payload.collection || "",
         collectionId: payload.collectionId !== undefined
           ? payload.collectionId
-          : (defaultToActiveCollection ? activeCollectionId : "")
+          : (defaultToActiveCollection ? libraryState.activeCollectionId : "")
       });
       if (result.asset) return mergeAsset(result.asset);
     } catch (error) {
@@ -346,10 +333,7 @@ export function createAssetLibraryRuntime({
         renderAssets();
       }
       if (error?.status === 401) {
-        writeAssets([]);
-        collections.length = 0;
-        activeCollectionId = "";
-        assetPageMode = "boards";
+        libraryState.resetRemoteState();
         renderAssets();
       }
       return null;
@@ -373,10 +357,12 @@ export function createAssetLibraryRuntime({
     if (typeof listRemoteAssetCollections !== "function") return false;
     try {
       const result = await listRemoteAssetCollections();
-      collections.length = 0;
-      collections.push(...normalizeCollections(result.collections || []));
-      if (activeCollectionId && !collections.some((collection) => collection.id === activeCollectionId)) {
-        activeCollectionId = "";
+      libraryState.replaceCollections(normalizeCollections(result.collections || []));
+      if (
+        libraryState.activeCollectionId
+        && !libraryState.collections.some((collection) => collection.id === libraryState.activeCollectionId)
+      ) {
+        libraryState.activeCollectionId = "";
       }
       return true;
     } catch (error) {
@@ -392,7 +378,7 @@ export function createAssetLibraryRuntime({
       const result = await createRemoteAssetCollection({ name: cleanName });
       if (!result.collection) return null;
       const collection = normalizeCollection(result.collection);
-      collections.push(collection);
+      libraryState.collections.push(collection);
       await syncRemoteCollections();
       renderAssets();
       return collection;
@@ -409,8 +395,8 @@ export function createAssetLibraryRuntime({
       const result = await updateRemoteAssetCollection(collectionId, { name: cleanName });
       if (!result.collection) return null;
       const collection = normalizeCollection(result.collection);
-      const index = collections.findIndex((item) => item.id === collection.id);
-      if (index >= 0) collections[index] = collection;
+      const index = libraryState.collections.findIndex((item) => item.id === collection.id);
+      if (index >= 0) libraryState.collections[index] = collection;
       renderAssets();
       return collection;
     } catch (error) {
@@ -423,9 +409,9 @@ export function createAssetLibraryRuntime({
     if (!collectionId || typeof deleteRemoteAssetCollection !== "function") return null;
     try {
       const result = await deleteRemoteAssetCollection(collectionId);
-      const index = collections.findIndex((item) => item.id === collectionId);
-      if (index >= 0) collections.splice(index, 1);
-      if (activeCollectionId === collectionId) activeCollectionId = "";
+      const index = libraryState.collections.findIndex((item) => item.id === collectionId);
+      if (index >= 0) libraryState.collections.splice(index, 1);
+      if (libraryState.activeCollectionId === collectionId) libraryState.activeCollectionId = "";
       await syncRemoteAssets();
       return result.collection || null;
     } catch (error) {
@@ -435,21 +421,21 @@ export function createAssetLibraryRuntime({
   }
 
   async function selectCollection(collectionId = "") {
-    activeCollectionId = String(collectionId || "");
-    assetPageMode = activeCollectionId ? "boards" : assetPageMode;
-    assetSelectionMode = false;
-    selectedAssetIds.clear();
+    libraryState.activeCollectionId = String(collectionId || "");
+    libraryState.assetPageMode = libraryState.activeCollectionId ? "boards" : libraryState.assetPageMode;
+    libraryState.assetSelectionMode = false;
+    libraryState.selectedAssetIds.clear();
     await syncRemoteAssets();
-    return activeCollectionId;
+    return libraryState.activeCollectionId;
   }
 
   async function selectAssetPageMode(mode = "boards") {
-    assetPageMode = ["boards", "all", "recent"].includes(mode) ? mode : "boards";
-    activeCollectionId = "";
-    assetSelectionMode = false;
-    selectedAssetIds.clear();
+    libraryState.assetPageMode = ["boards", "all", "recent"].includes(mode) ? mode : "boards";
+    libraryState.activeCollectionId = "";
+    libraryState.assetSelectionMode = false;
+    libraryState.selectedAssetIds.clear();
     await syncRemoteAssets();
-    return assetPageMode;
+    return libraryState.assetPageMode;
   }
 
   async function moveAssetToCollection(assetId, collectionId = "") {
@@ -459,7 +445,7 @@ export function createAssetLibraryRuntime({
       if (result.asset) {
         const moved = mergeAsset(result.asset);
         await syncRemoteCollections();
-        if (activeCollectionId && moved.collectionId !== activeCollectionId) {
+        if (libraryState.activeCollectionId && moved.collectionId !== libraryState.activeCollectionId) {
           writeAssets(readAssets().filter((asset) => asset.id !== moved.id));
           renderAssets();
         }
@@ -807,7 +793,7 @@ export function createAssetLibraryRuntime({
       if (pageAssetCard) {
         event.preventDefault();
         event.stopPropagation();
-        if (assetSelectionMode) {
+        if (libraryState.assetSelectionMode) {
           toggleAssetSelection(pageAssetCard.dataset.id);
           return;
         }
@@ -841,7 +827,7 @@ export function createAssetLibraryRuntime({
       if (renameButton) {
         event.preventDefault();
         event.stopPropagation();
-        const collection = collections.find((item) => item.id === renameButton.dataset.renameAssetCollection);
+        const collection = libraryState.collections.find((item) => item.id === renameButton.dataset.renameAssetCollection);
         const name = window.prompt("重命名图板", collection?.name || "");
         if (name?.trim()) renameCollection(renameButton.dataset.renameAssetCollection, name.trim());
         return;
@@ -851,7 +837,7 @@ export function createAssetLibraryRuntime({
       if (deleteCollectionButton) {
         event.preventDefault();
         event.stopPropagation();
-        const collection = collections.find((item) => item.id === deleteCollectionButton.dataset.deleteAssetCollection);
+        const collection = libraryState.collections.find((item) => item.id === deleteCollectionButton.dataset.deleteAssetCollection);
         if (window.confirm(`删除图板「${collection?.name || "未命名"}」？素材不会被删除。`)) {
           removeCollection(deleteCollectionButton.dataset.deleteAssetCollection);
         }
@@ -912,10 +898,7 @@ export function createAssetLibraryRuntime({
   });
 
   window.addEventListener("ai-studio-auth-changed", (event) => {
-    writeAssets([]);
-    collections.length = 0;
-    activeCollectionId = "";
-    assetPageMode = "boards";
+    libraryState.resetRemoteState();
     renderAssets();
     if (event.detail?.user) {
       syncRemoteAssets();
