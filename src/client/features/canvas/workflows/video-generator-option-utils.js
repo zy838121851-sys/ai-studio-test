@@ -6,6 +6,43 @@ export function getModeOptions(allowed = {}) {
   return options;
 }
 
+export function buildVideoOptionGroups({
+  allowed = {},
+  savedOptions = {},
+  defaultRatio = "16:9"
+} = {}) {
+  const audioOptions = Array.isArray(allowed.generate_audio) && allowed.generate_audio.includes(true)
+    ? [{ value: "false", label: "Audio off" }, { value: "true", label: "Audio on" }]
+    : [];
+  return [
+    {
+      kind: "mode",
+      options: getModeOptions(allowed),
+      selectedValue: savedOptions.mode || "reference"
+    },
+    {
+      kind: "size",
+      options: toOptions(allowed.size, formatRatioLabel),
+      selectedValue: savedOptions.size || allowed.size?.[0] || defaultRatio
+    },
+    {
+      kind: "resolution",
+      options: toOptions(allowed.resolution),
+      selectedValue: savedOptions.resolution || allowed.resolution?.[0] || ""
+    },
+    {
+      kind: "duration",
+      options: toOptions(allowed.duration, (value) => `${value}s`),
+      selectedValue: savedOptions.duration || String(allowed.duration?.[0] || "")
+    },
+    {
+      kind: "audio",
+      options: audioOptions,
+      selectedValue: savedOptions.audio || "false"
+    }
+  ];
+}
+
 export function toOptions(values = [], format = (value) => String(value)) {
   return Array.from(values || []).map((value) => ({ value: String(value), label: format(value) }));
 }

@@ -24,9 +24,8 @@ import {
   runVideoRequest
 } from "./video-generator-job-utils.js";
 import {
-  formatRatioLabel,
+  buildVideoOptionGroups,
   getVideoGenerationModels,
-  getModeOptions,
   getVideoModelByIdFromList,
   getVideoOptionGroupValue,
   getVideoSavedOption,
@@ -34,8 +33,7 @@ import {
   getVideoSelectedModelId,
   chooseVideoOptionElement,
   renderVideoOptionGroup,
-  renderVideoModelSelect,
-  toOptions
+  renderVideoModelSelect
 } from "./video-generator-option-utils.js";
 import {
   createVideoPreviewNode,
@@ -279,14 +277,19 @@ export function createVideoGeneratorWorkflow({
   function syncVideoOptionGroups() {
     const model = getVideoModelById(getSelectedVideoModelId());
     const allowed = model?.allowedOptions || {};
-    renderOptionGroup("mode", getModeOptions(allowed), getSavedOption("mode") || "reference");
-    renderOptionGroup("size", toOptions(allowed.size, formatRatioLabel), getSavedOption("size") || allowed.size?.[0] || DEFAULT_VIDEO_RATIO);
-    renderOptionGroup("resolution", toOptions(allowed.resolution), getSavedOption("resolution") || allowed.resolution?.[0] || "");
-    renderOptionGroup("duration", toOptions(allowed.duration, (value) => `${value}s`), getSavedOption("duration") || String(allowed.duration?.[0] || ""));
-    const audioOptions = Array.isArray(allowed.generate_audio) && allowed.generate_audio.includes(true)
-      ? [{ value: "false", label: "Audio off" }, { value: "true", label: "Audio on" }]
-      : [];
-    renderOptionGroup("audio", audioOptions, getSavedOption("audio") || "false");
+    buildVideoOptionGroups({
+      allowed,
+      savedOptions: {
+        mode: getSavedOption("mode"),
+        size: getSavedOption("size"),
+        resolution: getSavedOption("resolution"),
+        duration: getSavedOption("duration"),
+        audio: getSavedOption("audio")
+      },
+      defaultRatio: DEFAULT_VIDEO_RATIO
+    }).forEach(({ kind, options, selectedValue }) => {
+      renderOptionGroup(kind, options, selectedValue);
+    });
     saveVideoDraft(activeVideoNode);
   }
 

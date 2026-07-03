@@ -15,6 +15,7 @@ import {
   replaceVideoPreviewWithResult
 } from "../src/client/features/canvas/workflows/video-generator-preview-utils.js";
 import {
+  buildVideoOptionGroups,
   getModeOptions,
   getSelectedVideoOptionsFromModel,
   getVideoGenerationModels,
@@ -63,8 +64,9 @@ assert(
 assert(
   !workflow.includes("function waitForVideoJob(")
     && !workflow.includes("function createVideoGenerationPayload(")
-    && !workflow.includes("function replaceVideoPreviewWithResult("),
-  "video generator workflow must not inline extracted job or preview helpers"
+    && !workflow.includes("function replaceVideoPreviewWithResult(")
+    && !workflow.includes("const audioOptions ="),
+  "video generator workflow must not inline extracted job, preview, or option group helpers"
 );
 assert(
   workflow.includes("await saveCurrentProjectAfterGeneration?.();")
@@ -131,6 +133,22 @@ assert(selectedOptions.duration === 5, "video options must normalize duration to
 assert(selectedOptions.return_last_frame === true, "video options must map last-frame mode");
 assert(selectedOptions.generate_audio === true, "video options must map audio toggle");
 assert(getModeOptions(model.allowedOptions).some((option) => option.value === "last-frame"), "video mode options must include last-frame when supported");
+const optionGroups = buildVideoOptionGroups({
+  allowed: model.allowedOptions,
+  savedOptions: {
+    mode: "last-frame",
+    size: "16:9",
+    resolution: "720p",
+    duration: "5",
+    audio: "true"
+  },
+  defaultRatio: "1:1"
+});
+assert(optionGroups.map((group) => group.kind).join(",") === "mode,size,resolution,duration,audio", "video option groups must keep stable render order");
+assert(optionGroups.find((group) => group.kind === "mode")?.selectedValue === "last-frame", "video option groups must prefer saved mode");
+assert(optionGroups.find((group) => group.kind === "duration")?.options[0]?.label === "5s", "video option groups must format duration labels");
+assert(optionGroups.find((group) => group.kind === "audio")?.options.length === 2, "video option groups must expose audio options when supported");
+assert(buildVideoOptionGroups({ allowed: {}, defaultRatio: "1:1" }).find((group) => group.kind === "size")?.selectedValue === "1:1", "video option groups must fall back to the default ratio");
 assert(getVideoSelectedModelId({
   controls: { modelSelect: createFakeSelect("video-b") },
   models: [{ id: "video-a" }, { id: "video-b" }],
