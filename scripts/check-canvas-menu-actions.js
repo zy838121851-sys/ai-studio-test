@@ -6,6 +6,7 @@ import {
 import {
   blobToDataUrl,
   canvasToBlob,
+  downloadBlob,
   drawImageIntoRect,
   getImageExportRect,
   getImageExportFileName,
@@ -80,6 +81,7 @@ assertIncludes(menuClipboardUtils, "export function snapshotNodeForClipboard", "
 assertIncludes(menuClipboardUtils, "export function pasteNodeFromClipboard", "canvas clipboard paste must live in clipboard utils");
 assertIncludes(menuExportUtils, "export function blobToDataUrl", "blob data URL reader must live in export utils");
 assertIncludes(menuExportUtils, "export function canvasToBlob", "canvas toBlob wrapper must live in export utils");
+assertIncludes(menuExportUtils, "export function downloadBlob", "canvas download helper must live in export utils");
 assertIncludes(menuExportUtils, "export function drawImageIntoRect", "canvas image draw helper must live in export utils");
 assertIncludes(menuExportUtils, "export function getImageExportRect", "canvas image export rect must live in export utils");
 assertIncludes(menuExportUtils, "export function getImageExportFileName", "canvas image export filename must live in export utils");
@@ -454,6 +456,60 @@ try {
   canvasBlobRejected = error.message === "Canvas export returned an empty blob";
 }
 assert(canvasBlobRejected === true, "canvas toBlob wrapper should reject empty canvas exports");
+const OriginalURL = globalThis.URL;
+const OriginalDocumentForDownload = globalThis.document;
+const OriginalWindowForDownload = globalThis.window;
+try {
+  const downloadEvents = [];
+  globalThis.URL = {
+    createObjectURL(blob) {
+      downloadEvents.push(["createObjectURL", blob]);
+      return "blob:download-url";
+    },
+    revokeObjectURL(url) {
+      downloadEvents.push(["revokeObjectURL", url]);
+    }
+  };
+  globalThis.document = {
+    body: {
+      appendChild(link) {
+        downloadEvents.push(["appendChild", link.href, link.download]);
+      }
+    },
+    createElement(tagName) {
+      assert(tagName === "a", "download helper should create an anchor");
+      return {
+        href: "",
+        download: "",
+        click() {
+          downloadEvents.push(["click", this.href, this.download]);
+        },
+        remove() {
+          downloadEvents.push(["remove", this.href, this.download]);
+        }
+      };
+    }
+  };
+  globalThis.window = {
+    setTimeout(callback, delay) {
+      downloadEvents.push(["setTimeout", delay]);
+      callback();
+    }
+  };
+  downloadBlob("download-blob", "canvas.png");
+  assert(JSON.stringify(downloadEvents) === JSON.stringify([
+    ["createObjectURL", "download-blob"],
+    ["appendChild", "blob:download-url", "canvas.png"],
+    ["click", "blob:download-url", "canvas.png"],
+    ["remove", "blob:download-url", "canvas.png"],
+    ["setTimeout", 1000],
+    ["revokeObjectURL", "blob:download-url"]
+  ]), "download helper should preserve object URL download flow");
+} finally {
+  globalThis.URL = OriginalURL;
+  globalThis.document = OriginalDocumentForDownload;
+  globalThis.window = OriginalWindowForDownload;
+}
 const containDrawCalls = [];
 drawImageIntoRect({
   context: { drawImage: (...args) => containDrawCalls.push(args) },

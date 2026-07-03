@@ -15,6 +15,7 @@ import {
 import {
   blobToDataUrl,
   canvasToBlob,
+  downloadBlob,
   drawImageIntoRect,
   getImageExportRect,
   getImageExportFileName,
@@ -1499,16 +1500,5 @@ async function inlineCloneImages(root) {
       // If a remote image blocks reading, keep the original source for SVG export.
     }
   }));
-}
-
-function downloadBlob(blob, fileName) {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
