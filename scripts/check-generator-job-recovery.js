@@ -13,6 +13,7 @@ import {
 import {
   closeGeneratorCustomSelects,
   createGeneratorCustomSelect,
+  getGeneratorCountSelectState,
   renderGeneratorSelectOptions,
   toggleGeneratorCustomSelect
 } from "../src/client/features/canvas/workflows/image-generator-select-utils.js";
@@ -123,6 +124,7 @@ assert(
   generatorSelectUtils.includes("export function closeGeneratorCustomSelects")
     && generatorSelectUtils.includes("export function toggleGeneratorCustomSelect")
     && generatorSelectUtils.includes("export function renderGeneratorSelectOptions")
+    && generatorSelectUtils.includes("export function getGeneratorCountSelectState")
     && generatorSelectUtils.includes("export function createGeneratorCustomSelect"),
   "generator custom select open/close helpers should live in select utilities"
 );
@@ -296,6 +298,18 @@ assert(renderedOptions.includes('data-value="unsafe&quot;value"'), "generator se
 assert(renderedOptions.includes("class=\"generator-select-option selected\""), "generator select option renderer should mark selected options");
 assert(renderedOptions.includes('aria-selected="true"'), "generator select option renderer should set selected aria state");
 assert(renderedOptions.includes("&lt;Unsafe&gt;"), "generator select option renderer should escape labels");
+const videoCountState = getGeneratorCountSelectState({ kind: "count", modelType: "video" });
+assert(videoCountState?.text === "1 video", "generator count state helper should preserve video count label");
+assert(videoCountState?.value === "video-default-1", "generator count state helper should preserve video count value");
+assert(videoCountState?.disabled === true, "generator count state helper should disable video count selects");
+assert(videoCountState?.clearMenu === true, "generator count state helper should clear video count menus");
+const midjourneyCountState = getGeneratorCountSelectState({ kind: "count", isMidjourney: true });
+assert(midjourneyCountState?.text === "默认4张", "generator count state helper should preserve Midjourney count label");
+assert(midjourneyCountState?.value === "midjourney-default-4", "generator count state helper should preserve Midjourney count value");
+assert(midjourneyCountState?.disabled === true, "generator count state helper should disable Midjourney count selects");
+assert(midjourneyCountState?.clearMenu === true, "generator count state helper should clear Midjourney count menus");
+assert(getGeneratorCountSelectState({ kind: "model", modelType: "video" }) === null, "generator count state helper should ignore non-count selects");
+assert(getGeneratorCountSelectState({ kind: "count", modelType: "image" }) === null, "generator count state helper should allow regular image counts");
 const createdSelectFixture = createGeneratorCustomSelectFixtureForCreate("ratio");
 const createdSelect = createGeneratorCustomSelect(createdSelectFixture.select, {
   documentRef: createdSelectFixture.documentRef,

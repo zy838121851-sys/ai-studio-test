@@ -25,6 +25,31 @@ export function getGeneratorSelectTriggerText(select) {
   return selectedOption?.dataset?.modelLabel || selectedOption?.textContent || "";
 }
 
+export function getGeneratorCountSelectState({
+  kind = "",
+  modelType = "",
+  isMidjourney = false
+} = {}) {
+  if (kind !== "count") return null;
+  if (modelType === "video") {
+    return {
+      text: "1 video",
+      value: "video-default-1",
+      disabled: true,
+      clearMenu: true
+    };
+  }
+  if (isMidjourney) {
+    return {
+      text: "\u9ed8\u8ba44\u5f20",
+      value: "midjourney-default-4",
+      disabled: true,
+      clearMenu: true
+    };
+  }
+  return null;
+}
+
 export function closeGeneratorCustomSelects(root = null) {
   root?.querySelectorAll?.(".generator-select-wrap.open")
     .forEach((wrap) => wrap.classList.remove("open"));

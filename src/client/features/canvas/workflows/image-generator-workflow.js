@@ -53,6 +53,7 @@ import {
 import {
   closeGeneratorCustomSelects as closeGeneratorCustomSelectState,
   createGeneratorCustomSelect,
+  getGeneratorCountSelectState,
   getGeneratorSelectByKind,
   getGeneratorSelectKind,
   getGeneratorSelectTriggerText,
@@ -1160,19 +1161,20 @@ export function createImageGeneratorWorkflow({
       });
       return;
     }
-    if (kind === "count" && getModelType(getGeneratorModel()) === "video") {
-      trigger.textContent = "1 video";
-      trigger.disabled = true;
-      trigger.dataset.value = "video-default-1";
-      menu.innerHTML = "";
-      return;
-    }
-    if (kind === "count" && isMidjourneyModel(getGeneratorModel())) {
-      trigger.textContent = "默认4张";
-      trigger.disabled = true;
-      trigger.dataset.value = "midjourney-default-4";
-      menu.innerHTML = "";
-      return;
+    if (kind === "count") {
+      const model = getGeneratorModel();
+      const countState = getGeneratorCountSelectState({
+        kind,
+        modelType: getModelType(model),
+        isMidjourney: isMidjourneyModel(model)
+      });
+      if (countState) {
+        trigger.textContent = countState.text;
+        trigger.disabled = countState.disabled;
+        trigger.dataset.value = countState.value;
+        if (countState.clearMenu) menu.innerHTML = "";
+        return;
+      }
     }
     menu.innerHTML = renderGeneratorSelectOptions(select, kind);
   }
