@@ -205,6 +205,26 @@ export function applyMessageDoneDebugState(debugRecord, state = {}, {
   return debugRecord;
 }
 
+export function applyPromptOptimizedDebugState(debugRecord, state = {}) {
+  if (!debugRecord) return debugRecord;
+  debugRecord.optimizedPrompt = state.optimizedPrompt || "";
+  debugRecord.taskType = state.taskType || "";
+  debugRecord.promptStrategy = state.promptStrategy || "";
+  debugRecord.strategyTags = state.nextStrategyTags || debugRecord.strategyTags;
+  debugRecord.promptDriftDetected = state.promptDriftDetected;
+  debugRecord.usedConservativeFallback = state.usedConservativeFallback;
+  debugRecord.qwenVlMode = state.qwenVlMode || "";
+  debugRecord.promptOptimizerMode = state.promptOptimizerMode || "";
+  debugRecord.skippedOptimizer = Boolean(state.skippedOptimizer);
+  debugRecord.optimizerStarted = true;
+  debugRecord.optimizerFinished = true;
+  debugRecord.optimizerTimedOut = Boolean(state.optimizerTimedOut);
+  debugRecord.optimizerError = state.optimizerError || "";
+  debugRecord.usedFallbackPrompt = Boolean(state.usedFallbackPrompt);
+  debugRecord.totalBudgetExceeded = Boolean(state.totalBudgetExceeded);
+  return debugRecord;
+}
+
 export function buildPromptOptimizedState(event = {}, current = {}) {
   const optimizedPrompt = event.optimizedPrompt || current.optimizedPrompt || "";
   const taskType = event.taskType || current.taskType || "";

@@ -88,6 +88,7 @@ import {
 import {
   applyConversationIntentDebugState,
   applyMessageDoneDebugState,
+  applyPromptOptimizedDebugState,
   buildConversationIntentState,
   buildMessageDoneReceivedPayload,
   buildMessageDoneState,
@@ -1401,21 +1402,7 @@ async function runConversationAgent({
         totalBudgetExceeded
       } = optimizedState);
       if (debugRecord) {
-        debugRecord.optimizedPrompt = optimizedPrompt;
-        debugRecord.taskType = taskType;
-        debugRecord.promptStrategy = promptStrategy;
-        debugRecord.strategyTags = optimizedState.nextStrategyTags || debugRecord.strategyTags;
-        debugRecord.promptDriftDetected = optimizedState.promptDriftDetected;
-        debugRecord.usedConservativeFallback = optimizedState.usedConservativeFallback;
-        debugRecord.qwenVlMode = qwenVlMode;
-        debugRecord.promptOptimizerMode = promptOptimizerMode;
-        debugRecord.skippedOptimizer = skippedOptimizer;
-        debugRecord.optimizerStarted = true;
-        debugRecord.optimizerFinished = true;
-        debugRecord.optimizerTimedOut = optimizedState.optimizerTimedOut;
-        debugRecord.optimizerError = optimizerError;
-        debugRecord.usedFallbackPrompt = usedFallbackPrompt;
-        debugRecord.totalBudgetExceeded = totalBudgetExceeded;
+        applyPromptOptimizedDebugState(debugRecord, optimizedState);
       }
       updateAgentDebugPanel(debugRecord);
       return;

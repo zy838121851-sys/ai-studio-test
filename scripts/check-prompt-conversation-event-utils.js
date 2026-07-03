@@ -1,6 +1,7 @@
 import {
   applyConversationIntentDebugState,
   applyMessageDoneDebugState,
+  applyPromptOptimizedDebugState,
   buildConversationIntentState,
   buildMessageDoneReceivedPayload,
   buildMessageDoneState,
@@ -501,5 +502,35 @@ assert(fallbackPromptOptimizedState.optimizerTimedOut === false, "Prompt optimiz
 assert(fallbackPromptOptimizedState.optimizerError === "current-error", "Prompt optimized state should keep current optimizer errors when event is empty");
 assert(fallbackPromptOptimizedState.usedFallbackPrompt === true, "Prompt optimized state should read fallback aliases");
 assert(fallbackPromptOptimizedState.totalBudgetExceeded === true, "Prompt optimized state should keep current budget flags when event is empty");
+
+const promptOptimizedDebugRecord = { strategyTags: ["existing"] };
+assert(
+  applyPromptOptimizedDebugState(promptOptimizedDebugRecord, promptOptimizedState) === promptOptimizedDebugRecord,
+  "Prompt optimized debug sync should return the debug record"
+);
+assert(promptOptimizedDebugRecord.optimizedPrompt === "Event optimized prompt", "Prompt optimized debug sync should write optimized prompts");
+assert(promptOptimizedDebugRecord.taskType === "event-task", "Prompt optimized debug sync should write task types");
+assert(promptOptimizedDebugRecord.promptStrategy === "event-strategy", "Prompt optimized debug sync should write prompt strategies");
+assert(promptOptimizedDebugRecord.strategyTags.join(",") === "direct,safe", "Prompt optimized debug sync should write strategy tags when present");
+assert(promptOptimizedDebugRecord.promptDriftDetected === true, "Prompt optimized debug sync should write drift flags");
+assert(promptOptimizedDebugRecord.usedConservativeFallback === true, "Prompt optimized debug sync should write conservative fallback flags");
+assert(promptOptimizedDebugRecord.qwenVlMode === "event-vl", "Prompt optimized debug sync should write VL modes");
+assert(promptOptimizedDebugRecord.promptOptimizerMode === "event-optimizer", "Prompt optimized debug sync should write optimizer modes");
+assert(promptOptimizedDebugRecord.skippedOptimizer === false, "Prompt optimized debug sync should preserve explicit false optimizer skip flags");
+assert(promptOptimizedDebugRecord.optimizerStarted === true, "Prompt optimized debug sync should mark optimizer started");
+assert(promptOptimizedDebugRecord.optimizerFinished === true, "Prompt optimized debug sync should mark optimizer finished");
+assert(promptOptimizedDebugRecord.optimizerTimedOut === true, "Prompt optimized debug sync should write timeout flags");
+assert(promptOptimizedDebugRecord.optimizerError === "event-error", "Prompt optimized debug sync should write optimizer errors");
+assert(promptOptimizedDebugRecord.usedFallbackPrompt === true, "Prompt optimized debug sync should write fallback prompt flags");
+assert(promptOptimizedDebugRecord.totalBudgetExceeded === true, "Prompt optimized debug sync should write budget flags");
+
+const promptOptimizedDebugRecordWithoutTags = { strategyTags: ["existing"] };
+applyPromptOptimizedDebugState(promptOptimizedDebugRecordWithoutTags, fallbackPromptOptimizedState);
+assert(
+  promptOptimizedDebugRecordWithoutTags.strategyTags.join(",") === "existing",
+  "Prompt optimized debug sync should preserve existing tags when state has none"
+);
+assert(promptOptimizedDebugRecordWithoutTags.optimizerTimedOut === false, "Prompt optimized debug sync should default missing timeout flags to false");
+assert(applyPromptOptimizedDebugState(null, promptOptimizedState) === null, "Prompt optimized debug sync should ignore missing debug records");
 
 console.log("Prompt conversation event utility checks passed.");
