@@ -11,7 +11,8 @@ import {
   getGeneratorReplacementPlacement
 } from "../src/client/features/canvas/workflows/image-generator-placement-utils.js";
 import {
-  resolveGeneratorOutputSize
+  resolveGeneratorOutputSize,
+  syncGeneratorFrameToRatio
 } from "../src/client/features/canvas/workflows/image-generator-sizing-utils.js";
 import {
   applyGeneratedImageNodeResult,
@@ -66,6 +67,7 @@ assert(
     && generatorWorkflow.includes("image-generator-dom-state-utils.js")
     && generatorWorkflow.includes("resolveGeneratorOutputSize")
     && generatorWorkflow.includes("resolveGeneratorModelValue")
+    && generatorWorkflow.includes("syncGeneratorFrameStateToRatio")
     && generatorPreviewJobUtils.includes("applyGeneratorPreviewJobMetadata"),
   "generator must tag preview nodes with job ids when async jobs are created"
 );
@@ -363,6 +365,22 @@ assert(
   }) === "1024*1024",
   "generator output size helper should preserve unknown-ratio fallback behavior"
 );
+const syncedGeneratorSize = createGeneratorSizeFixture();
+let sizeSyncCallbackCount = 0;
+const syncedDimensions = syncGeneratorFrameToRatio(syncedGeneratorSize.node, "4:3", {
+  onSync: () => {
+    sizeSyncCallbackCount += 1;
+  }
+});
+assert(syncedDimensions.width === 1024 && syncedDimensions.height === 768, "generator frame sync helper should return fixed ratio dimensions");
+assert(syncedGeneratorSize.stage.style.aspectRatio === "1024 / 768", "generator frame sync helper should update stage aspect ratio");
+assert(syncedGeneratorSize.frame.style.aspectRatio === "1024 / 768", "generator frame sync helper should update frame aspect ratio");
+assert(syncedGeneratorSize.node.dataset.generatorRatio === "4:3", "generator frame sync helper should persist ratio");
+assert(syncedGeneratorSize.node.dataset.outputWidth === "1024", "generator frame sync helper should persist output width");
+assert(syncedGeneratorSize.node.dataset.outputHeight === "768", "generator frame sync helper should persist output height");
+assert(syncedGeneratorSize.label.textContent === "1024 × 768", "generator frame sync helper should update size label");
+assert(sizeSyncCallbackCount === 1, "generator frame sync helper should notify callers after syncing");
+assert(syncGeneratorFrameToRatio(null) === null, "generator frame sync helper should ignore missing nodes");
 const replacementPlacement = getGeneratorReplacementPlacement({
   style: { left: "12.5px", top: "24px" },
   offsetWidth: 320,
@@ -510,6 +528,22 @@ function createGeneratorModelDocument({
       return null;
     }
   };
+}
+
+function createGeneratorSizeFixture() {
+  const stage = { style: {} };
+  const frame = { style: {} };
+  const label = { textContent: "" };
+  const node = {
+    dataset: {},
+    querySelector(selector) {
+      if (selector === ".image-generator-stage") return stage;
+      if (selector === ".image-generator-frame") return frame;
+      if (selector === ".image-generator-size") return label;
+      return null;
+    }
+  };
+  return { node, stage, frame, label };
 }
 
 function createGeneratorBusyFixture() {

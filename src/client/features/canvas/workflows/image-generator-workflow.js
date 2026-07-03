@@ -57,7 +57,8 @@ import {
 } from "./image-generator-select-utils.js";
 import {
   getGeneratorOutputDimensions,
-  resolveGeneratorOutputSize
+  resolveGeneratorOutputSize,
+  syncGeneratorFrameToRatio as syncGeneratorFrameStateToRatio
 } from "./image-generator-sizing-utils.js";
 import {
   fileToDataUrl,
@@ -1111,25 +1112,10 @@ export function createImageGeneratorWorkflow({
   }
 
   function syncGeneratorFrameToRatio(node, ratio = DEFAULT_GENERATOR_RATIO) {
-    if (!node) return null;
-    const dimensions = getGeneratorOutputDimensions(node, ratio, getGeneratorReferences(node));
-    const stage = node.querySelector(".image-generator-stage");
-    const frame = node.querySelector(".image-generator-frame");
-    const aspectRatio = `${dimensions.width} / ${dimensions.height}`;
-    if (stage) stage.style.aspectRatio = aspectRatio;
-    if (frame) frame.style.aspectRatio = aspectRatio;
-    node.dataset.generatorRatio = ratio || DEFAULT_GENERATOR_RATIO;
-    node.dataset.outputWidth = String(dimensions.width);
-    node.dataset.outputHeight = String(dimensions.height);
-    updateGeneratorSizeLabel(node, dimensions);
-    scheduleGeneratorPopoverPosition();
-    return dimensions;
-  }
-
-  function updateGeneratorSizeLabel(node, { width, height } = {}) {
-    const label = node?.querySelector?.(".image-generator-size") || node?.querySelector?.(".image-generator-head > span:last-child");
-    if (!label) return;
-    label.textContent = `${Math.round(width || 1024)} × ${Math.round(height || 1024)}`;
+    return syncGeneratorFrameStateToRatio(node, ratio, {
+      defaultRatio: DEFAULT_GENERATOR_RATIO,
+      onSync: scheduleGeneratorPopoverPosition
+    });
   }
 
   function initGeneratorCustomSelects() {

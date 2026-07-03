@@ -33,6 +33,25 @@ export function resolveGeneratorOutputSize(node, references = [], {
   return `${dimensions.width}*${dimensions.height}`;
 }
 
+export function syncGeneratorFrameToRatio(node, ratio = "1:1", {
+  defaultRatio = "1:1",
+  onSync = null
+} = {}) {
+  if (!node) return null;
+  const dimensions = getGeneratorOutputDimensions(node, ratio);
+  const stage = node.querySelector?.(".image-generator-stage");
+  const frame = node.querySelector?.(".image-generator-frame");
+  const aspectRatio = `${dimensions.width} / ${dimensions.height}`;
+  if (stage) stage.style.aspectRatio = aspectRatio;
+  if (frame) frame.style.aspectRatio = aspectRatio;
+  node.dataset.generatorRatio = ratio || defaultRatio;
+  node.dataset.outputWidth = String(dimensions.width);
+  node.dataset.outputHeight = String(dimensions.height);
+  updateGeneratorSizeLabel(node, dimensions);
+  onSync?.(dimensions);
+  return dimensions;
+}
+
 export function parseImageSize(value = OUTPUT_SIZE) {
   const [width, height] = String(value || OUTPUT_SIZE)
     .split("*")
@@ -41,4 +60,11 @@ export function parseImageSize(value = OUTPUT_SIZE) {
     width: Number.isFinite(width) && width > 0 ? width : 1024,
     height: Number.isFinite(height) && height > 0 ? height : 1024
   };
+}
+
+function updateGeneratorSizeLabel(node, { width, height } = {}) {
+  const label = node?.querySelector?.(".image-generator-size")
+    || node?.querySelector?.(".image-generator-head > span:last-child");
+  if (!label) return;
+  label.textContent = `${Math.round(width || 1024)} × ${Math.round(height || 1024)}`;
 }
