@@ -17,6 +17,20 @@ export function isGenerationIntent(intent = "") {
   return ["generate_image", "edit_image", "generate_video"].includes(String(intent || "").trim());
 }
 
+export function buildGenerationToolState(generationTool = "", current = {}) {
+  return {
+    shouldGenerate: Boolean(generationTool) || Boolean(current.shouldGenerate),
+    outputType: generationTool === "generate_video" ? "video" : current.outputType || ""
+  };
+}
+
+export function applyGenerationToolDebugState(debugRecord, state = {}) {
+  if (!debugRecord) return debugRecord;
+  debugRecord.shouldGenerate = Boolean(state.shouldGenerate);
+  debugRecord.generationType = state.outputType || "";
+  return debugRecord;
+}
+
 export function buildConversationRunPayload({
   runId = "",
   prompt = "",

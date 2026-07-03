@@ -1,5 +1,6 @@
 import {
   applyConversationIntentDebugState,
+  applyGenerationToolDebugState,
   applyImageAnalysisDebugState,
   applyImageAnalysisErrorDebugState,
   applyImageAnalysisStartDebugState,
@@ -7,6 +8,7 @@ import {
   applyPromptOptimizedDebugState,
   applyPromptOptimizerStartDebugState,
   buildConversationIntentState,
+  buildGenerationToolState,
   buildImageAnalysisErrorState,
   buildImageAnalysisState,
   buildMessageDoneReceivedPayload,
@@ -84,6 +86,43 @@ assert(
   getGenerationToolNameFromEvent({}) === "",
   "Generation tool lookup should handle empty events"
 );
+
+const imageToolState = buildGenerationToolState("generate_image", {
+  shouldGenerate: false,
+  outputType: "image"
+});
+assert(imageToolState.shouldGenerate === true, "Generation tool state should enter generation mode for image tools");
+assert(imageToolState.outputType === "image", "Generation tool state should keep current output types for image tools");
+
+const editToolState = buildGenerationToolState("edit_image", {
+  shouldGenerate: false,
+  outputType: "image"
+});
+assert(editToolState.shouldGenerate === true, "Generation tool state should enter generation mode for edit tools");
+assert(editToolState.outputType === "image", "Generation tool state should keep current output types for edit tools");
+
+const videoToolState = buildGenerationToolState("generate_video", {
+  shouldGenerate: false,
+  outputType: "image"
+});
+assert(videoToolState.shouldGenerate === true, "Generation tool state should enter generation mode for video tools");
+assert(videoToolState.outputType === "video", "Generation tool state should force video output for video tools");
+
+const missingToolState = buildGenerationToolState("", {
+  shouldGenerate: true,
+  outputType: "image"
+});
+assert(missingToolState.shouldGenerate === true, "Generation tool state should preserve current generation decisions");
+assert(missingToolState.outputType === "image", "Generation tool state should preserve current output types without tools");
+
+const generationToolDebugRecord = {};
+assert(
+  applyGenerationToolDebugState(generationToolDebugRecord, videoToolState) === generationToolDebugRecord,
+  "Generation tool debug sync should return the debug record"
+);
+assert(generationToolDebugRecord.shouldGenerate === true, "Generation tool debug sync should write generation decisions");
+assert(generationToolDebugRecord.generationType === "video", "Generation tool debug sync should write generation types");
+assert(applyGenerationToolDebugState(null, videoToolState) === null, "Generation tool debug sync should ignore missing debug records");
 
 const explicitAttachments = [{ type: "image", name: "ready.png", dataUrl: "data:image/png;base64,a" }];
 const explicitPayload = buildConversationRunPayload({

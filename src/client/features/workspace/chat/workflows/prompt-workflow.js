@@ -87,6 +87,7 @@ import {
 } from "./prompt-job-utils.js";
 import {
   applyConversationIntentDebugState,
+  applyGenerationToolDebugState,
   applyImageAnalysisDebugState,
   applyImageAnalysisErrorDebugState,
   applyImageAnalysisStartDebugState,
@@ -94,6 +95,7 @@ import {
   applyPromptOptimizedDebugState,
   applyPromptOptimizerStartDebugState,
   buildConversationIntentState,
+  buildGenerationToolState,
   buildImageAnalysisErrorState,
   buildImageAnalysisState,
   buildMessageDoneReceivedPayload,
@@ -1449,11 +1451,13 @@ async function runConversationAgent({
     }
     const generationTool = getGenerationToolNameFromEvent(event);
     if (generationTool) {
-      shouldGenerate = true;
-      if (generationTool === "generate_video") outputType = "video";
+      const generationToolState = buildGenerationToolState(generationTool, {
+        shouldGenerate,
+        outputType
+      });
+      ({ shouldGenerate, outputType } = generationToolState);
       if (debugRecord) {
-        debugRecord.shouldGenerate = true;
-        debugRecord.generationType = outputType;
+        applyGenerationToolDebugState(debugRecord, generationToolState);
       }
       updateAgentDebugPanel(debugRecord);
     }
