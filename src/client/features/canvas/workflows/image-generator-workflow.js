@@ -89,6 +89,7 @@ import {
   getGeneratorReplacementPlacement
 } from "./image-generator-placement-utils.js";
 import {
+  getGeneratorControls as getGeneratorControlsFromPopover,
   getGeneratorCountValue,
   getGeneratorRatioValueFromControls,
   getSyncedGeneratorModelValue,
@@ -1336,17 +1337,7 @@ export function createImageGeneratorWorkflow({
   }
 
   function getGeneratorControls() {
-    const nextPopover = getGeneratorPopover();
-    return {
-      popover: nextPopover,
-      promptInput: nextPopover?.querySelector?.("[data-image-generator-prompt]") || null,
-      referenceInput: nextPopover?.querySelector?.("[data-generator-reference-input]") || null,
-      referenceList: nextPopover?.querySelector?.("[data-generator-reference-list]") || null,
-      modelSelect: nextPopover?.querySelector?.("[data-generator-model]") || null,
-      ratioSelect: nextPopover?.querySelector?.("[data-generator-ratio]") || null,
-      countSelect: nextPopover?.querySelector?.("[data-generator-count]") || null,
-      submitButton: nextPopover?.querySelector?.("[data-generator-submit]") || null
-    };
+    return getGeneratorControlsFromPopover(getGeneratorPopover());
   }
 
   return {

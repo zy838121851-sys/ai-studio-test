@@ -7,6 +7,19 @@ export function saveGeneratorControlDataset(node, controls = {}, {
   if (controls.countSelect) node.dataset.generatorCount = controls.countSelect.value || defaultCount;
 }
 
+export function getGeneratorControls(popover = null) {
+  return {
+    popover,
+    promptInput: popover?.querySelector?.("[data-image-generator-prompt]") || null,
+    referenceInput: popover?.querySelector?.("[data-generator-reference-input]") || null,
+    referenceList: popover?.querySelector?.("[data-generator-reference-list]") || null,
+    modelSelect: popover?.querySelector?.("[data-generator-model]") || null,
+    ratioSelect: popover?.querySelector?.("[data-generator-ratio]") || null,
+    countSelect: popover?.querySelector?.("[data-generator-count]") || null,
+    submitButton: popover?.querySelector?.("[data-generator-submit]") || null
+  };
+}
+
 export function getSyncedGeneratorModelValue(selectedModelId = "", defaultModel = "") {
   return selectedModelId || defaultModel;
 }

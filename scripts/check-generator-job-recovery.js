@@ -23,6 +23,7 @@ import {
   readGeneratorReferenceFiles
 } from "../src/client/features/canvas/workflows/image-generator-reference-utils.js";
 import {
+  getGeneratorControls,
   resolveGeneratorModelValue
 } from "../src/client/features/canvas/workflows/image-generator-control-state-utils.js";
 import {
@@ -106,6 +107,10 @@ assert(
 assert(
   generatorControlStateUtils.includes("export function resolveGeneratorModelValue"),
   "generator model value resolution should live in control state helpers"
+);
+assert(
+  generatorControlStateUtils.includes("export function getGeneratorControls"),
+  "generator popover control lookup should live in control state helpers"
 );
 
 assert(hasGeneratorDropData({ types: ["Files"] }) === true, "generator drop helper should accept file drops");
@@ -236,6 +241,17 @@ assert(
   }) === "default-model",
   "generator model helper should use the configured default model"
 );
+const controlsFixture = createGeneratorControlsFixture();
+const resolvedControls = getGeneratorControls(controlsFixture.popover);
+assert(resolvedControls.popover === controlsFixture.popover, "generator controls helper should return the popover");
+assert(resolvedControls.promptInput === controlsFixture.promptInput, "generator controls helper should find prompt input");
+assert(resolvedControls.referenceInput === controlsFixture.referenceInput, "generator controls helper should find reference input");
+assert(resolvedControls.referenceList === controlsFixture.referenceList, "generator controls helper should find reference list");
+assert(resolvedControls.modelSelect === controlsFixture.modelSelect, "generator controls helper should find model select");
+assert(resolvedControls.ratioSelect === controlsFixture.ratioSelect, "generator controls helper should find ratio select");
+assert(resolvedControls.countSelect === controlsFixture.countSelect, "generator controls helper should find count select");
+assert(resolvedControls.submitButton === controlsFixture.submitButton, "generator controls helper should find submit button");
+assert(getGeneratorControls(null).promptInput === null, "generator controls helper should tolerate missing popovers");
 
 const aiRoutes = read("src/server/routes/ai.routes.js");
 const aiJobQueryService = read("src/server/services/ai/ai-job-query.service.js");
@@ -544,6 +560,40 @@ function createGeneratorSizeFixture() {
     }
   };
   return { node, stage, frame, label };
+}
+
+function createGeneratorControlsFixture() {
+  const promptInput = {};
+  const referenceInput = {};
+  const referenceList = {};
+  const modelSelect = {};
+  const ratioSelect = {};
+  const countSelect = {};
+  const submitButton = {};
+  const controlsBySelector = new Map([
+    ["[data-image-generator-prompt]", promptInput],
+    ["[data-generator-reference-input]", referenceInput],
+    ["[data-generator-reference-list]", referenceList],
+    ["[data-generator-model]", modelSelect],
+    ["[data-generator-ratio]", ratioSelect],
+    ["[data-generator-count]", countSelect],
+    ["[data-generator-submit]", submitButton]
+  ]);
+  const popover = {
+    querySelector(selector) {
+      return controlsBySelector.get(selector) || null;
+    }
+  };
+  return {
+    popover,
+    promptInput,
+    referenceInput,
+    referenceList,
+    modelSelect,
+    ratioSelect,
+    countSelect,
+    submitButton
+  };
 }
 
 function createGeneratorBusyFixture() {
