@@ -17,6 +17,13 @@ import {
   toggleAssetSelectionState
 } from "../src/client/features/workspace/asset-library/asset-library-selection.js";
 import {
+  cleanAssetCollectionName,
+  removeAssetCollectionState,
+  selectAssetCollectionState,
+  selectAssetPageModeState,
+  upsertAssetCollectionState
+} from "../src/client/features/workspace/asset-library/asset-library-collections.js";
+import {
   syncAllRemoteAssetsState,
   syncRemoteAssetsState,
   syncRemoteCollectionsState
@@ -118,6 +125,7 @@ assertContains("src/client/features/workspace/asset-library/asset-panel.js", [
 assertContains("src/client/features/workspace/asset-library/asset-library-runtime.js", [
   "asset-library-normalizers.js",
   "asset-library-state.js",
+  "asset-library-collections.js",
   "asset-library-selection.js",
   "asset-library-sync.js",
   "asset-library-project-insert.js",
@@ -180,6 +188,67 @@ if (
   || assetTypeFromMime("text/plain") !== "other"
 ) {
   throw new Error("Asset MIME type helper should preserve existing type mapping");
+}
+
+if (
+  cleanAssetCollectionName("  Board  ") !== "Board"
+  || cleanAssetCollectionName(null) !== ""
+) {
+  throw new Error("Asset collection helper should preserve collection name cleanup");
+}
+
+const collectionState = createAssetLibraryState();
+const insertedCollection = upsertAssetCollectionState({
+  libraryState: collectionState,
+  collection: { id: "board-1", name: "Board", asset_count: "2" }
+});
+const updatedCollection = upsertAssetCollectionState({
+  libraryState: collectionState,
+  collection: { id: "board-1", name: "Renamed", asset_count: "3" }
+});
+if (
+  insertedCollection?.name !== "Board"
+  || updatedCollection?.name !== "Renamed"
+  || collectionState.collections.length !== 1
+  || collectionState.collections[0].assetCount !== 3
+) {
+  throw new Error("Asset collection helper should upsert normalized collections");
+}
+collectionState.activeCollectionId = "board-1";
+const removedCollection = removeAssetCollectionState({ libraryState: collectionState, collectionId: "board-1" });
+if (
+  removedCollection?.id !== "board-1"
+  || collectionState.collections.length !== 0
+  || collectionState.activeCollectionId !== ""
+) {
+  throw new Error("Asset collection helper should remove collections and clear active board");
+}
+
+collectionState.assetPageMode = "recent";
+collectionState.assetSelectionMode = true;
+collectionState.selectedAssetIds.add("asset-1");
+const selectedCollectionId = selectAssetCollectionState({ libraryState: collectionState, collectionId: "board-2" });
+if (
+  selectedCollectionId !== "board-2"
+  || collectionState.activeCollectionId !== "board-2"
+  || collectionState.assetPageMode !== "boards"
+  || collectionState.assetSelectionMode !== false
+  || collectionState.selectedAssetIds.size !== 0
+) {
+  throw new Error("Asset collection helper should select boards and clear selection state");
+}
+collectionState.selectedAssetIds.add("asset-2");
+const selectedPageMode = selectAssetPageModeState({ libraryState: collectionState, mode: "all" });
+if (
+  selectedPageMode !== "all"
+  || collectionState.activeCollectionId !== ""
+  || collectionState.assetPageMode !== "all"
+  || collectionState.selectedAssetIds.size !== 0
+) {
+  throw new Error("Asset collection helper should select page modes and clear active board");
+}
+if (selectAssetPageModeState({ libraryState: collectionState, mode: "unknown" }) !== "boards") {
+  throw new Error("Asset collection helper should fall back to boards for unknown page modes");
 }
 
 const fallbackState = createAssetLibraryState({ assets: [{ id: "initial" }] });

@@ -1,9 +1,15 @@
 import {
   assetTypeFromMime,
-  normalizeCollection,
   normalizeAsset
 } from "./asset-library-normalizers.js";
 import { createAssetLibraryState } from "./asset-library-state.js";
+import {
+  cleanAssetCollectionName,
+  removeAssetCollectionState,
+  selectAssetCollectionState,
+  selectAssetPageModeState,
+  upsertAssetCollectionState
+} from "./asset-library-collections.js";
 import {
   syncAllRemoteAssetsState,
   syncRemoteAssetsState,
@@ -335,13 +341,12 @@ export function createAssetLibraryRuntime({
   }
 
   async function createCollection(name) {
-    const cleanName = String(name || "").trim();
+    const cleanName = cleanAssetCollectionName(name);
     if (!cleanName || typeof createRemoteAssetCollection !== "function") return null;
     try {
       const result = await createRemoteAssetCollection({ name: cleanName });
       if (!result.collection) return null;
-      const collection = normalizeCollection(result.collection);
-      libraryState.collections.push(collection);
+      const collection = upsertAssetCollectionState({ libraryState, collection: result.collection });
       await syncRemoteCollections();
       renderAssets();
       return collection;
@@ -352,14 +357,12 @@ export function createAssetLibraryRuntime({
   }
 
   async function renameCollection(collectionId, name) {
-    const cleanName = String(name || "").trim();
+    const cleanName = cleanAssetCollectionName(name);
     if (!collectionId || !cleanName || typeof updateRemoteAssetCollection !== "function") return null;
     try {
       const result = await updateRemoteAssetCollection(collectionId, { name: cleanName });
       if (!result.collection) return null;
-      const collection = normalizeCollection(result.collection);
-      const index = libraryState.collections.findIndex((item) => item.id === collection.id);
-      if (index >= 0) libraryState.collections[index] = collection;
+      const collection = upsertAssetCollectionState({ libraryState, collection: result.collection });
       renderAssets();
       return collection;
     } catch (error) {
@@ -372,9 +375,7 @@ export function createAssetLibraryRuntime({
     if (!collectionId || typeof deleteRemoteAssetCollection !== "function") return null;
     try {
       const result = await deleteRemoteAssetCollection(collectionId);
-      const index = libraryState.collections.findIndex((item) => item.id === collectionId);
-      if (index >= 0) libraryState.collections.splice(index, 1);
-      if (libraryState.activeCollectionId === collectionId) libraryState.activeCollectionId = "";
+      removeAssetCollectionState({ libraryState, collectionId });
       await syncRemoteAssets();
       return result.collection || null;
     } catch (error) {
@@ -384,19 +385,13 @@ export function createAssetLibraryRuntime({
   }
 
   async function selectCollection(collectionId = "") {
-    libraryState.activeCollectionId = String(collectionId || "");
-    libraryState.assetPageMode = libraryState.activeCollectionId ? "boards" : libraryState.assetPageMode;
-    libraryState.assetSelectionMode = false;
-    libraryState.selectedAssetIds.clear();
+    selectAssetCollectionState({ libraryState, collectionId });
     await syncRemoteAssets();
     return libraryState.activeCollectionId;
   }
 
   async function selectAssetPageMode(mode = "boards") {
-    libraryState.assetPageMode = ["boards", "all", "recent"].includes(mode) ? mode : "boards";
-    libraryState.activeCollectionId = "";
-    libraryState.assetSelectionMode = false;
-    libraryState.selectedAssetIds.clear();
+    selectAssetPageModeState({ libraryState, mode });
     await syncRemoteAssets();
     return libraryState.assetPageMode;
   }
