@@ -3,6 +3,15 @@ import {
   stripImageExtension
 } from "./canvas-menu-text-utils.js";
 
+export function blobToDataUrl(blob) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => reject(reader.error || new Error("Unable to read image blob"));
+    reader.readAsDataURL(blob);
+  });
+}
+
 export function canvasToBlob(canvas, type) {
   return new Promise((resolve, reject) => {
     canvas.toBlob((blob) => {

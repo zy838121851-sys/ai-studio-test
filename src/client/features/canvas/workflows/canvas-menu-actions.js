@@ -13,6 +13,7 @@ import {
   snapshotNodeForClipboard
 } from "./canvas-menu-clipboard-utils.js";
 import {
+  blobToDataUrl,
   canvasToBlob,
   drawImageIntoRect,
   getImageExportFileName,
@@ -1512,15 +1513,6 @@ async function inlineCloneImages(root) {
       // If a remote image blocks reading, keep the original source for SVG export.
     }
   }));
-}
-
-function blobToDataUrl(blob) {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = () => reject(reader.error || new Error("Unable to read image blob"));
-    reader.readAsDataURL(blob);
-  });
 }
 
 function rasterizeSvg(svgText, width, height, format) {

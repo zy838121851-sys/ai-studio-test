@@ -4,6 +4,7 @@ import {
   snapshotNodeForClipboard
 } from "../src/client/features/canvas/workflows/canvas-menu-clipboard-utils.js";
 import {
+  blobToDataUrl,
   canvasToBlob,
   drawImageIntoRect,
   getImageExportFileName,
@@ -75,6 +76,7 @@ assertIncludes(menuActions, 'from "./canvas-menu-text-utils.js"', "canvas menu m
 assertIncludes(menuActions, "const CANVAS_NODE_SELECTOR = \".node-card, .canvas-object\"", "canvas menu node selector must include node cards and canvas objects");
 assertIncludes(menuClipboardUtils, "export function snapshotNodeForClipboard", "canvas clipboard snapshot must live in clipboard utils");
 assertIncludes(menuClipboardUtils, "export function pasteNodeFromClipboard", "canvas clipboard paste must live in clipboard utils");
+assertIncludes(menuExportUtils, "export function blobToDataUrl", "blob data URL reader must live in export utils");
 assertIncludes(menuExportUtils, "export function canvasToBlob", "canvas toBlob wrapper must live in export utils");
 assertIncludes(menuExportUtils, "export function drawImageIntoRect", "canvas image draw helper must live in export utils");
 assertIncludes(menuExportUtils, "export function getImageExportFileName", "canvas image export filename must live in export utils");
@@ -455,6 +457,34 @@ prepareExportClone({
 assert(JSON.stringify(removedCloneClasses) === JSON.stringify(["selected", "node-locked"]), "export clone cleanup should preserve removed classes");
 assert(removedExportSelectors[0] === ".resize-handle, .image-node-toolbar, .canvas-asset-savebar, .node-download, .node-expand, .stack-toggle, .stack-tray", "export clone cleanup should preserve removed selector list");
 assert(removedExportSelectors.includes("resize-handle removed") && removedExportSelectors.includes("toolbar removed"), "export clone cleanup should remove matched controls");
+const OriginalFileReader = globalThis.FileReader;
+try {
+  globalThis.FileReader = class {
+    readAsDataURL(blob) {
+      this.result = `data:${blob}`;
+      this.onload();
+    }
+  };
+  assert(await blobToDataUrl("image/png;base64,abc") === "data:image/png;base64,abc", "blob data URL reader should resolve reader result");
+  globalThis.FileReader = class {
+    constructor() {
+      this.error = new Error("read failed");
+    }
+
+    readAsDataURL() {
+      this.onerror();
+    }
+  };
+  let blobReadRejected = false;
+  try {
+    await blobToDataUrl("broken");
+  } catch (error) {
+    blobReadRejected = error.message === "read failed";
+  }
+  assert(blobReadRejected === true, "blob data URL reader should reject reader errors");
+} finally {
+  globalThis.FileReader = OriginalFileReader;
+}
 
 assert(cleanText("  first\n\tsecond   third  ") === "first second third", "clean text should collapse whitespace");
 assert(cleanText("x".repeat(130)).length === 120, "clean text should preserve 120 character limit");
