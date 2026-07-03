@@ -47,6 +47,17 @@ export function normalizeLayerZIndex(value, fallbackIndex = 0) {
   return Number.isFinite(parsed) ? parsed : 10 + fallbackIndex;
 }
 
+export function getLayerOrderedNodes(nodes = []) {
+  return nodes
+    .map((node, index) => ({
+      node,
+      index,
+      zIndex: normalizeLayerZIndex(node.style.zIndex, index)
+    }))
+    .sort((a, b) => a.zIndex - b.zIndex || a.index - b.index)
+    .map(({ node }) => node);
+}
+
 export function getNodeLayoutBounds(node) {
   if (node?.classList?.contains("node-image")) {
     const frame = node.querySelector(".image-frame");

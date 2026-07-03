@@ -19,6 +19,7 @@ import {
   areLayoutSnapshotsEqual,
   getImageDisplayAspectRatio,
   getImageFrameHeightFromAspect,
+  getLayerOrderedNodes,
   getLayoutUnionBounds,
   getNodeLayoutBounds,
   getNodeSortIndex,
@@ -105,6 +106,7 @@ assertIncludes(menuExportUtils, "export function rasterizeSvg", "canvas SVG rast
 assertIncludes(menuLayoutUtils, "export function areLayoutSnapshotsEqual", "canvas layout snapshot equality must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getImageDisplayAspectRatio", "canvas image display aspect ratio must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getImageFrameHeightFromAspect", "canvas image frame aspect height must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function getLayerOrderedNodes", "canvas layer ordering must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getLayoutUnionBounds", "canvas layout union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getNodeLayoutBounds", "canvas node layout bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node sort index must live in layout utils");
@@ -234,6 +236,18 @@ assert(normalizeLayerZIndex("12", 3) === 12, "layer z-index normalization should
 assert(normalizeLayerZIndex("12px", 3) === 12, "layer z-index normalization should preserve parseInt behavior");
 assert(normalizeLayerZIndex("", 3) === 13, "layer z-index normalization should use fallback for empty values");
 assert(normalizeLayerZIndex("bad", 4) === 14, "layer z-index normalization should use fallback for invalid values");
+const layerNodeA = { style: { zIndex: "20" } };
+const layerNodeB = { style: { zIndex: "" } };
+const layerNodeC = { style: { zIndex: "11" } };
+const layerNodeD = { style: { zIndex: "20" } };
+const orderedLayerNodes = getLayerOrderedNodes([layerNodeA, layerNodeB, layerNodeC, layerNodeD]);
+assert(
+  orderedLayerNodes[0] === layerNodeB
+    && orderedLayerNodes[1] === layerNodeC
+    && orderedLayerNodes[2] === layerNodeA
+    && orderedLayerNodes[3] === layerNodeD,
+  "layer ordering should preserve z-index sort with original index fallback"
+);
 
 const viewportRect = getViewportUnionRect([
   {

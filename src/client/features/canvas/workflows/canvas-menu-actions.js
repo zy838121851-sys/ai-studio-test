@@ -9,6 +9,7 @@ import {
   getRectUnionBounds,
   getViewportUnionRect,
   getViewportCenterWorldPoint,
+  getLayerOrderedNodes,
   parseAspectRatio,
   setNodeLayoutFrameSize,
   setNodeLayoutHeight,
@@ -833,7 +834,7 @@ function layoutNodesByColumns(nodes, bounds, {
 function reorderNodeLayers(nodes, mode, selectNode) {
   if (!nodes.length) return;
   const selectedSet = new Set(nodes);
-  const ordered = getLayerOrderedNodes();
+  const ordered = getLayerOrderedNodes(getMenuCanvasNodes());
   const selected = ordered.filter((node) => selectedSet.has(node));
   const unselected = ordered.filter((node) => !selectedSet.has(node));
   if (!selected.length) return;
@@ -862,17 +863,6 @@ function reorderNodeLayers(nodes, mode, selectNode) {
     node.style.zIndex = String(10 + index);
   });
   selectCanvasNodes(selected, selectNode);
-}
-
-function getLayerOrderedNodes() {
-  return getMenuCanvasNodes()
-    .map((node, index) => ({
-      node,
-      index,
-      zIndex: normalizeLayerZIndex(node.style.zIndex, index)
-    }))
-    .sort((a, b) => a.zIndex - b.zIndex || a.index - b.index)
-    .map(({ node }) => node);
 }
 
 function alignNodes(nodes, mode, recordUndoAction) {
