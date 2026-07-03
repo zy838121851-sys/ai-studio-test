@@ -61,6 +61,9 @@ import {
   logGeneratorJobPoll,
   logSubmittedGeneratorModel
 } from "../src/client/features/canvas/workflows/image-generator-debug-log-utils.js";
+import {
+  buildGeneratorRunContext
+} from "../src/client/features/canvas/workflows/image-generator-run-context-utils.js";
 
 function read(path) {
   return readFileSync(path, "utf8");
@@ -78,6 +81,7 @@ const generatorDomStateUtils = read("src/client/features/canvas/workflows/image-
 const generatorControlStateUtils = read("src/client/features/canvas/workflows/image-generator-control-state-utils.js");
 const generatorSelectUtils = read("src/client/features/canvas/workflows/image-generator-select-utils.js");
 const generatorDebugLogUtils = read("src/client/features/canvas/workflows/image-generator-debug-log-utils.js");
+const generatorRunContextUtils = read("src/client/features/canvas/workflows/image-generator-run-context-utils.js");
 assert(
   generatorWorkflow.includes("onJobCreated")
     && generatorWorkflow.includes("tagGeneratorPreviewJobs")
@@ -86,7 +90,6 @@ assert(
     && generatorWorkflow.includes("getGeneratorPreviewNodeWidth as getPreviewNodeWidth")
     && generatorWorkflow.includes("getGeneratedImagePlacement")
     && generatorWorkflow.includes("getGeneratorReplacementPlacement")
-    && generatorWorkflow.includes("getGeneratorBatchCount")
     && generatorControlStateUtils.includes("export function getGeneratorBatchCount")
     && generatorWorkflow.includes("readGeneratorReferenceFiles")
     && generatorWorkflow.includes("markGeneratorPreviewFailed")
@@ -98,6 +101,8 @@ assert(
     && generatorWorkflow.includes("resolveGeneratorOutputSize")
     && generatorWorkflow.includes("resolveGeneratorModelValue")
     && generatorWorkflow.includes("syncGeneratorFrameStateToRatio")
+    && generatorWorkflow.includes("buildGeneratorRunContext")
+    && generatorRunContextUtils.includes("export function buildGeneratorRunContext")
     && generatorPreviewJobUtils.includes("applyGeneratorPreviewJobMetadata"),
   "generator must tag preview nodes with job ids when async jobs are created"
 );
@@ -638,6 +643,37 @@ assert(
   getGeneratorBatchCount("image", false, 3, 4) === 3,
   "generator batch count should preserve selected image counts"
 );
+const generatorRunContext = buildGeneratorRunContext({
+  model: "model-1",
+  modelType: "image",
+  prompt: "make image",
+  references: [{ dataUrl: "data:image/png;base64,one" }, { dataUrl: "" }, null],
+  selectedCount: 3,
+  midjourneyCount: 4,
+  size: "1024*768",
+  dimensions: { width: 1024, height: 768 },
+  sourceNodeId: "generator-1",
+  detectGenerationKind: () => "image_generation"
+});
+assert(generatorRunContext.videoModel === false, "generator run context should preserve image model type");
+assert(generatorRunContext.midjourney === false, "generator run context should classify non-Midjourney models");
+assert(generatorRunContext.count === 3, "generator run context should preserve selected image count");
+assert(generatorRunContext.images.length === 1, "generator run context should filter empty reference images");
+assert(generatorRunContext.size === "1024*768", "generator run context should preserve output size");
+assert(generatorRunContext.aspectRatio === "1024 / 768", "generator run context should derive aspect ratio from dimensions");
+assert(generatorRunContext.actionType === "image_generation", "generator run context should use the injected generation kind detector");
+assert(generatorRunContext.sourceNodeId === "generator-1", "generator run context should preserve source node ids");
+const videoRunContext = buildGeneratorRunContext({
+  model: "midjourney",
+  modelType: "video",
+  selectedCount: 4,
+  midjourneyCount: 4,
+  dimensions: { width: 0, height: 0 }
+});
+assert(videoRunContext.videoModel === true, "generator run context should detect video models");
+assert(videoRunContext.midjourney === true, "generator run context should detect Midjourney models");
+assert(videoRunContext.count === 1, "generator run context should force video batches to one result");
+assert(videoRunContext.aspectRatio === "1024 / 1024", "generator run context should fall back to stable dimensions");
 assert(
   resolveGeneratorOutputSize({ dataset: { generatorRatio: "16:9" } }) === "1344*768",
   "generator output size helper should prefer node ratio"

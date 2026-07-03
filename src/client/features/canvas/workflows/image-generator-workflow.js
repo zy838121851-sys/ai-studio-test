@@ -93,7 +93,6 @@ import {
 } from "./image-generator-placement-utils.js";
 import {
   getGeneratorControls as getGeneratorControlsFromPopover,
-  getGeneratorBatchCount,
   getGeneratorCountValue,
   getGeneratorRatioValueFromControls,
   getSyncedGeneratorModelValue,
@@ -410,18 +409,33 @@ export function createImageGeneratorWorkflow({
   }
 
   async function runGeneratorBatch(node, { prompt = "", references = [] } = {}) {
+    const { buildGeneratorRunContext } = await import("./image-generator-run-context-utils.js");
     const model = getGeneratorModel();
-    const videoModel = getModelType(model) === "video";
+    const modelType = getModelType(model);
     let resultModel = model;
     let modelUsage = `模型：${getImageModelDisplayName(model)}`;
-    const midjourney = isMidjourneyModel(model);
-    const count = getGeneratorBatchCount(getModelType(model), midjourney, getGeneratorCount(), MIDJOURNEY_IMAGE_COUNT);
-    const images = references.map((item) => item.dataUrl).filter(Boolean);
-    const size = resolveGeneratorOutputSize(node, references);
-    const dimensions = getGeneratorOutputDimensions(node, getGeneratorRatioValue(node), references);
-    const aspectRatio = `${dimensions.width} / ${dimensions.height}`;
-    const actionType = detectGenerationKind(prompt);
-    const sourceNodeId = node?.dataset?.nodeId || "";
+    const {
+      videoModel,
+      midjourney,
+      count,
+      images,
+      size,
+      dimensions,
+      aspectRatio,
+      actionType,
+      sourceNodeId
+    } = buildGeneratorRunContext({
+      model,
+      modelType,
+      prompt,
+      references,
+      selectedCount: getGeneratorCount(),
+      midjourneyCount: MIDJOURNEY_IMAGE_COUNT,
+      size: resolveGeneratorOutputSize(node, references),
+      dimensions: getGeneratorOutputDimensions(node, getGeneratorRatioValue(node), references),
+      sourceNodeId: node?.dataset?.nodeId || "",
+      detectGenerationKind
+    });
     let previewNodes = [];
     let firstSuccessfulNode = null;
     setGeneratorBusy(node, true);
