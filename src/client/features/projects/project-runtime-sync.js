@@ -1,3 +1,11 @@
+export function hydrateProjectRuntimeState({
+  state = {},
+  runtimeBootstrap = {}
+} = {}) {
+  state.setProjects?.(runtimeBootstrap.projects);
+  state.setActiveProjectIdInMemory?.(runtimeBootstrap.activeProjectId);
+}
+
 export function syncProjectRuntimeChange({
   state = {},
   ui = {},

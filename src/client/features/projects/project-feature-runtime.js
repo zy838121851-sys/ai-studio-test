@@ -4,7 +4,10 @@ import {
   bindProjectAuthSync,
   createProjectInitialSyncReady
 } from "./project-auth-sync.js";
-import { syncProjectRuntimeChange } from "./project-runtime-sync.js";
+import {
+  hydrateProjectRuntimeState,
+  syncProjectRuntimeChange
+} from "./project-runtime-sync.js";
 import { createProjectWorkflowRuntime } from "./project-workflow-bootstrap.js?v=20260627-library-bulk-select-1";
 import {
   createProjectWorkflowServices,
@@ -47,8 +50,7 @@ export function createProjectFeatureRuntime({
     }
   });
 
-  state.setProjects?.(runtimeBootstrap.projects);
-  state.setActiveProjectIdInMemory?.(runtimeBootstrap.activeProjectId);
+  hydrateProjectRuntimeState({ state, runtimeBootstrap });
 
   const workflowRuntime = createProjectWorkflowRuntime({
     state: createProjectWorkflowState({ state, elements, remoteProjectsEnabled }),

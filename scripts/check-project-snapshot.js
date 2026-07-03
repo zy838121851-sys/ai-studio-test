@@ -20,6 +20,7 @@ import {
   createProjectInitialSyncReady
 } from "../src/client/features/projects/project-auth-sync.js";
 import {
+  hydrateProjectRuntimeState,
   syncProjectRuntimeChange
 } from "../src/client/features/projects/project-runtime-sync.js";
 
@@ -374,6 +375,30 @@ assert(
     ["home"]
   ]),
   "Project runtime change sync should preserve state and UI update order"
+);
+
+const runtimeHydrationCalls = [];
+const runtimeHydrationProjects = [{ id: "project-2" }];
+hydrateProjectRuntimeState({
+  state: {
+    setProjects(projects) {
+      runtimeHydrationCalls.push(["projects", projects]);
+    },
+    setActiveProjectIdInMemory(projectId) {
+      runtimeHydrationCalls.push(["active", projectId]);
+    }
+  },
+  runtimeBootstrap: {
+    projects: runtimeHydrationProjects,
+    activeProjectId: "project-2"
+  }
+});
+assert(
+  JSON.stringify(runtimeHydrationCalls) === JSON.stringify([
+    ["projects", runtimeHydrationProjects],
+    ["active", "project-2"]
+  ]),
+  "Project runtime hydration should preserve bootstrap state write order"
 );
 
 console.log("Project snapshot checks passed.");
