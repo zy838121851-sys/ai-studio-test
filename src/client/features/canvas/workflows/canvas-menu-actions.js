@@ -1478,12 +1478,6 @@ function canvasToBlob(canvas, type) {
   });
 }
 
-function getSelectedOrTargetNodes(targetNode = null) {
-  const selected = getMenuCanvasNodes().filter((node) => node.classList.contains("selected"));
-  if (selected.length) return selected;
-  return targetNode?.isConnected ? [targetNode] : [];
-}
-
 async function buildNodesSvg(nodes) {
   const bounds = getNodesUnionBounds(nodes);
   const clones = await Promise.all(nodes.map(async (node) => {

@@ -45,6 +45,10 @@ function assertIncludes(source, value, message) {
   assert(source.includes(value), message);
 }
 
+function assertNotIncludes(source, value, message) {
+  assert(!source.includes(value), message);
+}
+
 const menuActions = read("src/client/features/canvas/workflows/canvas-menu-actions.js");
 const menuClipboardUtils = read("src/client/features/canvas/workflows/canvas-menu-clipboard-utils.js");
 const menuLayoutUtils = read("src/client/features/canvas/workflows/canvas-menu-layout-utils.js");
@@ -84,6 +88,7 @@ assertIncludes(menuTextUtils, "export function cleanFileName", "canvas clean fil
 assertIncludes(menuTextUtils, "export function stripImageExtension", "canvas strip image extension must live in text utils");
 assertIncludes(menuTextUtils, "export function escapeAttributeValue", "canvas attribute escaping must live in text utils");
 assertIncludes(menuTextUtils, "export function escapeHtml", "canvas html escaping must live in text utils");
+assertNotIncludes(menuActions, "function getSelectedOrTargetNodes", "unused selected/target helper must stay removed");
 
 [
   "text:",
