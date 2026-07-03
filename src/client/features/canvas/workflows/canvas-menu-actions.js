@@ -13,6 +13,10 @@ import {
   snapshotNodeForClipboard
 } from "./canvas-menu-clipboard-utils.js";
 import {
+  getNodeKind,
+  isNodeLocked
+} from "./canvas-menu-node-utils.js";
+import {
   cleanFileName,
   cleanText,
   escapeAttributeValue,
@@ -1128,10 +1132,6 @@ function getNodeSortTitle(node) {
   );
 }
 
-function isNodeLocked(node) {
-  return node?.dataset?.locked === "true" || node?.classList?.contains("node-locked");
-}
-
 function getContextTargetNode(canvasContextMenu, getContextMenuTargetNode) {
   const direct = getContextMenuTargetNode();
   if (direct?.isConnected) return direct;
@@ -1272,15 +1272,6 @@ function updateGroupBackgroundColor({ targetNode = null, color = "", addChat = (
   }
   groupNode.dataset.groupBackground = color;
   groupNode.style.background = color;
-}
-
-function getNodeKind(node) {
-  if (node.classList.contains("node-image")) return "image";
-  if (node.classList.contains("node-group")) return "group";
-  if (node.classList.contains("node-model")) return "model";
-  if (node.classList.contains("node-video")) return "video";
-  if (node.classList.contains("canvas-text")) return "2d";
-  return node.dataset.kind || "2d";
 }
 
 async function exportNode(node, format = "png") {

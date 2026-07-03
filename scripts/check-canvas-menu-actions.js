@@ -12,6 +12,10 @@ import {
   parseAspectRatio
 } from "../src/client/features/canvas/workflows/canvas-menu-layout-utils.js";
 import {
+  getNodeKind,
+  isNodeLocked
+} from "../src/client/features/canvas/workflows/canvas-menu-node-utils.js";
+import {
   cleanFileName,
   cleanText,
   escapeAttributeValue,
@@ -34,6 +38,7 @@ function assertIncludes(source, value, message) {
 const menuActions = read("src/client/features/canvas/workflows/canvas-menu-actions.js");
 const menuClipboardUtils = read("src/client/features/canvas/workflows/canvas-menu-clipboard-utils.js");
 const menuLayoutUtils = read("src/client/features/canvas/workflows/canvas-menu-layout-utils.js");
+const menuNodeUtils = read("src/client/features/canvas/workflows/canvas-menu-node-utils.js");
 const menuTextUtils = read("src/client/features/canvas/workflows/canvas-menu-text-utils.js");
 
 assertIncludes(menuActions, "export function bindCanvasMenuActions", "canvas menu must expose bindCanvasMenuActions");
@@ -41,6 +46,7 @@ assertIncludes(menuActions, "export function runCanvasImageMenuCommand", "canvas
 assertIncludes(menuActions, "export function runCanvasObjectMenuCommand", "canvas object command runner must stay exported");
 assertIncludes(menuActions, 'from "./canvas-menu-clipboard-utils.js"', "canvas menu must import clipboard utility helpers");
 assertIncludes(menuActions, 'from "./canvas-menu-layout-utils.js"', "canvas menu must import layout utility helpers");
+assertIncludes(menuActions, 'from "./canvas-menu-node-utils.js"', "canvas menu must import node utility helpers");
 assertIncludes(menuActions, 'from "./canvas-menu-text-utils.js"', "canvas menu must import text utility helpers");
 assertIncludes(menuActions, "const CANVAS_NODE_SELECTOR = \".node-card, .canvas-object\"", "canvas menu node selector must include node cards and canvas objects");
 assertIncludes(menuClipboardUtils, "export function snapshotNodeForClipboard", "canvas clipboard snapshot must live in clipboard utils");
@@ -51,6 +57,8 @@ assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node
 assertIncludes(menuLayoutUtils, "export function getRectUnionBounds", "canvas rect union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getViewportUnionRect", "canvas viewport union rect must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function parseAspectRatio", "canvas aspect ratio parsing must live in layout utils");
+assertIncludes(menuNodeUtils, "export function isNodeLocked", "canvas node lock check must live in node utils");
+assertIncludes(menuNodeUtils, "export function getNodeKind", "canvas node kind check must live in node utils");
 assertIncludes(menuTextUtils, "export function cleanText", "canvas clean text must live in text utils");
 assertIncludes(menuTextUtils, "export function cleanFileName", "canvas clean file name must live in text utils");
 assertIncludes(menuTextUtils, "export function stripImageExtension", "canvas strip image extension must live in text utils");
@@ -189,6 +197,28 @@ assert(parseAspectRatio("1.5") === 1.5, "aspect ratio parser should support nume
 assert(parseAspectRatio("auto") === 0, "aspect ratio parser should preserve auto fallback");
 assert(parseAspectRatio("0 / 3") === 0, "aspect ratio parser should reject non-positive ratio parts");
 assert(parseAspectRatio("invalid") === 0, "aspect ratio parser should reject invalid values");
+
+function fakeNode({ classes = [], dataset = {} } = {}) {
+  return {
+    dataset,
+    classList: {
+      contains(name) {
+        return classes.includes(name);
+      }
+    }
+  };
+}
+
+assert(isNodeLocked(fakeNode({ dataset: { locked: "true" } })) === true, "node lock check should read locked dataset");
+assert(isNodeLocked(fakeNode({ classes: ["node-locked"], dataset: { locked: "false" } })) === true, "node lock check should read locked class");
+assert(isNodeLocked(fakeNode({ dataset: { locked: "false" } })) === false, "node lock check should preserve unlocked dataset behavior");
+assert(getNodeKind(fakeNode({ classes: ["node-image"], dataset: { kind: "video" } })) === "image", "node kind should prioritize image class");
+assert(getNodeKind(fakeNode({ classes: ["node-group"] })) === "group", "node kind should detect group class");
+assert(getNodeKind(fakeNode({ classes: ["node-model"] })) === "model", "node kind should detect model class");
+assert(getNodeKind(fakeNode({ classes: ["node-video"] })) === "video", "node kind should detect video class");
+assert(getNodeKind(fakeNode({ classes: ["canvas-text"], dataset: { kind: "custom" } })) === "2d", "node kind should preserve canvas text class priority");
+assert(getNodeKind(fakeNode({ dataset: { kind: "custom" } })) === "custom", "node kind should fall back to dataset kind");
+assert(getNodeKind(fakeNode()) === "2d", "node kind should preserve default 2d fallback");
 
 assert(cleanText("  first\n\tsecond   third  ") === "first second third", "clean text should collapse whitespace");
 assert(cleanText("x".repeat(130)).length === 120, "clean text should preserve 120 character limit");
