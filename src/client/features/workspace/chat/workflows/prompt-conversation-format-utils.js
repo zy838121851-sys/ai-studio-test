@@ -21,3 +21,12 @@ export function escapeHtml(value = "") {
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 }
+
+export function getConversationRestoreImageAttachments(attachments = []) {
+  return (Array.isArray(attachments) ? attachments : [])
+    .filter((item) => item?.type === "image" && item.url)
+    .map((item) => ({
+      url: item.url,
+      caption: item.caption || "生成图片"
+    }));
+}

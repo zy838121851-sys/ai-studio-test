@@ -1,6 +1,7 @@
 import {
   escapeHtml,
-  formatConversationTime
+  formatConversationTime,
+  getConversationRestoreImageAttachments
 } from "../src/client/features/workspace/chat/workflows/prompt-conversation-format-utils.js";
 
 function assert(condition, message) {
@@ -24,5 +25,21 @@ assert(
 );
 assert(escapeHtml(123) === "123", "HTML escaping should stringify non-string values");
 assert(escapeHtml(null) === "null", "HTML escaping should preserve String conversion semantics");
+
+const restoredImages = getConversationRestoreImageAttachments([
+  { type: "image", url: "/uploads/a.png", caption: "Custom caption" },
+  { type: "image", url: "/uploads/b.png" },
+  { type: "video", url: "/uploads/c.mp4", caption: "Video" },
+  { type: "image", url: "", caption: "Missing URL" },
+  null
+]);
+assert(restoredImages.length === 2, "Conversation restore should keep only image attachments with URLs");
+assert(restoredImages[0].url === "/uploads/a.png", "Conversation restore should preserve image URLs");
+assert(restoredImages[0].caption === "Custom caption", "Conversation restore should preserve image captions");
+assert(restoredImages[1].caption === "生成图片", "Conversation restore should use the generated-image fallback caption");
+assert(
+  getConversationRestoreImageAttachments({ type: "image", url: "/uploads/a.png" }).length === 0,
+  "Conversation restore should ignore non-array attachment payloads"
+);
 
 console.log("Prompt conversation format utility checks passed.");

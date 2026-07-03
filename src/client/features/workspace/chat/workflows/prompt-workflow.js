@@ -91,7 +91,8 @@ import {
 } from "./prompt-conversation-event-utils.js";
 import {
   escapeHtml,
-  formatConversationTime
+  formatConversationTime,
+  getConversationRestoreImageAttachments
 } from "./prompt-conversation-format-utils.js";
 import {
   fetchConversationMessages,
@@ -1725,9 +1726,8 @@ async function restoreProjectConversation({ projectId, conversationId = "", addC
   messages.slice(-40).forEach((message) => {
     const text = message?.content?.text || "";
     if (message.role === "assistant" && Array.isArray(message.attachments)) {
-      message.attachments
-        .filter((item) => item?.type === "image" && item.url)
-        .forEach((item) => addChatImage("assistant", item.url, item.caption || "生成图片"));
+      getConversationRestoreImageAttachments(message.attachments)
+        .forEach((item) => addChatImage("assistant", item.url, item.caption));
     }
     if (text) addChat(message.role === "user" ? "user" : "assistant", text);
   });
