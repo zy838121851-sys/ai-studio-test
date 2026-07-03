@@ -3,6 +3,7 @@ import {
   areLayoutSnapshotsEqual,
   getLayoutUnionBounds,
   getNodeSortIndex,
+  getViewportUnionRect,
   parseAspectRatio
 } from "../src/client/features/canvas/workflows/canvas-menu-layout-utils.js";
 
@@ -29,6 +30,7 @@ assertIncludes(menuActions, "const CANVAS_NODE_SELECTOR = \".node-card, .canvas-
 assertIncludes(menuLayoutUtils, "export function areLayoutSnapshotsEqual", "canvas layout snapshot equality must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getLayoutUnionBounds", "canvas layout union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node sort index must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function getViewportUnionRect", "canvas viewport union rect must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function parseAspectRatio", "canvas aspect ratio parsing must live in layout utils");
 
 [
@@ -121,6 +123,30 @@ const noDigitNode = { dataset: { nodeId: "node" }, parentElement: { children: [s
 assert(getNodeSortIndex(sortedNode) === 42, "node sort index should preserve numeric id parsing");
 assert(getNodeSortIndex(noDigitNode) === 0, "node sort index should preserve no-digit id behavior");
 assertIncludes(menuLayoutUtils, "parentElement?.children", "node sort index fallback must stay available");
+
+const viewportRect = getViewportUnionRect([
+  {
+    isConnected: true,
+    getBoundingClientRect: () => ({ left: 10, top: 20, right: 60, bottom: 80, width: 50, height: 60 })
+  },
+  {
+    isConnected: false,
+    getBoundingClientRect: () => ({ left: -100, top: -100, right: 500, bottom: 500, width: 600, height: 600 })
+  },
+  {
+    isConnected: true,
+    getBoundingClientRect: () => ({ left: -5, top: 30, right: 25, bottom: 120, width: 30, height: 90 })
+  },
+  {
+    isConnected: true,
+    getBoundingClientRect: () => ({ left: 0, top: 0, right: 0, bottom: 0, width: 0, height: 0 })
+  }
+]);
+assert(viewportRect.left === -5, "viewport union rect should preserve minimum left");
+assert(viewportRect.top === 20, "viewport union rect should preserve minimum top");
+assert(viewportRect.width === 65, "viewport union rect should span maximum right");
+assert(viewportRect.height === 100, "viewport union rect should span maximum bottom");
+assert(getViewportUnionRect([]) === null, "viewport union rect should preserve empty input fallback");
 
 assert(parseAspectRatio("16 / 9") === 16 / 9, "aspect ratio parser should support ratio strings");
 assert(parseAspectRatio("1.5") === 1.5, "aspect ratio parser should support numeric strings");

@@ -4,6 +4,7 @@ import {
   areLayoutSnapshotsEqual,
   getLayoutUnionBounds,
   getNodeSortIndex,
+  getViewportUnionRect,
   parseAspectRatio
 } from "./canvas-menu-layout-utils.js";
 
@@ -518,24 +519,6 @@ function getCanvasZoomFromDom() {
   const match = transform.match(/^matrix\(([^,]+)/);
   const zoom = match ? Number(match[1]) : 1;
   return Number.isFinite(zoom) && zoom > 0 ? zoom : 1;
-}
-
-function getViewportUnionRect(nodes = []) {
-  const rects = nodes
-    .filter((node) => node?.isConnected)
-    .map((node) => node.getBoundingClientRect())
-    .filter((rect) => rect.width > 0 && rect.height > 0);
-  if (!rects.length) return null;
-  const left = Math.min(...rects.map((rect) => rect.left));
-  const top = Math.min(...rects.map((rect) => rect.top));
-  const right = Math.max(...rects.map((rect) => rect.right));
-  const bottom = Math.max(...rects.map((rect) => rect.bottom));
-  return {
-    left,
-    top,
-    width: right - left,
-    height: bottom - top
-  };
 }
 
 function isCanvasImageNode(node) {
