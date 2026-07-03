@@ -213,3 +213,17 @@ export function restoreLayoutNodes(entries = []) {
     if (frame) frame.style.aspectRatio = entry.frameAspectRatio;
   });
 }
+
+export function recordLayoutMutation(nodes, before, type, recordUndoAction) {
+  const after = snapshotLayoutNodes(nodes);
+  const changed = after.some((entry, index) => !areLayoutSnapshotsEqual(entry, before[index]));
+  if (!changed) return false;
+  if (typeof recordUndoAction === "function") {
+    recordUndoAction({
+      type,
+      undo: () => restoreLayoutNodes(before),
+      redo: () => restoreLayoutNodes(after)
+    });
+  }
+  return true;
+}

@@ -1,14 +1,13 @@
 ﻿import { openImageCompareFromSelection } from "../image-compare.js";
 
 import {
-  areLayoutSnapshotsEqual,
   getNodeLayoutBounds,
   getLayoutUnionBounds,
   getNodeSortIndex,
+  recordLayoutMutation,
   getRectUnionBounds,
   getViewportUnionRect,
   parseAspectRatio,
-  restoreLayoutNodes,
   setNodeLayoutFrameSize,
   setNodeLayoutHeight,
   setNodeLayoutSize,
@@ -980,20 +979,6 @@ function relinkCanvasImage(node, addChat) {
     if (title) title.textContent = file.name;
   }, { once: true });
   input.click();
-}
-
-function recordLayoutMutation(nodes, before, type, recordUndoAction) {
-  const after = snapshotLayoutNodes(nodes);
-  const changed = after.some((entry, index) => !areLayoutSnapshotsEqual(entry, before[index]));
-  if (!changed) return false;
-  if (typeof recordUndoAction === "function") {
-    recordUndoAction({
-      type,
-      undo: () => restoreLayoutNodes(before),
-      redo: () => restoreLayoutNodes(after)
-    });
-  }
-  return true;
 }
 
 function getNodeSortTitle(node) {

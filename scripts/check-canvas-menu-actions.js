@@ -22,6 +22,7 @@ import {
   getLayoutUnionBounds,
   getNodeLayoutBounds,
   getNodeSortIndex,
+  recordLayoutMutation,
   getRectUnionBounds,
   getViewportUnionRect,
   parseAspectRatio,
@@ -107,6 +108,7 @@ assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node
 assertIncludes(menuLayoutUtils, "export function getRectUnionBounds", "canvas rect union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getViewportUnionRect", "canvas viewport union rect must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function parseAspectRatio", "canvas aspect ratio parsing must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function recordLayoutMutation", "canvas layout mutation recorder must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function snapshotLayoutNodes", "canvas layout snapshot capture must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function restoreLayoutNodes", "canvas layout snapshot restore must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function setNodeLayoutFrameSize", "canvas layout frame size writer must live in layout utils");
@@ -431,6 +433,28 @@ assert(snapshotNode.dataset.manualSize === undefined, "layout restore should del
 assert(snapshotFrame.style.aspectRatio === "16 / 9", "layout restore should restore frame aspect ratio");
 restoreLayoutNodes([{ node: { ...snapshotNode, isConnected: false }, left: "99px" }]);
 assert(snapshotNode.style.left === "1px", "layout restore should ignore disconnected nodes");
+
+const unchangedBefore = snapshotLayoutNodes([snapshotNode]);
+let unchangedRecorded = false;
+assert(recordLayoutMutation([snapshotNode], unchangedBefore, "noop-layout", () => {
+  unchangedRecorded = true;
+}) === false, "layout mutation recorder should reject unchanged snapshots");
+assert(unchangedRecorded === false, "layout mutation recorder should not record unchanged snapshots");
+
+const mutationBefore = snapshotLayoutNodes([snapshotNode]);
+snapshotNode.style.left = "44px";
+snapshotFrame.style.aspectRatio = "1 / 1";
+let recordedMutation = null;
+assert(recordLayoutMutation([snapshotNode], mutationBefore, "move-layout", (entry) => {
+  recordedMutation = entry;
+}) === true, "layout mutation recorder should accept changed snapshots");
+assert(recordedMutation?.type === "move-layout", "layout mutation recorder should preserve mutation type");
+recordedMutation.undo();
+assert(snapshotNode.style.left === "1px", "layout mutation undo should restore before snapshot");
+assert(snapshotFrame.style.aspectRatio === "16 / 9", "layout mutation undo should restore before frame ratio");
+recordedMutation.redo();
+assert(snapshotNode.style.left === "44px", "layout mutation redo should restore after snapshot");
+assert(snapshotFrame.style.aspectRatio === "1 / 1", "layout mutation redo should restore after frame ratio");
 
 function fakeNode({ classes = [], dataset = {} } = {}) {
   return {
