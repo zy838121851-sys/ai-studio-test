@@ -11,6 +11,10 @@ import {
   getGeneratorReplacementPlacement
 } from "../src/client/features/canvas/workflows/image-generator-placement-utils.js";
 import {
+  closeGeneratorCustomSelects,
+  toggleGeneratorCustomSelect
+} from "../src/client/features/canvas/workflows/image-generator-select-utils.js";
+import {
   resolveGeneratorOutputSize,
   syncGeneratorFrameToRatio
 } from "../src/client/features/canvas/workflows/image-generator-sizing-utils.js";
@@ -51,6 +55,7 @@ const generatorJobPollingUtils = read("src/client/features/canvas/workflows/imag
 const generatorPreviewJobUtils = read("src/client/features/canvas/workflows/image-generator-preview-job-utils.js");
 const generatorDomStateUtils = read("src/client/features/canvas/workflows/image-generator-dom-state-utils.js");
 const generatorControlStateUtils = read("src/client/features/canvas/workflows/image-generator-control-state-utils.js");
+const generatorSelectUtils = read("src/client/features/canvas/workflows/image-generator-select-utils.js");
 assert(
   generatorWorkflow.includes("onJobCreated")
     && generatorWorkflow.includes("tagGeneratorPreviewJobs")
@@ -111,6 +116,11 @@ assert(
 assert(
   generatorControlStateUtils.includes("export function getGeneratorControls"),
   "generator popover control lookup should live in control state helpers"
+);
+assert(
+  generatorSelectUtils.includes("export function closeGeneratorCustomSelects")
+    && generatorSelectUtils.includes("export function toggleGeneratorCustomSelect"),
+  "generator custom select open/close helpers should live in select utilities"
 );
 
 assert(hasGeneratorDropData({ types: ["Files"] }) === true, "generator drop helper should accept file drops");
@@ -252,6 +262,24 @@ assert(resolvedControls.ratioSelect === controlsFixture.ratioSelect, "generator 
 assert(resolvedControls.countSelect === controlsFixture.countSelect, "generator controls helper should find count select");
 assert(resolvedControls.submitButton === controlsFixture.submitButton, "generator controls helper should find submit button");
 assert(getGeneratorControls(null).promptInput === null, "generator controls helper should tolerate missing popovers");
+const customSelectFixture = createGeneratorCustomSelectFixture();
+assert(
+  toggleGeneratorCustomSelect(customSelectFixture.trigger, { closeSelects: customSelectFixture.closeSelects }) === true,
+  "generator custom select helper should open closed wraps"
+);
+assert(customSelectFixture.wrap.classes.has("open"), "generator custom select helper should add open class");
+assert(customSelectFixture.closeCalls === 1, "generator custom select helper should close other selects before opening");
+assert(
+  toggleGeneratorCustomSelect(customSelectFixture.trigger, { closeSelects: customSelectFixture.closeSelects }) === false,
+  "generator custom select helper should close open wraps"
+);
+assert(!customSelectFixture.wrap.classes.has("open"), "generator custom select helper should remove open class");
+customSelectFixture.trigger.disabled = true;
+assert(toggleGeneratorCustomSelect(customSelectFixture.trigger, { closeSelects: customSelectFixture.closeSelects }) === false, "generator custom select helper should ignore disabled triggers");
+assert(toggleGeneratorCustomSelect({ disabled: false, closest: () => null }) === false, "generator custom select helper should ignore missing wraps");
+const closeFixture = createGeneratorCustomSelectCloseFixture();
+closeGeneratorCustomSelects(closeFixture.root);
+assert(closeFixture.wraps.every((wrap) => !wrap.classes.has("open")), "generator custom select close helper should close all open wraps");
 
 const aiRoutes = read("src/server/routes/ai.routes.js");
 const aiJobQueryService = read("src/server/services/ai/ai-job-query.service.js");
@@ -593,6 +621,67 @@ function createGeneratorControlsFixture() {
     ratioSelect,
     countSelect,
     submitButton
+  };
+}
+
+function createGeneratorCustomSelectFixture() {
+  const classes = new Set();
+  let closeCalls = 0;
+  const wrap = {
+    classes,
+    classList: createClassList(classes)
+  };
+  const trigger = {
+    disabled: false,
+    closest(selector) {
+      return selector === ".generator-select-wrap" ? wrap : null;
+    }
+  };
+  return {
+    wrap,
+    trigger,
+    get closeCalls() {
+      return closeCalls;
+    },
+    closeSelects() {
+      closeCalls += 1;
+    }
+  };
+}
+
+function createGeneratorCustomSelectCloseFixture() {
+  const wraps = [
+    { classes: new Set(["open"]) },
+    { classes: new Set(["open"]) }
+  ];
+  wraps.forEach((wrap) => {
+    wrap.classList = createClassList(wrap.classes);
+  });
+  return {
+    wraps,
+    root: {
+      querySelectorAll(selector) {
+        return selector === ".generator-select-wrap.open" ? wraps : [];
+      }
+    }
+  };
+}
+
+function createClassList(classes) {
+  return {
+    add(name) {
+      classes.add(name);
+    },
+    remove(name) {
+      classes.delete(name);
+    },
+    contains(name) {
+      return classes.has(name);
+    },
+    toggle(name, enabled) {
+      if (enabled) classes.add(name);
+      else classes.delete(name);
+    }
   };
 }
 

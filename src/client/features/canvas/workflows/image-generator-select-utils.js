@@ -19,3 +19,19 @@ export function getGeneratorSelectTriggerText(select) {
     || null;
   return selectedOption?.dataset?.modelLabel || selectedOption?.textContent || "";
 }
+
+export function closeGeneratorCustomSelects(root = null) {
+  root?.querySelectorAll?.(".generator-select-wrap.open")
+    .forEach((wrap) => wrap.classList.remove("open"));
+}
+
+export function toggleGeneratorCustomSelect(trigger, {
+  closeSelects = () => {}
+} = {}) {
+  const wrap = trigger?.closest?.(".generator-select-wrap");
+  if (!wrap || trigger.disabled) return false;
+  const isOpen = wrap.classList.contains("open");
+  closeSelects();
+  wrap.classList.toggle("open", !isOpen);
+  return !isOpen;
+}

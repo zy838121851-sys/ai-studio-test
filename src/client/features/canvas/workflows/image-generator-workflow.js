@@ -51,9 +51,11 @@ import {
   readGeneratorReferenceFiles
 } from "./image-generator-reference-utils.js";
 import {
+  closeGeneratorCustomSelects as closeGeneratorCustomSelectState,
   getGeneratorSelectByKind,
   getGeneratorSelectKind,
-  getGeneratorSelectTriggerText
+  getGeneratorSelectTriggerText,
+  toggleGeneratorCustomSelect as toggleGeneratorCustomSelectState
 } from "./image-generator-select-utils.js";
 import {
   getGeneratorOutputDimensions,
@@ -1200,11 +1202,9 @@ export function createImageGeneratorWorkflow({
   }
 
   function toggleGeneratorCustomSelect(trigger) {
-    const wrap = trigger.closest(".generator-select-wrap");
-    if (!wrap || trigger.disabled) return;
-    const isOpen = wrap.classList.contains("open");
-    closeGeneratorCustomSelects();
-    wrap.classList.toggle("open", !isOpen);
+    toggleGeneratorCustomSelectState(trigger, {
+      closeSelects: closeGeneratorCustomSelects
+    });
   }
 
   function chooseGeneratorCustomSelectOption(option) {
@@ -1217,8 +1217,7 @@ export function createImageGeneratorWorkflow({
   }
 
   function closeGeneratorCustomSelects() {
-    getGeneratorPopover()?.querySelectorAll?.(".generator-select-wrap.open")
-      .forEach((wrap) => wrap.classList.remove("open"));
+    closeGeneratorCustomSelectState(getGeneratorPopover());
   }
 
   function observeGeneratorPosition(node) {
