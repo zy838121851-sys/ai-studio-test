@@ -8,6 +8,13 @@ import {
   getViewportUnionRect,
   parseAspectRatio
 } from "./canvas-menu-layout-utils.js";
+import {
+  cleanFileName,
+  cleanText,
+  escapeAttributeValue,
+  escapeHtml,
+  stripImageExtension
+} from "./canvas-menu-text-utils.js";
 
 const NODE_PRESETS = {
   text: { kind: "2d", title: "Text node", desc: "Script, copy, notes" },
@@ -1715,26 +1722,3 @@ function downloadBlob(blob, fileName) {
   window.setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
-function cleanText(value = "") {
-  return String(value).replace(/\s+/g, " ").trim().slice(0, 120);
-}
-
-function cleanFileName(value = "") {
-  return cleanText(value).replace(/[\\/:*?"<>|]+/g, "-") || "canvas-node";
-}
-
-function stripImageExtension(value = "") {
-  return String(value).replace(/\.(png|jpe?g|webp|gif|avif|bmp|svg)$/i, "");
-}
-
-function escapeAttributeValue(value = "") {
-  return String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"');
-}
-
-function escapeHtml(value = "") {
-  return String(value)
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}

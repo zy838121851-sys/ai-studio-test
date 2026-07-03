@@ -7,6 +7,13 @@ import {
   getViewportUnionRect,
   parseAspectRatio
 } from "../src/client/features/canvas/workflows/canvas-menu-layout-utils.js";
+import {
+  cleanFileName,
+  cleanText,
+  escapeAttributeValue,
+  escapeHtml,
+  stripImageExtension
+} from "../src/client/features/canvas/workflows/canvas-menu-text-utils.js";
 
 function read(path) {
   return readFileSync(path, "utf8");
@@ -22,11 +29,13 @@ function assertIncludes(source, value, message) {
 
 const menuActions = read("src/client/features/canvas/workflows/canvas-menu-actions.js");
 const menuLayoutUtils = read("src/client/features/canvas/workflows/canvas-menu-layout-utils.js");
+const menuTextUtils = read("src/client/features/canvas/workflows/canvas-menu-text-utils.js");
 
 assertIncludes(menuActions, "export function bindCanvasMenuActions", "canvas menu must expose bindCanvasMenuActions");
 assertIncludes(menuActions, "export function runCanvasImageMenuCommand", "canvas image command wrapper must stay exported");
 assertIncludes(menuActions, "export function runCanvasObjectMenuCommand", "canvas object command runner must stay exported");
 assertIncludes(menuActions, 'from "./canvas-menu-layout-utils.js"', "canvas menu must import layout utility helpers");
+assertIncludes(menuActions, 'from "./canvas-menu-text-utils.js"', "canvas menu must import text utility helpers");
 assertIncludes(menuActions, "const CANVAS_NODE_SELECTOR = \".node-card, .canvas-object\"", "canvas menu node selector must include node cards and canvas objects");
 assertIncludes(menuLayoutUtils, "export function areLayoutSnapshotsEqual", "canvas layout snapshot equality must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getLayoutUnionBounds", "canvas layout union bounds must live in layout utils");
@@ -34,6 +43,11 @@ assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node
 assertIncludes(menuLayoutUtils, "export function getRectUnionBounds", "canvas rect union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getViewportUnionRect", "canvas viewport union rect must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function parseAspectRatio", "canvas aspect ratio parsing must live in layout utils");
+assertIncludes(menuTextUtils, "export function cleanText", "canvas clean text must live in text utils");
+assertIncludes(menuTextUtils, "export function cleanFileName", "canvas clean file name must live in text utils");
+assertIncludes(menuTextUtils, "export function stripImageExtension", "canvas strip image extension must live in text utils");
+assertIncludes(menuTextUtils, "export function escapeAttributeValue", "canvas attribute escaping must live in text utils");
+assertIncludes(menuTextUtils, "export function escapeHtml", "canvas html escaping must live in text utils");
 
 [
   "text:",
@@ -167,5 +181,15 @@ assert(parseAspectRatio("1.5") === 1.5, "aspect ratio parser should support nume
 assert(parseAspectRatio("auto") === 0, "aspect ratio parser should preserve auto fallback");
 assert(parseAspectRatio("0 / 3") === 0, "aspect ratio parser should reject non-positive ratio parts");
 assert(parseAspectRatio("invalid") === 0, "aspect ratio parser should reject invalid values");
+
+assert(cleanText("  first\n\tsecond   third  ") === "first second third", "clean text should collapse whitespace");
+assert(cleanText("x".repeat(130)).length === 120, "clean text should preserve 120 character limit");
+assert(cleanFileName(' a/b:c*d?e"f<g>h|i ') === "a-b-c-d-e-f-g-h-i", "clean file name should replace invalid filename characters");
+assert(cleanFileName("   ") === "canvas-node", "clean file name should preserve empty fallback");
+assert(stripImageExtension("sample.preview.PNG") === "sample.preview", "strip image extension should remove supported image extensions");
+assert(stripImageExtension("sample.preview.txt") === "sample.preview.txt", "strip image extension should preserve unknown extensions");
+assert(escapeAttributeValue('group"1') === 'group\\"1', "attribute escaping should preserve quote behavior");
+assert(escapeAttributeValue("group\\1") === "group\\\\1", "attribute escaping should preserve backslash behavior");
+assert(escapeHtml('<div title="A&B">') === "&lt;div title=&quot;A&amp;B&quot;&gt;", "html escaping should preserve export svg escaping");
 
 console.log("Canvas menu action checks passed.");
