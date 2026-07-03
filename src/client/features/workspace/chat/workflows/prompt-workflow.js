@@ -90,6 +90,9 @@ import {
   isGenerationIntent
 } from "./prompt-conversation-event-utils.js";
 import {
+  clearConversationChatLog
+} from "./prompt-conversation-dom-utils.js";
+import {
   getConversationRestoreEntries,
   renderConversationHistoryListHtml,
   renderConversationHistoryMessageHtml
@@ -1755,8 +1758,7 @@ function bindConversationControls({ getProjectId, addChat, addChatImage } = {}) 
       const conversation = await ensureConversation(projectId, { reset: true });
       rememberConversationId(conversationIdsByProject, projectId, conversation.id);
       markConversationNeedsRestore(restoredConversationProjects, projectId);
-      const chatLog = globalThis.document?.querySelector?.("#chatLog");
-      if (chatLog) chatLog.innerHTML = "";
+      clearConversationChatLog();
     } catch (error) {
       console.warn("[conversation] Failed to create a new conversation", error);
     }
@@ -1872,8 +1874,7 @@ async function restoreConversationFromHistory({ projectId, conversationId, addCh
   const conversation = await requestConversationRestore(conversationId);
   rememberConversationId(conversationIdsByProject, projectId, conversation.id);
   markConversationNeedsRestore(restoredConversationProjects, projectId);
-  const chatLog = globalThis.document?.querySelector?.("#chatLog");
-  if (chatLog) chatLog.innerHTML = "";
+  clearConversationChatLog();
   await restoreProjectConversation({
     projectId,
     conversationId: conversation.id,
