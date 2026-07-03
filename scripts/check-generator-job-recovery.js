@@ -12,6 +12,7 @@ import {
 } from "../src/client/features/canvas/workflows/image-generator-placement-utils.js";
 import {
   closeGeneratorCustomSelects,
+  renderGeneratorSelectOptions,
   toggleGeneratorCustomSelect
 } from "../src/client/features/canvas/workflows/image-generator-select-utils.js";
 import {
@@ -119,7 +120,8 @@ assert(
 );
 assert(
   generatorSelectUtils.includes("export function closeGeneratorCustomSelects")
-    && generatorSelectUtils.includes("export function toggleGeneratorCustomSelect"),
+    && generatorSelectUtils.includes("export function toggleGeneratorCustomSelect")
+    && generatorSelectUtils.includes("export function renderGeneratorSelectOptions"),
   "generator custom select open/close helpers should live in select utilities"
 );
 
@@ -280,6 +282,18 @@ assert(toggleGeneratorCustomSelect({ disabled: false, closest: () => null }) ===
 const closeFixture = createGeneratorCustomSelectCloseFixture();
 closeGeneratorCustomSelects(closeFixture.root);
 assert(closeFixture.wraps.every((wrap) => !wrap.classes.has("open")), "generator custom select close helper should close all open wraps");
+const renderedOptions = renderGeneratorSelectOptions({
+  value: "unsafe\"value",
+  options: [
+    { value: "safe", textContent: "Safe" },
+    { value: "unsafe\"value", textContent: "<Unsafe>" }
+  ]
+}, "ratio&kind");
+assert(renderedOptions.includes('data-generator-select-option="ratio&amp;kind"'), "generator select option renderer should escape option kinds");
+assert(renderedOptions.includes('data-value="unsafe&quot;value"'), "generator select option renderer should escape values");
+assert(renderedOptions.includes("class=\"generator-select-option selected\""), "generator select option renderer should mark selected options");
+assert(renderedOptions.includes('aria-selected="true"'), "generator select option renderer should set selected aria state");
+assert(renderedOptions.includes("&lt;Unsafe&gt;"), "generator select option renderer should escape labels");
 
 const aiRoutes = read("src/server/routes/ai.routes.js");
 const aiJobQueryService = read("src/server/services/ai/ai-job-query.service.js");

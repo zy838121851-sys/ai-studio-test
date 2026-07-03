@@ -55,6 +55,7 @@ import {
   getGeneratorSelectByKind,
   getGeneratorSelectKind,
   getGeneratorSelectTriggerText,
+  renderGeneratorSelectOptions,
   toggleGeneratorCustomSelect as toggleGeneratorCustomSelectState
 } from "./image-generator-select-utils.js";
 import {
@@ -77,10 +78,6 @@ import {
   setGeneratorReferences,
   updateGeneratorStatus
 } from "./image-generator-dom-state-utils.js";
-import {
-  escapeAttribute,
-  escapeHtml
-} from "./image-generator-escape-utils.js";
 import {
   getElementOffsetWithinNode,
   getGeneratorPopoverMetrics,
@@ -1189,16 +1186,7 @@ export function createImageGeneratorWorkflow({
       menu.innerHTML = "";
       return;
     }
-    menu.innerHTML = Array.from(select.options || []).map((option) => `
-      <button type="button"
-        class="generator-select-option${option.value === select.value ? " selected" : ""}"
-        data-generator-select-option="${escapeAttribute(kind)}"
-        data-value="${escapeAttribute(option.value)}"
-        role="option"
-        aria-selected="${option.value === select.value ? "true" : "false"}">
-        ${escapeHtml(option.textContent || option.value)}
-      </button>
-    `).join("");
+    menu.innerHTML = renderGeneratorSelectOptions(select, kind);
   }
 
   function toggleGeneratorCustomSelect(trigger) {

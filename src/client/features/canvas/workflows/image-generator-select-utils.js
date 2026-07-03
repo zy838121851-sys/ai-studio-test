@@ -1,3 +1,8 @@
+import {
+  escapeAttribute,
+  escapeHtml
+} from "./image-generator-escape-utils.js";
+
 export function getGeneratorSelectKind(select) {
   if (select?.matches?.("[data-generator-model]")) return "model";
   if (select?.matches?.("[data-generator-ratio]")) return "ratio";
@@ -34,4 +39,17 @@ export function toggleGeneratorCustomSelect(trigger, {
   closeSelects();
   wrap.classList.toggle("open", !isOpen);
   return !isOpen;
+}
+
+export function renderGeneratorSelectOptions(select, kind = getGeneratorSelectKind(select)) {
+  return Array.from(select?.options || []).map((option) => `
+      <button type="button"
+        class="generator-select-option${option.value === select.value ? " selected" : ""}"
+        data-generator-select-option="${escapeAttribute(kind)}"
+        data-value="${escapeAttribute(option.value)}"
+        role="option"
+        aria-selected="${option.value === select.value ? "true" : "false"}">
+        ${escapeHtml(option.textContent || option.value)}
+      </button>
+    `).join("");
 }
