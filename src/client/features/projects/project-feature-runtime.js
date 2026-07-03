@@ -1,6 +1,9 @@
 import { createProjectRuntime } from "./runtime.js";
 import { createProjectRuntimeBootstrap } from "./runtime-bootstrap.js";
-import { bindProjectAuthSync } from "./project-auth-sync.js";
+import {
+  bindProjectAuthSync,
+  createProjectInitialSyncReady
+} from "./project-auth-sync.js";
 import { createProjectWorkflowRuntime } from "./project-workflow-bootstrap.js?v=20260627-library-bulk-select-1";
 import {
   createProjectWorkflowServices,
@@ -53,10 +56,7 @@ export function createProjectFeatureRuntime({
     chat
   });
 
-  const ready = Promise.resolve(workflowRuntime.syncRemoteProjects?.()).catch((error) => {
-    console.warn("Initial project sync failed", error);
-    return false;
-  });
+  const ready = createProjectInitialSyncReady({ workflowRuntime });
   bindProjectAuthSync({
     workflowRuntime,
     runtimeBootstrap,

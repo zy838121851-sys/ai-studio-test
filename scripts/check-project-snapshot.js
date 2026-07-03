@@ -16,7 +16,8 @@ import {
   sanitizeCanvasSnapshotJson
 } from "../src/server/services/snapshot-safety.service.js";
 import {
-  bindProjectAuthSync
+  bindProjectAuthSync,
+  createProjectInitialSyncReady
 } from "../src/client/features/projects/project-auth-sync.js";
 
 function assert(condition, message) {
@@ -304,6 +305,35 @@ assert(
 );
 unbindProjectAuthSync();
 assert(!authListeners.has("ai-studio-auth-changed"), "Project auth sync should expose an unbind function");
+
+const initialSyncCalls = [];
+const initialSyncResult = await createProjectInitialSyncReady({
+  workflowRuntime: {
+    syncRemoteProjects() {
+      initialSyncCalls.push("sync");
+      return "ready";
+    }
+  }
+});
+assert(initialSyncResult === "ready", "Initial project sync should resolve with the sync result");
+assert(initialSyncCalls.length === 1, "Initial project sync should call remote project sync once");
+
+const initialSyncWarnings = [];
+const failedInitialSyncResult = await createProjectInitialSyncReady({
+  workflowRuntime: {
+    syncRemoteProjects() {
+      return Promise.reject(new Error("sync failed"));
+    }
+  },
+  logger: {
+    warn(...args) {
+      initialSyncWarnings.push(args);
+    }
+  }
+});
+assert(failedInitialSyncResult === false, "Initial project sync should resolve false on failure");
+assert(initialSyncWarnings.length === 1, "Initial project sync should warn on failure");
+assert(initialSyncWarnings[0][0] === "Initial project sync failed", "Initial project sync warning should keep the existing message");
 
 console.log("Project snapshot checks passed.");
 

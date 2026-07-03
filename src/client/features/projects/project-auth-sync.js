@@ -1,3 +1,10 @@
+export function createProjectInitialSyncReady({ workflowRuntime = {}, logger = console } = {}) {
+  return Promise.resolve(workflowRuntime.syncRemoteProjects?.()).catch((error) => {
+    logger?.warn?.("Initial project sync failed", error);
+    return false;
+  });
+}
+
 export function bindProjectAuthSync({
   target = globalThis.window,
   workflowRuntime = {},
