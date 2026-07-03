@@ -16,9 +16,12 @@ import {
   getGeneratorResultTitle,
   getPrimaryResultImageUrl,
   getResultImageUrls,
-  getResultVideoUrls,
   parseGeneratorResult
 } from "./image-generator-result-utils.js";
+import {
+  logGeneratorJobPoll,
+  logSubmittedGeneratorModel
+} from "./image-generator-debug-log-utils.js";
 import {
   buildGeneratorMissingUrlProgressPayload,
   buildGeneratorRateLimitProgressPayload,
@@ -1041,29 +1044,6 @@ export function createImageGeneratorWorkflow({
 
   function delay(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
-  }
-
-  function logSubmittedGeneratorModel(model) {
-    if (!["localhost", "127.0.0.1"].includes(globalThis.location?.hostname || "")) return;
-    console.debug("[models] submitting generation", {
-      surface: "generator",
-      selectedModel: model,
-      payloadModel: model
-    });
-  }
-
-  function logGeneratorJobPoll(payload = {}) {
-    if (!["localhost", "127.0.0.1"].includes(globalThis.location?.hostname || "")) return;
-    console.debug("[generator] job poll", {
-      jobId: payload.jobId || payload.job?.id || "",
-      remoteTaskId: payload.remoteTaskId || payload.job?.remoteTaskId || "",
-      status: payload.status || payload.job?.status || "",
-      progress: payload.progress || payload.job?.progress || 0,
-      imageUrls: getResultImageUrls(payload),
-      videoUrls: getResultVideoUrls(payload),
-      outputCount: payload.outputCount ?? payload.outputs?.length ?? 0,
-      updatedAt: payload.updatedAt || payload.job?.updatedAt || ""
-    });
   }
 
   function saveGeneratorDraft(node) {

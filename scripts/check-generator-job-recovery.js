@@ -44,6 +44,13 @@ import {
   setGeneratorReferences,
   updateGeneratorStatus
 } from "../src/client/features/canvas/workflows/image-generator-dom-state-utils.js";
+import {
+  buildGeneratorJobPollLog,
+  buildSubmittedGeneratorModelLog,
+  isLocalGeneratorDebugHost,
+  logGeneratorJobPoll,
+  logSubmittedGeneratorModel
+} from "../src/client/features/canvas/workflows/image-generator-debug-log-utils.js";
 
 function read(path) {
   return readFileSync(path, "utf8");
@@ -60,6 +67,7 @@ const generatorPreviewJobUtils = read("src/client/features/canvas/workflows/imag
 const generatorDomStateUtils = read("src/client/features/canvas/workflows/image-generator-dom-state-utils.js");
 const generatorControlStateUtils = read("src/client/features/canvas/workflows/image-generator-control-state-utils.js");
 const generatorSelectUtils = read("src/client/features/canvas/workflows/image-generator-select-utils.js");
+const generatorDebugLogUtils = read("src/client/features/canvas/workflows/image-generator-debug-log-utils.js");
 assert(
   generatorWorkflow.includes("onJobCreated")
     && generatorWorkflow.includes("tagGeneratorPreviewJobs")
@@ -95,7 +103,7 @@ assert(
 );
 assert(
   generatorWorkflow.includes("logGeneratorJobPoll") &&
-  generatorWorkflow.includes("[generator] job poll"),
+  generatorDebugLogUtils.includes("[generator] job poll"),
   "generator polling must emit local diagnostic logs"
 );
 assert(
@@ -124,6 +132,11 @@ assert(
 assert(
   generatorControlStateUtils.includes("export function isMidjourneyGeneratorModel"),
   "generator model classification should live in control state helpers"
+);
+assert(
+  generatorDebugLogUtils.includes("export function logGeneratorJobPoll")
+    && generatorDebugLogUtils.includes("export function logSubmittedGeneratorModel"),
+  "generator diagnostic logging should live in debug log helpers"
 );
 assert(
   generatorSelectUtils.includes("export function closeGeneratorCustomSelects")
@@ -266,6 +279,47 @@ assert(isMidjourneyGeneratorModel("midjourney") === true, "generator model helpe
 assert(isMidjourneyGeneratorModel(" MidJourney ") === true, "generator model helper should trim and normalize Midjourney models");
 assert(isMidjourneyGeneratorModel("midjourney-v6") === false, "generator model helper should preserve exact Midjourney matching");
 assert(isMidjourneyGeneratorModel("") === false, "generator model helper should reject missing model names");
+assert(isLocalGeneratorDebugHost("localhost") === true, "generator debug helper should allow localhost logs");
+assert(isLocalGeneratorDebugHost("127.0.0.1") === true, "generator debug helper should allow loopback logs");
+assert(isLocalGeneratorDebugHost("example.com") === false, "generator debug helper should skip remote host logs");
+assert(
+  JSON.stringify(buildSubmittedGeneratorModelLog("model-1")) === JSON.stringify({
+    surface: "generator",
+    selectedModel: "model-1",
+    payloadModel: "model-1"
+  }),
+  "generator debug helper should preserve submitted model payloads"
+);
+const jobPollLog = buildGeneratorJobPollLog({
+  jobId: "job-1",
+  remoteTaskId: "remote-1",
+  status: "succeeded",
+  progress: 80,
+  imageUrl: "/uploads/image.png",
+  videoUrls: ["/uploads/video.mp4"],
+  outputCount: 2,
+  updatedAt: "2026-07-03T00:00:00.000Z"
+});
+assert(jobPollLog.jobId === "job-1", "generator debug helper should preserve job ids");
+assert(jobPollLog.remoteTaskId === "remote-1", "generator debug helper should preserve remote task ids");
+assert(jobPollLog.status === "succeeded", "generator debug helper should preserve job statuses");
+assert(jobPollLog.progress === 80, "generator debug helper should preserve progress");
+assert(jobPollLog.imageUrls[0] === "/uploads/image.png", "generator debug helper should collect image URLs");
+assert(jobPollLog.videoUrls[0] === "/uploads/video.mp4", "generator debug helper should collect video URLs");
+assert(jobPollLog.outputCount === 2, "generator debug helper should preserve output counts");
+assert(jobPollLog.updatedAt === "2026-07-03T00:00:00.000Z", "generator debug helper should preserve update timestamps");
+const localDebugCalls = [];
+const localLogger = {
+  debug(...args) {
+    localDebugCalls.push(args);
+  }
+};
+assert(logSubmittedGeneratorModel("model-1", { hostname: "localhost", logger: localLogger }) === true, "generator debug helper should log local submitted models");
+assert(logGeneratorJobPoll({ jobId: "job-2" }, { hostname: "localhost", logger: localLogger }) === true, "generator debug helper should log local job polls");
+assert(localDebugCalls.length === 2, "generator debug helper should write local debug logs");
+assert(logSubmittedGeneratorModel("model-1", { hostname: "example.com", logger: localLogger }) === false, "generator debug helper should skip remote submitted model logs");
+assert(logGeneratorJobPoll({ jobId: "job-2" }, { hostname: "example.com", logger: localLogger }) === false, "generator debug helper should skip remote job poll logs");
+assert(localDebugCalls.length === 2, "generator debug helper should not write remote debug logs");
 const controlsFixture = createGeneratorControlsFixture();
 const resolvedControls = getGeneratorControls(controlsFixture.popover);
 assert(resolvedControls.popover === controlsFixture.popover, "generator controls helper should return the popover");
