@@ -47,6 +47,38 @@ export function setStreamAbortReason(debugRecord, reason = "", { updateAgentDebu
   updateAgentDebugPanel(debugRecord);
 }
 
+export function applyStreamFinishedDebugState(debugRecord, { updateAgentDebugPanel = () => {} } = {}) {
+  if (!debugRecord) return debugRecord;
+  debugRecord.streamFinished = true;
+  updateAgentDebugPanel(debugRecord);
+  return debugRecord;
+}
+
+export function applyStreamEventErrorDebugState(
+  debugRecord,
+  message = "",
+  { fallbackMessage = "Conversation run failed", updateAgentDebugPanel = () => {} } = {}
+) {
+  if (!debugRecord) return debugRecord;
+  debugRecord.streamError = message || fallbackMessage;
+  updateAgentDebugPanel(debugRecord);
+  return debugRecord;
+}
+
+export function applyCaughtStreamErrorDebugState(
+  debugRecord,
+  error,
+  { timeoutMessage = "", updateAgentDebugPanel = () => {} } = {}
+) {
+  if (!debugRecord) return debugRecord;
+  debugRecord.streamError = error?.streamTimeout
+    ? timeoutMessage
+    : (error?.message || String(error));
+  debugRecord.streamTimeout = Boolean(error?.streamTimeout);
+  updateAgentDebugPanel(debugRecord);
+  return debugRecord;
+}
+
 export function recordHandledStreamEvent(
   event,
   shouldContinue,

@@ -114,6 +114,11 @@ import {
   requestConversation
 } from "./prompt-conversation-api-utils.js";
 import {
+  applyCaughtStreamErrorDebugState,
+  applyStreamEventErrorDebugState,
+  applyStreamFinishedDebugState
+} from "./prompt-stream-debug-utils.js";
+import {
   forgetConversationId,
   getCachedConversationId,
   rememberConversationId
@@ -1529,23 +1534,20 @@ async function runConversationAgent({
     }
     if (event.type === "error") {
       if (debugRecord) {
-        debugRecord.streamError = event.message || "Conversation run failed";
-        updateAgentDebugPanel(debugRecord);
+        applyStreamEventErrorDebugState(debugRecord, event.message, { updateAgentDebugPanel });
       }
       throw new Error(event.message || "Conversation run failed");
     }
   }, { runId, timeoutMs: CONVERSATION_STREAM_TIMEOUT_MS, debugRecord });
     if (debugRecord) {
-      debugRecord.streamFinished = true;
-      updateAgentDebugPanel(debugRecord);
+      applyStreamFinishedDebugState(debugRecord, { updateAgentDebugPanel });
     }
   } catch (error) {
     if (debugRecord) {
-      debugRecord.streamError = error.streamTimeout
-        ? "Agent 流程超时，请重试"
-        : (error.message || String(error));
-      debugRecord.streamTimeout = Boolean(error.streamTimeout);
-      updateAgentDebugPanel(debugRecord);
+      applyCaughtStreamErrorDebugState(debugRecord, error, {
+        timeoutMessage: "Agent 流程超时，请重试",
+        updateAgentDebugPanel
+      });
     }
     throw error;
   }

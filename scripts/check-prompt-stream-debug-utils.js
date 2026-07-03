@@ -1,4 +1,7 @@
 import {
+  applyCaughtStreamErrorDebugState,
+  applyStreamEventErrorDebugState,
+  applyStreamFinishedDebugState,
   parseStreamEventLine,
   recordHandledStreamEvent,
   setStreamAbortReason,
@@ -75,6 +78,52 @@ setStreamAbortReason(abortRecord, "reader completed", {
 });
 assert(abortRecord.streamAbortReason === "reader completed", "Stream abort helpers should store abort reasons");
 assert(abortUpdates[0] === "reader completed", "Stream abort helpers should update debug panels");
+
+const finishedRecord = {};
+const finishedUpdates = [];
+assert(
+  applyStreamFinishedDebugState(finishedRecord, {
+    updateAgentDebugPanel: (nextRecord) => finishedUpdates.push(nextRecord.streamFinished)
+  }) === finishedRecord,
+  "Stream finished debug sync should return the debug record"
+);
+assert(finishedRecord.streamFinished === true, "Stream finished debug sync should mark streams as finished");
+assert(finishedUpdates[0] === true, "Stream finished debug sync should update debug panels");
+assert(applyStreamFinishedDebugState(null) === null, "Stream finished debug sync should ignore missing debug records");
+
+const eventErrorRecord = {};
+const eventErrorUpdates = [];
+assert(
+  applyStreamEventErrorDebugState(eventErrorRecord, "", {
+    fallbackMessage: "Conversation run failed",
+    updateAgentDebugPanel: (nextRecord) => eventErrorUpdates.push(nextRecord.streamError)
+  }) === eventErrorRecord,
+  "Stream event error debug sync should return the debug record"
+);
+assert(eventErrorRecord.streamError === "Conversation run failed", "Stream event error debug sync should use fallback messages");
+assert(eventErrorUpdates[0] === "Conversation run failed", "Stream event error debug sync should update debug panels");
+applyStreamEventErrorDebugState(eventErrorRecord, "Provider failed");
+assert(eventErrorRecord.streamError === "Provider failed", "Stream event error debug sync should preserve event messages");
+assert(applyStreamEventErrorDebugState(null, "Provider failed") === null, "Stream event error debug sync should ignore missing debug records");
+
+const caughtErrorRecord = {};
+const caughtErrorUpdates = [];
+assert(
+  applyCaughtStreamErrorDebugState(caughtErrorRecord, new Error("Network failed"), {
+    timeoutMessage: "Timed out",
+    updateAgentDebugPanel: (nextRecord) => caughtErrorUpdates.push(nextRecord.streamError)
+  }) === caughtErrorRecord,
+  "Caught stream error debug sync should return the debug record"
+);
+assert(caughtErrorRecord.streamError === "Network failed", "Caught stream error debug sync should preserve error messages");
+assert(caughtErrorRecord.streamTimeout === false, "Caught stream error debug sync should clear timeout flags for normal errors");
+assert(caughtErrorUpdates[0] === "Network failed", "Caught stream error debug sync should update debug panels");
+applyCaughtStreamErrorDebugState(caughtErrorRecord, { streamTimeout: true, message: "Raw timeout" }, {
+  timeoutMessage: "Timed out"
+});
+assert(caughtErrorRecord.streamError === "Timed out", "Caught stream error debug sync should use timeout messages");
+assert(caughtErrorRecord.streamTimeout === true, "Caught stream error debug sync should write timeout flags");
+assert(applyCaughtStreamErrorDebugState(null, new Error("Network failed")) === null, "Caught stream error debug sync should ignore missing debug records");
 
 const handledLogs = [];
 const continueResult = recordHandledStreamEvent({ type: "message.delta" }, true, {
