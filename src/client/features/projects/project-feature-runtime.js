@@ -1,5 +1,6 @@
 import { createProjectRuntime } from "./runtime.js";
 import { createProjectRuntimeBootstrap } from "./runtime-bootstrap.js";
+import { bindProjectAuthSync } from "./project-auth-sync.js";
 import { createProjectWorkflowRuntime } from "./project-workflow-bootstrap.js?v=20260627-library-bulk-select-1";
 import {
   createProjectWorkflowServices,
@@ -56,17 +57,10 @@ export function createProjectFeatureRuntime({
     console.warn("Initial project sync failed", error);
     return false;
   });
-  window.addEventListener("ai-studio-auth-changed", (event) => {
-    if (event.detail?.user) {
-      workflowRuntime.syncRemoteProjects?.();
-      return;
-    }
-    runtimeBootstrap.projectRuntime?.replace?.([]);
-    state.setProjects?.([]);
-    state.setActiveProjectIdInMemory?.("");
-    workflowRuntime.renderProjectLibrary?.();
-    workflowRuntime.renderHomeHistory?.();
-    workflowRuntime.updateProjectTitle?.(null);
+  bindProjectAuthSync({
+    workflowRuntime,
+    runtimeBootstrap,
+    state
   });
 
   return {

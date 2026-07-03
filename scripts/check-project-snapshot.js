@@ -15,6 +15,9 @@ import {
 import {
   sanitizeCanvasSnapshotJson
 } from "../src/server/services/snapshot-safety.service.js";
+import {
+  bindProjectAuthSync
+} from "../src/client/features/projects/project-auth-sync.js";
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -241,6 +244,66 @@ assert(serverSanitizedSnapshot.nodes[0].media.url === "/uploads/server.png?cache
 assert(serverSanitizedSnapshot.nodes[0].dataset.objectUrl === "/uploads/server.png?cache=1", "Server snapshot sanitizer should normalize dataset media URLs");
 assert(serverSanitizedSnapshot.nodes[0].dataset.externalUrl === "https://cdn.example.com/uploads/server.png", "Server snapshot sanitizer should keep external HTTPS URLs");
 assert(serverSanitizedSnapshot.nodes[0].html.includes("src=\"/uploads/server.png?cache=1\""), "Server snapshot sanitizer should normalize HTML media URLs");
+
+const authSyncCalls = [];
+const authListeners = new Map();
+const unbindProjectAuthSync = bindProjectAuthSync({
+  target: {
+    addEventListener(type, listener) {
+      authListeners.set(type, listener);
+    },
+    removeEventListener(type, listener) {
+      if (authListeners.get(type) === listener) authListeners.delete(type);
+    }
+  },
+  workflowRuntime: {
+    syncRemoteProjects() {
+      authSyncCalls.push(["sync"]);
+    },
+    renderProjectLibrary() {
+      authSyncCalls.push(["library"]);
+    },
+    renderHomeHistory() {
+      authSyncCalls.push(["home"]);
+    },
+    updateProjectTitle(project) {
+      authSyncCalls.push(["title", project]);
+    }
+  },
+  runtimeBootstrap: {
+    projectRuntime: {
+      replace(projects) {
+        authSyncCalls.push(["replace", projects]);
+      }
+    }
+  },
+  state: {
+    setProjects(projects) {
+      authSyncCalls.push(["projects", projects]);
+    },
+    setActiveProjectIdInMemory(projectId) {
+      authSyncCalls.push(["active", projectId]);
+    }
+  }
+});
+assert(authListeners.has("ai-studio-auth-changed"), "Project auth sync should bind auth changed events");
+authListeners.get("ai-studio-auth-changed")({ detail: { user: { id: "user-1" } } });
+assert(JSON.stringify(authSyncCalls) === JSON.stringify([["sync"]]), "Project auth sync should reload remote projects on login");
+authListeners.get("ai-studio-auth-changed")({ detail: {} });
+assert(
+  JSON.stringify(authSyncCalls) === JSON.stringify([
+    ["sync"],
+    ["replace", []],
+    ["projects", []],
+    ["active", ""],
+    ["library"],
+    ["home"],
+    ["title", null]
+  ]),
+  "Project auth sync should clear project state on logout"
+);
+unbindProjectAuthSync();
+assert(!authListeners.has("ai-studio-auth-changed"), "Project auth sync should expose an unbind function");
 
 console.log("Project snapshot checks passed.");
 
