@@ -1,6 +1,7 @@
 import {
   escapeHtml,
   formatConversationTime,
+  getConversationHistoryDisplay,
   getConversationRestoreImageAttachments
 } from "../src/client/features/workspace/chat/workflows/prompt-conversation-format-utils.js";
 
@@ -41,5 +42,22 @@ assert(
   getConversationRestoreImageAttachments({ type: "image", url: "/uploads/a.png" }).length === 0,
   "Conversation restore should ignore non-array attachment payloads"
 );
+
+const activeHistoryDisplay = getConversationHistoryDisplay({
+  title: "Launch chat",
+  summary: "Summary text",
+  updatedAt: Date.UTC(2026, 6, 2, 5, 6),
+  archived: false
+});
+assert(activeHistoryDisplay.title === "Launch chat", "Conversation history display should preserve titles");
+assert(activeHistoryDisplay.summary === "Summary text", "Conversation history display should preserve summaries");
+assert(/\d{2}\/\d{2}.*\d{2}:\d{2}/.test(activeHistoryDisplay.time), "Conversation history display should format update times");
+
+const currentHistoryDisplay = getConversationHistoryDisplay({ archived: false });
+assert(currentHistoryDisplay.title === "Project chat", "Conversation history display should preserve default titles");
+assert(currentHistoryDisplay.summary === "当前会话", "Conversation history display should preserve current-chat fallback summaries");
+
+const archivedHistoryDisplay = getConversationHistoryDisplay({ archived: true });
+assert(archivedHistoryDisplay.summary === "历史会话", "Conversation history display should preserve archived fallback summaries");
 
 console.log("Prompt conversation format utility checks passed.");

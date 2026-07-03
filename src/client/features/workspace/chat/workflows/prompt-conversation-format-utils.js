@@ -30,3 +30,11 @@ export function getConversationRestoreImageAttachments(attachments = []) {
       caption: item.caption || "生成图片"
     }));
 }
+
+export function getConversationHistoryDisplay(conversation = {}) {
+  return {
+    title: conversation?.title || "Project chat",
+    time: formatConversationTime(conversation?.updatedAt),
+    summary: conversation?.summary || (conversation?.archived ? "历史会话" : "当前会话")
+  };
+}
