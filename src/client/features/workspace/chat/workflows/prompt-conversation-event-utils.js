@@ -98,6 +98,47 @@ export function buildMessageDoneReceivedPayload(details = {}) {
   return payload;
 }
 
+export function buildMessageDoneState(event = {}, current = {}) {
+  const content = event?.message?.content || {};
+  const intent = event.intent || content.intent || current.intent || "";
+  const taskType = event.taskType || content.taskType || current.taskType || "";
+  const promptStrategy = event.promptStrategy || content.promptStrategy || current.promptStrategy || "";
+  const nextStrategyTags = event.strategyTags || content.strategyTags;
+  const optimizedPrompt = event.optimizedPrompt || content.optimizedPrompt || current.optimizedPrompt || "";
+  const qwenVlMode = event.qwenVlMode || content.qwenVlMode || current.qwenVlMode || "";
+  const promptOptimizerMode = event.promptOptimizerMode || content.promptOptimizerMode || current.promptOptimizerMode || "";
+  const skippedOptimizer = Boolean(event.skippedOptimizer ?? content.skippedOptimizer ?? current.skippedOptimizer);
+  const optimizerError = event.optimizerError || content.optimizerError || current.optimizerError || "";
+  const usedFallbackPrompt = Boolean(event.usedFallbackPrompt ?? content.usedFallbackPrompt ?? current.usedFallbackPrompt);
+  const promptDriftDetected = Boolean(event.promptDriftDetected ?? content.promptDriftDetected ?? false);
+  const usedConservativeFallback = Boolean(event.usedConservativeFallback ?? content.usedConservativeFallback ?? false);
+  const totalBudgetExceeded = Boolean(event.totalBudgetExceeded ?? content.totalBudgetExceeded ?? current.totalBudgetExceeded);
+  const imageAnalysis = event.imageAnalysis || content.imageAnalysis || current.imageAnalysis || null;
+  const imageAnalysisError = event.imageAnalysisError || content.imageAnalysisError || current.imageAnalysisError || "";
+  const shouldGenerate = Boolean(event.shouldGenerate ?? (isGenerationIntent(intent) || current.shouldGenerate));
+  let outputType = current.outputType || "";
+  if (event.generationType === "video" || intent === "generate_video") outputType = "video";
+  return {
+    intent,
+    taskType,
+    promptStrategy,
+    nextStrategyTags,
+    optimizedPrompt,
+    qwenVlMode,
+    promptOptimizerMode,
+    skippedOptimizer,
+    optimizerError,
+    usedFallbackPrompt,
+    promptDriftDetected,
+    usedConservativeFallback,
+    totalBudgetExceeded,
+    imageAnalysis,
+    imageAnalysisError,
+    shouldGenerate,
+    outputType
+  };
+}
+
 function isActiveRun({ runId = "", activeRunId = "" } = {}) {
   return !runId || activeRunId === runId;
 }

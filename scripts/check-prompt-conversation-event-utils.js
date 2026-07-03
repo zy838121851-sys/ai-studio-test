@@ -1,5 +1,6 @@
 import {
   buildMessageDoneReceivedPayload,
+  buildMessageDoneState,
   buildConversationRunPayload,
   getMessageDoneSkipReason,
   getGenerationToolNameFromEvent,
@@ -205,5 +206,117 @@ assert(
     && !Object.prototype.hasOwnProperty.call(staleMessageDonePayload, "promptStrategy"),
   "Message done payloads should not add optional task fields unless provided"
 );
+
+const messageDoneState = buildMessageDoneState({
+  intent: "generate_video",
+  taskType: "event-task",
+  promptStrategy: "event-strategy",
+  strategyTags: ["event"],
+  optimizedPrompt: "Event prompt",
+  qwenVlMode: "event-vl",
+  promptOptimizerMode: "event-optimizer",
+  skippedOptimizer: false,
+  optimizerError: "event-error",
+  usedFallbackPrompt: true,
+  promptDriftDetected: true,
+  usedConservativeFallback: true,
+  totalBudgetExceeded: true,
+  imageAnalysis: { source: "event" },
+  imageAnalysisError: "event-analysis-error",
+  shouldGenerate: false
+}, {
+  intent: "chat",
+  taskType: "current-task",
+  promptStrategy: "current-strategy",
+  optimizedPrompt: "Current prompt",
+  qwenVlMode: "current-vl",
+  promptOptimizerMode: "current-optimizer",
+  skippedOptimizer: true,
+  optimizerError: "current-error",
+  usedFallbackPrompt: false,
+  totalBudgetExceeded: false,
+  imageAnalysis: { source: "current" },
+  imageAnalysisError: "current-analysis-error",
+  shouldGenerate: true,
+  outputType: "image"
+});
+assert(messageDoneState.intent === "generate_video", "Message done state should prefer event intents");
+assert(messageDoneState.taskType === "event-task", "Message done state should prefer event task types");
+assert(messageDoneState.promptStrategy === "event-strategy", "Message done state should prefer event prompt strategies");
+assert(messageDoneState.nextStrategyTags[0] === "event", "Message done state should preserve strategy tags");
+assert(messageDoneState.optimizedPrompt === "Event prompt", "Message done state should prefer event optimized prompts");
+assert(messageDoneState.qwenVlMode === "event-vl", "Message done state should prefer event VL modes");
+assert(messageDoneState.promptOptimizerMode === "event-optimizer", "Message done state should prefer event optimizer modes");
+assert(messageDoneState.skippedOptimizer === false, "Message done state should preserve explicit false optimizer skips");
+assert(messageDoneState.optimizerError === "event-error", "Message done state should prefer event optimizer errors");
+assert(messageDoneState.usedFallbackPrompt === true, "Message done state should preserve fallback prompt flags");
+assert(messageDoneState.promptDriftDetected === true, "Message done state should preserve prompt drift flags");
+assert(messageDoneState.usedConservativeFallback === true, "Message done state should preserve conservative fallback flags");
+assert(messageDoneState.totalBudgetExceeded === true, "Message done state should preserve total budget flags");
+assert(messageDoneState.imageAnalysis.source === "event", "Message done state should prefer event image analysis");
+assert(messageDoneState.imageAnalysisError === "event-analysis-error", "Message done state should prefer event image analysis errors");
+assert(messageDoneState.shouldGenerate === false, "Message done state should preserve explicit false generation decisions");
+assert(messageDoneState.outputType === "video", "Message done state should mark video output for video intents");
+
+const messageContentState = buildMessageDoneState({
+  message: {
+    content: {
+      intent: "generate_image",
+      taskType: "content-task",
+      promptStrategy: "content-strategy",
+      optimizedPrompt: "Content prompt",
+      skippedOptimizer: true,
+      usedFallbackPrompt: true,
+      totalBudgetExceeded: true,
+      imageAnalysis: { source: "content" },
+      imageAnalysisError: "content-analysis-error"
+    }
+  }
+}, {
+  intent: "chat",
+  outputType: "image"
+});
+assert(messageContentState.intent === "generate_image", "Message done state should fall back to message content intents");
+assert(messageContentState.taskType === "content-task", "Message done state should fall back to message content task types");
+assert(messageContentState.promptStrategy === "content-strategy", "Message done state should fall back to message content prompt strategies");
+assert(messageContentState.optimizedPrompt === "Content prompt", "Message done state should fall back to message content prompts");
+assert(messageContentState.skippedOptimizer === true, "Message done state should read message content optimizer skips");
+assert(messageContentState.usedFallbackPrompt === true, "Message done state should read message content fallback flags");
+assert(messageContentState.totalBudgetExceeded === true, "Message done state should read message content budget flags");
+assert(messageContentState.imageAnalysis.source === "content", "Message done state should read message content image analysis");
+assert(messageContentState.imageAnalysisError === "content-analysis-error", "Message done state should read message content image errors");
+assert(messageContentState.shouldGenerate === true, "Message done state should infer generation from generation intents");
+assert(messageContentState.outputType === "image", "Message done state should keep current output type for image intents");
+
+const currentFallbackState = buildMessageDoneState({}, {
+  intent: "chat",
+  taskType: "current-task",
+  promptStrategy: "current-strategy",
+  optimizedPrompt: "Current prompt",
+  qwenVlMode: "current-vl",
+  promptOptimizerMode: "current-optimizer",
+  skippedOptimizer: true,
+  optimizerError: "current-error",
+  usedFallbackPrompt: true,
+  totalBudgetExceeded: true,
+  imageAnalysis: { source: "current" },
+  imageAnalysisError: "current-analysis-error",
+  shouldGenerate: false,
+  outputType: "image"
+});
+assert(currentFallbackState.intent === "chat", "Message done state should keep current intents when event is empty");
+assert(currentFallbackState.taskType === "current-task", "Message done state should keep current task types when event is empty");
+assert(currentFallbackState.promptStrategy === "current-strategy", "Message done state should keep current prompt strategies when event is empty");
+assert(currentFallbackState.optimizedPrompt === "Current prompt", "Message done state should keep current optimized prompts when event is empty");
+assert(currentFallbackState.qwenVlMode === "current-vl", "Message done state should keep current VL modes when event is empty");
+assert(currentFallbackState.promptOptimizerMode === "current-optimizer", "Message done state should keep current optimizer modes when event is empty");
+assert(currentFallbackState.skippedOptimizer === true, "Message done state should keep current optimizer skips when event is empty");
+assert(currentFallbackState.optimizerError === "current-error", "Message done state should keep current optimizer errors when event is empty");
+assert(currentFallbackState.usedFallbackPrompt === true, "Message done state should keep current fallback flags when event is empty");
+assert(currentFallbackState.totalBudgetExceeded === true, "Message done state should keep current budget flags when event is empty");
+assert(currentFallbackState.imageAnalysis.source === "current", "Message done state should keep current image analysis when event is empty");
+assert(currentFallbackState.imageAnalysisError === "current-analysis-error", "Message done state should keep current image errors when event is empty");
+assert(currentFallbackState.shouldGenerate === false, "Message done state should keep current generation decisions when event is empty");
+assert(currentFallbackState.outputType === "image", "Message done state should keep current output types when event is empty");
 
 console.log("Prompt conversation event utility checks passed.");

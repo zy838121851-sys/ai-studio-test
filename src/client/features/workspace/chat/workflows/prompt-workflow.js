@@ -87,6 +87,7 @@ import {
 } from "./prompt-job-utils.js";
 import {
   buildMessageDoneReceivedPayload,
+  buildMessageDoneState,
   buildConversationRunPayload,
   getGenerationToolNameFromEvent,
   isGenerationIntent
@@ -1455,30 +1456,45 @@ async function runConversationAgent({
     }
     if (event.type === "message.done") {
       sawMessageDone = true;
-      intent = event.intent || event.message?.content?.intent || intent;
-      taskType = event.taskType || event.message?.content?.taskType || taskType;
-      promptStrategy = event.promptStrategy || event.message?.content?.promptStrategy || promptStrategy;
-      const nextStrategyTags = event.strategyTags || event.message?.content?.strategyTags;
-      optimizedPrompt = event.optimizedPrompt || event.message?.content?.optimizedPrompt || optimizedPrompt;
-      qwenVlMode = event.qwenVlMode || event.message?.content?.qwenVlMode || qwenVlMode;
-      promptOptimizerMode = event.promptOptimizerMode || event.message?.content?.promptOptimizerMode || promptOptimizerMode;
-      skippedOptimizer = Boolean(event.skippedOptimizer ?? event.message?.content?.skippedOptimizer ?? skippedOptimizer);
-      optimizerError = event.optimizerError || event.message?.content?.optimizerError || optimizerError;
-      usedFallbackPrompt = Boolean(event.usedFallbackPrompt ?? event.message?.content?.usedFallbackPrompt ?? usedFallbackPrompt);
-      const promptDriftDetected = Boolean(event.promptDriftDetected ?? event.message?.content?.promptDriftDetected ?? false);
-      const usedConservativeFallback = Boolean(event.usedConservativeFallback ?? event.message?.content?.usedConservativeFallback ?? false);
-      totalBudgetExceeded = Boolean(event.totalBudgetExceeded ?? event.message?.content?.totalBudgetExceeded ?? totalBudgetExceeded);
-      imageAnalysis = event.imageAnalysis || event.message?.content?.imageAnalysis || imageAnalysis;
-      imageAnalysisError = event.imageAnalysisError || event.message?.content?.imageAnalysisError || imageAnalysisError;
-      shouldGenerate = Boolean(event.shouldGenerate ?? (isGenerationIntent(intent) || shouldGenerate));
-      if (event.generationType === "video" || intent === "generate_video") outputType = "video";
+      const messageDoneState = buildMessageDoneState(event, {
+        intent,
+        taskType,
+        promptStrategy,
+        optimizedPrompt,
+        qwenVlMode,
+        promptOptimizerMode,
+        skippedOptimizer,
+        optimizerError,
+        usedFallbackPrompt,
+        totalBudgetExceeded,
+        imageAnalysis,
+        imageAnalysisError,
+        shouldGenerate,
+        outputType
+      });
+      ({
+        intent,
+        taskType,
+        promptStrategy,
+        optimizedPrompt,
+        qwenVlMode,
+        promptOptimizerMode,
+        skippedOptimizer,
+        optimizerError,
+        usedFallbackPrompt,
+        totalBudgetExceeded,
+        imageAnalysis,
+        imageAnalysisError,
+        shouldGenerate,
+        outputType
+      } = messageDoneState);
       if (debugRecord) {
         debugRecord.intent = intent;
         debugRecord.taskType = taskType;
         debugRecord.promptStrategy = promptStrategy;
-        debugRecord.strategyTags = Array.isArray(nextStrategyTags) ? nextStrategyTags : debugRecord.strategyTags;
-        debugRecord.promptDriftDetected = promptDriftDetected;
-        debugRecord.usedConservativeFallback = usedConservativeFallback || usedFallbackPrompt;
+        debugRecord.strategyTags = Array.isArray(messageDoneState.nextStrategyTags) ? messageDoneState.nextStrategyTags : debugRecord.strategyTags;
+        debugRecord.promptDriftDetected = messageDoneState.promptDriftDetected;
+        debugRecord.usedConservativeFallback = messageDoneState.usedConservativeFallback || usedFallbackPrompt;
         debugRecord.optimizedPrompt = optimizedPrompt || prompt;
         debugRecord.qwenVlMode = qwenVlMode;
         debugRecord.promptOptimizerMode = promptOptimizerMode;
