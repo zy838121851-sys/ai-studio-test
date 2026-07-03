@@ -260,6 +260,7 @@ export function isRestorableCanvasNode(node) {
   const kind = String(node.dataset?.kind || kindFromClass(node) || "").trim().toLowerCase();
   return kind !== "loading-image"
     && !node.classList?.contains?.("node-loading-image")
+    && !node.classList?.contains?.("generation-frame")
     && !node.querySelector?.(".generation-frame");
 }
 

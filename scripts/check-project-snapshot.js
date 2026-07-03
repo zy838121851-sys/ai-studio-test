@@ -119,6 +119,13 @@ const savedPatch = createProjectSavePatch({
     }),
     makeCanvasNode({
       kind: "image",
+      className: "node-card node-image generation-frame",
+      objectUrl: "http://localhost:3000/uploads/pending.png",
+      imageUrl: "http://localhost:3000/uploads/pending.png",
+      html: "<figure class=\"image-frame\"><img src=\"http://localhost:3000/uploads/pending.png\" /></figure>"
+    }),
+    makeCanvasNode({
+      kind: "image",
       className: "node-card node-image",
       objectUrl: "http://localhost:3000/uploads/a.png",
       imageUrl: "http://localhost:3000/uploads/a.png",
