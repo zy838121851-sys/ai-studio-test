@@ -3,6 +3,7 @@ import {
   areLayoutSnapshotsEqual,
   getLayoutUnionBounds,
   getNodeSortIndex,
+  getRectUnionBounds,
   getViewportUnionRect,
   parseAspectRatio
 } from "../src/client/features/canvas/workflows/canvas-menu-layout-utils.js";
@@ -30,6 +31,7 @@ assertIncludes(menuActions, "const CANVAS_NODE_SELECTOR = \".node-card, .canvas-
 assertIncludes(menuLayoutUtils, "export function areLayoutSnapshotsEqual", "canvas layout snapshot equality must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getLayoutUnionBounds", "canvas layout union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node sort index must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function getRectUnionBounds", "canvas rect union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getViewportUnionRect", "canvas viewport union rect must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function parseAspectRatio", "canvas aspect ratio parsing must live in layout utils");
 
@@ -147,6 +149,18 @@ assert(viewportRect.top === 20, "viewport union rect should preserve minimum top
 assert(viewportRect.width === 65, "viewport union rect should span maximum right");
 assert(viewportRect.height === 100, "viewport union rect should span maximum bottom");
 assert(getViewportUnionRect([]) === null, "viewport union rect should preserve empty input fallback");
+
+const rectUnionBounds = getRectUnionBounds([
+  { x: 12.2, y: 8.1, width: 20.4, height: 10.2 },
+  { x: -3.7, y: 14.5, width: 4.1, height: 30.1 }
+]);
+assert(rectUnionBounds.x === -3.7, "rect union bounds should preserve minimum x");
+assert(rectUnionBounds.y === 8.1, "rect union bounds should preserve minimum y");
+assert(rectUnionBounds.width === 37, "rect union bounds should ceil total width");
+assert(rectUnionBounds.height === 37, "rect union bounds should ceil total height");
+assert(getRectUnionBounds([]).width === 1, "rect union bounds should preserve empty input width fallback");
+assert(getRectUnionBounds([]).height === 1, "rect union bounds should preserve empty input height fallback");
+assertIncludes(menuActions, "return getRectUnionBounds(rects);", "node union bounds should reuse rect union calculation");
 
 assert(parseAspectRatio("16 / 9") === 16 / 9, "aspect ratio parser should support ratio strings");
 assert(parseAspectRatio("1.5") === 1.5, "aspect ratio parser should support numeric strings");

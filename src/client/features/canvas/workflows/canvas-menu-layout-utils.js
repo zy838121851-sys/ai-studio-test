@@ -23,6 +23,19 @@ export function getLayoutUnionBounds(bounds = []) {
   };
 }
 
+export function getRectUnionBounds(rects = []) {
+  const minX = Math.min(...rects.map((rect) => rect.x));
+  const minY = Math.min(...rects.map((rect) => rect.y));
+  const maxX = Math.max(...rects.map((rect) => rect.x + rect.width));
+  const maxY = Math.max(...rects.map((rect) => rect.y + rect.height));
+  return {
+    x: minX,
+    y: minY,
+    width: Math.max(1, Math.ceil(maxX - minX)),
+    height: Math.max(1, Math.ceil(maxY - minY))
+  };
+}
+
 export function getNodeSortIndex(node) {
   const idNumber = Number(String(node.dataset.nodeId || "").replace(/\D+/g, ""));
   if (Number.isFinite(idNumber)) return idNumber;

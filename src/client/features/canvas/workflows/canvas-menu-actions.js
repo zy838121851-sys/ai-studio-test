@@ -4,6 +4,7 @@ import {
   areLayoutSnapshotsEqual,
   getLayoutUnionBounds,
   getNodeSortIndex,
+  getRectUnionBounds,
   getViewportUnionRect,
   parseAspectRatio
 } from "./canvas-menu-layout-utils.js";
@@ -1495,19 +1496,6 @@ function getImageExportRect(node) {
   };
 }
 
-function getRectUnionBounds(rects) {
-  const minX = Math.min(...rects.map((rect) => rect.x));
-  const minY = Math.min(...rects.map((rect) => rect.y));
-  const maxX = Math.max(...rects.map((rect) => rect.x + rect.width));
-  const maxY = Math.max(...rects.map((rect) => rect.y + rect.height));
-  return {
-    x: minX,
-    y: minY,
-    width: Math.max(1, Math.ceil(maxX - minX)),
-    height: Math.max(1, Math.ceil(maxY - minY))
-  };
-}
-
 async function loadCanvasImage(src) {
   if (!src) throw new Error("Missing image source");
   const image = new Image();
@@ -1616,16 +1604,7 @@ async function buildNodesSvg(nodes) {
 
 function getNodesUnionBounds(nodes) {
   const rects = nodes.map(getNodeLayoutBounds);
-  const minX = Math.min(...rects.map((rect) => rect.x));
-  const minY = Math.min(...rects.map((rect) => rect.y));
-  const maxX = Math.max(...rects.map((rect) => rect.x + rect.width));
-  const maxY = Math.max(...rects.map((rect) => rect.y + rect.height));
-  return {
-    x: minX,
-    y: minY,
-    width: Math.max(1, Math.ceil(maxX - minX)),
-    height: Math.max(1, Math.ceil(maxY - minY))
-  };
+  return getRectUnionBounds(rects);
 }
 
 async function buildNodeSvg(node) {
