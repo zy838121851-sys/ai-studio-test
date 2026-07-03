@@ -30,6 +30,12 @@ import {
   getAvailableAssetPickerItems,
   mountAssetPickerOverlay
 } from "./asset-library-picker.js";
+import {
+  closeAssetCanvasPickerOverlay,
+  getAssetCanvasPickerProjectDisplay,
+  getAssetCanvasPickerProjects,
+  mountAssetCanvasPickerOverlay
+} from "./asset-library-canvas-picker.js";
 
 export function createAssetLibraryRuntime({
   eventBus,
@@ -460,56 +466,33 @@ export function createAssetLibraryRuntime({
         </div>
       </div>
     `;
-    const onKeyDown = (event) => {
-      if (event.key === "Escape") closeAssetCanvasPicker();
-    };
-    overlay.addEventListener("click", async (event) => {
-      if (event.target.closest("[data-close-asset-canvas-picker]")) {
-        closeAssetCanvasPicker();
-        return;
-      }
-      const projectButton = event.target.closest("[data-insert-asset-project]");
-      if (!projectButton) return;
-      event.preventDefault();
-      event.stopPropagation();
-      const projectId = projectButton.dataset.insertAssetProject || "";
-      projectButton.disabled = true;
-      try {
-        await insertAssetIntoProject(assetId, projectId);
-        closeAssetCanvasPicker();
-        getFloatingLibrary()?.classList.remove("open");
-      } catch (error) {
-        console.warn("Failed to insert asset into project", error);
-        projectButton.disabled = false;
-      }
+    return mountAssetCanvasPickerOverlay({
+      documentRef: document,
+      overlay,
+      assetId,
+      closePicker: closeAssetCanvasPicker,
+      insertAssetIntoProject,
+      closeFloatingLibrary: () => getFloatingLibrary()?.classList.remove("open")
     });
-    overlay._assetCanvasPickerKeydown = onKeyDown;
-    document.addEventListener("keydown", onKeyDown, true);
-    document.body.appendChild(overlay);
-    return overlay;
   }
 
   function closeAssetCanvasPicker() {
-    const overlay = document.querySelector(".asset-canvas-picker");
-    if (!overlay) return;
-    if (overlay._assetCanvasPickerKeydown) {
-      document.removeEventListener("keydown", overlay._assetCanvasPickerKeydown, true);
-    }
-    overlay.remove();
+    closeAssetCanvasPickerOverlay(document);
   }
 
   function readProjectsForPicker() {
-    const projects = Array.isArray(getProjects?.()) ? getProjects() : [];
-    const activeProjectId = getActiveProjectId();
-    if (projects.length) return projects;
-    return activeProjectId ? [{ id: activeProjectId, title: "当前画布" }] : [];
+    return getAssetCanvasPickerProjects({
+      projects: getProjects?.(),
+      activeProjectId: getActiveProjectId()
+    });
   }
 
   function renderCanvasPickerProject(project = {}) {
-    const active = project.id && project.id === getActiveProjectId();
-    const thumb = project.thumbnail || project.thumbnailUrl || getSnapshotPreviewImage(project.canvasSnapshotJson);
-    const title = project.title || project.name || "未命名画布";
-    const prompt = project.prompt || project.description || (active ? "当前正在编辑" : "项目画布");
+    const { active, thumb, title, prompt } = getAssetCanvasPickerProjectDisplay({
+      project,
+      activeProjectId: getActiveProjectId(),
+      getSnapshotPreviewImage
+    });
     return `
       <button class="asset-canvas-picker-project ${active ? "active" : ""}" type="button" data-insert-asset-project="${safeEscapeHtml(project.id || "")}">
         <span class="asset-canvas-picker-thumb">

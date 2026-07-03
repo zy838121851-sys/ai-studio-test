@@ -37,6 +37,12 @@ import {
   getAvailableAssetPickerItems,
   mountAssetPickerOverlay
 } from "../src/client/features/workspace/asset-library/asset-library-picker.js";
+import {
+  closeAssetCanvasPickerOverlay,
+  getAssetCanvasPickerProjectDisplay,
+  getAssetCanvasPickerProjects,
+  mountAssetCanvasPickerOverlay
+} from "../src/client/features/workspace/asset-library/asset-library-canvas-picker.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -117,6 +123,7 @@ assertContains("src/client/features/workspace/asset-library/asset-library-runtim
   "asset-library-project-insert.js",
   "asset-library-preview.js",
   "asset-library-picker.js",
+  "asset-library-canvas-picker.js",
   "selectedAssetIds",
   "toggleAssetSelection",
   "toggleAllAssetSelection",
@@ -502,6 +509,107 @@ if (
   throw new Error("Asset preview helper should preserve preview title priority");
 }
 
+if (
+  getAssetCanvasPickerProjects({ projects: [{ id: "project-1" }], activeProjectId: "active" })[0].id !== "project-1"
+  || getAssetCanvasPickerProjects({ projects: [], activeProjectId: "active" })[0].title !== "当前画布"
+  || getAssetCanvasPickerProjects({ projects: [], activeProjectId: "" }).length !== 0
+) {
+  throw new Error("Asset canvas picker helper should preserve project list fallback behavior");
+}
+const activeCanvasDisplay = getAssetCanvasPickerProjectDisplay({
+  project: { id: "project-1", thumbnailUrl: "/uploads/thumb.png", title: "Project title" },
+  activeProjectId: "project-1",
+  getSnapshotPreviewImage: () => "/uploads/snapshot.png"
+});
+if (
+  activeCanvasDisplay.active !== true
+  || activeCanvasDisplay.thumb !== "/uploads/thumb.png"
+  || activeCanvasDisplay.title !== "Project title"
+  || activeCanvasDisplay.prompt !== "当前正在编辑"
+) {
+  throw new Error("Asset canvas picker helper should preserve active project display fields");
+}
+const fallbackCanvasDisplay = getAssetCanvasPickerProjectDisplay({
+  project: { id: "project-2", canvasSnapshotJson: "{}" },
+  activeProjectId: "project-1",
+  getSnapshotPreviewImage: () => "/uploads/snapshot.png"
+});
+if (
+  fallbackCanvasDisplay.active !== false
+  || fallbackCanvasDisplay.thumb !== "/uploads/snapshot.png"
+  || fallbackCanvasDisplay.title !== "未命名画布"
+  || fallbackCanvasDisplay.prompt !== "项目画布"
+) {
+  throw new Error("Asset canvas picker helper should preserve inactive project fallback display fields");
+}
+
+const canvasPickerDocument = createCanvasPickerDocument();
+const canvasPickerOverlay = createCanvasPickerOverlay("project-2");
+const canvasPickerCalls = [];
+mountAssetCanvasPickerOverlay({
+  documentRef: canvasPickerDocument,
+  overlay: canvasPickerOverlay,
+  assetId: "asset-1",
+  insertAssetIntoProject: async (assetId, projectId) => canvasPickerCalls.push(["insert", assetId, projectId]),
+  closePicker: () => {
+    canvasPickerCalls.push(["close"]);
+    closeAssetCanvasPickerOverlay(canvasPickerDocument);
+  },
+  closeFloatingLibrary: () => canvasPickerCalls.push(["floating-close"])
+});
+if (canvasPickerDocument.body.children.length !== 1 || !canvasPickerOverlay._assetCanvasPickerKeydown) {
+  throw new Error("Asset canvas picker helper should mount the overlay and store its keydown handler");
+}
+await canvasPickerOverlay.dispatchClick("[data-insert-asset-project]");
+if (
+  JSON.stringify(canvasPickerCalls) !== JSON.stringify([["insert", "asset-1", "project-2"], ["close"], ["floating-close"]])
+  || canvasPickerDocument.body.children.length !== 0
+  || canvasPickerDocument.removedKeydownCount !== 1
+) {
+  throw new Error("Asset canvas picker helper should insert into a project, close the picker, and close the library");
+}
+const failedCanvasPickerDocument = createCanvasPickerDocument();
+const failedCanvasPickerOverlay = createCanvasPickerOverlay("project-3");
+const canvasWarnings = [];
+mountAssetCanvasPickerOverlay({
+  documentRef: failedCanvasPickerDocument,
+  overlay: failedCanvasPickerOverlay,
+  assetId: "asset-1",
+  insertAssetIntoProject: async () => {
+    throw new Error("insert failed");
+  },
+  closePicker: () => {
+    throw new Error("failed insert should not close the canvas picker");
+  },
+  closeFloatingLibrary: () => {
+    throw new Error("failed insert should not close the floating library");
+  },
+  logger: {
+    warn(...args) {
+      canvasWarnings.push(args);
+    }
+  }
+});
+await failedCanvasPickerOverlay.dispatchClick("[data-insert-asset-project]");
+if (
+  failedCanvasPickerOverlay.projectButton.disabled !== false
+  || failedCanvasPickerDocument.body.children.length !== 1
+  || canvasWarnings[0]?.[0] !== "Failed to insert asset into project"
+) {
+  throw new Error("Asset canvas picker helper should restore project button state when insertion fails");
+}
+const escapeCanvasPickerDocument = createCanvasPickerDocument();
+const escapeCanvasPickerOverlay = createCanvasPickerOverlay("project-4");
+mountAssetCanvasPickerOverlay({
+  documentRef: escapeCanvasPickerDocument,
+  overlay: escapeCanvasPickerOverlay,
+  closePicker: () => closeAssetCanvasPickerOverlay(escapeCanvasPickerDocument)
+});
+escapeCanvasPickerDocument.dispatchKeydown("Escape");
+if (escapeCanvasPickerDocument.body.children.length !== 0 || escapeCanvasPickerDocument.removedKeydownCount !== 1) {
+  throw new Error("Asset canvas picker helper should close the picker on Escape");
+}
+
 const previewDocument = createPreviewDocument();
 let previewCloseCalls = 0;
 const previewAssetResult = showAssetPreviewOverlay({
@@ -580,6 +688,72 @@ assertContains("styles/legacy-assets.css", [
 ]);
 
 console.log("Library bulk select checks passed");
+
+function createCanvasPickerDocument() {
+  const listeners = new Map();
+  const body = {
+    children: [],
+    appendChild(node) {
+      this.children.push(node);
+      node.remove = () => {
+        const index = this.children.indexOf(node);
+        if (index >= 0) this.children.splice(index, 1);
+      };
+      return node;
+    }
+  };
+  return {
+    body,
+    removedKeydownCount: 0,
+    addEventListener(type, listener) {
+      listeners.set(type, listener);
+    },
+    removeEventListener(type, listener) {
+      if (listeners.get(type) === listener) {
+        listeners.delete(type);
+        if (type === "keydown") this.removedKeydownCount += 1;
+      }
+    },
+    querySelector(selector) {
+      return body.children.find((node) => node.matchesSelector(selector)) || null;
+    },
+    dispatchKeydown(key) {
+      listeners.get("keydown")?.({ key });
+    }
+  };
+}
+
+function createCanvasPickerOverlay(projectId = "") {
+  const projectButton = {
+    disabled: false,
+    dataset: {
+      insertAssetProject: projectId
+    }
+  };
+  return {
+    listeners: new Map(),
+    projectButton,
+    addEventListener(type, listener) {
+      this.listeners.set(type, listener);
+    },
+    matchesSelector(selector) {
+      return selector === ".asset-canvas-picker";
+    },
+    dispatchClick(selector) {
+      return this.listeners.get("click")?.({
+        target: {
+          closest(targetSelector) {
+            if (targetSelector !== selector) return null;
+            if (targetSelector === "[data-insert-asset-project]") return projectButton;
+            return {};
+          }
+        },
+        preventDefault() {},
+        stopPropagation() {}
+      });
+    }
+  };
+}
 
 function createPickerDocument() {
   const listeners = new Map();
