@@ -19,6 +19,7 @@ import {
   readGeneratorReferenceFiles
 } from "../src/client/features/canvas/workflows/image-generator-reference-utils.js";
 import {
+  applyGeneratorResult,
   hasGeneratorDropData,
   removeGeneratorReference,
   renderGeneratorReferences,
@@ -87,7 +88,8 @@ assert(
     && generatorDomStateUtils.includes("export function setGeneratorBusy")
     && generatorDomStateUtils.includes("export function setGeneratorReferences")
     && generatorDomStateUtils.includes("export function renderGeneratorReferences")
-    && generatorDomStateUtils.includes("export function resetGeneratorInput"),
+    && generatorDomStateUtils.includes("export function resetGeneratorInput")
+    && generatorDomStateUtils.includes("export function applyGeneratorResult"),
   "generator DOM state helpers must be extracted from the workflow module"
 );
 
@@ -169,6 +171,28 @@ assert(referenceFixture.promptInput.value === "", "generator reset helper should
 assert(referenceFixture.node._generatorPromptDraft === "", "generator reset helper should clear prompt draft");
 assert(referenceFixture.node.dataset.generatorReferenceCount === "0", "generator reset helper should clear references");
 assert(referenceFixture.popover.dataset.generatorStatus === "文生图", "generator reset helper should restore text-to-image status");
+
+const resultFixture = createGeneratorResultFixture();
+applyGeneratorResult(resultFixture.node, "/uploads/generated.png", {
+  prompt: "Prompt",
+  model: "model-1",
+  documentRef: createGeneratorDocument({ popover: resultFixture.popover })
+});
+assert(resultFixture.image.src === "/uploads/generated.png", "generator result helper should update image src");
+assert(resultFixture.image.hidden === false, "generator result helper should show the result image");
+assert(resultFixture.placeholder.hidden === true, "generator result helper should hide placeholder content");
+assert(!resultFixture.classes.has("generation-failed"), "generator result helper should clear failed state");
+assert(resultFixture.classes.has("has-generator-result"), "generator result helper should mark result state");
+assert(resultFixture.node.dataset.objectUrl === "/uploads/generated.png", "generator result helper should persist object URL");
+assert(resultFixture.node.dataset.sourceMode === "generated", "generator result helper should mark generated source mode");
+assert(resultFixture.node.dataset.generationPrompt === "Prompt", "generator result helper should persist prompt");
+assert(resultFixture.node.dataset.generationModel === "model-1", "generator result helper should persist model");
+assert(resultFixture.popover.dataset.generatorStatus === "文生图 · 已生成", "generator result helper should sync text-to-image status");
+resultFixture.node._generatorReferences = [{ dataUrl: "data:ref" }];
+applyGeneratorResult(resultFixture.node, "/uploads/generated-ref.png", {
+  documentRef: createGeneratorDocument({ popover: resultFixture.popover })
+});
+assert(resultFixture.popover.dataset.generatorStatus === "图生图 · 已生成", "generator result helper should sync image-to-image status");
 
 const aiRoutes = read("src/server/routes/ai.routes.js");
 const aiJobQueryService = read("src/server/services/ai/ai-job-query.service.js");
@@ -483,6 +507,37 @@ function createGeneratorReferenceFixture() {
     }
   };
   return { node, popover, promptInput, referenceList };
+}
+
+function createGeneratorResultFixture() {
+  const image = { src: "", hidden: true };
+  const placeholder = { hidden: false };
+  const popover = {
+    dataset: {},
+    querySelector() {
+      return null;
+    }
+  };
+  const classes = new Set(["generation-failed"]);
+  const node = {
+    dataset: {},
+    _generatorReferences: [],
+    classes,
+    classList: {
+      add(name) {
+        classes.add(name);
+      },
+      remove(name) {
+        classes.delete(name);
+      }
+    },
+    querySelector(selector) {
+      if (selector === ".image-generator-result") return image;
+      if (selector === "[data-generator-placeholder]") return placeholder;
+      return null;
+    }
+  };
+  return { node, image, placeholder, popover, classes };
 }
 
 function createGeneratorSelect(kind) {

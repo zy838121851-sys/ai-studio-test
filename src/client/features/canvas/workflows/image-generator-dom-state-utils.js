@@ -91,6 +91,30 @@ export function resetGeneratorInput(node, {
   updateGeneratorStatus(node, "文生图", { documentRef, popoverSelector });
 }
 
+export function applyGeneratorResult(node, url, {
+  prompt = "",
+  model = "",
+  documentRef = globalThis.document,
+  popoverSelector = DEFAULT_GENERATOR_POPOVER_SELECTOR
+} = {}) {
+  const image = node?.querySelector?.(".image-generator-result");
+  const placeholder = node?.querySelector?.("[data-generator-placeholder]");
+  if (!image || !url) return;
+  image.src = url;
+  image.hidden = false;
+  if (placeholder) placeholder.hidden = true;
+  node.classList.remove("generation-failed");
+  node.classList.add("has-generator-result");
+  node.dataset.objectUrl = url;
+  node.dataset.sourceMode = "generated";
+  node.dataset.generationPrompt = prompt;
+  node.dataset.generationModel = model;
+  updateGeneratorStatus(node, getGeneratorReferences(node).length ? "图生图 · 已生成" : "文生图 · 已生成", {
+    documentRef,
+    popoverSelector
+  });
+}
+
 export function renderGeneratorReferences(node, references = [], {
   documentRef = globalThis.document,
   popoverSelector = DEFAULT_GENERATOR_POPOVER_SELECTOR,
