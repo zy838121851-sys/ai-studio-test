@@ -86,6 +86,7 @@ import {
   waitForTripo3DTask
 } from "./prompt-job-utils.js";
 import {
+  applyConversationIntentDebugState,
   buildConversationIntentState,
   buildMessageDoneReceivedPayload,
   buildMessageDoneState,
@@ -1323,14 +1324,7 @@ async function runConversationAgent({
         outputType
       } = intentState);
       if (debugRecord) {
-        debugRecord.intent = intent;
-        debugRecord.taskType = taskType;
-        debugRecord.promptStrategy = promptStrategy;
-        if (intentState.nextStrategyTags) debugRecord.strategyTags = intentState.nextStrategyTags;
-        debugRecord.qwenVlMode = qwenVlMode;
-        debugRecord.promptOptimizerMode = promptOptimizerMode;
-        debugRecord.shouldGenerate = shouldGenerate;
-        debugRecord.generationType = outputType;
+        applyConversationIntentDebugState(debugRecord, intentState, { includeStrategyTags: true });
       }
       logAgentDebug(debugRecord, "conversation.intent", {
         intent,
@@ -1373,13 +1367,7 @@ async function runConversationAgent({
         outputType
       } = intentState);
       if (debugRecord) {
-        debugRecord.intent = intent;
-        debugRecord.taskType = taskType;
-        debugRecord.promptStrategy = promptStrategy;
-        debugRecord.qwenVlMode = qwenVlMode;
-        debugRecord.promptOptimizerMode = promptOptimizerMode;
-        debugRecord.shouldGenerate = shouldGenerate;
-        debugRecord.generationType = outputType;
+        applyConversationIntentDebugState(debugRecord, intentState);
         debugRecord.imageAnalysisStarted = true;
         debugRecord.imageAnalysisFinished = false;
         debugRecord.imageAnalysisTimedOut = false;

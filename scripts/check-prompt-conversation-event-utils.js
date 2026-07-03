@@ -1,4 +1,5 @@
 import {
+  applyConversationIntentDebugState,
   buildConversationIntentState,
   buildMessageDoneReceivedPayload,
   buildMessageDoneState,
@@ -374,6 +375,25 @@ assert(fallbackIntentState.qwenVlMode === "current-vl", "Conversation intent sta
 assert(fallbackIntentState.promptOptimizerMode === "current-optimizer", "Conversation intent state should keep current optimizer modes when event is empty");
 assert(fallbackIntentState.shouldGenerate === true, "Conversation intent state should keep current generation decisions when event is empty");
 assert(fallbackIntentState.outputType === "video", "Conversation intent state should keep current output types when event is empty");
+
+const debugRecord = { strategyTags: ["existing"] };
+assert(
+  applyConversationIntentDebugState(debugRecord, intentState, { includeStrategyTags: true }) === debugRecord,
+  "Conversation intent debug sync should return the debug record"
+);
+assert(debugRecord.intent === "generate_image", "Conversation intent debug sync should write intents");
+assert(debugRecord.taskType === "event-task", "Conversation intent debug sync should write task types");
+assert(debugRecord.promptStrategy === "event-strategy", "Conversation intent debug sync should write prompt strategies");
+assert(debugRecord.strategyTags.join(",") === "fast,image", "Conversation intent debug sync should write strategy tags when requested");
+assert(debugRecord.qwenVlMode === "event-vl", "Conversation intent debug sync should write VL modes");
+assert(debugRecord.promptOptimizerMode === "event-optimizer", "Conversation intent debug sync should write optimizer modes");
+assert(debugRecord.shouldGenerate === true, "Conversation intent debug sync should write generation decisions");
+assert(debugRecord.generationType === "image", "Conversation intent debug sync should write generation types");
+
+const debugRecordWithoutTags = { strategyTags: ["existing"] };
+applyConversationIntentDebugState(debugRecordWithoutTags, intentState);
+assert(debugRecordWithoutTags.strategyTags.join(",") === "existing", "Conversation intent debug sync should keep strategy tags unless requested");
+assert(applyConversationIntentDebugState(null, intentState) === null, "Conversation intent debug sync should ignore missing debug records");
 
 const promptOptimizedState = buildPromptOptimizedState({
   optimizedPrompt: "Event optimized prompt",

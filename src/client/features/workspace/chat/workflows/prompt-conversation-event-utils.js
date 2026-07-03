@@ -160,6 +160,23 @@ export function buildConversationIntentState(event = {}, current = {}) {
   };
 }
 
+export function applyConversationIntentDebugState(debugRecord, state = {}, {
+  includeStrategyTags = false
+} = {}) {
+  if (!debugRecord) return debugRecord;
+  debugRecord.intent = state.intent || "";
+  debugRecord.taskType = state.taskType || "";
+  debugRecord.promptStrategy = state.promptStrategy || "";
+  if (includeStrategyTags && state.nextStrategyTags) {
+    debugRecord.strategyTags = state.nextStrategyTags;
+  }
+  debugRecord.qwenVlMode = state.qwenVlMode || "";
+  debugRecord.promptOptimizerMode = state.promptOptimizerMode || "";
+  debugRecord.shouldGenerate = Boolean(state.shouldGenerate);
+  debugRecord.generationType = state.outputType || "";
+  return debugRecord;
+}
+
 export function buildPromptOptimizedState(event = {}, current = {}) {
   const optimizedPrompt = event.optimizedPrompt || current.optimizedPrompt || "";
   const taskType = event.taskType || current.taskType || "";
