@@ -4,6 +4,9 @@ import {
   setStreamAbortReason,
   recordStreamEvent
 } from "../src/client/features/workspace/chat/workflows/prompt-stream-debug-utils.js";
+import {
+  runConversationStream
+} from "../src/client/features/workspace/chat/workflows/prompt-conversation-stream-workflow.js";
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -97,4 +100,114 @@ assert(stoppedRecord.streamAbortReason === "handler stopped after message.done",
 assert(stoppedUpdates[0] === "handler stopped after message.done", "Handled stream events should update debug panels on stop");
 assert(stoppedLogs[0]?.data?.shouldContinue === false, "Handled stream events should log stopped handler results");
 
+const streamEvents = [];
+const streamLogs = [];
+const streamRecord = { streamEventTypes: [] };
+let previousAbortCalled = false;
+let currentAbort = {
+  abort() {
+    previousAbortCalled = true;
+  }
+};
+const streamResponse = makeStreamResponse([
+  "{\"type\":\"message.delta\",\"text\":\"hel",
+  "lo\"}\n{\"type\":\"message.done\"}"
+]);
+const streamFetchCalls = [];
+await runConversationStream({
+  conversationId: "conversation 1",
+  payload: { prompt: "Hello" },
+  onEvent(event) {
+    streamEvents.push(event);
+    return true;
+  },
+  debugRecord: streamRecord,
+  getCurrentAbort: () => currentAbort,
+  setCurrentAbort: (controller) => {
+    currentAbort = controller;
+  },
+  fetchFn: async (url, options = {}) => {
+    streamFetchCalls.push({ url, options });
+    return streamResponse;
+  },
+  logAgentDebug: (_record, label, data) => streamLogs.push({ label, data })
+});
+assert(previousAbortCalled, "Conversation stream runner should abort the previous run");
+assert(currentAbort === null, "Conversation stream runner should clear completed current abort controllers");
+assert(
+  streamFetchCalls[0].url === "/api/conversations/conversation%201/runs",
+  "Conversation stream runner should encode conversation ids"
+);
+assert(streamFetchCalls[0].options.method === "POST", "Conversation stream runner should use POST");
+assert(streamFetchCalls[0].options.credentials === "include", "Conversation stream runner should include credentials");
+assert(
+  streamFetchCalls[0].options.headers["Content-Type"] === "application/json",
+  "Conversation stream runner should send JSON content type"
+);
+assert(
+  streamFetchCalls[0].options.body === JSON.stringify({ prompt: "Hello" }),
+  "Conversation stream runner should preserve JSON payloads"
+);
+assert(
+  streamEvents.length === 2
+    && streamEvents[0].type === "message.delta"
+    && streamEvents[0].text === "hello"
+    && streamEvents[1].type === "message.done",
+  "Conversation stream runner should parse split stream events in order"
+);
+assert(streamRecord.streamAbortReason === "reader completed", "Conversation stream runner should record completed readers");
+assert(
+  streamLogs.some((entry) => entry.label === "stream.event.parsed")
+    && streamLogs.some((entry) => entry.label === "stream.event.handled"),
+  "Conversation stream runner should preserve stream debug logs"
+);
+
+const stoppedStreamResponse = makeStreamResponse([
+  "{\"type\":\"message.delta\"}\n{\"type\":\"message.done\"}\n"
+]);
+const stoppedStreamEvents = [];
+currentAbort = null;
+await runConversationStream({
+  conversationId: "conversation-stop",
+  payload: {},
+  onEvent(event) {
+    stoppedStreamEvents.push(event);
+    return false;
+  },
+  getCurrentAbort: () => currentAbort,
+  setCurrentAbort: (controller) => {
+    currentAbort = controller;
+  },
+  fetchFn: async () => stoppedStreamResponse
+});
+assert(stoppedStreamEvents.length === 1, "Conversation stream runner should stop when handlers return false");
+assert(stoppedStreamResponse.cancelled === true, "Conversation stream runner should cancel readers when handlers stop");
+
 console.log("Prompt stream debug utility checks passed.");
+
+function makeStreamResponse(chunks = []) {
+  let index = 0;
+  const encoder = new TextEncoder();
+  const response = {
+    ok: true,
+    status: 200,
+    cancelled: false,
+    body: {
+      getReader() {
+        return {
+          async read() {
+            if (index >= chunks.length) return { done: true };
+            const value = encoder.encode(chunks[index]);
+            index += 1;
+            return { value, done: false };
+          },
+          cancel() {
+            response.cancelled = true;
+            return Promise.resolve();
+          }
+        };
+      }
+    }
+  };
+  return response;
+}

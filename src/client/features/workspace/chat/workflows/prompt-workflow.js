@@ -102,10 +102,8 @@ import {
   rememberConversationId
 } from "./prompt-conversation-state-utils.js";
 import {
-  parseStreamEventLine,
-  recordHandledStreamEvent,
-  setStreamAbortReason
-} from "./prompt-stream-debug-utils.js";
+  runConversationStream
+} from "./prompt-conversation-stream-workflow.js";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
 const CONVERSATION_THINKING_STEPS = [
@@ -1636,91 +1634,19 @@ async function ensureActiveProjectReadyForGeneration({
 }
 
 async function streamConversationRun(conversationId, payload, onEvent, { timeoutMs = CONVERSATION_STREAM_TIMEOUT_MS, debugRecord = null } = {}) {
-  currentConversationAbort?.abort?.();
-  const controller = new AbortController();
-  currentConversationAbort = controller;
-  let timedOut = false;
-  const safeTimeoutMs = Number(timeoutMs || 0);
-  const timer = safeTimeoutMs > 0
-    ? window.setTimeout(() => {
-      timedOut = true;
-      controller.abort();
-    }, safeTimeoutMs)
-    : null;
-  try {
-    const response = await fetch(`/api/conversations/${encodeURIComponent(conversationId)}/runs`, {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-      signal: controller.signal
-    });
-    if (!response.ok) {
-      const errorPayload = await response.json().catch(() => ({}));
-      throw new Error(errorPayload?.message || `Conversation run failed: ${response.status}`);
-    }
-    const reader = response.body?.getReader?.();
-    if (!reader) throw new Error("Conversation stream is not readable");
-    const decoder = new TextDecoder();
-    let buffer = "";
-    while (true) {
-      const { value, done } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split("\n");
-      buffer = lines.pop() || "";
-      for (const line of lines) {
-        const text = line.trim();
-        if (!text) continue;
-        const event = parseStreamEventLine(text, {
-          debugRecord,
-          logAgentDebug,
-          updateAgentDebugPanel
-        });
-        const shouldContinue = onEvent(event);
-        if (!recordHandledStreamEvent(event, shouldContinue, {
-          debugRecord,
-          logAgentDebug,
-          updateAgentDebugPanel
-        })) {
-          reader.cancel?.().catch?.(() => {});
-          return;
-        }
-      }
-    }
-    if (buffer.trim()) {
-      const event = parseStreamEventLine(buffer.trim(), {
-        debugRecord,
-        logAgentDebug,
-        updateAgentDebugPanel
-      });
-      const shouldContinue = onEvent(event);
-      if (!recordHandledStreamEvent(event, shouldContinue, {
-        debugRecord,
-        logAgentDebug,
-        updateAgentDebugPanel
-      })) {
-        reader.cancel?.().catch?.(() => {});
-        return;
-      }
-    }
-    setStreamAbortReason(debugRecord, "reader completed", { updateAgentDebugPanel });
-  } catch (error) {
-    if (timedOut) {
-      const timeoutError = new Error("Agent 流程超时，请重试");
-      timeoutError.streamTimeout = true;
-      setStreamAbortReason(debugRecord, "timeout", { updateAgentDebugPanel });
-      throw timeoutError;
-    }
-    if (error?.name === "AbortError") {
-      setStreamAbortReason(debugRecord, "aborted by new run or stop", { updateAgentDebugPanel });
-      throw new Error("Conversation run was stopped.");
-    }
-    throw error;
-  } finally {
-    if (timer) window.clearTimeout(timer);
-    if (currentConversationAbort === controller) currentConversationAbort = null;
-  }
+  return runConversationStream({
+    conversationId,
+    payload,
+    onEvent,
+    timeoutMs,
+    debugRecord,
+    getCurrentAbort: () => currentConversationAbort,
+    setCurrentAbort: (controller) => {
+      currentConversationAbort = controller;
+    },
+    logAgentDebug,
+    updateAgentDebugPanel
+  });
 }
 
 export function bindPromptShortcuts({
