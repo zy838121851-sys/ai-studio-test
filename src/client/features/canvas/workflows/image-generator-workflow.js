@@ -14,7 +14,6 @@ import {
   getMissingGeneratorResultError,
   getMissingGeneratorResultMessage,
   getGeneratorResultTitle,
-  getPrimaryResultImageUrl,
   getResultImageUrls,
   parseGeneratorResult
 } from "./image-generator-result-utils.js";
@@ -78,7 +77,6 @@ import {
   readImageDataUrlMetrics
 } from "./image-generator-image-read-utils.js";
 import {
-  applyGeneratorResult,
   clearGeneratorReferences,
   hasGeneratorDropData,
   removeGeneratorReference,
@@ -403,53 +401,6 @@ export function createImageGeneratorWorkflow({
 
     node._generatorPromptDraft = prompt;
     await runGeneratorBatch(node, { prompt, references });
-    return;
-
-    const model = getGeneratorModel();
-    const images = references.map((item) => item.dataUrl).filter(Boolean);
-    const size = resolveGeneratorOutputSize(node, references);
-    setGeneratorBusy(node, true);
-    updateGeneratorStatus(node, images.length ? `图生图 · ${images.length} 张参考图` : "文生图");
-    recordCanvasEvent("prompt_submitted", {
-      source: "image-generator-node",
-      hasPrompt: Boolean(prompt),
-      imageCount: images.length,
-      model
-    });
-
-    try {
-      const result = await runImageGenerationRequest({
-        model,
-        prompt,
-        images,
-        size
-      });
-      const imageUrl = getPrimaryResultImageUrl(result);
-      if (!imageUrl) throw new Error(getMissingGeneratorResultMessage(result));
-
-      const displayUrl = await persistGeneratorResult({
-        node,
-        sourceUrl: imageUrl,
-        prompt,
-        model
-      });
-      applyGeneratorResult(node, displayUrl || imageUrl, { prompt, model });
-      recordCanvasEvent("generation_created", {
-        nodeId: node.dataset.nodeId,
-        sourceId: "",
-        actionType: detectGenerationKind(prompt),
-        model
-      });
-      await saveCurrentProjectAfterGeneration?.();
-      addChat("assistant", "图像生成器已生成结果。");
-    } catch (error) {
-      console.error("[canvas] Image generator failed", error);
-      node.classList.add("generation-failed");
-      updateGeneratorStatus(node, `生成失败：${error.message}`);
-      addChat("assistant", `图像生成失败：${error.message}`);
-    } finally {
-      setGeneratorBusy(node, false);
-    }
   }
 
   async function runGeneratorBatch(node, { prompt = "", references = [] } = {}) {

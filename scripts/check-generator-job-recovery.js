@@ -99,6 +99,12 @@ assert(
   "generator must tag preview nodes with job ids when async jobs are created"
 );
 assert(
+  !generatorWorkflow.includes("getPrimaryResultImageUrl")
+    && !generatorWorkflow.includes("applyGeneratorResult(node, displayUrl || imageUrl")
+    && !/await runGeneratorBatch\(node,\s*\{\s*prompt,\s*references\s*\}\);\s*return;/s.test(generatorWorkflow),
+  "generator submit path must not keep unreachable pre-batch generation code after runGeneratorBatch"
+);
+assert(
   generatorWorkflow.includes("resumePendingGeneratorPreviews") &&
   generatorWorkflow.includes("visibilitychange") &&
   generatorWorkflow.includes("focus") &&

@@ -53,8 +53,10 @@ assert(
   "image generator must accept generation autosave"
 );
 assert(
-  count(generatorWorkflow, "await saveCurrentProjectAfterGeneration?.();") >= 2,
-  "image generator must autosave both single-node and batch success paths"
+  count(generatorWorkflow, "await saveCurrentProjectAfterGeneration?.();") >= 1
+    && generatorWorkflow.includes("await runGeneratorBatch(node, { prompt, references });")
+    && !generatorWorkflow.includes("getPrimaryResultImageUrl"),
+  "image generator must autosave the reachable batch success path without keeping unreachable legacy submit code"
 );
 assert(
   !generatorWorkflow.includes("await saveCurrentProject?.();"),
