@@ -16,6 +16,7 @@ import {
   blobToDataUrl,
   canvasToBlob,
   drawImageIntoRect,
+  getImageExportRect,
   getImageExportFileName,
   getUniqueExportFileName,
   isHttpUrl,
@@ -1346,7 +1347,7 @@ function getImageNodesForExport(scope = "selected", targetNode = null) {
 }
 
 async function renderImageNodeToPng(node) {
-  const rect = getImageExportRect(node);
+  const rect = getImageExportRect(node, getNodeLayoutBounds);
   if (!rect) throw new Error("No image bounds available for export");
   const scale = Math.max(1, Math.min(3, window.devicePixelRatio || 2));
   const canvas = document.createElement("canvas");
@@ -1375,22 +1376,6 @@ async function writeExportFilesToDirectory(directoryHandle, files) {
     await writable.write(file.blob);
     await writable.close();
   }
-}
-
-function getImageExportRect(node) {
-  const frame = node?.querySelector?.(".image-frame");
-  const image = frame?.querySelector?.("img");
-  if (!frame || !image) return null;
-  const nodeBounds = getNodeLayoutBounds(node);
-  const width = Math.max(1, frame.offsetWidth || node.offsetWidth || nodeBounds.width);
-  const height = Math.max(1, frame.offsetHeight || node.offsetHeight || nodeBounds.height);
-  return {
-    image,
-    x: nodeBounds.x + frame.offsetLeft,
-    y: nodeBounds.y + frame.offsetTop,
-    width,
-    height
-  };
 }
 
 async function loadCanvasImage(src) {

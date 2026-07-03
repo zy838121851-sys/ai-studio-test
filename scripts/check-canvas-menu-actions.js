@@ -7,6 +7,7 @@ import {
   blobToDataUrl,
   canvasToBlob,
   drawImageIntoRect,
+  getImageExportRect,
   getImageExportFileName,
   getUniqueExportFileName,
   isHttpUrl,
@@ -79,6 +80,7 @@ assertIncludes(menuClipboardUtils, "export function pasteNodeFromClipboard", "ca
 assertIncludes(menuExportUtils, "export function blobToDataUrl", "blob data URL reader must live in export utils");
 assertIncludes(menuExportUtils, "export function canvasToBlob", "canvas toBlob wrapper must live in export utils");
 assertIncludes(menuExportUtils, "export function drawImageIntoRect", "canvas image draw helper must live in export utils");
+assertIncludes(menuExportUtils, "export function getImageExportRect", "canvas image export rect must live in export utils");
 assertIncludes(menuExportUtils, "export function getImageExportFileName", "canvas image export filename must live in export utils");
 assertIncludes(menuExportUtils, "export function getUniqueExportFileName", "canvas unique export filename must live in export utils");
 assertIncludes(menuExportUtils, "export function isHttpUrl", "canvas HTTP URL check must live in export utils");
@@ -387,6 +389,47 @@ const exportAltNameNode = {
 };
 assert(getImageExportFileName(exportNameNode) === "Scene-One.PNG.png", "image export file name should preserve current strip-before-clean behavior");
 assert(getImageExportFileName(exportAltNameNode) === "Alt-Shot.png", "image export file name should fall back to image alt");
+const exportRectImage = { currentSrc: "/uploads/export.png" };
+const exportRectFrame = {
+  offsetWidth: 320,
+  offsetHeight: 180,
+  offsetLeft: 12,
+  offsetTop: 18,
+  querySelector(selector) {
+    if (selector === "img") return exportRectImage;
+    return null;
+  }
+};
+const exportRectNode = {
+  offsetWidth: 640,
+  offsetHeight: 360,
+  querySelector(selector) {
+    if (selector === ".image-frame") return exportRectFrame;
+    return null;
+  }
+};
+const exportRect = getImageExportRect(exportRectNode, () => ({ x: 100, y: 200, width: 500, height: 400 }));
+assert(exportRect.image === exportRectImage, "image export rect should preserve image reference");
+assert(exportRect.x === 112 && exportRect.y === 218, "image export rect should offset frame from node bounds");
+assert(exportRect.width === 320 && exportRect.height === 180, "image export rect should prefer frame dimensions");
+const fallbackRect = getImageExportRect({
+  offsetWidth: 0,
+  offsetHeight: 0,
+  querySelector(selector) {
+    if (selector === ".image-frame") {
+      return {
+        offsetWidth: 0,
+        offsetHeight: 0,
+        offsetLeft: 0,
+        offsetTop: 0,
+        querySelector: () => exportRectImage
+      };
+    }
+    return null;
+  }
+}, () => ({ x: 0, y: 0, width: 0, height: 0 }));
+assert(fallbackRect.width === 1 && fallbackRect.height === 1, "image export rect should preserve minimum size fallback");
+assert(getImageExportRect({ querySelector: () => null }, () => ({ x: 0, y: 0, width: 10, height: 10 })) === null, "image export rect should reject missing frames");
 assert(getUniqueExportFileName([], "Scene-One.png") === "Scene-One.png", "unique export file name should keep unused name");
 assert(getUniqueExportFileName([{ fileName: "Scene-One.png" }, { fileName: "Scene-One-2.png" }], "Scene-One.png") === "Scene-One-3.png", "unique export file name should increment conflicting names");
 assert(isHttpUrl("http://example.com/a.png") === true, "HTTP URL check should accept http URLs");

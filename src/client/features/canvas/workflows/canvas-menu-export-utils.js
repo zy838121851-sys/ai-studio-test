@@ -43,6 +43,22 @@ export function drawImageIntoRect({ context, image, x, y, width, height, objectF
   context.drawImage(image, sourceX, sourceY, cropWidth, cropHeight, x, y, width, height);
 }
 
+export function getImageExportRect(node, getNodeLayoutBounds) {
+  const frame = node?.querySelector?.(".image-frame");
+  const image = frame?.querySelector?.("img");
+  if (!frame || !image) return null;
+  const nodeBounds = getNodeLayoutBounds(node);
+  const width = Math.max(1, frame.offsetWidth || node.offsetWidth || nodeBounds.width);
+  const height = Math.max(1, frame.offsetHeight || node.offsetHeight || nodeBounds.height);
+  return {
+    image,
+    x: nodeBounds.x + frame.offsetLeft,
+    y: nodeBounds.y + frame.offsetTop,
+    width,
+    height
+  };
+}
+
 export function getImageExportFileName(node) {
   const title = cleanFileName(stripImageExtension(node.querySelector(".image-file-name, h3, .node-title, [data-node-title]")?.textContent
     || node.querySelector(".image-frame img")?.alt
