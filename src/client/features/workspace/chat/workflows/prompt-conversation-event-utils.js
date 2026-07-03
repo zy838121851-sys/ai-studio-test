@@ -17,6 +17,13 @@ export function isGenerationIntent(intent = "") {
   return ["generate_image", "edit_image", "generate_video"].includes(String(intent || "").trim());
 }
 
+export function shouldRenderAssistantDelta({
+  shouldGenerate = false,
+  intent = ""
+} = {}) {
+  return !(shouldGenerate || isGenerationIntent(intent));
+}
+
 export function buildGenerationToolState(generationTool = "", current = {}) {
   return {
     shouldGenerate: Boolean(generationTool) || Boolean(current.shouldGenerate),

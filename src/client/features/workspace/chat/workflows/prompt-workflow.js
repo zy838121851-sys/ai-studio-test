@@ -104,7 +104,7 @@ import {
   buildPromptOptimizerStartState,
   buildConversationRunPayload,
   getGenerationToolNameFromEvent,
-  isGenerationIntent
+  shouldRenderAssistantDelta
 } from "./prompt-conversation-event-utils.js";
 import {
   bindConversationControls,
@@ -1444,7 +1444,7 @@ async function runConversationAgent({
     }
     if (event.type === "assistant.delta") {
       assistantText += event.delta || "";
-      if (shouldGenerate || isGenerationIntent(intent)) return;
+      if (!shouldRenderAssistantDelta({ shouldGenerate, intent })) return;
       if (!assistantMessage) assistantMessage = addChat("assistant", "");
       updateChat(assistantMessage, assistantText);
       return;
