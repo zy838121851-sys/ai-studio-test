@@ -48,6 +48,10 @@ export function getGeneratorCountValue(controls = {}, defaultCount = "1") {
   return Math.max(1, Math.min(4, value));
 }
 
+export function isMidjourneyGeneratorModel(model = "") {
+  return String(model || "").trim().toLowerCase() === "midjourney";
+}
+
 export function getGeneratorModelValue({
   generatorSelect = null,
   chatSelect = null,

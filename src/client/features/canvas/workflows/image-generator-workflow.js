@@ -94,6 +94,7 @@ import {
   getGeneratorCountValue,
   getGeneratorRatioValueFromControls,
   getSyncedGeneratorModelValue,
+  isMidjourneyGeneratorModel as isMidjourneyModel,
   resolveGeneratorModelValue,
   saveGeneratorControlDataset,
   setGeneratorModelSelectValue,
@@ -1063,10 +1064,6 @@ export function createImageGeneratorWorkflow({
       outputCount: payload.outputCount ?? payload.outputs?.length ?? 0,
       updatedAt: payload.updatedAt || payload.job?.updatedAt || ""
     });
-  }
-
-  function isMidjourneyModel(model = "") {
-    return String(model || "").trim().toLowerCase() === "midjourney";
   }
 
   function saveGeneratorDraft(node) {

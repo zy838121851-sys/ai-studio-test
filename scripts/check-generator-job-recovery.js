@@ -31,6 +31,7 @@ import {
 } from "../src/client/features/canvas/workflows/image-generator-reference-utils.js";
 import {
   getGeneratorControls,
+  isMidjourneyGeneratorModel,
   resolveGeneratorModelValue
 } from "../src/client/features/canvas/workflows/image-generator-control-state-utils.js";
 import {
@@ -119,6 +120,10 @@ assert(
 assert(
   generatorControlStateUtils.includes("export function getGeneratorControls"),
   "generator popover control lookup should live in control state helpers"
+);
+assert(
+  generatorControlStateUtils.includes("export function isMidjourneyGeneratorModel"),
+  "generator model classification should live in control state helpers"
 );
 assert(
   generatorSelectUtils.includes("export function closeGeneratorCustomSelects")
@@ -257,6 +262,10 @@ assert(
   }) === "default-model",
   "generator model helper should use the configured default model"
 );
+assert(isMidjourneyGeneratorModel("midjourney") === true, "generator model helper should detect Midjourney models");
+assert(isMidjourneyGeneratorModel(" MidJourney ") === true, "generator model helper should trim and normalize Midjourney models");
+assert(isMidjourneyGeneratorModel("midjourney-v6") === false, "generator model helper should preserve exact Midjourney matching");
+assert(isMidjourneyGeneratorModel("") === false, "generator model helper should reject missing model names");
 const controlsFixture = createGeneratorControlsFixture();
 const resolvedControls = getGeneratorControls(controlsFixture.popover);
 assert(resolvedControls.popover === controlsFixture.popover, "generator controls helper should return the popover");
