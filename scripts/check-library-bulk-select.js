@@ -24,6 +24,11 @@ import {
   upsertAssetCollectionState
 } from "../src/client/features/workspace/asset-library/asset-library-collections.js";
 import {
+  closeAssetContextMenu,
+  openAssetContextMenu,
+  shouldCloseAssetContextMenuOnPointer
+} from "../src/client/features/workspace/asset-library/asset-library-context-menu.js";
+import {
   syncAllRemoteAssetsState,
   syncRemoteAssetsState,
   syncRemoteCollectionsState
@@ -126,6 +131,7 @@ assertContains("src/client/features/workspace/asset-library/asset-library-runtim
   "asset-library-normalizers.js",
   "asset-library-state.js",
   "asset-library-collections.js",
+  "asset-library-context-menu.js",
   "asset-library-selection.js",
   "asset-library-sync.js",
   "asset-library-project-insert.js",
@@ -249,6 +255,42 @@ if (
 }
 if (selectAssetPageModeState({ libraryState: collectionState, mode: "unknown" }) !== "boards") {
   throw new Error("Asset collection helper should fall back to boards for unknown page modes");
+}
+
+const contextMenuList = createContextMenuList({ width: 120, height: 80 });
+const openedContextMenu = openAssetContextMenu({
+  list: contextMenuList,
+  event: { clientX: 790, clientY: 590 },
+  assetId: "asset-1",
+  viewportWidth: 800,
+  viewportHeight: 600
+});
+if (
+  openedContextMenu?.hidden !== false
+  || openedContextMenu.dataset.assetId !== "asset-1"
+  || openedContextMenu.style.left !== "668px"
+  || openedContextMenu.style.top !== "508px"
+  || openedContextMenu.classList.contains("submenu-open")
+) {
+  throw new Error("Asset context menu helper should open menus with clamped viewport position");
+}
+if (!shouldCloseAssetContextMenuOnPointer({ list: contextMenuList, target: { label: "outside" } })) {
+  throw new Error("Asset context menu helper should close on outside pointer targets");
+}
+if (shouldCloseAssetContextMenuOnPointer({ list: contextMenuList, target: contextMenuList.menu.insideTarget })) {
+  throw new Error("Asset context menu helper should keep menus open for inside pointer targets");
+}
+if (
+  !closeAssetContextMenu(contextMenuList)
+  || contextMenuList.menu.hidden !== true
+  || contextMenuList.menu.dataset.assetId !== ""
+  || contextMenuList.menu.style.left !== ""
+  || contextMenuList.menu.style.top !== ""
+) {
+  throw new Error("Asset context menu helper should close and clear menu state");
+}
+if (shouldCloseAssetContextMenuOnPointer({ list: contextMenuList, target: { label: "outside" } })) {
+  throw new Error("Asset context menu helper should ignore outside pointers when hidden");
 }
 
 const fallbackState = createAssetLibraryState({ assets: [{ id: "initial" }] });
@@ -757,6 +799,42 @@ assertContains("styles/legacy-assets.css", [
 ]);
 
 console.log("Library bulk select checks passed");
+
+function createContextMenuList({ width = 100, height = 80 } = {}) {
+  const classNames = new Set(["submenu-open"]);
+  const insideTarget = { label: "inside" };
+  const menu = {
+    hidden: true,
+    dataset: {
+      assetId: ""
+    },
+    style: {
+      left: "",
+      top: ""
+    },
+    insideTarget,
+    classList: {
+      remove(name) {
+        classNames.delete(name);
+      },
+      contains(name) {
+        return classNames.has(name);
+      }
+    },
+    getBoundingClientRect() {
+      return { width, height };
+    },
+    contains(target) {
+      return target === insideTarget;
+    }
+  };
+  return {
+    menu,
+    querySelector(selector) {
+      return selector === "[data-asset-context-menu]" ? menu : null;
+    }
+  };
+}
 
 function createCanvasPickerDocument() {
   const listeners = new Map();

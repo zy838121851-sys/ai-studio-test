@@ -11,6 +11,11 @@ import {
   upsertAssetCollectionState
 } from "./asset-library-collections.js";
 import {
+  closeAssetContextMenu,
+  openAssetContextMenu,
+  shouldCloseAssetContextMenuOnPointer
+} from "./asset-library-context-menu.js";
+import {
   syncAllRemoteAssetsState,
   syncRemoteAssetsState,
   syncRemoteCollectionsState
@@ -567,27 +572,14 @@ export function createAssetLibraryRuntime({
   function bindAssetList(list) {
     if (!list || list.dataset.assetRuntimeBound === "true") return;
     list.dataset.assetRuntimeBound = "true";
-    const closeAssetContextMenu = () => {
-      const menu = list.querySelector("[data-asset-context-menu]");
-      if (!menu) return;
-      menu.hidden = true;
-      menu.dataset.assetId = "";
-      menu.style.left = "";
-      menu.style.top = "";
-      menu.classList.remove("submenu-open");
-    };
-    const openAssetContextMenu = (event, assetId) => {
-      const menu = list.querySelector("[data-asset-context-menu]");
-      if (!menu || !assetId) return;
-      menu.hidden = false;
-      menu.dataset.assetId = assetId;
-      menu.classList.remove("submenu-open");
-      const bounds = menu.getBoundingClientRect();
-      const left = Math.max(12, Math.min(event.clientX, window.innerWidth - bounds.width - 12));
-      const top = Math.max(12, Math.min(event.clientY, window.innerHeight - bounds.height - 12));
-      menu.style.left = `${left}px`;
-      menu.style.top = `${top}px`;
-    };
+    const closeContextMenu = () => closeAssetContextMenu(list);
+    const openContextMenu = (event, assetId) => openAssetContextMenu({
+      list,
+      event,
+      assetId,
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight
+    });
     list.addEventListener("click", (event) => {
       const menuAction = event.target.closest("[data-asset-menu-action]");
       if (menuAction) {
@@ -602,18 +594,18 @@ export function createAssetLibraryRuntime({
         }
         if (!assetId) return;
         if (action === "insert") {
-          closeAssetContextMenu();
+          closeContextMenu();
           openAssetCanvasPicker(assetId);
           return;
         }
         if (action === "move") {
           moveAssetToCollection(assetId, menuAction.dataset.collectionId || "");
-          closeAssetContextMenu();
+          closeContextMenu();
           return;
         }
         if (action === "delete") {
           removeAsset(assetId);
-          closeAssetContextMenu();
+          closeContextMenu();
           return;
         }
       }
@@ -622,7 +614,7 @@ export function createAssetLibraryRuntime({
       if (assetSelectModeButton) {
         event.preventDefault();
         event.stopPropagation();
-        closeAssetContextMenu();
+        closeContextMenu();
         setAssetSelectionMode(!assetSelectModeButton.classList.contains("active"));
         return;
       }
@@ -631,7 +623,7 @@ export function createAssetLibraryRuntime({
       if (assetSelectAllButton) {
         event.preventDefault();
         event.stopPropagation();
-        closeAssetContextMenu();
+        closeContextMenu();
         toggleAllAssetSelection();
         return;
       }
@@ -640,7 +632,7 @@ export function createAssetLibraryRuntime({
       if (assetBulkDeleteButton) {
         event.preventDefault();
         event.stopPropagation();
-        closeAssetContextMenu();
+        closeContextMenu();
         deleteSelectedAssets();
         return;
       }
@@ -649,7 +641,7 @@ export function createAssetLibraryRuntime({
       if (assetSelectButton) {
         event.preventDefault();
         event.stopPropagation();
-        closeAssetContextMenu();
+        closeContextMenu();
         toggleAssetSelection(assetSelectButton.dataset.assetSelect);
         return;
       }
@@ -658,7 +650,7 @@ export function createAssetLibraryRuntime({
       if (deleteButton) {
         event.preventDefault();
         event.stopPropagation();
-        closeAssetContextMenu();
+        closeContextMenu();
         removeAsset(deleteButton.dataset.deleteAsset);
         return;
       }
@@ -764,17 +756,16 @@ export function createAssetLibraryRuntime({
       if (!card) return;
       event.preventDefault();
       event.stopPropagation();
-      openAssetContextMenu(event, card.dataset.id);
+      openContextMenu(event, card.dataset.id);
     });
-    list.addEventListener("scroll", closeAssetContextMenu, { passive: true });
-    window.addEventListener("scroll", closeAssetContextMenu, { passive: true, capture: true });
+    list.addEventListener("scroll", closeContextMenu, { passive: true });
+    window.addEventListener("scroll", closeContextMenu, { passive: true, capture: true });
     document.addEventListener("pointerdown", (event) => {
-      const menu = list.querySelector("[data-asset-context-menu]");
-      if (!menu || menu.hidden || menu.contains(event.target)) return;
-      closeAssetContextMenu();
+      if (!shouldCloseAssetContextMenuOnPointer({ list, target: event.target })) return;
+      closeContextMenu();
     });
     document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") closeAssetContextMenu();
+      if (event.key === "Escape") closeContextMenu();
     });
     list.addEventListener("dragstart", (event) => {
       const item = event.target.closest(".asset-item[data-id]");
