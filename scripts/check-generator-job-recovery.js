@@ -27,6 +27,9 @@ import {
   getGeneratorResultTitle
 } from "../src/client/features/canvas/workflows/image-generator-result-utils.js";
 import {
+  delayGeneratorJobPoll
+} from "../src/client/features/canvas/workflows/image-generator-job-polling-utils.js";
+import {
   readGeneratorReferenceFiles
 } from "../src/client/features/canvas/workflows/image-generator-reference-utils.js";
 import {
@@ -98,9 +101,13 @@ assert(
 );
 assert(
   generatorWorkflow.includes("missingUrlRetries") &&
-  generatorJobPollingUtils.includes("Waiting for saved image URL"),
+  generatorJobPollingUtils.includes("Waiting for saved image URL") &&
+    generatorJobPollingUtils.includes("export function delayGeneratorJobPoll"),
   "generator polling must retry succeeded jobs that do not yet expose an image URL"
 );
+const generatorDelayPromise = delayGeneratorJobPoll(0);
+assert(typeof generatorDelayPromise?.then === "function", "generator polling delay helper should return a promise");
+await generatorDelayPromise;
 assert(
   generatorWorkflow.includes("logGeneratorJobPoll") &&
   generatorDebugLogUtils.includes("[generator] job poll"),

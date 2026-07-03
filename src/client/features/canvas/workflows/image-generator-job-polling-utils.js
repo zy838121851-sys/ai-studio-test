@@ -44,3 +44,7 @@ export function getRetryAfterDelayMs(response, fallbackMs = 4000) {
   if (Number.isFinite(value) && value > 0) return value * 1000;
   return fallbackMs;
 }
+
+export function delayGeneratorJobPoll(ms = 0) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}

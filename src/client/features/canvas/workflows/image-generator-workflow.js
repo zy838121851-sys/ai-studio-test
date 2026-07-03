@@ -25,6 +25,7 @@ import {
 import {
   buildGeneratorMissingUrlProgressPayload,
   buildGeneratorRateLimitProgressPayload,
+  delayGeneratorJobPoll,
   getRetryAfterDelayMs,
   getTerminalGeneratorJobResult,
   isTerminalGeneratorJobStatus
@@ -1011,7 +1012,7 @@ export function createImageGeneratorWorkflow({
     let lastPayload = { jobId, ...fallback };
     let missingUrlAttempts = 0;
     for (let index = 0; index < attempts; index += 1) {
-      await delay(delayMs);
+      await delayGeneratorJobPoll(delayMs);
       const response = await fetch(`/api/ai/jobs/${encodeURIComponent(jobId)}`, {
         credentials: "include"
       });
@@ -1019,7 +1020,7 @@ export function createImageGeneratorWorkflow({
       if (response.status === 429) {
         const retryDelay = getRetryAfterDelayMs(response, delayMs * 2);
         onProgress?.(buildGeneratorRateLimitProgressPayload(lastPayload, payload));
-        await delay(retryDelay);
+        await delayGeneratorJobPoll(retryDelay);
         continue;
       }
       if (!response.ok) throw new Error(payload?.failureMessage || payload?.errorMessage || payload?.message || `Job request failed: ${response.status}`);
@@ -1040,10 +1041,6 @@ export function createImageGeneratorWorkflow({
       onProgress?.(payload);
     }
     throw new Error(`Generation is still running. Job ID: ${lastPayload.jobId || jobId}`);
-  }
-
-  function delay(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
   function saveGeneratorDraft(node) {
