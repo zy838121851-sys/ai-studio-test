@@ -1,5 +1,7 @@
 ﻿import { openImageCompareFromSelection } from "../image-compare.js";
 
+import { areLayoutSnapshotsEqual } from "./canvas-menu-layout-utils.js";
+
 const NODE_PRESETS = {
   text: { kind: "2d", title: "Text node", desc: "Script, copy, notes" },
   "image-generator": { kind: "image-generator", title: "图像生成器", desc: "Text-to-image and image-to-image generator" },
@@ -1022,18 +1024,6 @@ function recordLayoutMutation(nodes, before, type, recordUndoAction) {
     });
   }
   return true;
-}
-
-function areLayoutSnapshotsEqual(a, b) {
-  if (!a || !b) return false;
-  return a.left === b.left
-    && a.top === b.top
-    && a.width === b.width
-    && a.height === b.height
-    && a.minHeight === b.minHeight
-    && a.zIndex === b.zIndex
-    && a.manualSize === b.manualSize
-    && a.frameAspectRatio === b.frameAspectRatio;
 }
 
 function getNodeLayoutBounds(node) {

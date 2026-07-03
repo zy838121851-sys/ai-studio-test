@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+import { areLayoutSnapshotsEqual } from "../src/client/features/canvas/workflows/canvas-menu-layout-utils.js";
 
 function read(path) {
   return readFileSync(path, "utf8");
@@ -13,11 +14,14 @@ function assertIncludes(source, value, message) {
 }
 
 const menuActions = read("src/client/features/canvas/workflows/canvas-menu-actions.js");
+const menuLayoutUtils = read("src/client/features/canvas/workflows/canvas-menu-layout-utils.js");
 
 assertIncludes(menuActions, "export function bindCanvasMenuActions", "canvas menu must expose bindCanvasMenuActions");
 assertIncludes(menuActions, "export function runCanvasImageMenuCommand", "canvas image command wrapper must stay exported");
 assertIncludes(menuActions, "export function runCanvasObjectMenuCommand", "canvas object command runner must stay exported");
+assertIncludes(menuActions, 'from "./canvas-menu-layout-utils.js"', "canvas menu must import layout utility helpers");
 assertIncludes(menuActions, "const CANVAS_NODE_SELECTOR = \".node-card, .canvas-object\"", "canvas menu node selector must include node cards and canvas objects");
+assertIncludes(menuLayoutUtils, "export function areLayoutSnapshotsEqual", "canvas layout snapshot equality must live in layout utils");
 
 [
   "text:",
@@ -77,5 +81,20 @@ assertIncludes(menuActions, 'data-selection-action="group-toggle"', "selection a
 assertIncludes(menuActions, 'data-selection-action="compare"', "selection action bar must keep compare action");
 assertIncludes(menuActions, 'data-selection-action="group-color"', "selection action bar must keep group color action");
 assertIncludes(menuActions, "getSelectionToolbarState", "selection action bar must keep selection state calculation");
+
+const layoutSnapshot = {
+  left: "10px",
+  top: "20px",
+  width: "300px",
+  height: "",
+  minHeight: "120px",
+  zIndex: "3",
+  manualSize: "true",
+  frameAspectRatio: "4 / 3"
+};
+assert(areLayoutSnapshotsEqual(layoutSnapshot, { ...layoutSnapshot }) === true, "layout snapshots with matching fields should be equal");
+assert(areLayoutSnapshotsEqual(layoutSnapshot, { ...layoutSnapshot, left: "11px" }) === false, "layout snapshot equality should compare left");
+assert(areLayoutSnapshotsEqual(layoutSnapshot, { ...layoutSnapshot, frameAspectRatio: "1 / 1" }) === false, "layout snapshot equality should compare frame aspect ratio");
+assert(areLayoutSnapshotsEqual(null, layoutSnapshot) === false, "layout snapshot equality should reject missing snapshots");
 
 console.log("Canvas menu action checks passed.");
