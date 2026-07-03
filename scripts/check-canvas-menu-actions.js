@@ -11,7 +11,8 @@ import {
   getImageExportFileName,
   getUniqueExportFileName,
   isHttpUrl,
-  prepareExportClone
+  prepareExportClone,
+  rasterizeSvg
 } from "../src/client/features/canvas/workflows/canvas-menu-export-utils.js";
 import {
   areLayoutSnapshotsEqual,
@@ -85,6 +86,7 @@ assertIncludes(menuExportUtils, "export function getImageExportFileName", "canva
 assertIncludes(menuExportUtils, "export function getUniqueExportFileName", "canvas unique export filename must live in export utils");
 assertIncludes(menuExportUtils, "export function isHttpUrl", "canvas HTTP URL check must live in export utils");
 assertIncludes(menuExportUtils, "export function prepareExportClone", "canvas export clone cleanup must live in export utils");
+assertIncludes(menuExportUtils, "export function rasterizeSvg", "canvas SVG rasterizer must live in export utils");
 assertIncludes(menuLayoutUtils, "export function areLayoutSnapshotsEqual", "canvas layout snapshot equality must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getLayoutUnionBounds", "canvas layout union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node sort index must live in layout utils");
@@ -527,6 +529,87 @@ try {
   assert(blobReadRejected === true, "blob data URL reader should reject reader errors");
 } finally {
   globalThis.FileReader = OriginalFileReader;
+}
+const OriginalImage = globalThis.Image;
+const OriginalDocument = globalThis.document;
+const OriginalWindow = globalThis.window;
+try {
+  const createdCanvases = [];
+  let nextBlob = "rasterized-blob";
+  let failNextImage = false;
+  globalThis.window = { devicePixelRatio: 4 };
+  globalThis.document = {
+    createElement(tagName) {
+      assert(tagName === "canvas", "SVG rasterizer should create a canvas");
+      const calls = [];
+      const canvas = {
+        width: 0,
+        height: 0,
+        calls,
+        getContext(type) {
+          assert(type === "2d", "SVG rasterizer should request a 2d context");
+          return {
+            scale: (...args) => calls.push(["scale", ...args]),
+            fillRect: (...args) => calls.push(["fillRect", ...args]),
+            drawImage: (...args) => calls.push(["drawImage", ...args]),
+            set fillStyle(value) {
+              calls.push(["fillStyle", value]);
+            }
+          };
+        },
+        toBlob(callback, type, quality) {
+          calls.push(["toBlob", type, quality]);
+          callback(nextBlob);
+        }
+      };
+      createdCanvases.push(canvas);
+      return canvas;
+    }
+  };
+  globalThis.Image = class {
+    set src(value) {
+      this.srcValue = value;
+      if (failNextImage) {
+        this.onerror();
+      } else {
+        this.onload();
+      }
+    }
+  };
+
+  const pngBlob = await rasterizeSvg("<svg><text>A&B</text></svg>", 2, 3, "png");
+  assert(pngBlob === "rasterized-blob", "SVG rasterizer should resolve PNG blobs");
+  assert(createdCanvases[0].width === 6 && createdCanvases[0].height === 9, "SVG rasterizer should clamp DPR scale to 3");
+  assert(createdCanvases[0].calls.some((call) => JSON.stringify(call) === JSON.stringify(["toBlob", "image/png", 0.94])), "SVG rasterizer should request PNG output");
+
+  const jpgBlob = await rasterizeSvg("<svg></svg>", 4, 5, "jpg");
+  assert(jpgBlob === "rasterized-blob", "SVG rasterizer should resolve JPG blobs");
+  assert(createdCanvases[1].calls.some((call) => JSON.stringify(call) === JSON.stringify(["fillStyle", "#ffffff"])), "SVG rasterizer should preserve JPG white background");
+  assert(createdCanvases[1].calls.some((call) => JSON.stringify(call) === JSON.stringify(["fillRect", 0, 0, 4, 5])), "SVG rasterizer should fill JPG background bounds");
+  assert(createdCanvases[1].calls.some((call) => JSON.stringify(call) === JSON.stringify(["toBlob", "image/jpeg", 0.94])), "SVG rasterizer should request JPEG output");
+
+  nextBlob = null;
+  let emptyRasterRejected = false;
+  try {
+    await rasterizeSvg("<svg></svg>", 1, 1, "png");
+  } catch (error) {
+    emptyRasterRejected = error.message === "Canvas export returned an empty blob";
+  }
+  assert(emptyRasterRejected === true, "SVG rasterizer should reject empty canvas blobs");
+
+  nextBlob = "unused";
+  failNextImage = true;
+  let imageRasterRejected = false;
+  try {
+    await rasterizeSvg("<svg></svg>", 1, 1, "png");
+  } catch (error) {
+    imageRasterRejected = error.message === "Unable to render SVG export";
+  }
+  assert(imageRasterRejected === true, "SVG rasterizer should reject image load failures");
+} finally {
+  globalThis.Image = OriginalImage;
+  globalThis.document = OriginalDocument;
+  globalThis.window = OriginalWindow;
 }
 
 assert(cleanText("  first\n\tsecond   third  ") === "first second third", "clean text should collapse whitespace");

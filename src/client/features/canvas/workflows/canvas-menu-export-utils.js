@@ -87,3 +87,34 @@ export function prepareExportClone(clone) {
   clone.classList.remove("selected", "node-locked");
   clone.querySelectorAll(".resize-handle, .image-node-toolbar, .canvas-asset-savebar, .node-download, .node-expand, .stack-toggle, .stack-tray").forEach((item) => item.remove());
 }
+
+export function rasterizeSvg(svgText, width, height, format) {
+  return new Promise((resolve, reject) => {
+    const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgText)}`;
+    const image = new Image();
+    image.onload = () => {
+      const scale = Math.max(1, Math.min(3, window.devicePixelRatio || 2));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.ceil(width * scale));
+      canvas.height = Math.max(1, Math.ceil(height * scale));
+      const context = canvas.getContext("2d");
+      context.scale(scale, scale);
+      if (format === "jpg") {
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, width, height);
+      }
+      context.drawImage(image, 0, 0, width, height);
+      canvas.toBlob((blob) => {
+        if (!blob) {
+          reject(new Error("Canvas export returned an empty blob"));
+          return;
+        }
+        resolve(blob);
+      }, format === "jpg" ? "image/jpeg" : "image/png", 0.94);
+    };
+    image.onerror = () => {
+      reject(new Error("Unable to render SVG export"));
+    };
+    image.src = url;
+  });
+}

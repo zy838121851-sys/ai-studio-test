@@ -20,7 +20,8 @@ import {
   getImageExportFileName,
   getUniqueExportFileName,
   isHttpUrl,
-  prepareExportClone
+  prepareExportClone,
+  rasterizeSvg
 } from "./canvas-menu-export-utils.js";
 import {
   getCommandNodesFromSelection,
@@ -1498,37 +1499,6 @@ async function inlineCloneImages(root) {
       // If a remote image blocks reading, keep the original source for SVG export.
     }
   }));
-}
-
-function rasterizeSvg(svgText, width, height, format) {
-  return new Promise((resolve, reject) => {
-    const url = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svgText)}`;
-    const image = new Image();
-    image.onload = () => {
-      const scale = Math.max(1, Math.min(3, window.devicePixelRatio || 2));
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.max(1, Math.ceil(width * scale));
-      canvas.height = Math.max(1, Math.ceil(height * scale));
-      const context = canvas.getContext("2d");
-      context.scale(scale, scale);
-      if (format === "jpg") {
-        context.fillStyle = "#ffffff";
-        context.fillRect(0, 0, width, height);
-      }
-      context.drawImage(image, 0, 0, width, height);
-      canvas.toBlob((blob) => {
-        if (!blob) {
-          reject(new Error("Canvas export returned an empty blob"));
-          return;
-        }
-        resolve(blob);
-      }, format === "jpg" ? "image/jpeg" : "image/png", 0.94);
-    };
-    image.onerror = () => {
-      reject(new Error("Unable to render SVG export"));
-    };
-    image.src = url;
-  });
 }
 
 function downloadBlob(blob, fileName) {
