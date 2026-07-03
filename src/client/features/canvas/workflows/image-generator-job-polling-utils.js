@@ -39,6 +39,20 @@ export function buildGeneratorMissingUrlProgressPayload(lastPayload = {}, expect
   };
 }
 
+export function getMissingGeneratorUrlRetryState({
+  terminalResult = {},
+  missingUrlAttempts = 0,
+  missingUrlRetries = 4
+} = {}) {
+  const nextAttempts = terminalResult?.retryMissingUrl
+    ? missingUrlAttempts + 1
+    : missingUrlAttempts;
+  return {
+    nextAttempts,
+    shouldRetry: Boolean(terminalResult?.retryMissingUrl && nextAttempts <= missingUrlRetries)
+  };
+}
+
 export function getRetryAfterDelayMs(response, fallbackMs = 4000) {
   const value = Number.parseInt(response?.headers?.get?.("Retry-After") || "", 10);
   if (Number.isFinite(value) && value > 0) return value * 1000;

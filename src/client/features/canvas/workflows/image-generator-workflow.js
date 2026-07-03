@@ -27,6 +27,7 @@ import {
   buildGeneratorRateLimitProgressPayload,
   delayGeneratorJobPoll,
   getGeneratorJobRequestError,
+  getMissingGeneratorUrlRetryState,
   getRetryAfterDelayMs,
   getTerminalGeneratorJobResult,
   isTerminalGeneratorJobStatus
@@ -1029,12 +1030,15 @@ export function createImageGeneratorWorkflow({
       logGeneratorJobPoll(lastPayload);
       if (isTerminalGeneratorJobStatus(payload?.status)) {
         const terminalResult = getTerminalGeneratorJobResult(lastPayload, expectedType);
-        if (terminalResult.retryMissingUrl) {
-          missingUrlAttempts += 1;
-          if (missingUrlAttempts <= missingUrlRetries) {
-            onProgress?.(buildGeneratorMissingUrlProgressPayload(lastPayload, expectedType));
-            continue;
-          }
+        const retryState = getMissingGeneratorUrlRetryState({
+          terminalResult,
+          missingUrlAttempts,
+          missingUrlRetries
+        });
+        missingUrlAttempts = retryState.nextAttempts;
+        if (retryState.shouldRetry) {
+          onProgress?.(buildGeneratorMissingUrlProgressPayload(lastPayload, expectedType));
+          continue;
         }
         if (terminalResult.error) throw terminalResult.error;
         return lastPayload;

@@ -28,7 +28,8 @@ import {
 } from "../src/client/features/canvas/workflows/image-generator-result-utils.js";
 import {
   delayGeneratorJobPoll,
-  getGeneratorJobRequestError
+  getGeneratorJobRequestError,
+  getMissingGeneratorUrlRetryState
 } from "../src/client/features/canvas/workflows/image-generator-job-polling-utils.js";
 import {
   readGeneratorReferenceFiles
@@ -104,7 +105,8 @@ assert(
   generatorWorkflow.includes("missingUrlRetries") &&
   generatorJobPollingUtils.includes("Waiting for saved image URL") &&
     generatorJobPollingUtils.includes("export function delayGeneratorJobPoll") &&
-    generatorJobPollingUtils.includes("export function getGeneratorJobRequestError"),
+    generatorJobPollingUtils.includes("export function getGeneratorJobRequestError") &&
+    generatorJobPollingUtils.includes("export function getMissingGeneratorUrlRetryState"),
   "generator polling must retry succeeded jobs that do not yet expose an image URL"
 );
 const generatorDelayPromise = delayGeneratorJobPoll(0);
@@ -125,6 +127,30 @@ assert(
 assert(
   getGeneratorJobRequestError({}, 503).message === "Job request failed: 503",
   "generator polling request errors should preserve status fallbacks"
+);
+assert(
+  JSON.stringify(getMissingGeneratorUrlRetryState({
+    terminalResult: { retryMissingUrl: true },
+    missingUrlAttempts: 0,
+    missingUrlRetries: 4
+  })) === JSON.stringify({ nextAttempts: 1, shouldRetry: true }),
+  "generator polling retry helper should retry missing URLs within the limit"
+);
+assert(
+  JSON.stringify(getMissingGeneratorUrlRetryState({
+    terminalResult: { retryMissingUrl: true },
+    missingUrlAttempts: 4,
+    missingUrlRetries: 4
+  })) === JSON.stringify({ nextAttempts: 5, shouldRetry: false }),
+  "generator polling retry helper should stop after the missing URL retry limit"
+);
+assert(
+  JSON.stringify(getMissingGeneratorUrlRetryState({
+    terminalResult: { retryMissingUrl: false },
+    missingUrlAttempts: 2,
+    missingUrlRetries: 4
+  })) === JSON.stringify({ nextAttempts: 2, shouldRetry: false }),
+  "generator polling retry helper should not increment non-missing-URL terminal results"
 );
 assert(
   generatorWorkflow.includes("logGeneratorJobPoll") &&
