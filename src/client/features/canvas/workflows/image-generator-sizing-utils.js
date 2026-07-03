@@ -18,6 +18,21 @@ export function getGeneratorOutputDimensions(node, ratio = "1:1") {
   return parseImageSize(OUTPUT_SIZE);
 }
 
+export function resolveGeneratorOutputSize(node, references = [], {
+  documentRef = globalThis.document,
+  popoverSelector = "#imageGeneratorPopover",
+  defaultRatio = "1:1"
+} = {}) {
+  const dimensions = getGeneratorOutputDimensions(
+    node,
+    node?.dataset?.generatorRatio
+      || documentRef?.querySelector?.(`${popoverSelector} [data-generator-ratio]`)?.value
+      || defaultRatio,
+    references
+  );
+  return `${dimensions.width}*${dimensions.height}`;
+}
+
 export function parseImageSize(value = OUTPUT_SIZE) {
   const [width, height] = String(value || OUTPUT_SIZE)
     .split("*")

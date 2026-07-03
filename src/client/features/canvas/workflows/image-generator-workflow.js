@@ -56,7 +56,8 @@ import {
   getGeneratorSelectTriggerText
 } from "./image-generator-select-utils.js";
 import {
-  getGeneratorOutputDimensions
+  getGeneratorOutputDimensions,
+  resolveGeneratorOutputSize
 } from "./image-generator-sizing-utils.js";
 import {
   fileToDataUrl,
@@ -1388,13 +1389,3 @@ function getGeneratorModel() {
   });
 }
 
-function resolveGeneratorOutputSize(node, references = []) {
-  const dimensions = getGeneratorOutputDimensions(
-    node,
-    node?.dataset?.generatorRatio
-      || globalThis.document?.querySelector?.(`${GENERATOR_POPOVER_SELECTOR} [data-generator-ratio]`)?.value
-      || DEFAULT_GENERATOR_RATIO,
-    references
-  );
-  return `${dimensions.width}*${dimensions.height}`;
-}

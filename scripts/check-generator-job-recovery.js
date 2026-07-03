@@ -11,6 +11,9 @@ import {
   getGeneratorReplacementPlacement
 } from "../src/client/features/canvas/workflows/image-generator-placement-utils.js";
 import {
+  resolveGeneratorOutputSize
+} from "../src/client/features/canvas/workflows/image-generator-sizing-utils.js";
+import {
   applyGeneratedImageNodeResult,
   applyGeneratedImageNodeSize,
   getGeneratorResultTitle
@@ -57,6 +60,7 @@ assert(
     && generatorWorkflow.includes("applyGeneratedImageNodeSize")
     && generatorWorkflow.includes("getGeneratorResultTitle")
     && generatorWorkflow.includes("image-generator-dom-state-utils.js")
+    && generatorWorkflow.includes("resolveGeneratorOutputSize")
     && generatorPreviewJobUtils.includes("applyGeneratorPreviewJobMetadata"),
   "generator must tag preview nodes with job ids when async jobs are created"
 );
@@ -305,6 +309,23 @@ assert(
   }) === 160,
   "generator preview width helper should preserve minimum width"
 );
+assert(
+  resolveGeneratorOutputSize({ dataset: { generatorRatio: "16:9" } }) === "1344*768",
+  "generator output size helper should prefer node ratio"
+);
+assert(
+  resolveGeneratorOutputSize({ dataset: {} }, [], {
+    documentRef: createGeneratorRatioDocument("3:4")
+  }) === "768*1024",
+  "generator output size helper should read popover ratio controls"
+);
+assert(
+  resolveGeneratorOutputSize({ dataset: {} }, [], {
+    documentRef: createGeneratorRatioDocument("unknown"),
+    defaultRatio: "4:3"
+  }) === "1024*1024",
+  "generator output size helper should preserve unknown-ratio fallback behavior"
+);
 const replacementPlacement = getGeneratorReplacementPlacement({
   style: { left: "12.5px", top: "24px" },
   offsetWidth: 320,
@@ -429,6 +450,14 @@ function createGeneratorDocument({ popover } = {}) {
   return {
     querySelector(selector) {
       return selector === "#imageGeneratorPopover" ? popover : null;
+    }
+  };
+}
+
+function createGeneratorRatioDocument(value = "") {
+  return {
+    querySelector(selector) {
+      return selector === "#imageGeneratorPopover [data-generator-ratio]" ? { value } : null;
     }
   };
 }
