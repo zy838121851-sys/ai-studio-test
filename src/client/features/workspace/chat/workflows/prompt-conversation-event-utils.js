@@ -140,6 +140,29 @@ export function buildConversationDoneDebugPayload(state = {}, {
   };
 }
 
+export function buildConversationAgentResult(state = {}, {
+  fallbackPrompt = ""
+} = {}) {
+  return {
+    shouldGenerate: Boolean(state.shouldGenerate),
+    message: state.message || null,
+    text: state.text || "",
+    intent: state.intent || "",
+    taskType: state.taskType || "",
+    promptStrategy: state.promptStrategy || "",
+    optimizedPrompt: state.optimizedPrompt || fallbackPrompt,
+    qwenVlMode: state.qwenVlMode || "",
+    promptOptimizerMode: state.promptOptimizerMode || "",
+    skippedOptimizer: Boolean(state.skippedOptimizer),
+    optimizerError: state.optimizerError || "",
+    usedFallbackPrompt: Boolean(state.usedFallbackPrompt),
+    totalBudgetExceeded: Boolean(state.totalBudgetExceeded),
+    outputType: state.outputType || "",
+    imageAnalysis: state.imageAnalysis || null,
+    imageAnalysisError: state.imageAnalysisError || ""
+  };
+}
+
 export function buildMessageDoneState(event = {}, current = {}) {
   const content = event?.message?.content || {};
   const intent = event.intent || content.intent || current.intent || "";

@@ -94,6 +94,7 @@ import {
   applyMessageDoneDebugState,
   applyPromptOptimizedDebugState,
   applyPromptOptimizerStartDebugState,
+  buildConversationAgentResult,
   buildConversationIntentState,
   buildConversationDoneDebugPayload,
   buildGenerationToolState,
@@ -1557,7 +1558,7 @@ async function runConversationAgent({
     throw new Error("Conversation stream ended before message.done");
   }
 
-  return {
+  return buildConversationAgentResult({
     shouldGenerate,
     message: assistantMessage,
     text: assistantText,
@@ -1574,7 +1575,7 @@ async function runConversationAgent({
     outputType,
     imageAnalysis,
     imageAnalysisError
-  };
+  }, { fallbackPrompt: prompt });
 }
 
 async function ensureConversation(projectId, { reset = false } = {}) {

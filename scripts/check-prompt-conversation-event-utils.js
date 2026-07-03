@@ -7,6 +7,7 @@ import {
   applyMessageDoneDebugState,
   applyPromptOptimizedDebugState,
   applyPromptOptimizerStartDebugState,
+  buildConversationAgentResult,
   buildConversationIntentState,
   buildConversationDoneDebugPayload,
   buildGenerationToolState,
@@ -327,6 +328,52 @@ assert(
 );
 assert(fallbackConversationDonePayload.shouldGenerate === false, "Conversation done debug payloads should preserve false generation decisions");
 assert(fallbackConversationDonePayload.imageAnalysisPresent === false, "Conversation done debug payloads should default image analysis presence to false");
+
+const assistantMessageNode = { id: "message-1" };
+const conversationAgentResult = buildConversationAgentResult({
+  shouldGenerate: true,
+  message: assistantMessageNode,
+  text: "assistant text",
+  intent: "generate_video",
+  taskType: "video-task",
+  promptStrategy: "optimized",
+  optimizedPrompt: "Optimized prompt",
+  qwenVlMode: "event-vl",
+  promptOptimizerMode: "event-optimizer",
+  skippedOptimizer: false,
+  optimizerError: "optimizer-warning",
+  usedFallbackPrompt: true,
+  totalBudgetExceeded: true,
+  outputType: "video",
+  imageAnalysis: { source: "event" },
+  imageAnalysisError: "analysis-warning"
+}, {
+  fallbackPrompt: "Fallback prompt"
+});
+assert(conversationAgentResult.shouldGenerate === true, "Conversation agent results should preserve generation decisions");
+assert(conversationAgentResult.message === assistantMessageNode, "Conversation agent results should preserve assistant messages");
+assert(conversationAgentResult.text === "assistant text", "Conversation agent results should preserve assistant text");
+assert(conversationAgentResult.intent === "generate_video", "Conversation agent results should preserve intents");
+assert(conversationAgentResult.taskType === "video-task", "Conversation agent results should preserve task types");
+assert(conversationAgentResult.promptStrategy === "optimized", "Conversation agent results should preserve prompt strategies");
+assert(conversationAgentResult.optimizedPrompt === "Optimized prompt", "Conversation agent results should prefer optimized prompts");
+assert(conversationAgentResult.qwenVlMode === "event-vl", "Conversation agent results should preserve VL modes");
+assert(conversationAgentResult.promptOptimizerMode === "event-optimizer", "Conversation agent results should preserve optimizer modes");
+assert(conversationAgentResult.skippedOptimizer === false, "Conversation agent results should preserve explicit false optimizer skips");
+assert(conversationAgentResult.optimizerError === "optimizer-warning", "Conversation agent results should preserve optimizer errors");
+assert(conversationAgentResult.usedFallbackPrompt === true, "Conversation agent results should preserve fallback prompt flags");
+assert(conversationAgentResult.totalBudgetExceeded === true, "Conversation agent results should preserve budget flags");
+assert(conversationAgentResult.outputType === "video", "Conversation agent results should preserve output types");
+assert(conversationAgentResult.imageAnalysis.source === "event", "Conversation agent results should preserve image analysis");
+assert(conversationAgentResult.imageAnalysisError === "analysis-warning", "Conversation agent results should preserve image analysis errors");
+
+const fallbackConversationAgentResult = buildConversationAgentResult({}, {
+  fallbackPrompt: "Fallback prompt"
+});
+assert(fallbackConversationAgentResult.shouldGenerate === false, "Conversation agent results should default generation decisions to false");
+assert(fallbackConversationAgentResult.message === null, "Conversation agent results should default messages to null");
+assert(fallbackConversationAgentResult.optimizedPrompt === "Fallback prompt", "Conversation agent results should use fallback prompts");
+assert(fallbackConversationAgentResult.imageAnalysis === null, "Conversation agent results should default image analysis to null");
 
 const messageDoneState = buildMessageDoneState({
   intent: "generate_video",
