@@ -1,114 +1,151 @@
-# AI Studio 架构治理 PRD
+# AI Studio SaaS 架构治理 PRD
 
-## 1. 项目背景
+更新日期：2026-07-03
 
-AI Studio 当前已经具备基础 AI 创作平台雏形，包括首页、无限画布、图片生成、聊天框、项目库、素材库、积分、登录、3D 预览、Railway 部署等能力。
+本文档是 AI Studio 长期架构治理的主路线图。它的用途不是记录一次短期修复，而是作为 Codex 后续较长时间自动执行治理任务时的决策依据、阶段边界、验收标准和风险控制规则。
 
-当前项目已经可以在 Railway 正常运行，但代码仍处于“原型产品向 SaaS 产品过渡”的阶段，存在 legacy 文件较多、前端入口不够统一、样式系统混乱、生产环境和本地环境容易不一致、SaaS 发布底座不足等问题。
+核心目标：把 AI Studio 从“可运行的单体原型”治理成“适合 SaaS 发布、长期维护、可持续扩展的现代化单体架构”。
 
-本次 PRD 的目标不是新增产品功能，也不是重写项目，而是对现有项目做架构治理，让它更适合长期维护、后续扩展和 SaaS 发布。
+## 1. 总原则
 
-## 2. 治理目标
+### 1.1 不变原则
 
-### 2.1 总目标
+后续所有治理都必须遵守：
 
-把当前项目从“可运行的单体原型”治理成“适合 SaaS 发布和长期维护的现代化单体架构”。
+- 不直接切 Next.js / React / Vue。
+- 不重写整个项目。
+- 不新增产品功能。
+- 不改变现有 UI 视觉。
+- 不改变现有交互。
+- 不新增依赖，除非未来有单独批准。
+- 不为了目录好看而移动文件。
+- 不删除文件，除非有静态引用证据、运行验证和清晰回滚点。
+- 不使用 `git add .`。
+- 不把无关文件混入 commit。
+- 每轮只执行一个小阶段。
+- 每次提交前运行 `npm run check` 和 `npm run build`。
 
-### 2.2 具体目标
+### 1.2 治理方向
 
-- 保持现有功能正常运行。
-- 不切换 Next.js、React、Vue，不重写项目。
-- 继续使用当前 Express + Vite + 原生 ESM 前端栈。
-- 前端按 feature 功能域收口。
-- 后端按 routes / services / providers / db 分层。
-- 样式系统从 legacy 逐步迁移到清晰层级。
-- 为未来 SaaS 发布预留存储、任务队列、计费、审计、限流等扩展接口。
-- 建立基础质量门禁，避免“本地正常、线上崩掉”。
+允许并鼓励：
 
-## 3. 非目标
+- 抽出纯函数、纯数据转换、payload 构造、格式化、状态判断。
+- 抽出已被稳定测试覆盖的工作流子模块。
+- 将路由层业务逻辑下沉到 services。
+- 将外部能力抽象到 providers，并保留 local 实现。
+- 用脚本检查保护行为等价。
+- 删除已证实不可达、无引用、可回滚的代码。
+- 合并或删除过期治理文档，但必须单独阶段执行。
 
-本轮治理明确不做以下事情：
+不允许：
 
-- 不新增支付页面。
-- 不新增后台管理页面。
-- 不新增套餐售卖功能。
-- 不重设计 UI。
-- 不直接切 Next.js。
-- 不换 React / Vue。
-- 不把 SQLite 立即强迁移到 PostgreSQL。
-- 不大规模删除代码。
-- 不改变首页、画布、上传、生图、聊天框、3D 预览等核心交互。
-- 不新增 3D、视频、Agent、支付等产品功能。
+- 顺手改文案、布局、按钮、弹窗、流程。
+- 以“重构”为名改变保存、生成、上传、登录、项目库、素材库、画布行为。
+- 一次同时做前端拆分、CSS 迁移、后端 provider、文档删除和功能调整。
+- 在没有检查覆盖时迁移强 DOM 副作用逻辑。
 
-## 4. 当前主要问题
+## 2. 当前基线
 
-### 4.1 前端问题
+### 2.1 技术栈
 
-当前前端存在以下问题：
+当前仍保持：
 
-- index.html 承载内容过多，包含首页、账户、模型偏好、项目库、素材库、画布、聊天框、任务日志等多个区域。
-- 一旦 CSS 加载失败，多个页面模块会同时裸露出来。
-- 前端启动入口和 legacy bridge 仍然较多。
-- legacy-app.js、AIStudioCompatibilityBridge、AIStudioLegacyBridge 等兼容层仍在承担真实逻辑。
-- 部分功能边界不够清晰，修改某个模块可能影响其他模块。
-- 当前目录已有 features 结构，但还没有完全形成稳定的 public API。
+- 后端：Express + SQLite + 原生 Node.js ESM。
+- 前端：Vite + 原生 ESM。
+- 部署：Railway / 本地 production-like 启动路径。
+- 存储：本地 uploads / Railway Volume。
+- 任务：当前以同步或本地 job 状态为主。
+- 计费：credit ledger 基础已存在。
 
-### 4.2 样式问题
+### 2.2 已完成治理
 
-当前样式存在以下问题：
+已经完成或基本完成的方向：
 
-- legacy CSS 文件较多。
-- 样式入口不够清楚。
-- /styles、/assets/styles、Vite build 产物之间容易出现路径不一致。
-- 全局 cascade 和 overrides 较多。
-- 主题、布局、组件、功能样式混在一起，长期维护风险高。
+- `npm run check` 聚合检查入口。
+- `npm run build` 构建门禁。
+- build budget 检查。
+- built static asset 检查。
+- 前端入口链路检查。
+- 浏览器启动请求检查。
+- 静态 reachability 检查。
+- 部分重型 workflow lazy-load。
+- 项目快照持久化稳定性修复：
+  - 不保存 `loading-image` / `node-loading-image` / `generation-frame` 临时生成预览。
+  - 同源 `/uploads/...` 媒体地址归一为稳定相对路径。
+  - 旧快照打开后可自动修复。
+  - 服务端快照 sanitizer 做兜底。
+- 多个前端大 workflow 已开始拆分：
+  - prompt workflow
+  - image generator workflow
+  - video generator workflow
+  - asset library runtime
+  - project workflow
+- 后端已开始形成 provider/service 边界：
+  - storage
+  - job queue
+  - billing
+  - audit
+  - rate limit
+  - request context
+  - route request helpers
+  - HTTP error helpers
 
-### 4.3 后端问题
+### 2.3 当前主要风险
 
-当前后端已经有 routes、services、db、middleware 等基础分层，但距离 SaaS 还缺少：
+仍然存在：
 
-- 统一 StorageProvider，当前本地文件存储未来不适合长期放图片、视频、3D 模型。
-- 统一 JobQueue，生图、视频、3D 等长任务未来需要队列。
-- 统一 RateLimitStore，当前内存限流未来不适合多实例部署。
-- 统一 BillingProvider，积分系统未来要接支付、订单、退款、账本。
-- 统一 AuditLogger，未来需要记录安全、计费、管理操作。
-- 路由输入校验和错误响应格式还需统一。
-- SQLite 当前适合内测，但正式 SaaS 未来需要预留迁移 PostgreSQL 的边界。
+- 前端大文件仍偏重。
+- CSS 仍高度 legacy 和全局 cascade。
+- `index.html` 仍承载较多静态 template。
+- 多个治理文档是阶段性地图，长期会变成文档债。
+- CSP 仍较宽松。
+- 多实例限流没有外部 store。
+- 上传和生成资产还没有对象存储 provider。
+- 长任务还没有真正 durable queue / worker。
+- 计费没有正式支付、订单、退款、发票。
+- UI/E2E 自动化不足。
+- 数据库备份、恢复、迁移演练还不够产品化。
 
-### 4.4 部署问题
+## 3. 长期目标架构
 
-当前 Railway 已经可以运行，但仍需要文档化以下内容：
+### 3.1 前端目标结构
 
-- 必需环境变量。
-- 启动命令。
-- 数据库位置。
-- 上传文件位置。
-- 静态资源路径。
-- 常见错误处理方式。
-- 本地 production 模式如何模拟 Railway。
+保持原生 ESM，不引入框架。
 
-## 5. 推荐目标架构
-
-### 5.1 前端目标架构
-
-前端保持 Vite + 原生 ESM，不引入 React / Vue / Next.js。
-
-推荐目录方向：
+目标方向：
 
 ```text
 src/client/
-  app/
+  core/
     app-init.js
-    mount-workspace-app.js
+    event-bus.js
+    state.js
 
   features/
     home/
+      runtime.js
+      workflows/
+      components/
+      utils/
+
     workspace/
+      runtime/
+      workflows/
+      chat/
+      asset-library/
+
     canvas/
-    ai/
-    chat/
-    assets/
+      runtime/
+      workflows/
+      components/
+      utils/
+
     projects/
+      runtime.js
+      workflows/
+      services/
+      utils/
+
     auth/
     credits/
     agent/
@@ -116,48 +153,47 @@ src/client/
     video/
 
   components/
-    button/
-    modal/
-    tabs/
-    dropdown/
-    toast/
-
   lib/
-    api-client.js
-    dom.js
-    events.js
-    format.js
-
-  styles/
-    index.css
 ```
 
-### 5.2 前端原则
+目标不是强制一次性迁移到这个形态，而是每次治理让真实调用关系更接近这个形态。
 
-唯一公开启动入口：
+### 3.2 后端目标结构
+
+目标方向：
 
 ```text
-app-init.js -> mountWorkspaceApp()
+src/server/
+  index.js
+  config/
+  routes/
+  services/
+  providers/
+    storage/
+    queue/
+    billing/
+    rate-limit/
+    audit/
+  db/
+    migrations/
+    repositories/
+  middleware/
+  security/
+  lib/
 ```
 
-每个 feature 只暴露一个明确 public API，例如：
+规则：
 
-```text
-mount()
-bind()
-dispose()
-syncRemote()
-```
+- routes 只做请求解析、鉴权接入、响应输出。
+- services 承担业务流程。
+- providers 承担外部能力适配。
+- db/repositories 承担数据访问。
+- lib 存放跨模块纯工具。
+- provider 必须有 local 实现，不能只有空接口。
 
-新功能禁止写入 legacy 文件。
+### 3.3 样式目标结构
 
-legacy 文件只作为过渡兼容层，逐步减少真实依赖。
-
-index.html 逐步从“大模板”变成“静态壳”。
-
-## 6. 样式目标架构
-
-推荐样式层级：
+目标方向：
 
 ```text
 styles/
@@ -165,7 +201,6 @@ styles/
   base.css
   layout.css
   components.css
-
   features/
     home.css
     workspace.css
@@ -173,632 +208,675 @@ styles/
     chat.css
     assets.css
     projects.css
-    auth.css
-    credits.css
-    agent.css
-
+    task-log.css
   themes/
-    ios.css
-    dark.css
-
   overrides.css
 ```
 
-### 样式治理原则
-
-- 不重设计 UI。
-- 不一次性删除 legacy CSS。
-- 每次只迁移一个功能域。
-- 保持视觉结果基本一致。
-- 减少全局覆盖。
-- 所有 CSS 入口必须文档化。
-- /styles 和 /assets/styles 的线上静态资源路径必须稳定。
-
-## 7. 后端目标架构
+CSS 治理必须以视觉不变为前提。没有 smoke 证据时，不做大段迁移。
 
-推荐后端方向：
-
-```text
-src/server/
-  index.js
-
-  config/
-    env.js
+### 3.4 SaaS 基础设施目标
 
-  routes/
-    auth.routes.js
-    project.routes.js
-    asset.routes.js
-    ai.routes.js
-    upload.routes.js
-    credit.routes.js
+长期目标：
 
-  services/
-    auth/
-    projects/
-    assets/
-    ai/
-    credits/
-    uploads/
+- StorageProvider 可切换 local / object storage。
+- JobQueue 可切换 local / durable queue。
+- RateLimitStore 可切换 memory / Redis。
+- BillingProvider 可接支付订单。
+- AuditLogger 能记录关键安全和计费事件。
+- API 错误格式统一。
+- API 输入验证集中。
+- 数据库迁移、备份、恢复、回滚有明确流程。
+- production-like 本地验证路径稳定。
 
-  providers/
-    storage/
-      local-storage.provider.js
-    queue/
-      local-job-queue.provider.js
-    billing/
-      local-billing.provider.js
-    rate-limit/
-      memory-rate-limit-store.js
-    audit/
-      local-audit-logger.js
+## 4. 长期阶段路线
 
-  db/
-    sqlite.js
-    migrations/
-    repositories/
+### 阶段 0：治理基线和门禁稳定
 
-  middleware/
-    auth.middleware.js
-    error.middleware.js
-    validation.middleware.js
+状态：基本完成，但需要持续维护。
 
-  security/
-```
+目标：
 
-### 后端治理原则
+- 确保每次治理都有可重复验证。
+- 防止无意中改变 UI、交互和业务行为。
 
-- 路由只负责接收请求和返回响应。
-- 业务逻辑放 services。
-- 数据库访问逐步收敛到 repositories。
-- 外部服务统一放 providers。
-- 当前先保留 SQLite，不强行迁移数据库。
-- Provider 必须有 local 实现，不能只写空接口。
-- 不引入未接入运行路径的空架构。
+任务：
 
-## 8. SaaS 底座预留
+- 保持 `npm run check` 为唯一聚合检查入口。
+- 保持 `npm run build` 为构建门禁。
+- 保持 build budget 检查。
+- 保持 reachability / lazy-load / static asset 检查。
+- 每当新增治理工具时，接入 `npm run check`。
 
-### 8.1 StorageProvider
+验收：
 
-当前用途：
+- `npm run check` 通过。
+- `npm run build` 通过。
+- 没有无关文件混入 commit。
 
-```text
-本地 uploads / Railway Volume
-```
+### 阶段 1：发布稳定性和数据质量治理
 
-未来用途：
+状态：已完成一部分，仍需继续。
 
-```text
-阿里云 OSS / Cloudflare R2 / AWS S3 / CDN
-```
+目标：
 
-要求：
+- 消除会导致线上崩溃、数据不可恢复、环境不一致的基础问题。
 
-- 当前实现仍然使用本地存储。
-- 业务代码不要直接依赖本地路径。
-- 数据库保存文件 URL 或 storage key。
-- 未来可替换成对象存储。
+已完成：
 
-### 8.2 JobQueue
+- 项目快照过滤临时生成节点。
+- 媒体 URL 稳定化。
+- 服务端 snapshot sanitizer 兜底。
 
-当前用途：
+后续任务：
 
-```text
-同步执行 / 简单轮询
-```
+1. 检查所有持久化 JSON：
+   - project snapshot
+   - conversation metadata
+   - asset metadata
+   - ai job output
+2. 确认所有本地绝对 URL 都不会被长期保存。
+3. 对上传文件、生成结果、缩略图建立统一 URL 规则。
+4. 增强 database integrity / orphan file 检查。
+5. 增加 production-like 启动检查。
 
-未来用途：
+验收：
 
-```text
-Redis / BullMQ / 后台 Worker
-```
+- 旧项目打开不恢复临时节点。
+- 首页、项目库、画布中的图片 URL 一致。
+- `npm run check` 覆盖关键持久化规则。
+- `npm run build` 通过。
 
-要求：
+### 阶段 2：前端入口和 runtime 边界治理
 
-- 当前保留 local job queue。
-- 生图、视频、3D 等长任务未来统一进入队列。
-- 前端通过 jobId 查询任务状态。
-- 支持任务失败、重试、取消、结果回填。
+状态：已做多轮，但仍需继续。
 
-### 8.3 BillingProvider
+目标：
 
-当前用途：
+- 让启动链路短、明确、可验证。
+- 减少 barrel、wrapper、composition 中的纯转发层。
+- 保留必要兼容层，但让其逐步变薄。
 
-```text
-积分扣费
-```
+任务：
 
-未来用途：
+1. 固定启动路径：
+   - `app.js`
+   - `src/client/main.js`
+   - `src/client/core/app-init.js`
+   - workspace mount/runtime
+2. 清理纯 forwarding modules。
+3. 检查 workspace runtime dependency groups。
+4. 只在有 reachability 证据时删除不可达文件。
+5. 保持 heavy workflow 不进入首屏启动路径。
 
-```text
-支付订单 / 套餐 / 退款 / 赠送 / 发票
-```
+不做：
 
-要求：
+- 不重写 app-init。
+- 不改变启动顺序。
+- 不改变 UI 初始化时机。
 
-- 不新增支付功能。
-- 保留当前积分系统。
-- 逐步建立积分流水。
-- 每笔积分变化必须可追踪。
-- AI 任务失败时未来应支持返还积分。
+验收：
 
-### 8.4 RateLimitStore
+- browser startup request 数量不回升。
+- heavy 3D/video workflow 不进入首屏主 bundle。
+- `scripts/check-client-reachability.js` 通过。
+- `scripts/check-browser-startup-lazy-load.js` 通过。
 
-当前用途：
+### 阶段 3：Prompt / Chat 工作流治理
 
-```text
-内存限流
-```
+状态：正在进行。
 
-未来用途：
+目标：
 
-```text
-Redis 限流
-```
+- 继续降低 `prompt-workflow.js` 复杂度。
+- 将纯逻辑、网络逻辑、stream 逻辑、DOM 逻辑拆成稳定边界。
 
-要求：
+优先任务队列：
 
-- 当前保留内存实现。
-- 接口调用限流逻辑不要散落在路由里。
-- 未来可替换为 Redis 实现。
+1. 纯数据构造：
+   - conversation payload
+   - generation payload
+   - debug summary
+   - project patch
+   - result node options
+2. 状态判断：
+   - generation intent
+   - tool event
+   - stream completion
+   - retryable error
+   - autosave condition
+3. 子流程拆分：
+   - conversation run
+   - stream runner
+   - history workflow
+   - popover lifecycle
+   - attachment restore
+4. DOM 拆分：
+   - 只有在对应检查覆盖后再拆。
+   - 不改变 markup。
+   - 不改变 selector。
 
-### 8.5 AuditLogger
+每轮规则：
 
-当前用途：
+- 只抽一个职责。
+- 增加或扩展 `scripts/check-prompt-*.js`。
+- 不改聊天框视觉。
+- 不改生成流程。
+- 不改项目保存时机。
 
-```text
-普通日志
-```
+完成标准：
 
-未来用途：
+- `prompt-workflow.js` 主要成为 orchestration 层。
+- 纯工具分散到清晰 utils。
+- stream、history、popover、debug、preview 均有独立检查脚本。
 
-```text
-安全审计 / 计费审计 / 管理操作记录
-```
+### 阶段 4：Image Generator 工作流治理
 
-要求：
+状态：已做多轮，继续收尾。
 
-- 先建立本地日志实现。
-- 记录关键事件，例如登录、上传、生成任务、积分变化、项目删除。
-- 不影响现有功能。
-- 不引入复杂日志平台。
+目标：
 
-## 9. 分阶段计划
+- 让 `image-generator-workflow.js` 从巨型流程变成调度层。
 
-## 阶段 0：基线冻结
+优先任务：
 
-### 目标
+1. job polling utilities 收口。
+2. result parsing / output normalization 收口。
+3. preview replacement 收口。
+4. size / placement / model selection 收口。
+5. reference image reading 收口。
+6. recovered job restore 收口。
 
-记录当前项目真实状态，形成后续治理基线。
+风险点：
 
-### 任务
+- 生成完成后替换 preview 的时机。
+- 保存项目的时机。
+- 画布节点坐标和尺寸。
+- 与 prompt workflow 共用生成结果的逻辑。
 
-创建治理分支：
+验收：
 
-```text
-codex/saas-architecture-governance
-```
+- `scripts/check-generator-job-recovery.js` 通过。
+- `scripts/check-generation-autosave.js` 通过。
+- 生成中 pending preview 行为不变。
+- 生成完成后最终 image node 行为不变。
 
-新增：
+### 阶段 5：Video / 3D / Heavy Workflow 治理
 
-```text
-docs/architecture/current-state.md
-```
+状态：已开始。
 
-文档内容包括：
+目标：
 
-- 当前启动命令。
-- Railway 必需环境变量。
-- 前端入口文件。
-- index.html 承载的页面区域。
-- CSS 入口和静态资源路径。
-- API 路由清单。
-- 数据库表清单。
-- 上传和生成文件保存位置。
-- 当前前端 feature 目录结构。
-- 当前 legacy 文件清单。
-- 当前已知风险点。
+- 保持重型能力 lazy-load。
+- 让 3D/video 不污染首屏启动和主 bundle。
 
-### 验收标准
+任务：
 
-- 不改变运行行为。
-- 不修改 UI。
-- 不删除文件。
-- npm run check 通过。
-- npm run build 通过。
+1. video generator workflow 继续拆分：
+   - payload
+   - job polling
+   - preview node
+   - reference utils
+   - form state
+2. model viewer workflow 保持 lazy import。
+3. 任何新增重型能力必须延迟加载。
+4. build budget 中单独监控 heavy chunks。
 
-## 阶段 1：发布硬伤治理
+验收：
 
-### 目标
+- build budget 通过。
+- browser startup lazy-load 检查通过。
+- 首屏不请求 3D/video heavy workflow。
 
-修复影响 SaaS 发布稳定性的基础问题。
+### 阶段 6：Canvas 核心工作流治理
 
-### 任务
+状态：待深入。
 
-- 修复乱码文案。
-- 建立编码检查。
-- 记录 Railway 部署说明。
-- 确保本地 production 启动路径和 Railway 一致。
-- 记录 CSS 静态资源路径。
-- 防止 CSS 请求 fallback 到 index.html。
-- 记录数据库 reset 风险。
+目标：
 
-### 新增文档
+- 治理 `canvas-menu-actions.js`、node controls、drag/resize、toolbar 等高耦合区域。
 
-```text
-docs/deployment/railway.md
-docs/architecture/style-entry-map.md
-```
+优先任务：
 
-### 验收标准
+1. 静态地图：
+   - action registry
+   - menu command
+   - node selection
+   - clipboard
+   - layout alignment
+2. 抽纯工具：
+   - clipboard snapshot
+   - layout calculations
+   - alignment calculation
+   - bounds calculation
+   - menu enable/disable 判断
+3. 后拆 DOM 绑定：
+   - 需要 selector evidence。
+   - 需要 smoke 检查。
 
-- 页面文案正常显示。
-- Railway 部署说明清楚。
-- CSS 文件线上返回 text/css。
-- 不再出现 CSS MIME type 错误。
-- npm run check 通过。
-- npm run build 通过。
+不做：
 
-## 阶段 2：前端入口治理
+- 不改菜单结构。
+- 不改快捷键。
+- 不改 toolbar 视觉。
+- 不改节点交互。
 
-### 目标
+验收：
 
-减少前端启动混乱，让启动路径清晰。
+- canvas menu 行为不变。
+- node selection / drag / resize 行为不变。
+- 有对应脚本或 smoke 保护。
 
-### 任务
+### 阶段 7：Projects / Assets / Task Log 治理
 
-固定唯一公开启动入口：
+状态：projects/assets 已有较多治理，task-log 文档债较重。
 
-```text
-app-init.js -> mountWorkspaceApp()
-```
+目标：
 
-记录当前启动链路。
+- 项目库、素材库、任务日志成为清晰 feature。
+- 清理 task-log 过多治理文档。
 
-减少无意义的 runtime / bootstrap / composition 纯转发文件。
+Projects 后续任务：
 
-逐步减少 CompatibilityBridge / LegacyBridge 真实依赖。
+- 继续收敛 project runtime public API。
+- 强化远端项目保存失败和回滚检查。
+- 保持快照保存与恢复规则稳定。
 
-每次只替换一个调用点。
+Assets 后续任务：
 
-禁止一次性删除兼容桥。
+- 收敛 asset-library runtime。
+- 统一 asset URL、thumbnail、metadata 规则。
+- 为未来对象存储保持 provider 边界。
 
-### 验收标准
+Task Log 后续任务：
 
-- 启动顺序更短。
-- 公开入口更少。
-- 每个 feature 的边界更清楚。
-- 不改变现有交互。
-- npm run check 通过。
-- npm run build 通过。
+- 先合并文档，再删冗余文档。
+- 梳理 API contract、runtime selector、template seam。
+- 然后再做代码拆分。
 
-## 阶段 3：前端 feature 收口
+验收：
 
-### 目标
+- 项目库保存/删除以服务端结果为准。
+- 素材库上传/引用/插入画布行为不变。
+- task-log 文档数量下降，但关键证据不丢失。
 
-让前端功能按业务域分房间。
+### 阶段 8：CSS 系统治理
 
-### 功能域
+状态：待执行。
 
-```text
-home
-workspace
-canvas
-ai
-chat
-assets
-projects
-auth
-credits
-agent
-model3d
-video
-```
+目标：
 
-### 任务
+- 从 legacy CSS 大文件迁移到可维护的 feature CSS。
+- 不改变视觉。
 
-- 每个 feature 建立一个明确 public API。
-- 每个 feature 内部管理自己的 DOM 绑定、状态同步、销毁逻辑。
-- 避免跨 feature 直接改 DOM。
-- 公共能力放到 lib 或 components。
-- 旧逻辑从 legacy 文件逐步迁出。
+执行顺序：
 
-### 优先拆分文件
+1. 先增强 CSS 检查：
+   - entry imports
+   - MIME/static asset
+   - selector presence
+   - critical layout class
+2. 再选一个低风险 feature：
+   - task-log
+   - auth dialog
+   - project library
+3. 每次只移动一小组样式。
+4. 每次保留原 selector 行为。
+5. 视觉检查后再删除旧规则。
 
-```text
-prompt-workflow.js
-canvas-menu-actions.js
-image-generator-workflow.js
-asset-library-runtime.js
-node-controls.js
-```
+禁止：
 
-### 验收标准
+- 一次大拆 `legacy-node.css`。
+- 一次大拆 `workspace-layout.css`。
+- 为了“现代化”改变色彩、圆角、间距、阴影。
 
-- 每轮只治理一个 feature。
-- 迁移后功能行为保持一致。
-- legacy 依赖数量下降。
-- npm run check 通过。
-- npm run build 通过。
+验收：
 
-## 阶段 4：样式系统治理
+- 首页、画布、聊天框、项目库、素材库、登录弹窗、任务日志视觉不变。
+- CSS 文件职责更清楚。
+- legacy CSS 行数逐步下降。
 
-### 目标
+### 阶段 9：后端 SaaS Provider 深化
 
-让样式从 legacy 大包袱变成清晰层级。
+状态：已有 seam，需增强。
 
-### 任务
+目标：
 
-建立样式入口图。
+- 让未来接对象存储、Redis、队列、支付时，不需要重写业务层。
 
-记录每个 CSS 文件的引用关系。
+StorageProvider：
 
-从 legacy-split.css 逐步迁移到 styles/features/*。
+- 保留 local 实现。
+- 抽象 upload path、public URL、private access、delete、exists。
+- 未来接 R2/S3/OSS/CDN。
+- 不直接改现有上传行为。
 
-优先治理大文件：
+JobQueue：
 
-```text
-workspace-layout.css
-legacy-assets.css
-legacy-node.css
-legacy-theme-sync.css
-```
+- 保留 local 实现。
+- 定义 enqueue、getStatus、complete、fail、cancel。
+- 未来接 Redis/BullMQ/worker。
+- 不改变现有生成接口。
 
-建立基础层级：
+RateLimitStore：
 
-```text
-tokens
-base
-layout
-components
-features
-themes
-overrides
-```
+- 保留 memory 实现。
+- 定义 increment、reset、ttl。
+- 未来接 Redis。
+- 路由不直接依赖 Map。
 
-### 验收标准
+BillingProvider：
 
-不重设计 UI。
+- 保留 credit ledger。
+- 预留 order、payment、refund、invoice。
+- 失败任务未来支持积分返还。
+- 不新增支付页面。
 
-视觉结果基本一致。
+AuditLogger：
 
-legacy CSS 文件数量和行数逐步下降。
+- 覆盖登录、上传、生成、保存、删除、计费变化。
+- 先 local，再预留外部日志。
+- 不影响用户流程。
 
-关键页面视觉 smoke 通过：
+验收：
 
-- 首页
-- 画布
-- 素材库
-- 任务日志
-- 登录弹窗
+- provider 至少接入一条真实运行路径。
+- local 实现继续可用。
+- API 行为不变。
+- provider check 脚本通过。
 
-## 阶段 5：后端 SaaS provider 治理
+### 阶段 10：API 合同和验证治理
 
-### 目标
+状态：已有部分脚本，仍需系统化。
 
-为未来 SaaS 扩展预留插座，但不新增业务功能。
+目标：
 
-### 任务
+- 所有关键 SaaS API 有输入校验、错误合同和隔离验证。
 
-- 建立 StorageProvider。
-- 建立 RateLimitStore。
-- 建立 JobQueue。
-- 建立 BillingProvider。
-- 建立 AuditLogger。
-- 每个 provider 都必须有 local 实现。
-- 每个 provider 都必须接入至少一个真实运行路径。
-
-### 验收标准
-
-- 不引入外部依赖。
-- SQLite 继续可用。
-- 本地存储继续可用。
-- 当前功能不变。
-- 所有受保护资源仍按 req.auth.user.id 隔离。
-- npm run check 通过。
-- npm run build 通过。
-
-## 阶段 6：体量和性能优化
-
-### 目标
-
-降低首屏负担，避免项目继续膨胀。
-
-### 任务
-
-- Three.js 动态 import。
-- 3D viewer 动态 import。
-- 视频生成模块动态 import。
-- 重型 AI 面板动态 import。
-- 按视图拆分 home、canvas、asset library、task log、auth dialog。
-- 整理 scripts，把检查脚本归类。
-- 控制 Vite 大 chunk 警告。
-
-### 验收标准
-
-- 首屏不加载 3D / 视频重型模块。
-- 生产构建 chunk 体量下降，或有明确豁免说明。
-- npm run check 仍是单一可信入口。
-- npm run build 通过。
-
-## 阶段 7：测试和发布门禁
-
-### 目标
-
-让项目具备 SaaS 发布前的基础验证能力。
-
-### 任务
-
-增加 API 集成测试：
+范围：
 
 - auth
 - projects
 - assets
-- credits
-- ai jobs
 - uploads
+- credits
+- conversations
+- AI jobs
+- protected uploads
 
-增加关键 UI E2E：
+任务：
 
-- 登录
-- 项目保存
-- 项目删除
-- 素材上传
-- 生成任务状态
-- 任务日志
+1. 统一错误格式。
+2. 统一输入读取。
+3. 统一 request user / workspace scope。
+4. 补 API contract checks。
+5. 补跨用户隔离 checks。
+6. 补非法输入 checks。
 
-增加安全检查：
+验收：
 
-- 未登录返回 401
-- 跨用户资源不能访问
-- cookie flags 正确
-- 上传 MIME 校验
-- 上传大小限制
-- API 错误格式统一
+- 未登录返回 401。
+- 跨用户资源不可访问。
+- 非法输入返回稳定错误。
+- API tests 不依赖真实生产数据。
 
-建立发布 checklist：
+### 阶段 11：安全和生产配置治理
 
-- 环境变量检查
-- 数据库备份
-- 数据库迁移
-- 健康检查
-- 回滚步骤
-- Railway 部署检查
-- Console / Network 检查
+状态：待深入。
 
-### 验收标准
+目标：
 
-每个核心 SaaS 能力至少有一条自动化验证。
+- 达到可公开 SaaS 的最低安全基线。
 
-发布前必须通过：
+任务：
 
-```text
-npm run check
-npm run build
-API tests
-关键 E2E
-```
+- 收紧 CSP。
+- 梳理 inline/eval 依赖。
+- Cookie flags 检查。
+- 上传 MIME 和大小限制。
+- private image URL 防护。
+- protected upload 权限隔离。
+- `.env` 和 secret hygiene。
+- Railway production env 检查。
+- 禁止 mock provider 在生产开启。
 
-失败时能定位到：
+验收：
 
-- 前端状态
-- API 接口
-- 数据库
-- 第三方 AI provider
-- 文件存储
-- 权限隔离
+- `scripts/check-auth-config.js` 通过。
+- upload security checks 通过。
+- railway env check 在生产配置下可执行。
+- 没有明显 secret 泄露路径。
 
-## 10. Codex 执行规则
+### 阶段 12：数据、迁移、备份和恢复治理
 
-每次 Codex 只能执行一个小任务。
+状态：待深入。
 
-禁止一次性执行：
+目标：
 
-```text
-前端重构 + 样式治理 + 后端 provider + 测试 + 删除文件
-```
+- 数据库可长期运营、可迁移、可恢复。
 
-每次任务必须遵守：
+任务：
 
-只改本轮明确范围内的文件。
+- 明确 SQLite 当前边界。
+- 建立备份脚本。
+- 建立恢复演练。
+- 迁移脚本可重复执行。
+- project snapshots 可审计。
+- orphan uploads 可检查。
+- 为未来 PostgreSQL 迁移预留 repository 边界。
 
-不改 UI 视觉。
+不做：
 
-不新增业务功能。
+- 不立即强迁 PostgreSQL。
+- 不破坏现有 SQLite 数据。
 
-不删除文件，除非有静态引用证据、运行验证和回滚点。
+验收：
 
-提交前运行：
+- DB integrity check 通过。
+- 迁移可重复执行。
+- 有恢复步骤。
+- 数据清理不会删除仍被引用的文件。
 
-```text
-npm run check
-npm run build
-```
+### 阶段 13：自动化 UI / E2E 治理
 
-输出：
+状态：不足。
 
-- 修改了哪些文件。
-- 为什么这么改。
-- 是否改变运行行为。
-- 是否有风险。
-- 如何回滚。
-- 下一步建议。
+目标：
 
-## 11. 第一轮 Codex 任务
+- 关键用户路径有自动化或半自动 smoke 证据。
 
-请先只执行阶段 0：基线冻结。
+关键路径：
 
-### 任务说明
+- 登录 / 登出 / session 恢复。
+- 首页输入生成进入画布。
+- 生成中 pending preview。
+- 生成完成替换最终节点。
+- 项目保存。
+- 项目打开。
+- 项目删除失败回滚。
+- 素材上传。
+- 素材插入画布。
+- 任务日志刷新。
 
-当前 Railway 已经可以正常 Running，页面能正常打开。
+验收：
 
-请不要重构项目，不要改 UI，不要新增功能，不要删除文件。
+- 至少覆盖核心发布路径。
+- 能在本地 production-like 服务上运行。
+- 失败时能定位到 API、DB、前端状态或第三方 provider。
 
-只新增或更新文档：
+### 阶段 14：文档债清理
 
-```text
-docs/architecture/current-state.md
-```
+状态：待执行。
 
-文档需要记录：
+目标：
 
-- 当前启动命令。
-- Railway 必需环境变量。
-- 当前前端入口文件。
-- 当前 index.html 承载了哪些页面区域。
-- 当前 CSS 入口和静态资源路径。
-- 当前 API 路由清单。
-- 当前数据库表清单。
-- 当前上传 / 生成文件保存位置。
-- 当前前端 feature 目录结构。
-- 当前 legacy 文件清单。
-- 当前已知风险点。
-- 哪些文件暂时不能删除。
-- 后续治理建议。
+- `docs/architecture` 从阶段性地图集合，收敛成少量长期有用文档。
 
-### 限制
+必须保留：
 
-- 不修改首页。
-- 不修改画布。
-- 不修改上传。
-- 不修改生图。
-- 不修改聊天框。
-- 不修改 3D 预览。
-- 不修改登录。
-- 不修改项目库。
-- 不修改素材库。
-- 不修改数据库结构。
-- 不新增依赖。
-- 不删除文件。
+- `current-state.md`
+- `saas-governance-prd.md`
+- `style-entry-map.md`
+- `frontend-entry-governance-map.md`
 
-### 验收标准
+暂时保留：
 
-只新增或更新文档。
+- `index-template-map.md`
+- `dom-dependency-map.md`
+- `runtime-event-map.md`
+- `feature-template-split-checklist.md`
 
-运行：
+task-log 文档处理：
 
-```text
-npm run check
-npm run build
-```
+1. 先合并到 `task-log-governance-index.md`。
+2. 确认 API contract、selector evidence、runtime map、template seam、smoke checklist 没丢。
+3. 再逐个删除冗余 task-log 文档。
+4. 删除必须单独 commit。
 
-两个命令都必须通过。
+可优先合并或删除候选：
 
-页面运行行为不变。
+- `encoding-audit.md`
 
-输出修改摘要和下一阶段建议。
+删除文档验收：
 
-## 12. 成功标准
+- `rg` 无硬引用。
+- PRD 或保留索引已吸收仍有价值的信息。
+- `npm run check` 通过。
+- `npm run build` 通过。
 
-完成本轮治理后，AI Studio 应达到以下状态：
+### 阶段 15：SaaS 发布候选治理
 
-- 项目结构清晰。
-- 前端功能边界清楚。
-- 后端服务边界清楚。
-- 样式入口清楚。
-- Railway 部署稳定。
-- 本地 production 和线上行为一致。
-- legacy 文件数量和真实依赖逐步下降。
-- SaaS 必需的存储、计费、队列、审计、限流都有预留接口。
-- 后续接 3D、视频、Agent、支付、企业空间时，不需要继续往 legacy 里堆代码。
-- 项目可以从“个人原型”逐步升级为“可维护的 SaaS 平台”。
+状态：未达到。
+
+目标：
+
+- 达到可公开试运营的 SaaS 质量。
+
+进入条件：
+
+- 项目保存/打开/删除稳定。
+- 生成结果持久化稳定。
+- 上传与 protected upload 权限稳定。
+- auth/session 稳定。
+- 生产 env 检查完整。
+- DB 备份恢复演练完成。
+- 基础 API tests 和 UI smoke 通过。
+
+发布前必须完成：
+
+- 禁止生产 mock。
+- Railway env 完整。
+- CSP 风险有明确清单和缓解。
+- 资产存储策略明确。
+- 备份策略明确。
+- 回滚策略明确。
+- 日志和审计最小可用。
+
+不满足时：
+
+- 只能作为内测或私有 beta。
+- 不应作为成熟 SaaS 正式发布。
+
+## 5. 自动执行规则
+
+当 Codex 根据本 PRD 自动继续工作时，按以下规则选择下一步：
+
+### 5.1 优先级顺序
+
+1. 当前工作区是否干净；若不干净，先确认未提交改动来源。
+2. 是否有未完成的小阶段；有则先完成它。
+3. 优先做前端大 workflow 的纯逻辑拆分。
+4. 再做检查脚本补强。
+5. 再做后端 provider/service 深化。
+6. 再做 CSS 小范围迁移。
+7. 最后做文档债清理。
+
+### 5.2 每轮任务大小
+
+每轮建议：
+
+- 1 到 3 个源码文件。
+- 1 个对应检查脚本。
+- 1 个 commit。
+- 不跨越多个 feature。
+
+允许例外：
+
+- 如果是删除文档阶段，可以一次删除多个已合并文档。
+- 如果是检查脚本接入阶段，可以同时改 `package.json` 和脚本。
+
+### 5.3 每轮完成定义
+
+一轮治理完成必须满足：
+
+- 修改范围和阶段目标一致。
+- 行为等价。
+- `npm run check` 通过。
+- `npm run build` 通过。
+- commit 只包含本轮相关文件。
+- final 输出包含：
+  - 修改文件
+  - 是否改变行为
+  - 风险
+  - 回滚方式
+  - 下一步建议
+
+### 5.4 何时暂停
+
+出现以下情况必须暂停并汇报：
+
+- 需要改变 UI 或交互才能继续。
+- 需要新增依赖。
+- 需要删除文件但证据不足。
+- 检查失败且原因不明确。
+- 发现线上数据或数据库迁移风险。
+- 发现当前工作区有用户未提交业务改动，且会和本轮冲突。
+
+## 6. 成熟度标准
+
+### 6.1 当前成熟度判断
+
+当前 AI Studio 已经超过“纯原型”，进入“可治理的单体产品”阶段。
+
+但还没有达到成熟 SaaS 正式发布标准。
+
+### 6.2 成熟 SaaS 最低标准
+
+必须满足：
+
+- 关键功能有自动化验证。
+- 生产配置有明确门禁。
+- 用户数据隔离可靠。
+- 上传和生成资产可恢复。
+- 数据库可备份、可恢复、可迁移。
+- 错误可定位。
+- 费用和积分流水可追踪。
+- 长任务失败可恢复或可解释。
+- 部署、回滚、故障排查有固定流程。
+
+### 6.3 长期维护标准
+
+长期目标：
+
+- 新功能不进入 legacy。
+- 新业务必须有 feature 边界。
+- 新 API 必须有 service 边界。
+- 新外部能力必须走 provider。
+- 新持久化字段必须有迁移和检查。
+- 新重型前端能力必须 lazy-load。
+- 新关键流程必须接入 `npm run check`。
+
+## 7. 推荐近期执行序列
+
+在没有新的用户指令时，建议按这个顺序继续：
+
+1. 提交本 PRD 更新。
+2. 继续 `prompt-workflow.js` 纯逻辑拆分。
+3. 继续 `image-generator-workflow.js` 收尾拆分。
+4. 静态梳理 `canvas-menu-actions.js`，优先抽纯工具。
+5. 合并 task-log 文档，删除冗余文档。
+6. 开始 CSS selector/smoke 检查增强。
+7. 小范围 CSS feature 迁移。
+8. 深化 StorageProvider / JobQueue / RateLimitStore。
+9. 补 API contract 和 UI smoke。
+10. 做 production-like 发布演练。
