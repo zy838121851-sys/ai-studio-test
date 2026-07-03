@@ -189,6 +189,46 @@ assert(
   "Snapshot repair detection should catch same-origin absolute media URLs"
 );
 assert(
+  snapshotNeedsUrlRepair(JSON.stringify({
+    nodes: [
+      {
+        kind: "video",
+        className: "node-card node-video",
+        html: "<video src=\"/uploads/ready.mp4\" poster=\"http://localhost:3000/uploads/poster.png\"></video>",
+        media: { url: "/uploads/ready.mp4" }
+      }
+    ]
+  })) === true,
+  "Snapshot repair detection should catch same-origin absolute video poster URLs"
+);
+assert(
+  snapshotNeedsUrlRepair(JSON.stringify({
+    nodes: [
+      {
+        kind: "model",
+        className: "node-card node-model",
+        html: "<div class=\"model-viewer\"></div>",
+        dataset: { objectUrl: "http://localhost:3000/uploads/model.glb" },
+        media: { url: "http://localhost:3000/uploads/model.glb" }
+      }
+    ]
+  })) === true,
+  "Snapshot repair detection should catch same-origin absolute model URLs"
+);
+assert(
+  snapshotNeedsUrlRepair(JSON.stringify({
+    nodes: [
+      {
+        kind: "image",
+        className: "node-card node-image",
+        html: "<img src=\"https://cdn.example.com/uploads/ready.png\" />",
+        media: { url: "https://cdn.example.com/uploads/ready.png" }
+      }
+    ]
+  })) === false,
+  "Snapshot repair detection should leave external HTTPS media URLs unchanged"
+);
+assert(
   snapshotHasUnresolvedMedia(JSON.stringify({
     nodes: [
       {

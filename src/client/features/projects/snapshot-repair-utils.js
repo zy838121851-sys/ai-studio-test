@@ -18,11 +18,7 @@ export function getProjectMediaUrls(project = {}) {
   if (isPreloadableImageUrl(thumbnail)) urls.add(thumbnail);
   const snapshot = parseSnapshotJson(project.canvasSnapshotJson);
   (snapshot?.nodes || []).forEach((node) => {
-    [
-      node?.media?.url,
-      node?.dataset?.objectUrl,
-      extractSnapshotImageUrl(node?.html)
-    ].forEach((url) => {
+    getSnapshotMediaCandidateUrls(node).forEach((url) => {
       const value = String(url || "").trim();
       if (isPreloadableImageUrl(value)) urls.add(value);
     });
@@ -55,9 +51,37 @@ function parseSnapshotJson(snapshotJson = "") {
   }
 }
 
-function extractSnapshotImageUrl(html = "") {
-  const match = String(html || "").match(/<img\b[^>]*\bsrc=["']([^"']+)["']/i);
-  return decodeHtmlAttribute(match?.[1] || "");
+function extractSnapshotHtmlMediaUrls(html = "") {
+  const urls = [];
+  String(html || "").replace(/<(?:img|video|source|model-viewer)\b[^>]*>/gi, (tag) => {
+    String(tag || "").replace(/\s(?:src|poster|href)=["']([^"']+)["']/gi, (_match, value) => {
+      urls.push(decodeHtmlAttribute(value));
+      return "";
+    });
+    return "";
+  });
+  return urls;
+}
+
+function getSnapshotMediaCandidateUrls(node = {}) {
+  const urls = [
+    node?.media?.url,
+    node?.dataset?.objectUrl,
+    ...extractSnapshotHtmlMediaUrls(node?.html)
+  ];
+  const dataset = node?.dataset && typeof node.dataset === "object" ? node.dataset : {};
+  Object.entries(dataset).forEach(([key, value]) => {
+    if (looksLikeMediaDatasetKey(key)) urls.push(value);
+  });
+  const media = node?.media && typeof node.media === "object" ? node.media : {};
+  Object.entries(media).forEach(([key, value]) => {
+    if (looksLikeMediaDatasetKey(key)) urls.push(value);
+  });
+  return urls;
+}
+
+function looksLikeMediaDatasetKey(key = "") {
+  return /(?:url|src|poster|thumbnail|media|model|object)/i.test(String(key || ""));
 }
 
 function decodeHtmlAttribute(value = "") {
@@ -80,17 +104,14 @@ function isMediaSnapshotNode(node = {}) {
   const html = String(node.html || "");
   return kind === "image"
     || kind === "video"
-    || /<(?:img|video)\b/i.test(html);
+    || kind === "model"
+    || /<(?:img|video|source|model-viewer)\b/i.test(html);
 }
 
 function snapshotMediaNeedsRepair(node = {}) {
-  return !hasStableMediaUrl(node?.media?.url)
+  return !getSnapshotMediaCandidateUrls(node).some((url) => hasStableMediaUrl(url))
     || containsTransientUrl(node)
-    || [
-      node?.media?.url,
-      node?.dataset?.objectUrl,
-      extractSnapshotImageUrl(node?.html)
-    ].some((url) => mediaUrlNeedsNormalization(url));
+    || getSnapshotMediaCandidateUrls(node).some((url) => mediaUrlNeedsNormalization(url));
 }
 
 function hasStableMediaUrl(url = "") {
