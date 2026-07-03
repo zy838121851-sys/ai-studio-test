@@ -13,6 +13,9 @@ import {
   snapshotNodeForClipboard
 } from "./canvas-menu-clipboard-utils.js";
 import {
+  getGroupableSelection,
+  getGroupMembers,
+  getGroupNodeForTarget,
   getNodeKind,
   isNodeLocked
 } from "./canvas-menu-node-utils.js";
@@ -1159,7 +1162,7 @@ function groupSelectedNodes({
   selectNode = null,
   addChat = () => {}
 } = {}) {
-  const members = sortNodesByCanvasPosition(getGroupableSelection(targetNode))
+  const members = sortNodesByCanvasPosition(getGroupableSelection(targetNode, getMenuCanvasNodes()))
     .filter(isCanvasImageNode)
     .filter((node) => !isNodeLocked(node));
   if (members.length < 2) {
@@ -1224,31 +1227,6 @@ function getEarliestDomNode(nodes = []) {
     })[0] || null;
 }
 
-function getGroupableSelection(targetNode = null) {
-  const selected = getMenuCanvasNodes()
-    .filter((node) => node.classList.contains("selected"))
-    .filter((node) => !node.classList.contains("node-group"))
-    .filter((node) => !node.dataset.groupId);
-  if (selected.length) return selected;
-  return targetNode?.isConnected
-    && !targetNode.classList.contains("node-group")
-    && !targetNode.dataset.groupId
-    ? [targetNode]
-    : [];
-}
-
-function getGroupMembers(groupId) {
-  if (!groupId) return [];
-  return getMenuCanvasNodes().filter((node) => node.dataset.groupId === groupId && !node.classList.contains("node-group"));
-}
-
-function getGroupNodeForTarget(targetNode = null) {
-  if (!targetNode?.isConnected) return null;
-  if (targetNode.classList.contains("node-group")) return targetNode;
-  const groupId = targetNode.dataset.groupId || "";
-  return groupId ? document.querySelector(`.node-group[data-group-id="${escapeAttributeValue(groupId)}"]`) : null;
-}
-
 function ungroupNodes({ targetNode = null, selectNode = null, addChat = () => {} } = {}) {
   const groupNode = getGroupNodeForTarget(targetNode) || document.querySelector(".node-group.selected");
   if (!groupNode) {
@@ -1256,7 +1234,7 @@ function ungroupNodes({ targetNode = null, selectNode = null, addChat = () => {}
     return;
   }
   const groupId = groupNode.dataset.groupId || "";
-  const members = getGroupMembers(groupId);
+  const members = getGroupMembers(groupId, getMenuCanvasNodes());
   members.forEach((node) => {
     delete node.dataset.groupId;
   });

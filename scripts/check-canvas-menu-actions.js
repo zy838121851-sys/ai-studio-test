@@ -12,6 +12,9 @@ import {
   parseAspectRatio
 } from "../src/client/features/canvas/workflows/canvas-menu-layout-utils.js";
 import {
+  getGroupableSelection,
+  getGroupMembers,
+  getGroupNodeForTarget,
   getNodeKind,
   isNodeLocked
 } from "../src/client/features/canvas/workflows/canvas-menu-node-utils.js";
@@ -59,6 +62,9 @@ assertIncludes(menuLayoutUtils, "export function getViewportUnionRect", "canvas 
 assertIncludes(menuLayoutUtils, "export function parseAspectRatio", "canvas aspect ratio parsing must live in layout utils");
 assertIncludes(menuNodeUtils, "export function isNodeLocked", "canvas node lock check must live in node utils");
 assertIncludes(menuNodeUtils, "export function getNodeKind", "canvas node kind check must live in node utils");
+assertIncludes(menuNodeUtils, "export function getGroupableSelection", "canvas groupable selection check must live in node utils");
+assertIncludes(menuNodeUtils, "export function getGroupMembers", "canvas group members check must live in node utils");
+assertIncludes(menuNodeUtils, "export function getGroupNodeForTarget", "canvas group target lookup must live in node utils");
 assertIncludes(menuTextUtils, "export function cleanText", "canvas clean text must live in text utils");
 assertIncludes(menuTextUtils, "export function cleanFileName", "canvas clean file name must live in text utils");
 assertIncludes(menuTextUtils, "export function stripImageExtension", "canvas strip image extension must live in text utils");
@@ -219,6 +225,39 @@ assert(getNodeKind(fakeNode({ classes: ["node-video"] })) === "video", "node kin
 assert(getNodeKind(fakeNode({ classes: ["canvas-text"], dataset: { kind: "custom" } })) === "2d", "node kind should preserve canvas text class priority");
 assert(getNodeKind(fakeNode({ dataset: { kind: "custom" } })) === "custom", "node kind should fall back to dataset kind");
 assert(getNodeKind(fakeNode()) === "2d", "node kind should preserve default 2d fallback");
+
+const selectedGroupable = fakeNode({ classes: ["selected"], dataset: {} });
+const selectedGrouped = fakeNode({ classes: ["selected"], dataset: { groupId: "group-a" } });
+const selectedGroupNode = fakeNode({ classes: ["selected", "node-group"], dataset: {} });
+const targetGroupable = fakeNode({ dataset: {} });
+targetGroupable.isConnected = true;
+const targetGrouped = fakeNode({ dataset: { groupId: "group-a" } });
+targetGrouped.isConnected = true;
+assert(getGroupableSelection(null, [selectedGrouped, selectedGroupNode, selectedGroupable])[0] === selectedGroupable, "groupable selection should prefer selected ungrouped non-group nodes");
+assert(getGroupableSelection(targetGroupable, [selectedGrouped]).length === 1, "groupable selection should use target fallback when no selected nodes qualify");
+assert(getGroupableSelection(targetGrouped, []).length === 0, "groupable selection should reject grouped target fallback");
+
+const memberA = fakeNode({ dataset: { groupId: "group-a" } });
+const memberB = fakeNode({ dataset: { groupId: "group-b" } });
+const groupCard = fakeNode({ classes: ["node-group"], dataset: { groupId: "group-a" } });
+assert(getGroupMembers("group-a", [memberA, memberB, groupCard]).length === 1, "group members should include only matching non-group nodes");
+assert(getGroupMembers("", [memberA]).length === 0, "group members should reject empty group id");
+
+const directGroup = fakeNode({ classes: ["node-group"], dataset: { groupId: "group-a" } });
+directGroup.isConnected = true;
+assert(getGroupNodeForTarget(directGroup) === directGroup, "group target lookup should return direct group target");
+let groupLookupSelector = "";
+const groupedTarget = fakeNode({ dataset: { groupId: 'group"1' } });
+groupedTarget.isConnected = true;
+const lookedUpGroup = fakeNode({ classes: ["node-group"], dataset: { groupId: 'group"1' } });
+assert(getGroupNodeForTarget(groupedTarget, {
+  querySelector(selector) {
+    groupLookupSelector = selector;
+    return lookedUpGroup;
+  }
+}) === lookedUpGroup, "group target lookup should query grouped targets");
+assert(groupLookupSelector === '.node-group[data-group-id="group\\"1"]', "group target lookup should preserve escaped selector");
+assert(getGroupNodeForTarget(fakeNode()) === null, "group target lookup should reject disconnected targets");
 
 assert(cleanText("  first\n\tsecond   third  ") === "first second third", "clean text should collapse whitespace");
 assert(cleanText("x".repeat(130)).length === 120, "clean text should preserve 120 character limit");

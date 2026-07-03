@@ -1,3 +1,5 @@
+import { escapeAttributeValue } from "./canvas-menu-text-utils.js";
+
 export function isNodeLocked(node) {
   return node?.dataset?.locked === "true" || node?.classList?.contains("node-locked");
 }
@@ -9,4 +11,31 @@ export function getNodeKind(node) {
   if (node.classList.contains("node-video")) return "video";
   if (node.classList.contains("canvas-text")) return "2d";
   return node.dataset.kind || "2d";
+}
+
+export function getGroupableSelection(targetNode = null, nodes = []) {
+  const selected = nodes
+    .filter((node) => node.classList.contains("selected"))
+    .filter((node) => !node.classList.contains("node-group"))
+    .filter((node) => !node.dataset.groupId);
+  if (selected.length) return selected;
+  return targetNode?.isConnected
+    && !targetNode.classList.contains("node-group")
+    && !targetNode.dataset.groupId
+    ? [targetNode]
+    : [];
+}
+
+export function getGroupMembers(groupId, nodes = []) {
+  if (!groupId) return [];
+  return nodes.filter((node) => node.dataset.groupId === groupId && !node.classList.contains("node-group"));
+}
+
+export function getGroupNodeForTarget(targetNode = null, {
+  querySelector = (selector) => document.querySelector(selector)
+} = {}) {
+  if (!targetNode?.isConnected) return null;
+  if (targetNode.classList.contains("node-group")) return targetNode;
+  const groupId = targetNode.dataset.groupId || "";
+  return groupId ? querySelector(`.node-group[data-group-id="${escapeAttributeValue(groupId)}"]`) : null;
 }
