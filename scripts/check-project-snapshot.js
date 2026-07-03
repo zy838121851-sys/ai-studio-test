@@ -19,6 +19,9 @@ import {
   bindProjectAuthSync,
   createProjectInitialSyncReady
 } from "../src/client/features/projects/project-auth-sync.js";
+import {
+  syncProjectRuntimeChange
+} from "../src/client/features/projects/project-runtime-sync.js";
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -334,6 +337,44 @@ const failedInitialSyncResult = await createProjectInitialSyncReady({
 assert(failedInitialSyncResult === false, "Initial project sync should resolve false on failure");
 assert(initialSyncWarnings.length === 1, "Initial project sync should warn on failure");
 assert(initialSyncWarnings[0][0] === "Initial project sync failed", "Initial project sync warning should keep the existing message");
+
+const runtimeSyncCalls = [];
+const runtimeSyncProjects = [{ id: "project-1" }];
+const runtimeSyncActiveProject = { id: "project-1", title: "Project 1" };
+syncProjectRuntimeChange({
+  state: {
+    setProjects(projects) {
+      runtimeSyncCalls.push(["projects", projects]);
+    },
+    setActiveProjectIdInMemory(projectId) {
+      runtimeSyncCalls.push(["active", projectId]);
+    }
+  },
+  ui: {
+    updateProjectTitle(project) {
+      runtimeSyncCalls.push(["title", project]);
+    },
+    renderProjectLibrary() {
+      runtimeSyncCalls.push(["library"]);
+    },
+    renderHomeHistory() {
+      runtimeSyncCalls.push(["home"]);
+    }
+  },
+  projects: runtimeSyncProjects,
+  activeProjectId: "project-1",
+  activeProject: runtimeSyncActiveProject
+});
+assert(
+  JSON.stringify(runtimeSyncCalls) === JSON.stringify([
+    ["projects", runtimeSyncProjects],
+    ["active", "project-1"],
+    ["title", runtimeSyncActiveProject],
+    ["library"],
+    ["home"]
+  ]),
+  "Project runtime change sync should preserve state and UI update order"
+);
 
 console.log("Project snapshot checks passed.");
 

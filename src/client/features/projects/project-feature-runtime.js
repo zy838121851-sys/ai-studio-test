@@ -4,6 +4,7 @@ import {
   bindProjectAuthSync,
   createProjectInitialSyncReady
 } from "./project-auth-sync.js";
+import { syncProjectRuntimeChange } from "./project-runtime-sync.js";
 import { createProjectWorkflowRuntime } from "./project-workflow-bootstrap.js?v=20260627-library-bulk-select-1";
 import {
   createProjectWorkflowServices,
@@ -36,11 +37,13 @@ export function createProjectFeatureRuntime({
     useStorage: !remoteProjectsEnabled,
     persistLocal: !remoteProjectsEnabled,
     onChange({ projects: nextProjects, activeProjectId: nextActiveProjectId, activeProject }) {
-      state.setProjects?.(nextProjects);
-      state.setActiveProjectIdInMemory?.(nextActiveProjectId);
-      ui.updateProjectTitle?.(activeProject);
-      ui.renderProjectLibrary?.();
-      ui.renderHomeHistory?.();
+      syncProjectRuntimeChange({
+        state,
+        ui,
+        projects: nextProjects,
+        activeProjectId: nextActiveProjectId,
+        activeProject
+      });
     }
   });
 
