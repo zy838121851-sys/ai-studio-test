@@ -9,6 +9,10 @@ import {
   getViewportUnionRect,
   parseAspectRatio,
   restoreLayoutNodes,
+  setNodeLayoutFrameSize,
+  setNodeLayoutHeight,
+  setNodeLayoutSize,
+  setNodeLayoutWidth,
   snapshotLayoutNodes
 } from "./canvas-menu-layout-utils.js";
 import {
@@ -990,83 +994,6 @@ function recordLayoutMutation(nodes, before, type, recordUndoAction) {
     });
   }
   return true;
-}
-
-function setNodeLayoutWidth(node, width) {
-  node.dataset.manualSize = "true";
-  const nextWidth = Math.max(24, Math.round(width));
-  if (node.classList.contains("node-image")) {
-    const ratio = getImageDisplayAspectRatio(node);
-    const frame = node.querySelector(".image-frame");
-    if (frame) frame.style.aspectRatio = `${nextWidth} / ${Math.max(24, Math.round(nextWidth / ratio))}`;
-    node.style.minHeight = "";
-    node.style.height = "";
-  }
-  node.style.width = `${nextWidth}px`;
-}
-
-function setNodeLayoutHeight(node, height) {
-  node.dataset.manualSize = "true";
-  const nextHeight = Math.max(24, Math.round(height));
-  if (node.classList.contains("node-image")) {
-    const ratio = getImageDisplayAspectRatio(node);
-    const nextWidth = Math.max(24, Math.round(nextHeight * ratio));
-    const frame = node.querySelector(".image-frame");
-    if (frame) frame.style.aspectRatio = `${nextWidth} / ${nextHeight}`;
-    node.style.width = `${nextWidth}px`;
-    node.style.minHeight = "";
-    node.style.height = "";
-    return;
-  }
-  if (node.classList.contains("node-model")) {
-    const frame = node.querySelector(".model-frame");
-    if (frame) frame.style.aspectRatio = "auto";
-  }
-  node.style.minHeight = `${nextHeight}px`;
-}
-
-function setNodeLayoutSize(node, width, height) {
-  node.dataset.manualSize = "true";
-  if (node.classList.contains("node-image")) {
-    const ratio = getImageDisplayAspectRatio(node);
-    const targetArea = Math.max(24 * 24, Math.max(24, width) * Math.max(24, height));
-    const nextWidth = Math.max(24, Math.round(Math.sqrt(targetArea * ratio)));
-    const nextHeight = Math.max(24, Math.round(nextWidth / ratio));
-    const frame = node.querySelector(".image-frame");
-    if (frame) frame.style.aspectRatio = `${nextWidth} / ${nextHeight}`;
-    node.style.width = `${nextWidth}px`;
-    node.style.minHeight = "";
-    node.style.height = "";
-    return;
-  }
-  const nextWidth = Math.max(24, Math.round(width));
-  const nextHeight = Math.max(24, Math.round(height));
-  node.style.width = `${nextWidth}px`;
-  setNodeLayoutHeight(node, nextHeight);
-}
-
-function setNodeLayoutFrameSize(node, width, height) {
-  node.dataset.manualSize = "true";
-  const nextWidth = Math.max(24, Math.round(width));
-  const nextHeight = Math.max(24, Math.round(height));
-  node.style.width = `${nextWidth}px`;
-  if (node.classList.contains("node-image")) {
-    const frame = node.querySelector(".image-frame");
-    if (frame) frame.style.aspectRatio = `${nextWidth} / ${nextHeight}`;
-    node.style.minHeight = "";
-    node.style.height = "";
-    return;
-  }
-  setNodeLayoutHeight(node, nextHeight);
-}
-
-function getImageDisplayAspectRatio(node) {
-  const image = node?.querySelector?.(".image-frame img");
-  const naturalWidth = Number.parseFloat(node?.dataset?.imageNaturalWidth || "") || image?.naturalWidth || 0;
-  const naturalHeight = Number.parseFloat(node?.dataset?.imageNaturalHeight || "") || image?.naturalHeight || 0;
-  if (naturalWidth > 0 && naturalHeight > 0) return naturalWidth / naturalHeight;
-  const frame = node?.querySelector?.(".image-frame");
-  return parseAspectRatio(frame?.style?.aspectRatio || window.getComputedStyle(frame || node).aspectRatio || "") || 1;
 }
 
 function getNodeSortTitle(node) {

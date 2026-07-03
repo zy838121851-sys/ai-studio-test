@@ -17,6 +17,7 @@ import {
 } from "../src/client/features/canvas/workflows/canvas-menu-export-utils.js";
 import {
   areLayoutSnapshotsEqual,
+  getImageDisplayAspectRatio,
   getImageFrameHeightFromAspect,
   getLayoutUnionBounds,
   getNodeLayoutBounds,
@@ -25,6 +26,10 @@ import {
   getViewportUnionRect,
   parseAspectRatio,
   restoreLayoutNodes,
+  setNodeLayoutFrameSize,
+  setNodeLayoutHeight,
+  setNodeLayoutSize,
+  setNodeLayoutWidth,
   snapshotLayoutNodes
 } from "../src/client/features/canvas/workflows/canvas-menu-layout-utils.js";
 import {
@@ -94,6 +99,7 @@ assertIncludes(menuExportUtils, "export function isHttpUrl", "canvas HTTP URL ch
 assertIncludes(menuExportUtils, "export function prepareExportClone", "canvas export clone cleanup must live in export utils");
 assertIncludes(menuExportUtils, "export function rasterizeSvg", "canvas SVG rasterizer must live in export utils");
 assertIncludes(menuLayoutUtils, "export function areLayoutSnapshotsEqual", "canvas layout snapshot equality must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function getImageDisplayAspectRatio", "canvas image display aspect ratio must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getImageFrameHeightFromAspect", "canvas image frame aspect height must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getLayoutUnionBounds", "canvas layout union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getNodeLayoutBounds", "canvas node layout bounds must live in layout utils");
@@ -103,6 +109,10 @@ assertIncludes(menuLayoutUtils, "export function getViewportUnionRect", "canvas 
 assertIncludes(menuLayoutUtils, "export function parseAspectRatio", "canvas aspect ratio parsing must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function snapshotLayoutNodes", "canvas layout snapshot capture must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function restoreLayoutNodes", "canvas layout snapshot restore must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function setNodeLayoutFrameSize", "canvas layout frame size writer must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function setNodeLayoutHeight", "canvas layout height writer must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function setNodeLayoutSize", "canvas layout size writer must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function setNodeLayoutWidth", "canvas layout width writer must live in layout utils");
 assertIncludes(menuNodeUtils, "export function isNodeLocked", "canvas node lock check must live in node utils");
 assertIncludes(menuNodeUtils, "export function getNodeKind", "canvas node kind check must live in node utils");
 assertIncludes(menuNodeUtils, "export function getVisibleUniqueCanvasNodes", "canvas visible unique node filtering must live in node utils");
@@ -302,6 +312,79 @@ try {
   imageFrame.computedAspectRatio = "";
   const fallbackImageBounds = getNodeLayoutBounds(imageLayoutNode);
   assert(fallbackImageBounds.width === 1 && fallbackImageBounds.height === 120, "image layout bounds should preserve width minimum and minHeight fallback");
+
+  function createLayoutWriterNode(classes = [], options = {}) {
+    const frame = options.frame || { style: { aspectRatio: options.aspectRatio || "" } };
+    const image = options.image || { naturalWidth: 0, naturalHeight: 0 };
+    return {
+      dataset: { ...(options.dataset || {}) },
+      style: {
+        width: options.width || "",
+        minHeight: options.minHeight || "",
+        height: options.height || ""
+      },
+      classList: {
+        contains(name) {
+          return classes.includes(name);
+        }
+      },
+      querySelector(selector) {
+        if (selector === ".image-frame") return classes.includes("node-image") ? frame : null;
+        if (selector === ".model-frame") return classes.includes("node-model") ? frame : null;
+        if (selector === ".image-frame img") return classes.includes("node-image") ? image : null;
+        return null;
+      },
+      frame,
+      image
+    };
+  }
+
+  const ratioNode = createLayoutWriterNode(["node-image"], {
+    dataset: { imageNaturalWidth: "400", imageNaturalHeight: "200" },
+    aspectRatio: "1 / 1"
+  });
+  assert(getImageDisplayAspectRatio(ratioNode) === 2, "image display aspect ratio should prefer natural dimensions dataset");
+
+  const imageWidthNode = createLayoutWriterNode(["node-image"], {
+    dataset: { imageNaturalWidth: "400", imageNaturalHeight: "200" }
+  });
+  setNodeLayoutWidth(imageWidthNode, 101.4);
+  assert(imageWidthNode.dataset.manualSize === "true", "layout width writer should mark manual size");
+  assert(imageWidthNode.style.width === "101px", "layout width writer should round requested width");
+  assert(imageWidthNode.frame.style.aspectRatio === "101 / 51", "layout width writer should update image frame ratio");
+  assert(imageWidthNode.style.minHeight === "" && imageWidthNode.style.height === "", "layout width writer should clear image height styles");
+
+  const imageHeightNode = createLayoutWriterNode(["node-image"], {
+    dataset: { imageNaturalWidth: "400", imageNaturalHeight: "200" }
+  });
+  setNodeLayoutHeight(imageHeightNode, 50.2);
+  assert(imageHeightNode.style.width === "100px", "layout height writer should compute image width from ratio");
+  assert(imageHeightNode.frame.style.aspectRatio === "100 / 50", "layout height writer should update image frame ratio");
+  assert(imageHeightNode.style.minHeight === "" && imageHeightNode.style.height === "", "layout height writer should clear image height styles");
+
+  const plainSizeNode = createLayoutWriterNode([]);
+  setNodeLayoutSize(plainSizeNode, 10, 70.6);
+  assert(plainSizeNode.dataset.manualSize === "true", "layout size writer should mark manual size");
+  assert(plainSizeNode.style.width === "24px", "layout size writer should clamp normal node width");
+  assert(plainSizeNode.style.minHeight === "71px", "layout size writer should delegate normal node height");
+
+  const modelHeightNode = createLayoutWriterNode(["node-model"], { aspectRatio: "16 / 9" });
+  setNodeLayoutHeight(modelHeightNode, 12);
+  assert(modelHeightNode.frame.style.aspectRatio === "auto", "layout height writer should reset model frame aspect ratio");
+  assert(modelHeightNode.style.minHeight === "24px", "layout height writer should clamp model height");
+
+  const imageSizeNode = createLayoutWriterNode(["node-image"], {
+    dataset: { imageNaturalWidth: "400", imageNaturalHeight: "200" }
+  });
+  setNodeLayoutSize(imageSizeNode, 80, 40);
+  assert(imageSizeNode.style.width === "80px", "layout size writer should preserve image area with ratio");
+  assert(imageSizeNode.frame.style.aspectRatio === "80 / 40", "layout size writer should update image frame ratio");
+
+  const imageFrameSizeNode = createLayoutWriterNode(["node-image"]);
+  setNodeLayoutFrameSize(imageFrameSizeNode, 90.6, 45.2);
+  assert(imageFrameSizeNode.style.width === "91px", "layout frame size writer should round image width");
+  assert(imageFrameSizeNode.frame.style.aspectRatio === "91 / 45", "layout frame size writer should write image frame ratio");
+  assert(imageFrameSizeNode.style.minHeight === "" && imageFrameSizeNode.style.height === "", "layout frame size writer should clear image height styles");
 } finally {
   globalThis.window = OriginalWindowForLayout;
 }
