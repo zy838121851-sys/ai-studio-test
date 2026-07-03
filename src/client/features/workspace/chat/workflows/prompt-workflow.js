@@ -101,6 +101,14 @@ import {
   requestConversationRestore
 } from "./prompt-conversation-api-utils.js";
 import {
+  forgetConversationId,
+  getCachedConversationId,
+  hasRestoredConversation,
+  markConversationNeedsRestore,
+  markConversationRestored,
+  rememberConversationId
+} from "./prompt-conversation-state-utils.js";
+import {
   parseStreamEventLine,
   recordHandledStreamEvent,
   setStreamAbortReason
@@ -1578,15 +1586,16 @@ async function runConversationAgent({
 async function ensureConversation(projectId, { reset = false } = {}) {
   const cleanProjectId = String(projectId || "").trim();
   if (!cleanProjectId) throw new Error("Missing active project");
-  if (!reset && conversationIdsByProject.has(cleanProjectId)) {
-    return { id: conversationIdsByProject.get(cleanProjectId), projectId: cleanProjectId };
+  const cachedConversationId = getCachedConversationId(conversationIdsByProject, cleanProjectId);
+  if (!reset && cachedConversationId) {
+    return { id: cachedConversationId, projectId: cleanProjectId };
   }
   try {
     const conversation = await requestConversation(cleanProjectId, { reset });
-    conversationIdsByProject.set(cleanProjectId, conversation.id);
+    rememberConversationId(conversationIdsByProject, cleanProjectId, conversation.id);
     return conversation;
   } catch (error) {
-    if (error?.status === 404) conversationIdsByProject.delete(cleanProjectId);
+    if (error?.status === 404) forgetConversationId(conversationIdsByProject, cleanProjectId);
     throw error;
   }
 }
@@ -1716,13 +1725,13 @@ async function streamConversationRun(conversationId, payload, onEvent, { timeout
 
 async function restoreProjectConversation({ projectId, conversationId = "", addChat, addChatImage, force = false } = {}) {
   const cleanProjectId = String(projectId || "").trim();
-  if (!cleanProjectId || (!force && restoredConversationProjects.has(cleanProjectId))) return;
+  if (!cleanProjectId || (!force && hasRestoredConversation(restoredConversationProjects, cleanProjectId))) return;
   const conversation = conversationId
     ? { id: String(conversationId || "").trim(), projectId: cleanProjectId }
     : await ensureConversation(cleanProjectId);
   if (!conversation.id) return;
   const messages = await fetchConversationMessages(conversation.id);
-  restoredConversationProjects.add(cleanProjectId);
+  markConversationRestored(restoredConversationProjects, cleanProjectId);
   getConversationRestoreEntries(messages).forEach((entry) => {
     if (entry.type === "image") {
       addChatImage(entry.role, entry.url, entry.caption);
@@ -1744,8 +1753,8 @@ function bindConversationControls({ getProjectId, addChat, addChatImage } = {}) 
     currentConversationAbort = null;
     try {
       const conversation = await ensureConversation(projectId, { reset: true });
-      conversationIdsByProject.set(projectId, conversation.id);
-      restoredConversationProjects.delete(projectId);
+      rememberConversationId(conversationIdsByProject, projectId, conversation.id);
+      markConversationNeedsRestore(restoredConversationProjects, projectId);
       const chatLog = globalThis.document?.querySelector?.("#chatLog");
       if (chatLog) chatLog.innerHTML = "";
     } catch (error) {
@@ -1838,7 +1847,7 @@ function positionConversationHistoryPopover(button, popover) {
 
 function renderConversationHistoryPopover(popover, { projectId, conversations, addChat, addChatImage } = {}) {
   const cleanProjectId = String(projectId || "").trim();
-  const currentId = conversationIdsByProject.get(cleanProjectId) || "";
+  const currentId = getCachedConversationId(conversationIdsByProject, cleanProjectId);
   if (!conversations.length) {
     popover.innerHTML = renderConversationHistoryMessageHtml("暂无历史对话");
     return;
@@ -1861,8 +1870,8 @@ function renderConversationHistoryPopover(popover, { projectId, conversations, a
 
 async function restoreConversationFromHistory({ projectId, conversationId, addChat, addChatImage } = {}) {
   const conversation = await requestConversationRestore(conversationId);
-  conversationIdsByProject.set(projectId, conversation.id);
-  restoredConversationProjects.delete(projectId);
+  rememberConversationId(conversationIdsByProject, projectId, conversation.id);
+  markConversationNeedsRestore(restoredConversationProjects, projectId);
   const chatLog = globalThis.document?.querySelector?.("#chatLog");
   if (chatLog) chatLog.innerHTML = "";
   await restoreProjectConversation({
