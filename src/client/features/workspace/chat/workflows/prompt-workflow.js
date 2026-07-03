@@ -91,6 +91,8 @@ import {
 } from "./prompt-conversation-event-utils.js";
 import {
   clearConversationChatLog,
+  closeConversationHistoryPopover,
+  ensureConversationHistoryPopover,
   positionConversationHistoryPopover
 } from "./prompt-conversation-dom-utils.js";
 import {
@@ -1810,28 +1812,6 @@ async function toggleConversationHistoryPopover({ button, projectId, addChat, ad
   } catch (error) {
     popover.innerHTML = renderConversationHistoryMessageHtml(error.message || "加载失败");
   }
-}
-
-function ensureConversationHistoryPopover() {
-  let popover = globalThis.document?.querySelector?.("#conversationHistoryPopover");
-  if (popover) return popover;
-  popover = globalThis.document.createElement("div");
-  popover.id = "conversationHistoryPopover";
-  popover.className = "conversation-history-popover";
-  popover.hidden = true;
-  globalThis.document.body.append(popover);
-  globalThis.document.addEventListener("pointerdown", (event) => {
-    if (event.target.closest("#conversationHistoryPopover, #conversationHistory")) return;
-    closeConversationHistoryPopover();
-  });
-  globalThis.window.addEventListener("resize", closeConversationHistoryPopover);
-  globalThis.document.addEventListener("canvas:view-transformed", closeConversationHistoryPopover);
-  return popover;
-}
-
-function closeConversationHistoryPopover() {
-  const popover = globalThis.document?.querySelector?.("#conversationHistoryPopover");
-  if (popover) popover.hidden = true;
 }
 
 function renderConversationHistoryPopover(popover, { projectId, conversations, addChat, addChatImage } = {}) {

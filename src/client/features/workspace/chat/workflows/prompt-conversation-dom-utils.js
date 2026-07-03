@@ -5,6 +5,35 @@ export function clearConversationChatLog(root = globalThis.document) {
   return true;
 }
 
+export function ensureConversationHistoryPopover({
+  root = globalThis.document,
+  viewport = globalThis.window,
+  onClose = () => closeConversationHistoryPopover(root)
+} = {}) {
+  let popover = root?.querySelector?.("#conversationHistoryPopover");
+  if (popover) return popover;
+  if (!root?.createElement || !root?.body?.append) return null;
+  popover = root.createElement("div");
+  popover.id = "conversationHistoryPopover";
+  popover.className = "conversation-history-popover";
+  popover.hidden = true;
+  root.body.append(popover);
+  root.addEventListener?.("pointerdown", (event) => {
+    if (event.target.closest("#conversationHistoryPopover, #conversationHistory")) return;
+    onClose();
+  });
+  viewport?.addEventListener?.("resize", onClose);
+  root.addEventListener?.("canvas:view-transformed", onClose);
+  return popover;
+}
+
+export function closeConversationHistoryPopover(root = globalThis.document) {
+  const popover = root?.querySelector?.("#conversationHistoryPopover");
+  if (!popover) return false;
+  popover.hidden = true;
+  return true;
+}
+
 export function getConversationHistoryPopoverPosition({
   rect,
   viewportWidth = globalThis.innerWidth || 0,
