@@ -45,6 +45,10 @@ export function getRetryAfterDelayMs(response, fallbackMs = 4000) {
   return fallbackMs;
 }
 
+export function getGeneratorJobRequestError(payload = {}, status = 0) {
+  return new Error(payload?.failureMessage || payload?.errorMessage || payload?.message || `Job request failed: ${status}`);
+}
+
 export function delayGeneratorJobPoll(ms = 0) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

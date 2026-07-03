@@ -26,6 +26,7 @@ import {
   buildGeneratorMissingUrlProgressPayload,
   buildGeneratorRateLimitProgressPayload,
   delayGeneratorJobPoll,
+  getGeneratorJobRequestError,
   getRetryAfterDelayMs,
   getTerminalGeneratorJobResult,
   isTerminalGeneratorJobStatus
@@ -1023,7 +1024,7 @@ export function createImageGeneratorWorkflow({
         await delayGeneratorJobPoll(retryDelay);
         continue;
       }
-      if (!response.ok) throw new Error(payload?.failureMessage || payload?.errorMessage || payload?.message || `Job request failed: ${response.status}`);
+      if (!response.ok) throw getGeneratorJobRequestError(payload, response.status);
       lastPayload = { ...fallback, ...payload };
       logGeneratorJobPoll(lastPayload);
       if (isTerminalGeneratorJobStatus(payload?.status)) {

@@ -27,7 +27,8 @@ import {
   getGeneratorResultTitle
 } from "../src/client/features/canvas/workflows/image-generator-result-utils.js";
 import {
-  delayGeneratorJobPoll
+  delayGeneratorJobPoll,
+  getGeneratorJobRequestError
 } from "../src/client/features/canvas/workflows/image-generator-job-polling-utils.js";
 import {
   readGeneratorReferenceFiles
@@ -102,12 +103,29 @@ assert(
 assert(
   generatorWorkflow.includes("missingUrlRetries") &&
   generatorJobPollingUtils.includes("Waiting for saved image URL") &&
-    generatorJobPollingUtils.includes("export function delayGeneratorJobPoll"),
+    generatorJobPollingUtils.includes("export function delayGeneratorJobPoll") &&
+    generatorJobPollingUtils.includes("export function getGeneratorJobRequestError"),
   "generator polling must retry succeeded jobs that do not yet expose an image URL"
 );
 const generatorDelayPromise = delayGeneratorJobPoll(0);
 assert(typeof generatorDelayPromise?.then === "function", "generator polling delay helper should return a promise");
 await generatorDelayPromise;
+assert(
+  getGeneratorJobRequestError({ failureMessage: "failure" }, 500).message === "failure",
+  "generator polling request errors should prefer failure messages"
+);
+assert(
+  getGeneratorJobRequestError({ errorMessage: "error" }, 500).message === "error",
+  "generator polling request errors should fall back to error messages"
+);
+assert(
+  getGeneratorJobRequestError({ message: "message" }, 500).message === "message",
+  "generator polling request errors should fall back to response messages"
+);
+assert(
+  getGeneratorJobRequestError({}, 503).message === "Job request failed: 503",
+  "generator polling request errors should preserve status fallbacks"
+);
 assert(
   generatorWorkflow.includes("logGeneratorJobPoll") &&
   generatorDebugLogUtils.includes("[generator] job poll"),
