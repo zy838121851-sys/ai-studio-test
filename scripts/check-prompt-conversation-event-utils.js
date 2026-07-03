@@ -1,5 +1,6 @@
 import {
   applyConversationIntentDebugState,
+  applyMessageDoneDebugState,
   buildConversationIntentState,
   buildMessageDoneReceivedPayload,
   buildMessageDoneState,
@@ -321,6 +322,45 @@ assert(currentFallbackState.imageAnalysis.source === "current", "Message done st
 assert(currentFallbackState.imageAnalysisError === "current-analysis-error", "Message done state should keep current image errors when event is empty");
 assert(currentFallbackState.shouldGenerate === false, "Message done state should keep current generation decisions when event is empty");
 assert(currentFallbackState.outputType === "image", "Message done state should keep current output types when event is empty");
+
+const messageDoneDebugRecord = { strategyTags: ["existing"] };
+assert(
+  applyMessageDoneDebugState(messageDoneDebugRecord, messageDoneState, { fallbackPrompt: "Fallback prompt" }) === messageDoneDebugRecord,
+  "Message done debug sync should return the debug record"
+);
+assert(messageDoneDebugRecord.intent === "generate_video", "Message done debug sync should write intents");
+assert(messageDoneDebugRecord.taskType === "event-task", "Message done debug sync should write task types");
+assert(messageDoneDebugRecord.promptStrategy === "event-strategy", "Message done debug sync should write prompt strategies");
+assert(messageDoneDebugRecord.strategyTags.join(",") === "event", "Message done debug sync should write strategy tags when present");
+assert(messageDoneDebugRecord.promptDriftDetected === true, "Message done debug sync should write drift flags");
+assert(messageDoneDebugRecord.usedConservativeFallback === true, "Message done debug sync should write conservative fallback flags");
+assert(messageDoneDebugRecord.optimizedPrompt === "Event prompt", "Message done debug sync should write optimized prompts");
+assert(messageDoneDebugRecord.qwenVlMode === "event-vl", "Message done debug sync should write VL modes");
+assert(messageDoneDebugRecord.promptOptimizerMode === "event-optimizer", "Message done debug sync should write optimizer modes");
+assert(messageDoneDebugRecord.skippedOptimizer === false, "Message done debug sync should preserve explicit false optimizer skip flags");
+assert(messageDoneDebugRecord.optimizerError === "event-error", "Message done debug sync should write optimizer errors");
+assert(messageDoneDebugRecord.optimizerTimedOut === false, "Message done debug sync should derive optimizer timeout flags");
+assert(messageDoneDebugRecord.usedFallbackPrompt === true, "Message done debug sync should write fallback prompt flags");
+assert(messageDoneDebugRecord.totalBudgetExceeded === true, "Message done debug sync should write budget flags");
+assert(messageDoneDebugRecord.imageAnalysisPresent === true, "Message done debug sync should write image analysis presence");
+assert(messageDoneDebugRecord.imageAnalysisError === "event-analysis-error", "Message done debug sync should write image analysis errors");
+assert(messageDoneDebugRecord.imageAnalysisTimedOut === false, "Message done debug sync should derive image analysis timeout flags");
+assert(messageDoneDebugRecord.shouldGenerate === false, "Message done debug sync should preserve explicit false generation decisions");
+assert(messageDoneDebugRecord.messageDoneReceived === true, "Message done debug sync should mark received message.done");
+assert(messageDoneDebugRecord.messageDoneHandled === true, "Message done debug sync should mark handled message.done");
+assert(messageDoneDebugRecord.generationType === "video", "Message done debug sync should write generation types");
+
+const messageDoneFallbackDebugRecord = { strategyTags: ["existing"] };
+applyMessageDoneDebugState(messageDoneFallbackDebugRecord, {
+  optimizerError: "time budget exceeded",
+  imageAnalysisError: "analysis timed out",
+  shouldGenerate: true
+}, { fallbackPrompt: "Fallback prompt" });
+assert(messageDoneFallbackDebugRecord.strategyTags.join(",") === "existing", "Message done debug sync should preserve existing tags when state has none");
+assert(messageDoneFallbackDebugRecord.optimizedPrompt === "Fallback prompt", "Message done debug sync should use fallback prompts");
+assert(messageDoneFallbackDebugRecord.optimizerTimedOut === true, "Message done debug sync should detect optimizer timeout text");
+assert(messageDoneFallbackDebugRecord.imageAnalysisTimedOut === true, "Message done debug sync should detect image analysis timeout text");
+assert(applyMessageDoneDebugState(null, messageDoneState) === null, "Message done debug sync should ignore missing debug records");
 
 const intentState = buildConversationIntentState({
   intent: "generate_image",

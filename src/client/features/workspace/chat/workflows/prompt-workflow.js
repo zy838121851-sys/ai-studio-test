@@ -87,6 +87,7 @@ import {
 } from "./prompt-job-utils.js";
 import {
   applyConversationIntentDebugState,
+  applyMessageDoneDebugState,
   buildConversationIntentState,
   buildMessageDoneReceivedPayload,
   buildMessageDoneState,
@@ -1508,27 +1509,7 @@ async function runConversationAgent({
         outputType
       } = messageDoneState);
       if (debugRecord) {
-        debugRecord.intent = intent;
-        debugRecord.taskType = taskType;
-        debugRecord.promptStrategy = promptStrategy;
-        debugRecord.strategyTags = Array.isArray(messageDoneState.nextStrategyTags) ? messageDoneState.nextStrategyTags : debugRecord.strategyTags;
-        debugRecord.promptDriftDetected = messageDoneState.promptDriftDetected;
-        debugRecord.usedConservativeFallback = messageDoneState.usedConservativeFallback || usedFallbackPrompt;
-        debugRecord.optimizedPrompt = optimizedPrompt || prompt;
-        debugRecord.qwenVlMode = qwenVlMode;
-        debugRecord.promptOptimizerMode = promptOptimizerMode;
-        debugRecord.skippedOptimizer = skippedOptimizer;
-        debugRecord.optimizerError = optimizerError;
-        debugRecord.optimizerTimedOut = /timed out|time budget/i.test(optimizerError);
-        debugRecord.usedFallbackPrompt = usedFallbackPrompt;
-        debugRecord.totalBudgetExceeded = totalBudgetExceeded;
-        debugRecord.imageAnalysisPresent = Boolean(imageAnalysis);
-        debugRecord.imageAnalysisError = imageAnalysisError;
-        debugRecord.imageAnalysisTimedOut = /timed out|time budget/i.test(imageAnalysisError);
-        debugRecord.shouldGenerate = shouldGenerate;
-        debugRecord.messageDoneReceived = true;
-        debugRecord.messageDoneHandled = true;
-        debugRecord.generationType = outputType;
+        applyMessageDoneDebugState(debugRecord, messageDoneState, { fallbackPrompt: prompt });
       }
       console.debug("[message.done] received", buildMessageDoneReceivedPayload({
         runId,

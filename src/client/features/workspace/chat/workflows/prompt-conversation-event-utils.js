@@ -177,6 +177,34 @@ export function applyConversationIntentDebugState(debugRecord, state = {}, {
   return debugRecord;
 }
 
+export function applyMessageDoneDebugState(debugRecord, state = {}, {
+  fallbackPrompt = ""
+} = {}) {
+  if (!debugRecord) return debugRecord;
+  debugRecord.intent = state.intent || "";
+  debugRecord.taskType = state.taskType || "";
+  debugRecord.promptStrategy = state.promptStrategy || "";
+  debugRecord.strategyTags = Array.isArray(state.nextStrategyTags) ? state.nextStrategyTags : debugRecord.strategyTags;
+  debugRecord.promptDriftDetected = state.promptDriftDetected;
+  debugRecord.usedConservativeFallback = state.usedConservativeFallback || state.usedFallbackPrompt;
+  debugRecord.optimizedPrompt = state.optimizedPrompt || fallbackPrompt;
+  debugRecord.qwenVlMode = state.qwenVlMode || "";
+  debugRecord.promptOptimizerMode = state.promptOptimizerMode || "";
+  debugRecord.skippedOptimizer = Boolean(state.skippedOptimizer);
+  debugRecord.optimizerError = state.optimizerError || "";
+  debugRecord.optimizerTimedOut = /timed out|time budget/i.test(state.optimizerError || "");
+  debugRecord.usedFallbackPrompt = Boolean(state.usedFallbackPrompt);
+  debugRecord.totalBudgetExceeded = Boolean(state.totalBudgetExceeded);
+  debugRecord.imageAnalysisPresent = Boolean(state.imageAnalysis);
+  debugRecord.imageAnalysisError = state.imageAnalysisError || "";
+  debugRecord.imageAnalysisTimedOut = /timed out|time budget/i.test(state.imageAnalysisError || "");
+  debugRecord.shouldGenerate = Boolean(state.shouldGenerate);
+  debugRecord.messageDoneReceived = true;
+  debugRecord.messageDoneHandled = true;
+  debugRecord.generationType = state.outputType || "";
+  return debugRecord;
+}
+
 export function buildPromptOptimizedState(event = {}, current = {}) {
   const optimizedPrompt = event.optimizedPrompt || current.optimizedPrompt || "";
   const taskType = event.taskType || current.taskType || "";
