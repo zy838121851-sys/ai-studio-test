@@ -46,11 +46,9 @@ import {
   updateGeneratorPreviewStatus as updatePreviewStatus
 } from "./image-generator-preview-job-utils.js";
 import {
-  getGeneratorReferenceStatusText,
   getGeneratorReferences,
   mergeGeneratorReferences,
-  readGeneratorReferenceFiles,
-  removeGeneratorReferenceAtIndex
+  readGeneratorReferenceFiles
 } from "./image-generator-reference-utils.js";
 import {
   getGeneratorSelectByKind,
@@ -65,8 +63,13 @@ import {
   readImageDataUrlMetrics
 } from "./image-generator-image-read-utils.js";
 import {
+  clearGeneratorReferences,
   hasGeneratorDropData,
+  removeGeneratorReference,
+  renderGeneratorReferences,
+  resetGeneratorInput,
   setGeneratorBusy,
+  setGeneratorReferences,
   updateGeneratorStatus
 } from "./image-generator-dom-state-utils.js";
 import {
@@ -1364,47 +1367,6 @@ export function createImageGeneratorWorkflow({
     positionGeneratorPopover,
     showGeneratorPopover
   };
-}
-
-function setGeneratorReferences(node, references = []) {
-  if (!node) return;
-  node._generatorReferences = references;
-  node.dataset.generatorReferenceCount = String(references.length);
-  updateGeneratorStatus(node, getGeneratorReferenceStatusText(references));
-  renderGeneratorReferences(node, references);
-  node.classList.toggle("has-generator-reference", references.length > 0);
-}
-
-function clearGeneratorReferences(node) {
-  setGeneratorReferences(node, []);
-}
-
-function removeGeneratorReference(node, index) {
-  const references = getGeneratorReferences(node);
-  const nextReferences = removeGeneratorReferenceAtIndex(node, index);
-  if (nextReferences === references) return;
-  setGeneratorReferences(node, nextReferences);
-}
-
-function resetGeneratorInput(node) {
-  if (!node) return;
-  const popover = globalThis.document?.querySelector?.(GENERATOR_POPOVER_SELECTOR);
-  const promptInput = popover?.querySelector?.("[data-image-generator-prompt]");
-  if (promptInput) promptInput.value = "";
-  node._generatorPromptDraft = "";
-  clearGeneratorReferences(node);
-  updateGeneratorStatus(node, "文生图");
-}
-
-function renderGeneratorReferences(node, references = []) {
-  const popover = globalThis.document?.querySelector?.(GENERATOR_POPOVER_SELECTOR);
-  const list = popover?.querySelector?.("[data-generator-reference-list]");
-  if (!list || (node && !node.matches?.(GENERATOR_SELECTOR))) return;
-  list.innerHTML = references.map((reference, index) => `
-    <button type="button" class="image-generator-reference-thumb" data-generator-reference-index="${index}" title="${escapeAttribute(reference.name || "参考图")}">
-      <img src="${reference.dataUrl}" alt="${escapeAttribute(reference.name || "参考图")}" />
-    </button>
-  `).join("");
 }
 
 function applyGeneratorResult(node, url, { prompt = "", model = "" } = {}) {

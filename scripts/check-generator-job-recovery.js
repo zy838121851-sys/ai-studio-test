@@ -20,7 +20,11 @@ import {
 } from "../src/client/features/canvas/workflows/image-generator-reference-utils.js";
 import {
   hasGeneratorDropData,
+  removeGeneratorReference,
+  renderGeneratorReferences,
+  resetGeneratorInput,
   setGeneratorBusy,
+  setGeneratorReferences,
   updateGeneratorStatus
 } from "../src/client/features/canvas/workflows/image-generator-dom-state-utils.js";
 
@@ -80,7 +84,10 @@ assert(
 assert(
   generatorDomStateUtils.includes("export function hasGeneratorDropData")
     && generatorDomStateUtils.includes("export function updateGeneratorStatus")
-    && generatorDomStateUtils.includes("export function setGeneratorBusy"),
+    && generatorDomStateUtils.includes("export function setGeneratorBusy")
+    && generatorDomStateUtils.includes("export function setGeneratorReferences")
+    && generatorDomStateUtils.includes("export function renderGeneratorReferences")
+    && generatorDomStateUtils.includes("export function resetGeneratorInput"),
   "generator DOM state helpers must be extracted from the workflow module"
 );
 
@@ -123,6 +130,45 @@ assert(busyControls.loading.hidden === true, "generator busy helper should hide 
 assert(busyControls.submit.disabled === false, "generator busy helper should enable submit");
 assert(busyControls.controls.every((control) => control.disabled === false), "generator busy helper should enable generator controls");
 assert(busyControls.triggers.every((trigger) => trigger.disabled === false), "generator busy helper should enable custom select triggers");
+
+const referenceFixture = createGeneratorReferenceFixture();
+const generatorReferences = [
+  { name: "One", dataUrl: "data:one" },
+  { name: "", dataUrl: "data:two" }
+];
+setGeneratorReferences(referenceFixture.node, generatorReferences, {
+  documentRef: createGeneratorDocument({ popover: referenceFixture.popover })
+});
+assert(referenceFixture.node._generatorReferences === generatorReferences, "generator reference helper should store references on the node");
+assert(referenceFixture.node.dataset.generatorReferenceCount === "2", "generator reference helper should persist reference count");
+assert(referenceFixture.node.classes.has("has-generator-reference"), "generator reference helper should mark nodes with references");
+assert(referenceFixture.popover.dataset.generatorStatus === "图生图 · 2 张参考图", "generator reference helper should sync reference status");
+assert(referenceFixture.referenceList.innerHTML.includes('data-generator-reference-index="1"'), "generator reference helper should render reference buttons");
+assert(referenceFixture.referenceList.innerHTML.includes('title="参考图"'), "generator reference helper should render fallback reference names");
+
+removeGeneratorReference(referenceFixture.node, 0, {
+  documentRef: createGeneratorDocument({ popover: referenceFixture.popover })
+});
+assert(referenceFixture.node.dataset.generatorReferenceCount === "1", "generator reference helper should remove references by index");
+assert(referenceFixture.referenceList.innerHTML.includes("data:two"), "generator reference helper should rerender remaining references");
+
+const skippedReferenceNode = {
+  matches: () => false
+};
+renderGeneratorReferences(skippedReferenceNode, [{ name: "Skip", dataUrl: "data:skip" }], {
+  documentRef: createGeneratorDocument({ popover: referenceFixture.popover })
+});
+assert(!referenceFixture.referenceList.innerHTML.includes("data:skip"), "generator reference helper should skip non-generator nodes");
+
+referenceFixture.promptInput.value = "draft";
+referenceFixture.node._generatorPromptDraft = "draft";
+resetGeneratorInput(referenceFixture.node, {
+  documentRef: createGeneratorDocument({ popover: referenceFixture.popover })
+});
+assert(referenceFixture.promptInput.value === "", "generator reset helper should clear prompt input");
+assert(referenceFixture.node._generatorPromptDraft === "", "generator reset helper should clear prompt draft");
+assert(referenceFixture.node.dataset.generatorReferenceCount === "0", "generator reset helper should clear references");
+assert(referenceFixture.popover.dataset.generatorStatus === "文生图", "generator reset helper should restore text-to-image status");
 
 const aiRoutes = read("src/server/routes/ai.routes.js");
 const aiJobQueryService = read("src/server/services/ai/ai-job-query.service.js");
@@ -409,6 +455,34 @@ function createGeneratorBusyFixture() {
     }
   };
   return { node, popover, loading, submit, controls, triggers };
+}
+
+function createGeneratorReferenceFixture() {
+  const promptInput = { value: "" };
+  const referenceList = { innerHTML: "" };
+  const popover = {
+    dataset: {},
+    querySelector(selector) {
+      if (selector === "[data-image-generator-prompt]") return promptInput;
+      if (selector === "[data-generator-reference-list]") return referenceList;
+      return null;
+    }
+  };
+  const classes = new Set();
+  const node = {
+    dataset: {},
+    classes,
+    classList: {
+      toggle(name, enabled) {
+        if (enabled) classes.add(name);
+        else classes.delete(name);
+      }
+    },
+    matches(selector) {
+      return selector === ".node-image-generator";
+    }
+  };
+  return { node, popover, promptInput, referenceList };
 }
 
 function createGeneratorSelect(kind) {
