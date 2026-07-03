@@ -4,6 +4,10 @@ import {
   snapshotNodeForClipboard
 } from "../src/client/features/canvas/workflows/canvas-menu-clipboard-utils.js";
 import {
+  getImageExportFileName,
+  getUniqueExportFileName
+} from "../src/client/features/canvas/workflows/canvas-menu-export-utils.js";
+import {
   areLayoutSnapshotsEqual,
   getLayoutUnionBounds,
   getNodeSortIndex,
@@ -51,6 +55,7 @@ function assertNotIncludes(source, value, message) {
 
 const menuActions = read("src/client/features/canvas/workflows/canvas-menu-actions.js");
 const menuClipboardUtils = read("src/client/features/canvas/workflows/canvas-menu-clipboard-utils.js");
+const menuExportUtils = read("src/client/features/canvas/workflows/canvas-menu-export-utils.js");
 const menuLayoutUtils = read("src/client/features/canvas/workflows/canvas-menu-layout-utils.js");
 const menuNodeUtils = read("src/client/features/canvas/workflows/canvas-menu-node-utils.js");
 const menuTextUtils = read("src/client/features/canvas/workflows/canvas-menu-text-utils.js");
@@ -59,12 +64,15 @@ assertIncludes(menuActions, "export function bindCanvasMenuActions", "canvas men
 assertIncludes(menuActions, "export function runCanvasImageMenuCommand", "canvas image command wrapper must stay exported");
 assertIncludes(menuActions, "export function runCanvasObjectMenuCommand", "canvas object command runner must stay exported");
 assertIncludes(menuActions, 'from "./canvas-menu-clipboard-utils.js"', "canvas menu must import clipboard utility helpers");
+assertIncludes(menuActions, 'from "./canvas-menu-export-utils.js"', "canvas menu must import export utility helpers");
 assertIncludes(menuActions, 'from "./canvas-menu-layout-utils.js"', "canvas menu must import layout utility helpers");
 assertIncludes(menuActions, 'from "./canvas-menu-node-utils.js"', "canvas menu must import node utility helpers");
 assertIncludes(menuActions, 'from "./canvas-menu-text-utils.js"', "canvas menu must import text utility helpers");
 assertIncludes(menuActions, "const CANVAS_NODE_SELECTOR = \".node-card, .canvas-object\"", "canvas menu node selector must include node cards and canvas objects");
 assertIncludes(menuClipboardUtils, "export function snapshotNodeForClipboard", "canvas clipboard snapshot must live in clipboard utils");
 assertIncludes(menuClipboardUtils, "export function pasteNodeFromClipboard", "canvas clipboard paste must live in clipboard utils");
+assertIncludes(menuExportUtils, "export function getImageExportFileName", "canvas image export filename must live in export utils");
+assertIncludes(menuExportUtils, "export function getUniqueExportFileName", "canvas unique export filename must live in export utils");
 assertIncludes(menuLayoutUtils, "export function areLayoutSnapshotsEqual", "canvas layout snapshot equality must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getLayoutUnionBounds", "canvas layout union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node sort index must live in layout utils");
@@ -353,6 +361,24 @@ assert(getImageNodesForExportFromSelection([exportImage, selectedExportImage], "
 assert(getImageNodesForExportFromSelection([exportImage, selectedExportImage], "selected", targetExportImage)[0] === selectedExportImage, "export image filtering should prefer selected images");
 assert(getImageNodesForExportFromSelection([], "selected", targetExportImage)[0] === targetExportImage, "export image filtering should fall back to exportable target");
 assert(getImageNodesForExportFromSelection([], "selected", emptyExportImage).length === 0, "export image filtering should reject non-exportable target");
+
+const exportNameNode = {
+  querySelector(selector) {
+    if (selector === ".image-file-name, h3, .node-title, [data-node-title]") return { textContent: " Scene/One.PNG " };
+    if (selector === ".image-frame img") return { alt: "fallback-alt" };
+    return null;
+  }
+};
+const exportAltNameNode = {
+  querySelector(selector) {
+    if (selector === ".image-frame img") return { alt: "Alt:Shot.webp" };
+    return null;
+  }
+};
+assert(getImageExportFileName(exportNameNode) === "Scene-One.PNG.png", "image export file name should preserve current strip-before-clean behavior");
+assert(getImageExportFileName(exportAltNameNode) === "Alt-Shot.png", "image export file name should fall back to image alt");
+assert(getUniqueExportFileName([], "Scene-One.png") === "Scene-One.png", "unique export file name should keep unused name");
+assert(getUniqueExportFileName([{ fileName: "Scene-One.png" }, { fileName: "Scene-One-2.png" }], "Scene-One.png") === "Scene-One-3.png", "unique export file name should increment conflicting names");
 
 assert(cleanText("  first\n\tsecond   third  ") === "first second third", "clean text should collapse whitespace");
 assert(cleanText("x".repeat(130)).length === 120, "clean text should preserve 120 character limit");

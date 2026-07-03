@@ -13,6 +13,10 @@ import {
   snapshotNodeForClipboard
 } from "./canvas-menu-clipboard-utils.js";
 import {
+  getImageExportFileName,
+  getUniqueExportFileName
+} from "./canvas-menu-export-utils.js";
+import {
   getCommandNodesFromSelection,
   getEarliestDomNode,
   getGroupableSelection,
@@ -1357,26 +1361,6 @@ async function renderImageNodeToPng(node) {
     objectFit: window.getComputedStyle(rect.image).objectFit || "cover"
   });
   return canvasToBlob(canvas, "image/png");
-}
-
-function getImageExportFileName(node) {
-  const title = cleanFileName(stripImageExtension(node.querySelector(".image-file-name, h3, .node-title, [data-node-title]")?.textContent
-    || node.querySelector(".image-frame img")?.alt
-    || "canvas-image"));
-  return `${title}.png`;
-}
-
-function getUniqueExportFileName(existingFiles, fileName) {
-  const used = new Set(existingFiles.map((file) => file.fileName));
-  if (!used.has(fileName)) return fileName;
-  const base = stripImageExtension(fileName);
-  let index = 2;
-  let nextName = `${base}-${index}.png`;
-  while (used.has(nextName)) {
-    index += 1;
-    nextName = `${base}-${index}.png`;
-  }
-  return nextName;
 }
 
 async function writeExportFilesToDirectory(directoryHandle, files) {
