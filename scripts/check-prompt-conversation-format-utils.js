@@ -2,6 +2,7 @@ import {
   escapeHtml,
   formatConversationTime,
   getConversationHistoryDisplay,
+  getConversationRestoreEntries,
   getConversationRestoreImageAttachments,
   renderConversationHistoryItemHtml,
   renderConversationHistoryListHtml,
@@ -44,6 +45,67 @@ assert(restoredImages[1].caption === "生成图片", "Conversation restore shoul
 assert(
   getConversationRestoreImageAttachments({ type: "image", url: "/uploads/a.png" }).length === 0,
   "Conversation restore should ignore non-array attachment payloads"
+);
+
+const restoreEntries = getConversationRestoreEntries([
+  {
+    role: "assistant",
+    content: { text: "Here is the image" },
+    attachments: [
+      { type: "image", url: "/uploads/a.png", caption: "Preview" },
+      { type: "video", url: "/uploads/v.mp4", caption: "Video" },
+      { type: "image", url: "/uploads/b.png" }
+    ]
+  },
+  {
+    role: "user",
+    content: { text: "Thanks" }
+  },
+  {
+    role: "system",
+    content: { text: "Hidden system text" }
+  }
+]);
+assert(restoreEntries.length === 5, "Conversation restore entries should include restorable images and text messages");
+assert(
+  restoreEntries[0].type === "image"
+    && restoreEntries[0].role === "assistant"
+    && restoreEntries[0].url === "/uploads/a.png"
+    && restoreEntries[0].caption === "Preview",
+  "Conversation restore entries should preserve assistant image attachments first"
+);
+assert(
+  restoreEntries[1].type === "image"
+    && restoreEntries[1].caption === "生成图片",
+  "Conversation restore entries should preserve image fallback captions"
+);
+assert(
+  restoreEntries[2].type === "message"
+    && restoreEntries[2].role === "assistant"
+    && restoreEntries[2].text === "Here is the image",
+  "Conversation restore entries should append assistant text after assistant attachments"
+);
+assert(
+  restoreEntries[3].role === "user" && restoreEntries[3].text === "Thanks",
+  "Conversation restore entries should preserve user text"
+);
+assert(
+  restoreEntries[4].role === "assistant" && restoreEntries[4].text === "Hidden system text",
+  "Conversation restore entries should keep existing non-user text behavior as assistant"
+);
+assert(
+  getConversationRestoreEntries({ role: "user" }).length === 0,
+  "Conversation restore entries should ignore non-array message payloads"
+);
+const limitedRestoreEntries = getConversationRestoreEntries(
+  Array.from({ length: 42 }, (_item, index) => ({
+    role: "user",
+    content: { text: `Message ${index}` }
+  }))
+);
+assert(
+  limitedRestoreEntries.length === 40 && limitedRestoreEntries[0].text === "Message 2",
+  "Conversation restore entries should preserve the existing last-40 message limit"
 );
 
 const activeHistoryDisplay = getConversationHistoryDisplay({

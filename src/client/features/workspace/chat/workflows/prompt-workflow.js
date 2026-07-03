@@ -90,7 +90,7 @@ import {
   isGenerationIntent
 } from "./prompt-conversation-event-utils.js";
 import {
-  getConversationRestoreImageAttachments,
+  getConversationRestoreEntries,
   renderConversationHistoryListHtml,
   renderConversationHistoryMessageHtml
 } from "./prompt-conversation-format-utils.js";
@@ -1723,13 +1723,12 @@ async function restoreProjectConversation({ projectId, conversationId = "", addC
   if (!conversation.id) return;
   const messages = await fetchConversationMessages(conversation.id);
   restoredConversationProjects.add(cleanProjectId);
-  messages.slice(-40).forEach((message) => {
-    const text = message?.content?.text || "";
-    if (message.role === "assistant" && Array.isArray(message.attachments)) {
-      getConversationRestoreImageAttachments(message.attachments)
-        .forEach((item) => addChatImage("assistant", item.url, item.caption));
+  getConversationRestoreEntries(messages).forEach((entry) => {
+    if (entry.type === "image") {
+      addChatImage(entry.role, entry.url, entry.caption);
+      return;
     }
-    if (text) addChat(message.role === "user" ? "user" : "assistant", text);
+    if (entry.type === "message") addChat(entry.role, entry.text);
   });
 }
 

@@ -31,6 +31,32 @@ export function getConversationRestoreImageAttachments(attachments = []) {
     }));
 }
 
+export function getConversationRestoreEntries(messages = [], { limit = 40 } = {}) {
+  return (Array.isArray(messages) ? messages : [])
+    .slice(-Math.max(0, Number(limit || 0)))
+    .flatMap((message) => {
+      const entries = [];
+      if (message?.role === "assistant" && Array.isArray(message.attachments)) {
+        getConversationRestoreImageAttachments(message.attachments)
+          .forEach((item) => entries.push({
+            type: "image",
+            role: "assistant",
+            url: item.url,
+            caption: item.caption
+          }));
+      }
+      const text = message?.content?.text || "";
+      if (text) {
+        entries.push({
+          type: "message",
+          role: message.role === "user" ? "user" : "assistant",
+          text
+        });
+      }
+      return entries;
+    });
+}
+
 export function getConversationHistoryDisplay(conversation = {}) {
   return {
     title: conversation?.title || "Project chat",
