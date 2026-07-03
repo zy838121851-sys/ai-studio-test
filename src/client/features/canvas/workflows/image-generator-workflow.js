@@ -1,8 +1,4 @@
 import {
-  getDroppedExternalImageUrl,
-  importExternalImageUrl
-} from "../canvas-viewport-events.js";
-import {
   getImageModelDisplayName,
   getModelType,
   getSelectedModelId
@@ -114,6 +110,15 @@ const DEFAULT_GENERATOR_MODEL = "doubao-seedream-5-0-lite-260128";
 const DEFAULT_GENERATOR_RATIO = "1:1";
 const DEFAULT_GENERATOR_COUNT = "1";
 const MIDJOURNEY_IMAGE_COUNT = 4;
+
+let canvasViewportEventsModulePromise = null;
+
+function loadCanvasViewportEventsModule() {
+  if (!canvasViewportEventsModulePromise) {
+    canvasViewportEventsModulePromise = import("../canvas-viewport-events.js");
+  }
+  return canvasViewportEventsModulePromise;
+}
 
 export function createImageGeneratorWorkflow({
   elements = {},
@@ -800,6 +805,10 @@ export function createImageGeneratorWorkflow({
       await addReferenceFilesToGenerator(node, files);
       return;
     }
+    const {
+      getDroppedExternalImageUrl,
+      importExternalImageUrl
+    } = await loadCanvasViewportEventsModule();
     const externalImageUrl = getDroppedExternalImageUrl(dataTransfer);
     if (!externalImageUrl) return;
     try {

@@ -83,6 +83,15 @@ const ENTRY_EXPECTATIONS = [
     forbidden: [
       "from \"../../chat/workflows/prompt-workflow.js\""
     ]
+  },
+  {
+    filePath: "src/client/features/canvas/workflows/image-generator-workflow.js",
+    required: [
+      "import(\"../canvas-viewport-events.js\")"
+    ],
+    forbidden: [
+      "from \"../canvas-viewport-events.js\""
+    ]
   }
 ];
 
