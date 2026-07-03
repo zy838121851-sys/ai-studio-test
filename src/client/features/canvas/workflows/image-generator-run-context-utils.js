@@ -30,6 +30,21 @@ export function buildGeneratorRunContext({
   };
 }
 
+export function applyGeneratorCreatedNodeMetadata(createdNode, {
+  sourceNodeId = "",
+  index = 0,
+  count = 1,
+  trackBatch = false
+} = {}) {
+  if (!createdNode) return null;
+  if (sourceNodeId) createdNode.dataset.generatorSourceNodeId = sourceNodeId;
+  if (trackBatch) {
+    createdNode.dataset.generatorBatchCount = String(count);
+    createdNode.dataset.generatorBatchIndex = String(index + 1);
+  }
+  return createdNode;
+}
+
 function normalizeGeneratorRunDimensions(dimensions = {}) {
   const width = Number(dimensions?.width || 0);
   const height = Number(dimensions?.height || 0);

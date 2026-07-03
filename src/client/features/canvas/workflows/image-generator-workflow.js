@@ -409,7 +409,10 @@ export function createImageGeneratorWorkflow({
   }
 
   async function runGeneratorBatch(node, { prompt = "", references = [] } = {}) {
-    const { buildGeneratorRunContext } = await import("./image-generator-run-context-utils.js");
+    const {
+      applyGeneratorCreatedNodeMetadata,
+      buildGeneratorRunContext
+    } = await import("./image-generator-run-context-utils.js");
     const model = getGeneratorModel();
     const modelType = getModelType(model);
     let resultModel = model;
@@ -471,11 +474,7 @@ export function createImageGeneratorWorkflow({
 
       const createdNodes = [];
       const registerGeneratedNode = (createdNode, index = 0, { trackBatch = false } = {}) => {
-        if (sourceNodeId) createdNode.dataset.generatorSourceNodeId = sourceNodeId;
-        if (trackBatch) {
-          createdNode.dataset.generatorBatchCount = String(count);
-          createdNode.dataset.generatorBatchIndex = String(index + 1);
-        }
+        applyGeneratorCreatedNodeMetadata(createdNode, { sourceNodeId, index, count, trackBatch });
         createdNodes.push(createdNode);
         if (!firstSuccessfulNode) firstSuccessfulNode = createdNode;
         return createdNode;

@@ -62,6 +62,7 @@ import {
   logSubmittedGeneratorModel
 } from "../src/client/features/canvas/workflows/image-generator-debug-log-utils.js";
 import {
+  applyGeneratorCreatedNodeMetadata,
   buildGeneratorRunContext
 } from "../src/client/features/canvas/workflows/image-generator-run-context-utils.js";
 
@@ -102,7 +103,9 @@ assert(
     && generatorWorkflow.includes("resolveGeneratorModelValue")
     && generatorWorkflow.includes("syncGeneratorFrameStateToRatio")
     && generatorWorkflow.includes("buildGeneratorRunContext")
+    && generatorWorkflow.includes("applyGeneratorCreatedNodeMetadata")
     && generatorRunContextUtils.includes("export function buildGeneratorRunContext")
+    && generatorRunContextUtils.includes("export function applyGeneratorCreatedNodeMetadata")
     && generatorPreviewJobUtils.includes("applyGeneratorPreviewJobMetadata"),
   "generator must tag preview nodes with job ids when async jobs are created"
 );
@@ -674,6 +677,33 @@ assert(videoRunContext.videoModel === true, "generator run context should detect
 assert(videoRunContext.midjourney === true, "generator run context should detect Midjourney models");
 assert(videoRunContext.count === 1, "generator run context should force video batches to one result");
 assert(videoRunContext.aspectRatio === "1024 / 1024", "generator run context should fall back to stable dimensions");
+const createdNodeMetadataTarget = { dataset: {} };
+assert(
+  applyGeneratorCreatedNodeMetadata(createdNodeMetadataTarget, {
+    sourceNodeId: "generator-1",
+    index: 1,
+    count: 3,
+    trackBatch: true
+  }) === createdNodeMetadataTarget,
+  "generator created-node metadata helper should return the tagged node"
+);
+assert(
+  createdNodeMetadataTarget.dataset.generatorSourceNodeId === "generator-1",
+  "generator created-node metadata helper should preserve source node ids"
+);
+assert(
+  createdNodeMetadataTarget.dataset.generatorBatchCount === "3"
+    && createdNodeMetadataTarget.dataset.generatorBatchIndex === "2",
+  "generator created-node metadata helper should preserve one-based batch metadata"
+);
+const untrackedCreatedNode = { dataset: {} };
+applyGeneratorCreatedNodeMetadata(untrackedCreatedNode, { index: 0, count: 4, trackBatch: false });
+assert(
+  untrackedCreatedNode.dataset.generatorBatchCount === undefined
+    && untrackedCreatedNode.dataset.generatorBatchIndex === undefined,
+  "generator created-node metadata helper should skip batch metadata when not tracking batches"
+);
+assert(applyGeneratorCreatedNodeMetadata(null) === null, "generator created-node metadata helper should tolerate missing nodes");
 assert(
   resolveGeneratorOutputSize({ dataset: { generatorRatio: "16:9" } }) === "1344*768",
   "generator output size helper should prefer node ratio"
