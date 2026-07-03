@@ -2,6 +2,7 @@
 
 import {
   areLayoutSnapshotsEqual,
+  getNodeLayoutBounds,
   getLayoutUnionBounds,
   getNodeSortIndex,
   getRectUnionBounds,
@@ -991,29 +992,6 @@ function recordLayoutMutation(nodes, before, type, recordUndoAction) {
   return true;
 }
 
-function getNodeLayoutBounds(node) {
-  if (node?.classList?.contains("node-image")) {
-    const frame = node.querySelector(".image-frame");
-    const width = Math.max(1, frame?.offsetWidth || node.offsetWidth || parseFloat(node.style.width || "0") || 1);
-    const height = Math.max(
-      1,
-      frame?.offsetHeight || getImageFrameHeightFromAspect(node, width) || parseFloat(node.style.minHeight || "0") || 1
-    );
-    return {
-      x: parseFloat(node.style.left || "0") || 0,
-      y: parseFloat(node.style.top || "0") || 0,
-      width,
-      height
-    };
-  }
-  return {
-    x: parseFloat(node.style.left || "0") || 0,
-    y: parseFloat(node.style.top || "0") || 0,
-    width: Math.max(1, node.offsetWidth || parseFloat(node.style.width || "0") || 1),
-    height: Math.max(1, node.offsetHeight || parseFloat(node.style.minHeight || "0") || 1)
-  };
-}
-
 function setNodeLayoutWidth(node, width) {
   node.dataset.manualSize = "true";
   const nextWidth = Math.max(24, Math.round(width));
@@ -1089,12 +1067,6 @@ function getImageDisplayAspectRatio(node) {
   if (naturalWidth > 0 && naturalHeight > 0) return naturalWidth / naturalHeight;
   const frame = node?.querySelector?.(".image-frame");
   return parseAspectRatio(frame?.style?.aspectRatio || window.getComputedStyle(frame || node).aspectRatio || "") || 1;
-}
-
-function getImageFrameHeightFromAspect(node, width) {
-  const frame = node?.querySelector?.(".image-frame");
-  const ratio = parseAspectRatio(frame?.style?.aspectRatio || window.getComputedStyle(frame || node).aspectRatio || "");
-  return ratio ? width / ratio : 0;
 }
 
 function getNodeSortTitle(node) {

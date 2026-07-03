@@ -17,7 +17,9 @@ import {
 } from "../src/client/features/canvas/workflows/canvas-menu-export-utils.js";
 import {
   areLayoutSnapshotsEqual,
+  getImageFrameHeightFromAspect,
   getLayoutUnionBounds,
+  getNodeLayoutBounds,
   getNodeSortIndex,
   getRectUnionBounds,
   getViewportUnionRect,
@@ -92,7 +94,9 @@ assertIncludes(menuExportUtils, "export function isHttpUrl", "canvas HTTP URL ch
 assertIncludes(menuExportUtils, "export function prepareExportClone", "canvas export clone cleanup must live in export utils");
 assertIncludes(menuExportUtils, "export function rasterizeSvg", "canvas SVG rasterizer must live in export utils");
 assertIncludes(menuLayoutUtils, "export function areLayoutSnapshotsEqual", "canvas layout snapshot equality must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function getImageFrameHeightFromAspect", "canvas image frame aspect height must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getLayoutUnionBounds", "canvas layout union bounds must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function getNodeLayoutBounds", "canvas node layout bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node sort index must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getRectUnionBounds", "canvas rect union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getViewportUnionRect", "canvas viewport union rect must live in layout utils");
@@ -250,6 +254,57 @@ assert(parseAspectRatio("1.5") === 1.5, "aspect ratio parser should support nume
 assert(parseAspectRatio("auto") === 0, "aspect ratio parser should preserve auto fallback");
 assert(parseAspectRatio("0 / 3") === 0, "aspect ratio parser should reject non-positive ratio parts");
 assert(parseAspectRatio("invalid") === 0, "aspect ratio parser should reject invalid values");
+
+const OriginalWindowForLayout = globalThis.window;
+try {
+  globalThis.window = {
+    getComputedStyle(target) {
+      return { aspectRatio: target?.computedAspectRatio || "" };
+    }
+  };
+  const plainLayoutNode = {
+    offsetWidth: 0,
+    offsetHeight: 48,
+    style: { left: "12.5px", top: "bad", width: "240px", minHeight: "60px" },
+    classList: { contains: () => false }
+  };
+  const plainBounds = getNodeLayoutBounds(plainLayoutNode);
+  assert(plainBounds.x === 12.5 && plainBounds.y === 0, "node layout bounds should parse position styles");
+  assert(plainBounds.width === 240 && plainBounds.height === 48, "node layout bounds should prefer offset height and style width fallback");
+
+  const imageFrame = {
+    offsetWidth: 320,
+    offsetHeight: 0,
+    style: { aspectRatio: "16 / 9" }
+  };
+  const imageLayoutNode = {
+    offsetWidth: 0,
+    offsetHeight: 0,
+    style: { left: "4px", top: "8px", width: "0", minHeight: "120px" },
+    classList: { contains: (name) => name === "node-image" },
+    querySelector(selector) {
+      if (selector === ".image-frame") return imageFrame;
+      return null;
+    }
+  };
+  const imageBounds = getNodeLayoutBounds(imageLayoutNode);
+  assert(imageBounds.x === 4 && imageBounds.y === 8, "image layout bounds should parse image position");
+  assert(imageBounds.width === 320 && imageBounds.height === 180, "image layout bounds should derive height from frame aspect ratio");
+  assert(getImageFrameHeightFromAspect(imageLayoutNode, 320) === 180, "image frame aspect height should preserve ratio calculation");
+
+  imageFrame.style.aspectRatio = "";
+  imageFrame.computedAspectRatio = "4 / 3";
+  assert(getImageFrameHeightFromAspect(imageLayoutNode, 300) === 225, "image frame aspect height should fall back to computed style");
+
+  imageFrame.offsetWidth = 0;
+  imageFrame.offsetHeight = 0;
+  imageFrame.style.aspectRatio = "";
+  imageFrame.computedAspectRatio = "";
+  const fallbackImageBounds = getNodeLayoutBounds(imageLayoutNode);
+  assert(fallbackImageBounds.width === 1 && fallbackImageBounds.height === 120, "image layout bounds should preserve width minimum and minHeight fallback");
+} finally {
+  globalThis.window = OriginalWindowForLayout;
+}
 
 const snapshotFrame = { style: { aspectRatio: "4 / 3" } };
 const snapshotNode = {
