@@ -39,11 +39,11 @@ import {
   applyGeneratorPreviewBatchMetadata,
   applyGeneratorPreviewDimensions,
   buildGeneratorPreviewJobMeta,
+  buildRecoveredGeneratorPreviewItems,
   getGeneratorPreviewDescription,
   getGeneratorPreviewNodeWidth as getPreviewNodeWidth,
   getPendingGeneratorPreviewGroups,
   getRecoveredGeneratorPreviewReplacementMeta,
-  getRecoveredGeneratorPreviewUrl,
   markGeneratorPreviewFailed,
   tagGeneratorPreviewJobs,
   updateGeneratorPreviewStatus as updatePreviewStatus
@@ -696,12 +696,12 @@ export function createImageGeneratorWorkflow({
 
   function completeRecoveredGeneratorPreviewGroup(jobId, nodes = [], result = {}) {
     const urls = getResultImageUrls(result);
-    nodes.forEach((previewNode, index) => replaceRecoveredGeneratorPreview(previewNode, {
-      jobId,
-      result,
-      url: getRecoveredGeneratorPreviewUrl(previewNode, urls, index),
-      index,
-      count: urls.length || nodes.length || 1
+    buildRecoveredGeneratorPreviewItems(nodes, { jobId, result, urls }).forEach((item) => replaceRecoveredGeneratorPreview(item.previewNode, {
+      jobId: item.jobId,
+      result: item.result,
+      url: item.url,
+      index: item.index,
+      count: item.count
     }));
     window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
     saveCurrentProjectAfterGeneration?.();

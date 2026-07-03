@@ -95,6 +95,23 @@ export function getRecoveredGeneratorPreviewUrl(previewNode, urls = [], index = 
   return urls[getGeneratorPreviewBatchIndex(previewNode, index)] || urls[index] || urls[0] || "";
 }
 
+export function buildRecoveredGeneratorPreviewItems(nodes = [], {
+  jobId = "",
+  result = {},
+  urls = []
+} = {}) {
+  const safeNodes = Array.isArray(nodes) ? nodes : [];
+  const count = urls.length || safeNodes.length || 1;
+  return safeNodes.map((previewNode, index) => ({
+    previewNode,
+    jobId,
+    result,
+    url: getRecoveredGeneratorPreviewUrl(previewNode, urls, index),
+    index,
+    count
+  }));
+}
+
 export function getRecoveredGeneratorPreviewReplacementMeta(previewNode, {
   result = {},
   index = 0

@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import {
+  buildRecoveredGeneratorPreviewItems,
   getGeneratorPreviewDescription,
   getGeneratorPreviewNodeWidth,
   getRecoveredGeneratorPreviewReplacementMeta,
@@ -87,12 +88,13 @@ const generatorRunContextUtils = read("src/client/features/canvas/workflows/imag
 assert(
   generatorWorkflow.includes("onJobCreated")
     && generatorWorkflow.includes("tagGeneratorPreviewJobs")
-    && generatorWorkflow.includes("getRecoveredGeneratorPreviewUrl")
     && generatorWorkflow.includes("getRecoveredGeneratorPreviewReplacementMeta")
+    && generatorPreviewJobUtils.includes("getRecoveredGeneratorPreviewUrl")
     && generatorWorkflow.includes("getGeneratorPreviewDescription")
     && generatorWorkflow.includes("getGeneratorPreviewNodeWidth as getPreviewNodeWidth")
     && generatorWorkflow.includes("getGeneratedImagePlacement")
     && generatorWorkflow.includes("getGeneratorReplacementPlacement")
+    && generatorWorkflow.includes("buildRecoveredGeneratorPreviewItems")
     && generatorControlStateUtils.includes("export function getGeneratorBatchCount")
     && generatorWorkflow.includes("readGeneratorReferenceFiles")
     && generatorWorkflow.includes("markGeneratorPreviewFailed")
@@ -608,6 +610,26 @@ assert(
   getRecoveredGeneratorPreviewUrl({ dataset: { generatorBatchIndex: "9" } }, recoveredUrls, 9) === "/uploads/one.png",
   "recovered generator preview URL should fall back to first URL when no indexed URL matches"
 );
+const recoveredItems = buildRecoveredGeneratorPreviewItems([
+  { dataset: { generatorBatchIndex: "2" } },
+  { dataset: {} }
+], {
+  jobId: "job-1",
+  result: { status: "succeeded" },
+  urls: recoveredUrls
+});
+assert(recoveredItems.length === 2, "recovered generator preview items should mirror preview nodes");
+assert(recoveredItems[0].jobId === "job-1", "recovered generator preview items should preserve job ids");
+assert(recoveredItems[0].result.status === "succeeded", "recovered generator preview items should preserve result payloads");
+assert(recoveredItems[0].url === "/uploads/two.png", "recovered generator preview items should use recovered URL helper");
+assert(recoveredItems[0].index === 0 && recoveredItems[1].index === 1, "recovered generator preview items should preserve loop indexes");
+assert(recoveredItems[0].count === recoveredUrls.length, "recovered generator preview items should prefer URL count");
+const recoveredItemsWithoutUrls = buildRecoveredGeneratorPreviewItems([{ dataset: {} }, { dataset: {} }], {
+  jobId: "job-2",
+  result: {}
+});
+assert(recoveredItemsWithoutUrls[0].count === 2, "recovered generator preview items should fall back to node count");
+assert(buildRecoveredGeneratorPreviewItems(null).length === 0, "recovered generator preview items should tolerate missing node arrays");
 const recoveredMeta = getRecoveredGeneratorPreviewReplacementMeta({
   dataset: {
     generatorBatchIndex: "2",
