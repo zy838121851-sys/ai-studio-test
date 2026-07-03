@@ -20,6 +20,7 @@ import {
   createProjectInitialSyncReady
 } from "../src/client/features/projects/project-auth-sync.js";
 import {
+  createProjectRuntimeBootstrapConfig,
   hydrateProjectRuntimeState,
   syncProjectRuntimeChange
 } from "../src/client/features/projects/project-runtime-sync.js";
@@ -399,6 +400,60 @@ assert(
     ["active", "project-2"]
   ]),
   "Project runtime hydration should preserve bootstrap state write order"
+);
+
+const bootstrapConfigCalls = [];
+const bootstrapConfig = createProjectRuntimeBootstrapConfig({
+  remoteProjectsEnabled: true,
+  state: {
+    setProjects(projects) {
+      bootstrapConfigCalls.push(["projects", projects]);
+    },
+    setActiveProjectIdInMemory(projectId) {
+      bootstrapConfigCalls.push(["active", projectId]);
+    }
+  },
+  ui: {
+    updateProjectTitle(project) {
+      bootstrapConfigCalls.push(["title", project]);
+    },
+    renderProjectLibrary() {
+      bootstrapConfigCalls.push(["library"]);
+    },
+    renderHomeHistory() {
+      bootstrapConfigCalls.push(["home"]);
+    }
+  },
+  loadProjectsFromStorage() {
+    return [];
+  },
+  getActiveProjectId() {
+    return "";
+  },
+  setActiveProjectId() {},
+  createProjectRuntime() {
+    return {};
+  }
+});
+assert(bootstrapConfig.useStorage === false, "Remote project bootstrap config should disable local storage reads");
+assert(bootstrapConfig.persistLocal === false, "Remote project bootstrap config should disable local persistence");
+assert(typeof bootstrapConfig.onChange === "function", "Project bootstrap config should expose runtime onChange sync");
+const bootstrapConfigProjects = [{ id: "project-3" }];
+const bootstrapConfigActiveProject = { id: "project-3", title: "Project 3" };
+bootstrapConfig.onChange({
+  projects: bootstrapConfigProjects,
+  activeProjectId: "project-3",
+  activeProject: bootstrapConfigActiveProject
+});
+assert(
+  JSON.stringify(bootstrapConfigCalls) === JSON.stringify([
+    ["projects", bootstrapConfigProjects],
+    ["active", "project-3"],
+    ["title", bootstrapConfigActiveProject],
+    ["library"],
+    ["home"]
+  ]),
+  "Project bootstrap config should preserve runtime change sync behavior"
 );
 
 console.log("Project snapshot checks passed.");

@@ -1,3 +1,31 @@
+export function createProjectRuntimeBootstrapConfig({
+  remoteProjectsEnabled = false,
+  state = {},
+  ui = {},
+  loadProjectsFromStorage,
+  getActiveProjectId,
+  setActiveProjectId,
+  createProjectRuntime
+} = {}) {
+  return {
+    loadProjectsFromStorage,
+    getActiveProjectId,
+    setActiveProjectId,
+    createProjectRuntime,
+    useStorage: !remoteProjectsEnabled,
+    persistLocal: !remoteProjectsEnabled,
+    onChange({ projects: nextProjects, activeProjectId: nextActiveProjectId, activeProject } = {}) {
+      syncProjectRuntimeChange({
+        state,
+        ui,
+        projects: nextProjects,
+        activeProjectId: nextActiveProjectId,
+        activeProject
+      });
+    }
+  };
+}
+
 export function hydrateProjectRuntimeState({
   state = {},
   runtimeBootstrap = {}

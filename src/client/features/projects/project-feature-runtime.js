@@ -5,8 +5,8 @@ import {
   createProjectInitialSyncReady
 } from "./project-auth-sync.js";
 import {
+  createProjectRuntimeBootstrapConfig,
   hydrateProjectRuntimeState,
-  syncProjectRuntimeChange
 } from "./project-runtime-sync.js";
 import { createProjectWorkflowRuntime } from "./project-workflow-bootstrap.js?v=20260627-library-bulk-select-1";
 import {
@@ -32,23 +32,15 @@ export function createProjectFeatureRuntime({
   const remoteProjectsEnabled = isRemoteProjectPersistenceEnabled();
   if (remoteProjectsEnabled) clearProjectsStorage();
 
-  const runtimeBootstrap = createProjectRuntimeBootstrap({
+  const runtimeBootstrap = createProjectRuntimeBootstrap(createProjectRuntimeBootstrapConfig({
+    remoteProjectsEnabled,
+    state,
+    ui,
     loadProjectsFromStorage,
     getActiveProjectId,
     setActiveProjectId,
-    createProjectRuntime,
-    useStorage: !remoteProjectsEnabled,
-    persistLocal: !remoteProjectsEnabled,
-    onChange({ projects: nextProjects, activeProjectId: nextActiveProjectId, activeProject }) {
-      syncProjectRuntimeChange({
-        state,
-        ui,
-        projects: nextProjects,
-        activeProjectId: nextActiveProjectId,
-        activeProject
-      });
-    }
-  });
+    createProjectRuntime
+  }));
 
   hydrateProjectRuntimeState({ state, runtimeBootstrap });
 
