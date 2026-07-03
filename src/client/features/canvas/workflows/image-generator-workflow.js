@@ -25,13 +25,15 @@ import {
 import {
   buildGeneratorMissingUrlProgressPayload,
   buildGeneratorRateLimitProgressPayload,
+  buildInitialGeneratorJobPayload,
   delayGeneratorJobPoll,
   getGeneratorJobRequestError,
   getGeneratorJobStatusPath,
   getMissingGeneratorUrlRetryState,
   getRetryAfterDelayMs,
   getTerminalGeneratorJobResult,
-  isTerminalGeneratorJobStatus
+  isTerminalGeneratorJobStatus,
+  mergeGeneratorJobPayload
 } from "./image-generator-job-polling-utils.js";
 import {
   buildGeneratorImagePreviewReplacementOptions,
@@ -1012,7 +1014,7 @@ export function createImageGeneratorWorkflow({
     expectedType = "image",
     missingUrlRetries = 4
   } = {}) {
-    let lastPayload = { jobId, ...fallback };
+    let lastPayload = buildInitialGeneratorJobPayload(jobId, fallback);
     let missingUrlAttempts = 0;
     for (let index = 0; index < attempts; index += 1) {
       await delayGeneratorJobPoll(delayMs);
@@ -1027,7 +1029,7 @@ export function createImageGeneratorWorkflow({
         continue;
       }
       if (!response.ok) throw getGeneratorJobRequestError(payload, response.status);
-      lastPayload = { ...fallback, ...payload };
+      lastPayload = mergeGeneratorJobPayload(fallback, payload);
       logGeneratorJobPoll(lastPayload);
       if (isTerminalGeneratorJobStatus(payload?.status)) {
         const terminalResult = getTerminalGeneratorJobResult(lastPayload, expectedType);

@@ -27,10 +27,12 @@ import {
   getGeneratorResultTitle
 } from "../src/client/features/canvas/workflows/image-generator-result-utils.js";
 import {
+  buildInitialGeneratorJobPayload,
   delayGeneratorJobPoll,
   getGeneratorJobRequestError,
   getGeneratorJobStatusPath,
-  getMissingGeneratorUrlRetryState
+  getMissingGeneratorUrlRetryState,
+  mergeGeneratorJobPayload
 } from "../src/client/features/canvas/workflows/image-generator-job-polling-utils.js";
 import {
   readGeneratorReferenceFiles
@@ -105,10 +107,12 @@ assert(
 assert(
   generatorWorkflow.includes("missingUrlRetries") &&
   generatorJobPollingUtils.includes("Waiting for saved image URL") &&
+  generatorJobPollingUtils.includes("export function buildInitialGeneratorJobPayload") &&
   generatorJobPollingUtils.includes("export function delayGeneratorJobPoll") &&
   generatorJobPollingUtils.includes("export function getGeneratorJobRequestError") &&
   generatorJobPollingUtils.includes("export function getGeneratorJobStatusPath") &&
-  generatorJobPollingUtils.includes("export function getMissingGeneratorUrlRetryState"),
+  generatorJobPollingUtils.includes("export function getMissingGeneratorUrlRetryState") &&
+  generatorJobPollingUtils.includes("export function mergeGeneratorJobPayload"),
   "generator polling must retry succeeded jobs that do not yet expose an image URL"
 );
 const generatorDelayPromise = delayGeneratorJobPoll(0);
@@ -137,6 +141,16 @@ assert(
 assert(
   getGeneratorJobStatusPath("job id/1") === "/api/ai/jobs/job%20id%2F1",
   "generator polling status paths should encode unsafe job id characters"
+);
+assert(
+  JSON.stringify(buildInitialGeneratorJobPayload("job-1", { jobId: "fallback-job", status: "queued" }))
+    === JSON.stringify({ jobId: "fallback-job", status: "queued" }),
+  "generator initial job payloads should preserve fallback override order"
+);
+assert(
+  JSON.stringify(mergeGeneratorJobPayload({ jobId: "job-1", status: "queued" }, { status: "running", progress: 20 }))
+    === JSON.stringify({ jobId: "job-1", status: "running", progress: 20 }),
+  "generator polling payload merges should let server payloads override fallback values"
 );
 assert(
   JSON.stringify(getMissingGeneratorUrlRetryState({

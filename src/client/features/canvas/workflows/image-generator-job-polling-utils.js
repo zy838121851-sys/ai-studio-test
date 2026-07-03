@@ -31,6 +31,14 @@ export function getTerminalGeneratorJobResult(lastPayload = {}, expectedType = "
   };
 }
 
+export function buildInitialGeneratorJobPayload(jobId = "", fallback = {}) {
+  return { jobId, ...fallback };
+}
+
+export function mergeGeneratorJobPayload(fallback = {}, payload = {}) {
+  return { ...fallback, ...payload };
+}
+
 export function buildGeneratorMissingUrlProgressPayload(lastPayload = {}, expectedType = "image") {
   return {
     ...lastPayload,
