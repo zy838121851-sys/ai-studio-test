@@ -1,4 +1,5 @@
 import {
+  buildConversationRunPayload,
   getGenerationToolNameFromEvent,
   isGenerationIntent,
   isGenerationTool
@@ -66,6 +67,41 @@ assert(
 assert(
   getGenerationToolNameFromEvent({}) === "",
   "Generation tool lookup should handle empty events"
+);
+
+const explicitAttachments = [{ type: "image", name: "ready.png", dataUrl: "data:image/png;base64,a" }];
+const explicitPayload = buildConversationRunPayload({
+  runId: "run-1",
+  prompt: "Make a concept",
+  model: "gpt-image",
+  attachments: explicitAttachments,
+  images: ["ignored"],
+  files: [{ type: "image/jpeg", name: "ignored.jpg" }],
+  canvasContext: { selected: 1 }
+});
+assert(explicitPayload.runId === "run-1", "Conversation payloads should preserve run ids");
+assert(explicitPayload.text === "Make a concept", "Conversation payloads should map prompts to text");
+assert(explicitPayload.model === "gpt-image", "Conversation payloads should preserve models");
+assert(explicitPayload.mode === "auto", "Conversation payloads should preserve auto mode");
+assert(explicitPayload.attachments === explicitAttachments, "Conversation payloads should prefer explicit attachments");
+assert(explicitPayload.canvasContext.selected === 1, "Conversation payloads should preserve canvas context");
+
+const uploadPayload = buildConversationRunPayload({
+  images: ["data:image/png;base64,a", "data:image/png;base64,b"],
+  files: [{ type: "image/png", name: "first.png" }]
+});
+assert(uploadPayload.attachments.length === 2, "Conversation payloads should map image uploads to attachments");
+assert(
+  uploadPayload.attachments[0].type === "image/png"
+    && uploadPayload.attachments[0].name === "first.png"
+    && uploadPayload.attachments[0].source === "upload"
+    && uploadPayload.attachments[0].dataUrl === "data:image/png;base64,a",
+  "Conversation payloads should preserve uploaded file metadata"
+);
+assert(
+  uploadPayload.attachments[1].type === "image"
+    && uploadPayload.attachments[1].name === "Reference 2",
+  "Conversation payloads should preserve fallback upload metadata"
 );
 
 console.log("Prompt conversation event utility checks passed.");

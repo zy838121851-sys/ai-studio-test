@@ -16,3 +16,27 @@ export function isGenerationTool(name = "") {
 export function isGenerationIntent(intent = "") {
   return ["generate_image", "edit_image", "generate_video"].includes(String(intent || "").trim());
 }
+
+export function buildConversationRunPayload({
+  runId = "",
+  prompt = "",
+  model = "",
+  attachments = [],
+  images = [],
+  files = [],
+  canvasContext = {}
+} = {}) {
+  return {
+    runId,
+    text: prompt,
+    model,
+    mode: "auto",
+    attachments: attachments.length ? attachments : images.map((dataUrl, index) => ({
+      type: files[index]?.type || "image",
+      name: files[index]?.name || `Reference ${index + 1}`,
+      source: "upload",
+      dataUrl
+    })),
+    canvasContext
+  };
+}

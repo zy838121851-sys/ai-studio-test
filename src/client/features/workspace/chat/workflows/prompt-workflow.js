@@ -86,6 +86,7 @@ import {
   waitForTripo3DTask
 } from "./prompt-job-utils.js";
 import {
+  buildConversationRunPayload,
   getGenerationToolNameFromEvent,
   isGenerationIntent
 } from "./prompt-conversation-event-utils.js";
@@ -1255,19 +1256,15 @@ async function runConversationAgent({
   let sawMessageDone = false;
   const runId = debugRecord?.runId || "";
 
-  const conversationPayload = {
+  const conversationPayload = buildConversationRunPayload({
     runId,
-    text: prompt,
+    prompt,
     model,
-    mode: "auto",
-    attachments: attachments.length ? attachments : images.map((dataUrl, index) => ({
-      type: files[index]?.type || "image",
-      name: files[index]?.name || `Reference ${index + 1}`,
-      source: "upload",
-      dataUrl
-    })),
+    attachments,
+    images,
+    files,
     canvasContext
-  };
+  });
   logAgentDebug(debugRecord, "conversation.request", summarizeConversationPayload(conversationPayload));
   updateAgentDebugPanel(debugRecord);
 
