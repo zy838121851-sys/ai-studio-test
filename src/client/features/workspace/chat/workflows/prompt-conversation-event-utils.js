@@ -243,6 +243,38 @@ export function applyPromptOptimizerStartDebugState(debugRecord, state = {}) {
   return debugRecord;
 }
 
+export function buildImageAnalysisState(event = {}, current = {}) {
+  return {
+    imageAnalysis: event.analysis || event.summary || current.imageAnalysis || null
+  };
+}
+
+export function applyImageAnalysisDebugState(debugRecord, state = {}) {
+  if (!debugRecord) return debugRecord;
+  debugRecord.imageAnalysisPresent = Boolean(state.imageAnalysis);
+  debugRecord.imageAnalysisStarted = true;
+  debugRecord.imageAnalysisFinished = true;
+  debugRecord.imageAnalysisTimedOut = false;
+  debugRecord.imageAnalysisError = "";
+  return debugRecord;
+}
+
+export function buildImageAnalysisErrorState(event = {}) {
+  return {
+    imageAnalysisError: event.error || "Image analysis failed",
+    imageAnalysisTimedOut: Boolean(event.timedOut)
+  };
+}
+
+export function applyImageAnalysisErrorDebugState(debugRecord, state = {}) {
+  if (!debugRecord) return debugRecord;
+  debugRecord.imageAnalysisStarted = true;
+  debugRecord.imageAnalysisFinished = true;
+  debugRecord.imageAnalysisTimedOut = Boolean(state.imageAnalysisTimedOut);
+  debugRecord.imageAnalysisError = state.imageAnalysisError || "";
+  return debugRecord;
+}
+
 export function buildPromptOptimizedState(event = {}, current = {}) {
   const optimizedPrompt = event.optimizedPrompt || current.optimizedPrompt || "";
   const taskType = event.taskType || current.taskType || "";

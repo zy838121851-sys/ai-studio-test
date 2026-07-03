@@ -87,10 +87,14 @@ import {
 } from "./prompt-job-utils.js";
 import {
   applyConversationIntentDebugState,
+  applyImageAnalysisDebugState,
+  applyImageAnalysisErrorDebugState,
   applyMessageDoneDebugState,
   applyPromptOptimizedDebugState,
   applyPromptOptimizerStartDebugState,
   buildConversationIntentState,
+  buildImageAnalysisErrorState,
+  buildImageAnalysisState,
   buildMessageDoneReceivedPayload,
   buildMessageDoneState,
   buildPromptOptimizedState,
@@ -1422,24 +1426,19 @@ async function runConversationAgent({
       return;
     }
     if (event.type === "image.analysis") {
-      imageAnalysis = event.analysis || event.summary || imageAnalysis;
+      const imageAnalysisState = buildImageAnalysisState(event, { imageAnalysis });
+      ({ imageAnalysis } = imageAnalysisState);
       if (debugRecord) {
-        debugRecord.imageAnalysisPresent = Boolean(imageAnalysis);
-        debugRecord.imageAnalysisStarted = true;
-        debugRecord.imageAnalysisFinished = true;
-        debugRecord.imageAnalysisTimedOut = false;
-        debugRecord.imageAnalysisError = "";
+        applyImageAnalysisDebugState(debugRecord, imageAnalysisState);
       }
       updateAgentDebugPanel(debugRecord);
       return;
     }
     if (event.type === "image.analysis.error") {
-      imageAnalysisError = event.error || "Image analysis failed";
+      const imageAnalysisErrorState = buildImageAnalysisErrorState(event);
+      ({ imageAnalysisError } = imageAnalysisErrorState);
       if (debugRecord) {
-        debugRecord.imageAnalysisStarted = true;
-        debugRecord.imageAnalysisFinished = true;
-        debugRecord.imageAnalysisTimedOut = Boolean(event.timedOut);
-        debugRecord.imageAnalysisError = imageAnalysisError;
+        applyImageAnalysisErrorDebugState(debugRecord, imageAnalysisErrorState);
       }
       updateAgentDebugPanel(debugRecord);
       return;

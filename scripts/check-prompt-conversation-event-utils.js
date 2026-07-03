@@ -1,9 +1,13 @@
 import {
   applyConversationIntentDebugState,
+  applyImageAnalysisDebugState,
+  applyImageAnalysisErrorDebugState,
   applyMessageDoneDebugState,
   applyPromptOptimizedDebugState,
   applyPromptOptimizerStartDebugState,
   buildConversationIntentState,
+  buildImageAnalysisErrorState,
+  buildImageAnalysisState,
   buildMessageDoneReceivedPayload,
   buildMessageDoneState,
   buildPromptOptimizedState,
@@ -584,6 +588,74 @@ assert(optimizerStartDebugRecord.optimizerError === "", "Prompt optimizer start 
 assert(
   applyPromptOptimizerStartDebugState(null, optimizerStartState) === null,
   "Prompt optimizer start debug sync should ignore missing debug records"
+);
+
+const imageAnalysisState = buildImageAnalysisState({
+  analysis: { source: "analysis" },
+  summary: { source: "summary" }
+}, {
+  imageAnalysis: { source: "current" }
+});
+assert(imageAnalysisState.imageAnalysis.source === "analysis", "Image analysis state should prefer analysis payloads");
+
+const imageAnalysisSummaryState = buildImageAnalysisState({
+  summary: { source: "summary" }
+}, {
+  imageAnalysis: { source: "current" }
+});
+assert(imageAnalysisSummaryState.imageAnalysis.source === "summary", "Image analysis state should fall back to summary payloads");
+
+const imageAnalysisFallbackState = buildImageAnalysisState({}, {
+  imageAnalysis: { source: "current" }
+});
+assert(imageAnalysisFallbackState.imageAnalysis.source === "current", "Image analysis state should keep current analysis when event is empty");
+
+const imageAnalysisDebugRecord = {
+  imageAnalysisTimedOut: true,
+  imageAnalysisError: "old-error"
+};
+assert(
+  applyImageAnalysisDebugState(imageAnalysisDebugRecord, imageAnalysisState) === imageAnalysisDebugRecord,
+  "Image analysis debug sync should return the debug record"
+);
+assert(imageAnalysisDebugRecord.imageAnalysisPresent === true, "Image analysis debug sync should mark analysis as present");
+assert(imageAnalysisDebugRecord.imageAnalysisStarted === true, "Image analysis debug sync should mark analysis started");
+assert(imageAnalysisDebugRecord.imageAnalysisFinished === true, "Image analysis debug sync should mark analysis finished");
+assert(imageAnalysisDebugRecord.imageAnalysisTimedOut === false, "Image analysis debug sync should clear timeout flags");
+assert(imageAnalysisDebugRecord.imageAnalysisError === "", "Image analysis debug sync should clear analysis errors");
+assert(applyImageAnalysisDebugState(null, imageAnalysisState) === null, "Image analysis debug sync should ignore missing debug records");
+
+const imageAnalysisErrorState = buildImageAnalysisErrorState({
+  error: "analysis failed",
+  timedOut: true
+});
+assert(imageAnalysisErrorState.imageAnalysisError === "analysis failed", "Image analysis error state should preserve error messages");
+assert(imageAnalysisErrorState.imageAnalysisTimedOut === true, "Image analysis error state should preserve timeout flags");
+
+const fallbackImageAnalysisErrorState = buildImageAnalysisErrorState({});
+assert(
+  fallbackImageAnalysisErrorState.imageAnalysisError === "Image analysis failed",
+  "Image analysis error state should use default error messages"
+);
+assert(fallbackImageAnalysisErrorState.imageAnalysisTimedOut === false, "Image analysis error state should default timeout flags to false");
+
+const imageAnalysisErrorDebugRecord = {
+  imageAnalysisStarted: false,
+  imageAnalysisFinished: false,
+  imageAnalysisTimedOut: false,
+  imageAnalysisError: ""
+};
+assert(
+  applyImageAnalysisErrorDebugState(imageAnalysisErrorDebugRecord, imageAnalysisErrorState) === imageAnalysisErrorDebugRecord,
+  "Image analysis error debug sync should return the debug record"
+);
+assert(imageAnalysisErrorDebugRecord.imageAnalysisStarted === true, "Image analysis error debug sync should mark analysis started");
+assert(imageAnalysisErrorDebugRecord.imageAnalysisFinished === true, "Image analysis error debug sync should mark analysis finished");
+assert(imageAnalysisErrorDebugRecord.imageAnalysisTimedOut === true, "Image analysis error debug sync should write timeout flags");
+assert(imageAnalysisErrorDebugRecord.imageAnalysisError === "analysis failed", "Image analysis error debug sync should write analysis errors");
+assert(
+  applyImageAnalysisErrorDebugState(null, imageAnalysisErrorState) === null,
+  "Image analysis error debug sync should ignore missing debug records"
 );
 
 console.log("Prompt conversation event utility checks passed.");
