@@ -1,6 +1,9 @@
 ﻿import { openImageCompareFromSelection } from "../image-compare.js";
 
-import { areLayoutSnapshotsEqual } from "./canvas-menu-layout-utils.js";
+import {
+  areLayoutSnapshotsEqual,
+  getLayoutUnionBounds
+} from "./canvas-menu-layout-utils.js";
 
 const NODE_PRESETS = {
   text: { kind: "2d", title: "Text node", desc: "Script, copy, notes" },
@@ -825,19 +828,6 @@ function sortNodesByCanvasPosition(nodes) {
       || aBounds.x - bBounds.x
       || getNodeSortIndex(a) - getNodeSortIndex(b);
   });
-}
-
-function getLayoutUnionBounds(bounds = []) {
-  const left = Math.min(...bounds.map((item) => item.x));
-  const top = Math.min(...bounds.map((item) => item.y));
-  const right = Math.max(...bounds.map((item) => item.x + item.width));
-  const bottom = Math.max(...bounds.map((item) => item.y + item.height));
-  return {
-    x: left,
-    y: top,
-    width: right - left,
-    height: bottom - top
-  };
 }
 
 function reorderNodeLayers(nodes, mode, selectNode) {

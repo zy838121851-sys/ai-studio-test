@@ -1,5 +1,8 @@
 import { readFileSync } from "node:fs";
-import { areLayoutSnapshotsEqual } from "../src/client/features/canvas/workflows/canvas-menu-layout-utils.js";
+import {
+  areLayoutSnapshotsEqual,
+  getLayoutUnionBounds
+} from "../src/client/features/canvas/workflows/canvas-menu-layout-utils.js";
 
 function read(path) {
   return readFileSync(path, "utf8");
@@ -22,6 +25,7 @@ assertIncludes(menuActions, "export function runCanvasObjectMenuCommand", "canva
 assertIncludes(menuActions, 'from "./canvas-menu-layout-utils.js"', "canvas menu must import layout utility helpers");
 assertIncludes(menuActions, "const CANVAS_NODE_SELECTOR = \".node-card, .canvas-object\"", "canvas menu node selector must include node cards and canvas objects");
 assertIncludes(menuLayoutUtils, "export function areLayoutSnapshotsEqual", "canvas layout snapshot equality must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function getLayoutUnionBounds", "canvas layout union bounds must live in layout utils");
 
 [
   "text:",
@@ -96,5 +100,16 @@ assert(areLayoutSnapshotsEqual(layoutSnapshot, { ...layoutSnapshot }) === true, 
 assert(areLayoutSnapshotsEqual(layoutSnapshot, { ...layoutSnapshot, left: "11px" }) === false, "layout snapshot equality should compare left");
 assert(areLayoutSnapshotsEqual(layoutSnapshot, { ...layoutSnapshot, frameAspectRatio: "1 / 1" }) === false, "layout snapshot equality should compare frame aspect ratio");
 assert(areLayoutSnapshotsEqual(null, layoutSnapshot) === false, "layout snapshot equality should reject missing snapshots");
+
+const unionBounds = getLayoutUnionBounds([
+  { x: 10, y: 20, width: 100, height: 40 },
+  { x: -5, y: 30, width: 20, height: 90 },
+  { x: 80, y: -10, width: 10, height: 10 }
+]);
+assert(unionBounds.x === -5, "layout union bounds should preserve minimum x");
+assert(unionBounds.y === -10, "layout union bounds should preserve minimum y");
+assert(unionBounds.width === 115, "layout union bounds should span to maximum right edge");
+assert(unionBounds.height === 130, "layout union bounds should span to maximum bottom edge");
+assert(getLayoutUnionBounds([]).width === -Infinity, "layout union bounds should preserve empty input behavior");
 
 console.log("Canvas menu action checks passed.");

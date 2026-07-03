@@ -9,3 +9,16 @@ export function areLayoutSnapshotsEqual(a, b) {
     && a.manualSize === b.manualSize
     && a.frameAspectRatio === b.frameAspectRatio;
 }
+
+export function getLayoutUnionBounds(bounds = []) {
+  const left = Math.min(...bounds.map((item) => item.x));
+  const top = Math.min(...bounds.map((item) => item.y));
+  const right = Math.max(...bounds.map((item) => item.x + item.width));
+  const bottom = Math.max(...bounds.map((item) => item.y + item.height));
+  return {
+    x: left,
+    y: top,
+    width: right - left,
+    height: bottom - top
+  };
+}
