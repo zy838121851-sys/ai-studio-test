@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import {
   getGeneratorPreviewDescription,
   getGeneratorPreviewNodeWidth,
+  getRecoveredGeneratorPreviewReplacementMeta,
   getRecoveredGeneratorPreviewUrl,
   markGeneratorPreviewFailed,
   updateGeneratorPreviewStatus
@@ -87,6 +88,7 @@ assert(
   generatorWorkflow.includes("onJobCreated")
     && generatorWorkflow.includes("tagGeneratorPreviewJobs")
     && generatorWorkflow.includes("getRecoveredGeneratorPreviewUrl")
+    && generatorWorkflow.includes("getRecoveredGeneratorPreviewReplacementMeta")
     && generatorWorkflow.includes("getGeneratorPreviewDescription")
     && generatorWorkflow.includes("getGeneratorPreviewNodeWidth as getPreviewNodeWidth")
     && generatorWorkflow.includes("getGeneratedImagePlacement")
@@ -606,6 +608,33 @@ assert(
   getRecoveredGeneratorPreviewUrl({ dataset: { generatorBatchIndex: "9" } }, recoveredUrls, 9) === "/uploads/one.png",
   "recovered generator preview URL should fall back to first URL when no indexed URL matches"
 );
+const recoveredMeta = getRecoveredGeneratorPreviewReplacementMeta({
+  dataset: {
+    generatorBatchIndex: "2",
+    generatorPrompt: "Recovered prompt",
+    generatorAspectRatio: "4 / 3",
+    generatorActionType: "image_generation",
+    generatorModel: "stored-model"
+  }
+}, {
+  result: {
+    requestedModel: "returned-model"
+  },
+  index: 0
+});
+assert(recoveredMeta.batchIndex === 1, "recovered generator preview metadata should preserve stored batch index");
+assert(recoveredMeta.desc === "Recovered prompt", "recovered generator preview metadata should use stored prompt as description");
+assert(recoveredMeta.aspectRatio === "4 / 3", "recovered generator preview metadata should preserve aspect ratio");
+assert(recoveredMeta.prompt === "Recovered prompt", "recovered generator preview metadata should preserve prompt");
+assert(recoveredMeta.actionType === "image_generation", "recovered generator preview metadata should preserve action type");
+assert(recoveredMeta.model === "returned-model", "recovered generator preview metadata should prefer returned models");
+const fallbackRecoveredMeta = getRecoveredGeneratorPreviewReplacementMeta({ dataset: {} }, {
+  result: { model: "result-model" },
+  index: 2
+});
+assert(fallbackRecoveredMeta.batchIndex === 2, "recovered generator preview metadata should fall back to loop index");
+assert(fallbackRecoveredMeta.desc === "Image generator result", "recovered generator preview metadata should keep fallback descriptions");
+assert(fallbackRecoveredMeta.model === "result-model", "recovered generator preview metadata should fall back to result model");
 assert(getGeneratorResultTitle(0, 1) === "Image Generator Result.png", "single image generator result title should stay stable");
 assert(getGeneratorResultTitle(1, 3) === "Image Generator Result 2.png", "multi image generator result title should include one-based index");
 assert(getGeneratorResultTitle(0, 4) === "Image Generator Result 1.png", "generator replacement title should preserve first numbered result");

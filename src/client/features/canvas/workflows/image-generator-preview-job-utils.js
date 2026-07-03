@@ -95,6 +95,20 @@ export function getRecoveredGeneratorPreviewUrl(previewNode, urls = [], index = 
   return urls[getGeneratorPreviewBatchIndex(previewNode, index)] || urls[index] || urls[0] || "";
 }
 
+export function getRecoveredGeneratorPreviewReplacementMeta(previewNode, {
+  result = {},
+  index = 0
+} = {}) {
+  return {
+    batchIndex: getGeneratorPreviewBatchIndex(previewNode, index),
+    desc: previewNode?.dataset?.generatorPrompt || "Image generator result",
+    aspectRatio: previewNode?.dataset?.generatorAspectRatio || "",
+    prompt: previewNode?.dataset?.generatorPrompt || "",
+    actionType: previewNode?.dataset?.generatorActionType || "",
+    model: result?.requestedModel || result?.model || previewNode?.dataset?.generatorModel || ""
+  };
+}
+
 function isPendingGeneratorPreviewNode(previewNode) {
   return previewNode?.isConnected
     && previewNode.dataset.generatorResuming !== "true"

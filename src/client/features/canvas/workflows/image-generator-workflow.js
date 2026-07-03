@@ -41,8 +41,8 @@ import {
   buildGeneratorPreviewJobMeta,
   getGeneratorPreviewDescription,
   getGeneratorPreviewNodeWidth as getPreviewNodeWidth,
-  getGeneratorPreviewBatchIndex,
   getPendingGeneratorPreviewGroups,
+  getRecoveredGeneratorPreviewReplacementMeta,
   getRecoveredGeneratorPreviewUrl,
   markGeneratorPreviewFailed,
   tagGeneratorPreviewJobs,
@@ -710,17 +710,17 @@ export function createImageGeneratorWorkflow({
   function replaceRecoveredGeneratorPreview(previewNode, { jobId, result = {}, url = "", index = 0, count = 1 } = {}) {
     if (!previewNode?.isConnected) return null;
     if (!url) throw new Error(getMissingGeneratorResultMessage(result));
-    const batchIndex = getGeneratorPreviewBatchIndex(previewNode, index);
+    const meta = getRecoveredGeneratorPreviewReplacementMeta(previewNode, { result, index });
     const createdNode = ensureGeneratorPreviewReplacement(replaceGeneratorImagePreviewNode(previewNode, buildGeneratorImagePreviewReplacementOptions({
       replacePreviewWithImage,
       getPreviewNodeWidth,
-      title: getGeneratorResultTitle(batchIndex, count),
-      desc: previewNode.dataset.generatorPrompt || "Image generator result",
+      title: getGeneratorResultTitle(meta.batchIndex, count),
+      desc: meta.desc,
       url,
-      aspectRatio: previewNode.dataset.generatorAspectRatio || "",
-      prompt: previewNode.dataset.generatorPrompt || "",
-      actionType: previewNode.dataset.generatorActionType || "",
-      model: result.requestedModel || result.model || previewNode.dataset.generatorModel || ""
+      aspectRatio: meta.aspectRatio,
+      prompt: meta.prompt,
+      actionType: meta.actionType,
+      model: meta.model
     })));
     createdNode.dataset.generatorJobId = jobId;
     return createdNode;
