@@ -29,6 +29,7 @@ import {
 import {
   delayGeneratorJobPoll,
   getGeneratorJobRequestError,
+  getGeneratorJobStatusPath,
   getMissingGeneratorUrlRetryState
 } from "../src/client/features/canvas/workflows/image-generator-job-polling-utils.js";
 import {
@@ -104,9 +105,10 @@ assert(
 assert(
   generatorWorkflow.includes("missingUrlRetries") &&
   generatorJobPollingUtils.includes("Waiting for saved image URL") &&
-    generatorJobPollingUtils.includes("export function delayGeneratorJobPoll") &&
-    generatorJobPollingUtils.includes("export function getGeneratorJobRequestError") &&
-    generatorJobPollingUtils.includes("export function getMissingGeneratorUrlRetryState"),
+  generatorJobPollingUtils.includes("export function delayGeneratorJobPoll") &&
+  generatorJobPollingUtils.includes("export function getGeneratorJobRequestError") &&
+  generatorJobPollingUtils.includes("export function getGeneratorJobStatusPath") &&
+  generatorJobPollingUtils.includes("export function getMissingGeneratorUrlRetryState"),
   "generator polling must retry succeeded jobs that do not yet expose an image URL"
 );
 const generatorDelayPromise = delayGeneratorJobPoll(0);
@@ -127,6 +129,14 @@ assert(
 assert(
   getGeneratorJobRequestError({}, 503).message === "Job request failed: 503",
   "generator polling request errors should preserve status fallbacks"
+);
+assert(
+  getGeneratorJobStatusPath("job-1") === "/api/ai/jobs/job-1",
+  "generator polling status paths should preserve simple job ids"
+);
+assert(
+  getGeneratorJobStatusPath("job id/1") === "/api/ai/jobs/job%20id%2F1",
+  "generator polling status paths should encode unsafe job id characters"
 );
 assert(
   JSON.stringify(getMissingGeneratorUrlRetryState({

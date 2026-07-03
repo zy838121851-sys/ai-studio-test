@@ -27,6 +27,7 @@ import {
   buildGeneratorRateLimitProgressPayload,
   delayGeneratorJobPoll,
   getGeneratorJobRequestError,
+  getGeneratorJobStatusPath,
   getMissingGeneratorUrlRetryState,
   getRetryAfterDelayMs,
   getTerminalGeneratorJobResult,
@@ -1015,7 +1016,7 @@ export function createImageGeneratorWorkflow({
     let missingUrlAttempts = 0;
     for (let index = 0; index < attempts; index += 1) {
       await delayGeneratorJobPoll(delayMs);
-      const response = await fetch(`/api/ai/jobs/${encodeURIComponent(jobId)}`, {
+      const response = await fetch(getGeneratorJobStatusPath(jobId), {
         credentials: "include"
       });
       const payload = await response.json().catch(() => ({}));

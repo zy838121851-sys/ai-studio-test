@@ -63,6 +63,10 @@ export function getGeneratorJobRequestError(payload = {}, status = 0) {
   return new Error(payload?.failureMessage || payload?.errorMessage || payload?.message || `Job request failed: ${status}`);
 }
 
+export function getGeneratorJobStatusPath(jobId = "") {
+  return `/api/ai/jobs/${encodeURIComponent(jobId)}`;
+}
+
 export function delayGeneratorJobPoll(ms = 0) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
