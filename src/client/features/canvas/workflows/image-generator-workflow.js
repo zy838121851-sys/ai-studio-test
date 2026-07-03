@@ -65,6 +65,11 @@ import {
   readImageDataUrlMetrics
 } from "./image-generator-image-read-utils.js";
 import {
+  hasGeneratorDropData,
+  setGeneratorBusy,
+  updateGeneratorStatus
+} from "./image-generator-dom-state-utils.js";
+import {
   escapeAttribute,
   escapeHtml
 } from "./image-generator-escape-utils.js";
@@ -1361,14 +1366,6 @@ export function createImageGeneratorWorkflow({
   };
 }
 
-function hasGeneratorDropData(dataTransfer) {
-  const types = Array.from(dataTransfer?.types || []);
-  return types.includes("Files")
-    || types.includes("text/html")
-    || types.includes("text/uri-list")
-    || types.includes("text/plain");
-}
-
 function setGeneratorReferences(node, references = []) {
   if (!node) return;
   node._generatorReferences = references;
@@ -1408,35 +1405,6 @@ function renderGeneratorReferences(node, references = []) {
       <img src="${reference.dataUrl}" alt="${escapeAttribute(reference.name || "参考图")}" />
     </button>
   `).join("");
-}
-
-function updateGeneratorStatus(node, text) {
-  if (node) node.dataset.generatorStatus = text || "";
-  const popover = globalThis.document?.querySelector?.(GENERATOR_POPOVER_SELECTOR);
-  if (popover) popover.dataset.generatorStatus = text || "";
-}
-
-function setGeneratorBusy(node, busy) {
-  if (!node) return;
-  node.dataset.generatorBusy = busy ? "true" : "false";
-  node.classList.toggle("generator-busy", busy);
-  const loading = node.querySelector(".image-generator-loading");
-  const popover = globalThis.document?.querySelector?.(GENERATOR_POPOVER_SELECTOR);
-  const submit = popover?.querySelector?.("[data-generator-submit]");
-  if (loading) loading.hidden = !busy;
-  if (submit) submit.disabled = busy;
-  popover?.querySelectorAll?.("[data-generator-model], [data-generator-ratio], [data-generator-count], [data-generator-add-reference], [data-generator-cancel]")
-    .forEach((control) => {
-      control.disabled = busy;
-    });
-  popover?.querySelectorAll?.("[data-generator-model], [data-generator-ratio], [data-generator-count]")
-    .forEach((select) => {
-      const kind = select.matches("[data-generator-model]")
-        ? "model"
-        : (select.matches("[data-generator-ratio]") ? "ratio" : "count");
-      const trigger = popover.querySelector(`[data-generator-select-trigger="${kind}"]`);
-      if (trigger) trigger.disabled = busy;
-    });
 }
 
 function applyGeneratorResult(node, url, { prompt = "", model = "" } = {}) {

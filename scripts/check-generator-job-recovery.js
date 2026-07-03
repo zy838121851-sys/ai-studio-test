@@ -18,6 +18,11 @@ import {
 import {
   readGeneratorReferenceFiles
 } from "../src/client/features/canvas/workflows/image-generator-reference-utils.js";
+import {
+  hasGeneratorDropData,
+  setGeneratorBusy,
+  updateGeneratorStatus
+} from "../src/client/features/canvas/workflows/image-generator-dom-state-utils.js";
 
 function read(path) {
   return readFileSync(path, "utf8");
@@ -31,6 +36,7 @@ const generatorWorkflow = read("src/client/features/canvas/workflows/image-gener
 const generatorResultUtils = read("src/client/features/canvas/workflows/image-generator-result-utils.js");
 const generatorJobPollingUtils = read("src/client/features/canvas/workflows/image-generator-job-polling-utils.js");
 const generatorPreviewJobUtils = read("src/client/features/canvas/workflows/image-generator-preview-job-utils.js");
+const generatorDomStateUtils = read("src/client/features/canvas/workflows/image-generator-dom-state-utils.js");
 assert(
   generatorWorkflow.includes("onJobCreated")
     && generatorWorkflow.includes("tagGeneratorPreviewJobs")
@@ -45,6 +51,7 @@ assert(
     && generatorWorkflow.includes("applyGeneratedImageNodeResult")
     && generatorWorkflow.includes("applyGeneratedImageNodeSize")
     && generatorWorkflow.includes("getGeneratorResultTitle")
+    && generatorWorkflow.includes("image-generator-dom-state-utils.js")
     && generatorPreviewJobUtils.includes("applyGeneratorPreviewJobMetadata"),
   "generator must tag preview nodes with job ids when async jobs are created"
 );
@@ -70,6 +77,52 @@ assert(
   generatorResultUtils.includes("return new Error(getMissingGeneratorResultMessage(result, expectedType));"),
   "generator polling must fail clearly when a terminal job has no image URL"
 );
+assert(
+  generatorDomStateUtils.includes("export function hasGeneratorDropData")
+    && generatorDomStateUtils.includes("export function updateGeneratorStatus")
+    && generatorDomStateUtils.includes("export function setGeneratorBusy"),
+  "generator DOM state helpers must be extracted from the workflow module"
+);
+
+assert(hasGeneratorDropData({ types: ["Files"] }) === true, "generator drop helper should accept file drops");
+assert(hasGeneratorDropData({ types: ["text/html"] }) === true, "generator drop helper should accept HTML drops");
+assert(hasGeneratorDropData({ types: ["text/uri-list"] }) === true, "generator drop helper should accept URI drops");
+assert(hasGeneratorDropData({ types: ["text/plain"] }) === true, "generator drop helper should accept plain text drops");
+assert(hasGeneratorDropData({ types: ["application/json"] }) === false, "generator drop helper should reject unsupported drops");
+assert(hasGeneratorDropData(null) === false, "generator drop helper should reject missing dataTransfer");
+
+const statusPopover = { dataset: {} };
+const statusNodeForGenerator = { dataset: {} };
+updateGeneratorStatus(statusNodeForGenerator, "Generating", {
+  documentRef: createGeneratorDocument({ popover: statusPopover })
+});
+assert(statusNodeForGenerator.dataset.generatorStatus === "Generating", "generator status helper should update node dataset");
+assert(statusPopover.dataset.generatorStatus === "Generating", "generator status helper should update popover dataset");
+updateGeneratorStatus(statusNodeForGenerator, "", {
+  documentRef: createGeneratorDocument({ popover: statusPopover })
+});
+assert(statusNodeForGenerator.dataset.generatorStatus === "", "generator status helper should clear node dataset");
+assert(statusPopover.dataset.generatorStatus === "", "generator status helper should clear popover dataset");
+
+const busyControls = createGeneratorBusyFixture();
+setGeneratorBusy(busyControls.node, true, {
+  documentRef: createGeneratorDocument({ popover: busyControls.popover })
+});
+assert(busyControls.node.dataset.generatorBusy === "true", "generator busy helper should mark node busy");
+assert(busyControls.node.classes.has("generator-busy"), "generator busy helper should add busy class");
+assert(busyControls.loading.hidden === false, "generator busy helper should show loading");
+assert(busyControls.submit.disabled === true, "generator busy helper should disable submit");
+assert(busyControls.controls.every((control) => control.disabled === true), "generator busy helper should disable generator controls");
+assert(busyControls.triggers.every((trigger) => trigger.disabled === true), "generator busy helper should disable custom select triggers");
+setGeneratorBusy(busyControls.node, false, {
+  documentRef: createGeneratorDocument({ popover: busyControls.popover })
+});
+assert(busyControls.node.dataset.generatorBusy === "false", "generator busy helper should mark node idle");
+assert(!busyControls.node.classes.has("generator-busy"), "generator busy helper should remove busy class");
+assert(busyControls.loading.hidden === true, "generator busy helper should hide loading");
+assert(busyControls.submit.disabled === false, "generator busy helper should enable submit");
+assert(busyControls.controls.every((control) => control.disabled === false), "generator busy helper should enable generator controls");
+assert(busyControls.triggers.every((trigger) => trigger.disabled === false), "generator busy helper should enable custom select triggers");
 
 const aiRoutes = read("src/server/routes/ai.routes.js");
 const aiJobQueryService = read("src/server/services/ai/ai-job-query.service.js");
@@ -301,3 +354,72 @@ assert(
 );
 
 console.log("Generator job recovery checks passed.");
+
+function createGeneratorDocument({ popover } = {}) {
+  return {
+    querySelector(selector) {
+      return selector === "#imageGeneratorPopover" ? popover : null;
+    }
+  };
+}
+
+function createGeneratorBusyFixture() {
+  const loading = { hidden: true };
+  const submit = { disabled: false };
+  const modelSelect = createGeneratorSelect("model");
+  const ratioSelect = createGeneratorSelect("ratio");
+  const countSelect = createGeneratorSelect("count");
+  const addReference = { disabled: false };
+  const cancel = { disabled: false };
+  const controls = [modelSelect, ratioSelect, countSelect, addReference, cancel];
+  const triggers = [
+    { kind: "model", disabled: false },
+    { kind: "ratio", disabled: false },
+    { kind: "count", disabled: false }
+  ];
+  const popover = {
+    querySelector(selector) {
+      if (selector === "[data-generator-submit]") return submit;
+      const triggerMatch = String(selector || "").match(/\[data-generator-select-trigger="([^"]+)"\]/);
+      if (triggerMatch) return triggers.find((trigger) => trigger.kind === triggerMatch[1]) || null;
+      return null;
+    },
+    querySelectorAll(selector) {
+      if (selector === "[data-generator-model], [data-generator-ratio], [data-generator-count], [data-generator-add-reference], [data-generator-cancel]") {
+        return controls;
+      }
+      if (selector === "[data-generator-model], [data-generator-ratio], [data-generator-count]") {
+        return [modelSelect, ratioSelect, countSelect];
+      }
+      return [];
+    }
+  };
+  const classes = new Set();
+  const node = {
+    dataset: {},
+    classes,
+    classList: {
+      toggle(name, enabled) {
+        if (enabled) classes.add(name);
+        else classes.delete(name);
+      }
+    },
+    querySelector(selector) {
+      return selector === ".image-generator-loading" ? loading : null;
+    }
+  };
+  return { node, popover, loading, submit, controls, triggers };
+}
+
+function createGeneratorSelect(kind) {
+  return {
+    kind,
+    disabled: false,
+    matches(selector) {
+      if (selector === "[data-generator-model]") return kind === "model";
+      if (selector === "[data-generator-ratio]") return kind === "ratio";
+      if (selector === "[data-generator-count]") return kind === "count";
+      return false;
+    }
+  };
+}
