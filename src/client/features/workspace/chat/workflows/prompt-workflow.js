@@ -73,7 +73,8 @@ import {
   collectReferenceImages
 } from "./prompt-reference-image-utils.js";
 import {
-  collectCanvasContext
+  collectCanvasContext,
+  getPublicImageUrlFromNode
 } from "./prompt-canvas-context-utils.js";
 import {
   createPromptPreviewBatch,
@@ -1198,16 +1199,6 @@ function bindImageTo3DRequests({
       else notify(message);
     }
   });
-}
-
-function getPublicImageUrlFromNode(node) {
-  const image = node?.querySelector?.(".image-frame img, img");
-  const candidates = [
-    node?.dataset?.objectUrl,
-    image?.currentSrc,
-    image?.src
-  ].map((value) => String(value || "").trim()).filter(Boolean);
-  return candidates.find((value) => /^https?:\/\//i.test(value)) || "";
 }
 
 async function runConversationAgent({

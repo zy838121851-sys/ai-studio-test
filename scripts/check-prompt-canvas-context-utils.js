@@ -1,5 +1,6 @@
 import {
   collectCanvasContext,
+  getPublicImageUrlFromNode,
   parseDatasetJson,
   snapshotCanvasNode
 } from "../src/client/features/workspace/chat/workflows/prompt-canvas-context-utils.js";
@@ -46,6 +47,30 @@ const fallbackTitle = snapshotCanvasNode(makeCanvasNode({
 }));
 assert(fallbackTitle.title === "Visible title", "Canvas node snapshot should use visible title fallback");
 assert(fallbackTitle.imageUrl === "", "Canvas node snapshot should not expose data URLs");
+
+assert(
+  getPublicImageUrlFromNode(makeCanvasNode({
+    objectUrl: "https://cdn.example.test/object.png",
+    currentSrc: "https://cdn.example.test/current.png",
+    imageSrc: "https://cdn.example.test/src.png"
+  })) === "https://cdn.example.test/object.png",
+  "Public image URL helper should prefer persisted object URLs"
+);
+assert(
+  getPublicImageUrlFromNode(makeCanvasNode({
+    objectUrl: "blob:http://localhost/private",
+    currentSrc: "https://cdn.example.test/current.png",
+    imageSrc: "https://cdn.example.test/src.png"
+  })) === "https://cdn.example.test/current.png",
+  "Public image URL helper should fall back to public currentSrc values"
+);
+assert(
+  getPublicImageUrlFromNode(makeCanvasNode({
+    objectUrl: "/uploads/local.png",
+    imageSrc: "data:image/png;base64,private"
+  })) === "",
+  "Public image URL helper should ignore non-HTTP image URLs"
+);
 
 const rootNodes = Array.from({ length: 25 }, (_item, index) => makeCanvasNode({
   nodeId: `node-${index}`,
@@ -104,6 +129,8 @@ function makeCanvasNode({
   selected = false,
   activeSelection = false,
   hidden = false,
+  objectUrl = "",
+  currentSrc = "",
   imageSrc = ""
 } = {}) {
   return {
@@ -121,7 +148,8 @@ function makeCanvasNode({
       editModel,
       aiCoreAnalysisStatus: analysisStatus,
       aiCoreAnalysis: analysis,
-      activeSelection: activeSelection ? "true" : ""
+      activeSelection: activeSelection ? "true" : "",
+      objectUrl
     },
     classList: {
       contains(name) {
@@ -131,8 +159,8 @@ function makeCanvasNode({
       }
     },
     querySelector(selector) {
-      if (selector === "img" && imageSrc) {
-        return { src: imageSrc };
+      if ((selector === "img" || selector === ".image-frame img, img") && (imageSrc || currentSrc)) {
+        return { src: imageSrc, currentSrc };
       }
       if (selector === ".node-title" && visibleTitle) {
         return { textContent: visibleTitle };

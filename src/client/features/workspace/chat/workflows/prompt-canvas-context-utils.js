@@ -34,6 +34,16 @@ export function snapshotCanvasNode(node) {
   };
 }
 
+export function getPublicImageUrlFromNode(node) {
+  const image = node?.querySelector?.(".image-frame img, img");
+  const candidates = [
+    node?.dataset?.objectUrl,
+    image?.currentSrc,
+    image?.src
+  ].map((value) => String(value || "").trim()).filter(Boolean);
+  return candidates.find((value) => /^https?:\/\//i.test(value)) || "";
+}
+
 export function parseDatasetJson(text) {
   if (!text) return null;
   try {
