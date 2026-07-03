@@ -14,6 +14,7 @@ import {
 } from "./canvas-menu-clipboard-utils.js";
 import {
   canvasToBlob,
+  drawImageIntoRect,
   getImageExportFileName,
   getUniqueExportFileName,
   isHttpUrl
@@ -1427,25 +1428,6 @@ async function fetchProxiedImage(src, cause = null) {
     throw new Error("Image source cannot be proxied");
   }
   return fetch(`/api/image-proxy?url=${encodeURIComponent(src)}`, { credentials: "include" });
-}
-
-function drawImageIntoRect({ context, image, x, y, width, height, objectFit = "cover" }) {
-  const sourceWidth = image.naturalWidth || image.width;
-  const sourceHeight = image.naturalHeight || image.height;
-  if (!sourceWidth || !sourceHeight) return;
-  if (objectFit === "contain") {
-    const scale = Math.min(width / sourceWidth, height / sourceHeight);
-    const drawWidth = sourceWidth * scale;
-    const drawHeight = sourceHeight * scale;
-    context.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
-    return;
-  }
-  const scale = Math.max(width / sourceWidth, height / sourceHeight);
-  const cropWidth = width / scale;
-  const cropHeight = height / scale;
-  const sourceX = (sourceWidth - cropWidth) / 2;
-  const sourceY = (sourceHeight - cropHeight) / 2;
-  context.drawImage(image, sourceX, sourceY, cropWidth, cropHeight, x, y, width, height);
 }
 
 async function buildNodesSvg(nodes) {

@@ -5,6 +5,7 @@ import {
 } from "../src/client/features/canvas/workflows/canvas-menu-clipboard-utils.js";
 import {
   canvasToBlob,
+  drawImageIntoRect,
   getImageExportFileName,
   getUniqueExportFileName,
   isHttpUrl
@@ -74,6 +75,7 @@ assertIncludes(menuActions, "const CANVAS_NODE_SELECTOR = \".node-card, .canvas-
 assertIncludes(menuClipboardUtils, "export function snapshotNodeForClipboard", "canvas clipboard snapshot must live in clipboard utils");
 assertIncludes(menuClipboardUtils, "export function pasteNodeFromClipboard", "canvas clipboard paste must live in clipboard utils");
 assertIncludes(menuExportUtils, "export function canvasToBlob", "canvas toBlob wrapper must live in export utils");
+assertIncludes(menuExportUtils, "export function drawImageIntoRect", "canvas image draw helper must live in export utils");
 assertIncludes(menuExportUtils, "export function getImageExportFileName", "canvas image export filename must live in export utils");
 assertIncludes(menuExportUtils, "export function getUniqueExportFileName", "canvas unique export filename must live in export utils");
 assertIncludes(menuExportUtils, "export function isHttpUrl", "canvas HTTP URL check must live in export utils");
@@ -403,6 +405,37 @@ try {
   canvasBlobRejected = error.message === "Canvas export returned an empty blob";
 }
 assert(canvasBlobRejected === true, "canvas toBlob wrapper should reject empty canvas exports");
+const containDrawCalls = [];
+drawImageIntoRect({
+  context: { drawImage: (...args) => containDrawCalls.push(args) },
+  image: { naturalWidth: 400, naturalHeight: 200 },
+  x: 0,
+  y: 0,
+  width: 200,
+  height: 200,
+  objectFit: "contain"
+});
+assert(JSON.stringify(containDrawCalls[0].slice(1)) === JSON.stringify([0, 50, 200, 100]), "image draw helper should preserve contain centering");
+const coverDrawCalls = [];
+drawImageIntoRect({
+  context: { drawImage: (...args) => coverDrawCalls.push(args) },
+  image: { naturalWidth: 400, naturalHeight: 200 },
+  x: 0,
+  y: 0,
+  width: 200,
+  height: 200
+});
+assert(JSON.stringify(coverDrawCalls[0].slice(1)) === JSON.stringify([100, 0, 200, 200, 0, 0, 200, 200]), "image draw helper should preserve cover crop math");
+const emptyDrawCalls = [];
+drawImageIntoRect({
+  context: { drawImage: (...args) => emptyDrawCalls.push(args) },
+  image: { naturalWidth: 0, naturalHeight: 200 },
+  x: 0,
+  y: 0,
+  width: 200,
+  height: 200
+});
+assert(emptyDrawCalls.length === 0, "image draw helper should skip missing source dimensions");
 
 assert(cleanText("  first\n\tsecond   third  ") === "first second third", "clean text should collapse whitespace");
 assert(cleanText("x".repeat(130)).length === 120, "clean text should preserve 120 character limit");

@@ -15,6 +15,25 @@ export function canvasToBlob(canvas, type) {
   });
 }
 
+export function drawImageIntoRect({ context, image, x, y, width, height, objectFit = "cover" }) {
+  const sourceWidth = image.naturalWidth || image.width;
+  const sourceHeight = image.naturalHeight || image.height;
+  if (!sourceWidth || !sourceHeight) return;
+  if (objectFit === "contain") {
+    const scale = Math.min(width / sourceWidth, height / sourceHeight);
+    const drawWidth = sourceWidth * scale;
+    const drawHeight = sourceHeight * scale;
+    context.drawImage(image, x + (width - drawWidth) / 2, y + (height - drawHeight) / 2, drawWidth, drawHeight);
+    return;
+  }
+  const scale = Math.max(width / sourceWidth, height / sourceHeight);
+  const cropWidth = width / scale;
+  const cropHeight = height / scale;
+  const sourceX = (sourceWidth - cropWidth) / 2;
+  const sourceY = (sourceHeight - cropHeight) / 2;
+  context.drawImage(image, sourceX, sourceY, cropWidth, cropHeight, x, y, width, height);
+}
+
 export function getImageExportFileName(node) {
   const title = cleanFileName(stripImageExtension(node.querySelector(".image-file-name, h3, .node-title, [data-node-title]")?.textContent
     || node.querySelector(".image-frame img")?.alt
