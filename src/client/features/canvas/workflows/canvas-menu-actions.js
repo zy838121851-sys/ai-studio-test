@@ -13,6 +13,7 @@ import {
   snapshotNodeForClipboard
 } from "./canvas-menu-clipboard-utils.js";
 import {
+  canvasToBlob,
   getImageExportFileName,
   getUniqueExportFileName,
   isHttpUrl
@@ -1445,18 +1446,6 @@ function drawImageIntoRect({ context, image, x, y, width, height, objectFit = "c
   const sourceX = (sourceWidth - cropWidth) / 2;
   const sourceY = (sourceHeight - cropHeight) / 2;
   context.drawImage(image, sourceX, sourceY, cropWidth, cropHeight, x, y, width, height);
-}
-
-function canvasToBlob(canvas, type) {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => {
-      if (blob) {
-        resolve(blob);
-      } else {
-        reject(new Error("Canvas export returned an empty blob"));
-      }
-    }, type);
-  });
 }
 
 async function buildNodesSvg(nodes) {

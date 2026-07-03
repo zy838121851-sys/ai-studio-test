@@ -3,6 +3,18 @@ import {
   stripImageExtension
 } from "./canvas-menu-text-utils.js";
 
+export function canvasToBlob(canvas, type) {
+  return new Promise((resolve, reject) => {
+    canvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error("Canvas export returned an empty blob"));
+      }
+    }, type);
+  });
+}
+
 export function getImageExportFileName(node) {
   const title = cleanFileName(stripImageExtension(node.querySelector(".image-file-name, h3, .node-title, [data-node-title]")?.textContent
     || node.querySelector(".image-frame img")?.alt

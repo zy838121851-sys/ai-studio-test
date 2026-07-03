@@ -4,6 +4,7 @@ import {
   snapshotNodeForClipboard
 } from "../src/client/features/canvas/workflows/canvas-menu-clipboard-utils.js";
 import {
+  canvasToBlob,
   getImageExportFileName,
   getUniqueExportFileName,
   isHttpUrl
@@ -72,6 +73,7 @@ assertIncludes(menuActions, 'from "./canvas-menu-text-utils.js"', "canvas menu m
 assertIncludes(menuActions, "const CANVAS_NODE_SELECTOR = \".node-card, .canvas-object\"", "canvas menu node selector must include node cards and canvas objects");
 assertIncludes(menuClipboardUtils, "export function snapshotNodeForClipboard", "canvas clipboard snapshot must live in clipboard utils");
 assertIncludes(menuClipboardUtils, "export function pasteNodeFromClipboard", "canvas clipboard paste must live in clipboard utils");
+assertIncludes(menuExportUtils, "export function canvasToBlob", "canvas toBlob wrapper must live in export utils");
 assertIncludes(menuExportUtils, "export function getImageExportFileName", "canvas image export filename must live in export utils");
 assertIncludes(menuExportUtils, "export function getUniqueExportFileName", "canvas unique export filename must live in export utils");
 assertIncludes(menuExportUtils, "export function isHttpUrl", "canvas HTTP URL check must live in export utils");
@@ -387,6 +389,20 @@ assert(isHttpUrl("HTTPS://example.com/a.png") === true, "HTTP URL check should p
 assert(isHttpUrl("/uploads/a.png") === false, "HTTP URL check should reject relative uploads");
 assert(isHttpUrl("data:image/png;base64,abc") === false, "HTTP URL check should reject data URLs");
 assert(isHttpUrl(null) === false, "HTTP URL check should reject nullish values");
+const canvasBlob = await canvasToBlob({
+  toBlob(callback, type) {
+    assert(type === "image/png", "canvas toBlob wrapper should pass through the requested MIME type");
+    callback("blob-result");
+  }
+}, "image/png");
+assert(canvasBlob === "blob-result", "canvas toBlob wrapper should resolve with a returned blob");
+let canvasBlobRejected = false;
+try {
+  await canvasToBlob({ toBlob: (callback) => callback(null) }, "image/png");
+} catch (error) {
+  canvasBlobRejected = error.message === "Canvas export returned an empty blob";
+}
+assert(canvasBlobRejected === true, "canvas toBlob wrapper should reject empty canvas exports");
 
 assert(cleanText("  first\n\tsecond   third  ") === "first second third", "clean text should collapse whitespace");
 assert(cleanText("x".repeat(130)).length === 120, "clean text should preserve 120 character limit");
