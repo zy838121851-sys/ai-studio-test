@@ -74,3 +74,17 @@ export function getLayerCommandNodesFromSelection(nodes = [], { targetNode = nul
     : (targetNode ? [targetNode] : activeSelected);
   return commandNodes.filter((node) => node?.isConnected && !isNodeLocked(node));
 }
+
+export function isExportableImageNode(node) {
+  return Boolean(node?.isConnected
+    && node.classList?.contains("node-image")
+    && node.querySelector?.(".image-frame img"));
+}
+
+export function getImageNodesForExportFromSelection(nodes = [], scope = "selected", targetNode = null) {
+  const imageNodes = nodes.filter(isExportableImageNode);
+  if (scope === "all") return imageNodes;
+  const selectedImages = imageNodes.filter((node) => node.classList.contains("selected"));
+  if (selectedImages.length) return selectedImages;
+  return isExportableImageNode(targetNode) ? [targetNode] : [];
+}

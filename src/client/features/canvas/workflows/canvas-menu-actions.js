@@ -19,8 +19,10 @@ import {
   getGroupMembers,
   getGroupNodeForTarget,
   getImageLayoutCommandNodesFromSelection,
+  getImageNodesForExportFromSelection,
   getLayerCommandNodesFromSelection,
   getNodeKind,
+  isExportableImageNode,
   isNodeLocked
 } from "./canvas-menu-node-utils.js";
 import {
@@ -1334,17 +1336,7 @@ async function ensureDirectoryWritePermission(directoryHandle) {
 }
 
 function getImageNodesForExport(scope = "selected", targetNode = null) {
-  const imageNodes = getMenuCanvasNodes().filter(isExportableImageNode);
-  if (scope === "all") return imageNodes;
-  const selectedImages = imageNodes.filter((node) => node.classList.contains("selected"));
-  if (selectedImages.length) return selectedImages;
-  return isExportableImageNode(targetNode) ? [targetNode] : [];
-}
-
-function isExportableImageNode(node) {
-  return Boolean(node?.isConnected
-    && node.classList?.contains("node-image")
-    && node.querySelector?.(".image-frame img"));
+  return getImageNodesForExportFromSelection(getMenuCanvasNodes(), scope, targetNode);
 }
 
 async function renderImageNodeToPng(node) {

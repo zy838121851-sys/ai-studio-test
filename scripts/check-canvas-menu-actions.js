@@ -18,8 +18,10 @@ import {
   getGroupMembers,
   getGroupNodeForTarget,
   getImageLayoutCommandNodesFromSelection,
+  getImageNodesForExportFromSelection,
   getLayerCommandNodesFromSelection,
   getNodeKind,
+  isExportableImageNode,
   isNodeLocked
 } from "../src/client/features/canvas/workflows/canvas-menu-node-utils.js";
 import {
@@ -73,6 +75,8 @@ assertIncludes(menuNodeUtils, "export function getEarliestDomNode", "canvas earl
 assertIncludes(menuNodeUtils, "export function getCommandNodesFromSelection", "canvas command node filtering must live in node utils");
 assertIncludes(menuNodeUtils, "export function getImageLayoutCommandNodesFromSelection", "canvas image command node filtering must live in node utils");
 assertIncludes(menuNodeUtils, "export function getLayerCommandNodesFromSelection", "canvas layer command node filtering must live in node utils");
+assertIncludes(menuNodeUtils, "export function isExportableImageNode", "canvas exportable image node check must live in node utils");
+assertIncludes(menuNodeUtils, "export function getImageNodesForExportFromSelection", "canvas export image filtering must live in node utils");
 assertIncludes(menuTextUtils, "export function cleanText", "canvas clean text must live in text utils");
 assertIncludes(menuTextUtils, "export function cleanFileName", "canvas clean file name must live in text utils");
 assertIncludes(menuTextUtils, "export function stripImageExtension", "canvas strip image extension must live in text utils");
@@ -309,6 +313,28 @@ assert(getLayerCommandNodesFromSelection([layerSelected, layerTarget], { targetN
 const unselectedLayerTarget = fakeNode({ dataset: {} });
 unselectedLayerTarget.isConnected = true;
 assert(getLayerCommandNodesFromSelection([layerSelected], { targetNode: unselectedLayerTarget })[0] === unselectedLayerTarget, "layer command nodes should prefer unselected target when target is not selected");
+
+function fakeImageNode({ selected = false, connected = true, hasImage = true } = {}) {
+  const classes = ["node-image"];
+  if (selected) classes.push("selected");
+  const node = fakeNode({ classes, dataset: {} });
+  node.isConnected = connected;
+  node.querySelector = (selector) => selector === ".image-frame img" && hasImage ? {} : null;
+  return node;
+}
+
+const exportImage = fakeImageNode();
+const selectedExportImage = fakeImageNode({ selected: true });
+const disconnectedExportImage = fakeImageNode({ connected: false });
+const emptyExportImage = fakeImageNode({ hasImage: false });
+const targetExportImage = fakeImageNode();
+assert(isExportableImageNode(exportImage) === true, "exportable image node should require connected image node with image");
+assert(isExportableImageNode(disconnectedExportImage) === false, "exportable image node should reject disconnected image nodes");
+assert(isExportableImageNode(emptyExportImage) === false, "exportable image node should reject image nodes without image element");
+assert(getImageNodesForExportFromSelection([exportImage, selectedExportImage], "all", targetExportImage).length === 2, "export image filtering should return all images for all scope");
+assert(getImageNodesForExportFromSelection([exportImage, selectedExportImage], "selected", targetExportImage)[0] === selectedExportImage, "export image filtering should prefer selected images");
+assert(getImageNodesForExportFromSelection([], "selected", targetExportImage)[0] === targetExportImage, "export image filtering should fall back to exportable target");
+assert(getImageNodesForExportFromSelection([], "selected", emptyExportImage).length === 0, "export image filtering should reject non-exportable target");
 
 assert(cleanText("  first\n\tsecond   third  ") === "first second third", "clean text should collapse whitespace");
 assert(cleanText("x".repeat(130)).length === 120, "clean text should preserve 120 character limit");
