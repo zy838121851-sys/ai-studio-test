@@ -12,10 +12,13 @@ import {
   parseAspectRatio
 } from "../src/client/features/canvas/workflows/canvas-menu-layout-utils.js";
 import {
+  getCommandNodesFromSelection,
   getEarliestDomNode,
   getGroupableSelection,
   getGroupMembers,
   getGroupNodeForTarget,
+  getImageLayoutCommandNodesFromSelection,
+  getLayerCommandNodesFromSelection,
   getNodeKind,
   isNodeLocked
 } from "../src/client/features/canvas/workflows/canvas-menu-node-utils.js";
@@ -67,6 +70,9 @@ assertIncludes(menuNodeUtils, "export function getGroupableSelection", "canvas g
 assertIncludes(menuNodeUtils, "export function getGroupMembers", "canvas group members check must live in node utils");
 assertIncludes(menuNodeUtils, "export function getGroupNodeForTarget", "canvas group target lookup must live in node utils");
 assertIncludes(menuNodeUtils, "export function getEarliestDomNode", "canvas earliest DOM node check must live in node utils");
+assertIncludes(menuNodeUtils, "export function getCommandNodesFromSelection", "canvas command node filtering must live in node utils");
+assertIncludes(menuNodeUtils, "export function getImageLayoutCommandNodesFromSelection", "canvas image command node filtering must live in node utils");
+assertIncludes(menuNodeUtils, "export function getLayerCommandNodesFromSelection", "canvas layer command node filtering must live in node utils");
 assertIncludes(menuTextUtils, "export function cleanText", "canvas clean text must live in text utils");
 assertIncludes(menuTextUtils, "export function cleanFileName", "canvas clean file name must live in text utils");
 assertIncludes(menuTextUtils, "export function stripImageExtension", "canvas strip image extension must live in text utils");
@@ -277,6 +283,32 @@ const lastNode = fakeDomNode(3);
 const detachedNode = fakeDomNode(0, { hasParent: false });
 assert(getEarliestDomNode([lastNode, detachedNode, middleNode, firstNode], { documentPositionPreceding: 2 }) === firstNode, "earliest DOM node should sort by document position");
 assert(getEarliestDomNode([detachedNode], { documentPositionPreceding: 2 }) === null, "earliest DOM node should reject detached nodes");
+
+const selectedCommand = fakeNode({ classes: ["selected"], dataset: {} });
+selectedCommand.isConnected = true;
+const lockedSelectedCommand = fakeNode({ classes: ["selected"], dataset: { locked: "true" } });
+lockedSelectedCommand.isConnected = true;
+const targetCommand = fakeNode({ dataset: {} });
+targetCommand.isConnected = true;
+assert(getCommandNodesFromSelection([selectedCommand, lockedSelectedCommand], { targetNode: targetCommand }).length === 1, "command nodes should prefer unlocked selected nodes");
+assert(getCommandNodesFromSelection([], { targetNode: targetCommand })[0] === targetCommand, "command nodes should fall back to target node");
+
+const selectedImageCommand = fakeNode({ classes: ["selected", "node-image"], dataset: {} });
+selectedImageCommand.isConnected = true;
+const selectedTextCommand = fakeNode({ classes: ["selected"], dataset: {} });
+selectedTextCommand.isConnected = true;
+assert(getImageLayoutCommandNodesFromSelection([selectedImageCommand, selectedTextCommand], {
+  isCanvasImageNode: (node) => node.classList.contains("node-image")
+})[0] === selectedImageCommand, "image command nodes should keep only image nodes");
+
+const layerSelected = fakeNode({ classes: ["selected"], dataset: {} });
+layerSelected.isConnected = true;
+const layerTarget = fakeNode({ classes: ["selected"], dataset: {} });
+layerTarget.isConnected = true;
+assert(getLayerCommandNodesFromSelection([layerSelected, layerTarget], { targetNode: layerTarget }).length === 2, "layer command nodes should use all selected nodes when target is selected");
+const unselectedLayerTarget = fakeNode({ dataset: {} });
+unselectedLayerTarget.isConnected = true;
+assert(getLayerCommandNodesFromSelection([layerSelected], { targetNode: unselectedLayerTarget })[0] === unselectedLayerTarget, "layer command nodes should prefer unselected target when target is not selected");
 
 assert(cleanText("  first\n\tsecond   third  ") === "first second third", "clean text should collapse whitespace");
 assert(cleanText("x".repeat(130)).length === 120, "clean text should preserve 120 character limit");

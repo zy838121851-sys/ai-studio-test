@@ -13,10 +13,13 @@ import {
   snapshotNodeForClipboard
 } from "./canvas-menu-clipboard-utils.js";
 import {
+  getCommandNodesFromSelection,
   getEarliestDomNode,
   getGroupableSelection,
   getGroupMembers,
   getGroupNodeForTarget,
+  getImageLayoutCommandNodesFromSelection,
+  getLayerCommandNodesFromSelection,
   getNodeKind,
   isNodeLocked
 } from "./canvas-menu-node-utils.js";
@@ -647,24 +650,15 @@ function getMenuCanvasNodes() {
 }
 
 function getCommandNodes({ targetNode = null } = {}) {
-  const selected = getMenuCanvasNodes().filter((node) => node.classList.contains("selected"));
-  const nodes = selected.length ? selected : (targetNode ? [targetNode] : []);
-  return nodes.filter((node) => node?.isConnected && !isNodeLocked(node));
+  return getCommandNodesFromSelection(getMenuCanvasNodes(), { targetNode });
 }
 
 function getImageLayoutCommandNodes({ targetNode = null } = {}) {
-  const selected = getMenuCanvasNodes().filter((node) => node.classList.contains("selected"));
-  const nodes = selected.length ? selected : (targetNode ? [targetNode] : []);
-  return nodes.filter((node) => node?.isConnected && isCanvasImageNode(node) && !isNodeLocked(node));
+  return getImageLayoutCommandNodesFromSelection(getMenuCanvasNodes(), { targetNode, isCanvasImageNode });
 }
 
 function getLayerCommandNodes({ targetNode = null } = {}) {
-  const activeSelected = getMenuCanvasNodes().filter((node) => node.classList.contains("selected"));
-  const targetIsSelected = targetNode?.isConnected && targetNode.classList.contains("selected");
-  const nodes = targetIsSelected && activeSelected.length
-    ? activeSelected
-    : (targetNode ? [targetNode] : activeSelected);
-  return nodes.filter((node) => node?.isConnected && !isNodeLocked(node));
+  return getLayerCommandNodesFromSelection(getMenuCanvasNodes(), { targetNode });
 }
 
 function selectCanvasNodes(nodes, selectNode) {

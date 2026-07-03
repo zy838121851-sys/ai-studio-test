@@ -50,3 +50,27 @@ export function getEarliestDomNode(nodes = [], {
       return a.compareDocumentPosition(b) & documentPositionPreceding ? 1 : -1;
     })[0] || null;
 }
+
+export function getCommandNodesFromSelection(nodes = [], { targetNode = null } = {}) {
+  const selected = nodes.filter((node) => node.classList.contains("selected"));
+  const commandNodes = selected.length ? selected : (targetNode ? [targetNode] : []);
+  return commandNodes.filter((node) => node?.isConnected && !isNodeLocked(node));
+}
+
+export function getImageLayoutCommandNodesFromSelection(nodes = [], {
+  targetNode = null,
+  isCanvasImageNode = () => false
+} = {}) {
+  const selected = nodes.filter((node) => node.classList.contains("selected"));
+  const commandNodes = selected.length ? selected : (targetNode ? [targetNode] : []);
+  return commandNodes.filter((node) => node?.isConnected && isCanvasImageNode(node) && !isNodeLocked(node));
+}
+
+export function getLayerCommandNodesFromSelection(nodes = [], { targetNode = null } = {}) {
+  const activeSelected = nodes.filter((node) => node.classList.contains("selected"));
+  const targetIsSelected = targetNode?.isConnected && targetNode.classList.contains("selected");
+  const commandNodes = targetIsSelected && activeSelected.length
+    ? activeSelected
+    : (targetNode ? [targetNode] : activeSelected);
+  return commandNodes.filter((node) => node?.isConnected && !isNodeLocked(node));
+}
