@@ -52,6 +52,7 @@ import {
 } from "./image-generator-reference-utils.js";
 import {
   closeGeneratorCustomSelects as closeGeneratorCustomSelectState,
+  createGeneratorCustomSelect,
   getGeneratorSelectByKind,
   getGeneratorSelectKind,
   getGeneratorSelectTriggerText,
@@ -1123,23 +1124,10 @@ export function createImageGeneratorWorkflow({
     nextPopover?.querySelectorAll?.("[data-generator-model], [data-generator-ratio], [data-generator-count]")
       .forEach((select) => {
         if (select.dataset.generatorCustomReady === "true") return;
-        const kind = getGeneratorSelectKind(select);
-        select.dataset.generatorCustomReady = "true";
-        select.classList.add("generator-native-select");
-        const wrap = document.createElement("div");
-        wrap.className = "generator-select-wrap";
-        wrap.dataset.generatorSelectKind = kind;
-        const trigger = document.createElement("button");
-        trigger.type = "button";
-        trigger.className = "generator-select-trigger";
-        trigger.dataset.generatorSelectTrigger = kind;
-        const menu = document.createElement("div");
-        menu.className = "generator-select-menu";
-        menu.dataset.generatorSelectMenu = kind;
-        menu.setAttribute("role", "listbox");
-        wrap.append(trigger, menu);
-        select.after(wrap);
-        select.__generatorSelectRebuild = () => syncGeneratorCustomSelect(select);
+        createGeneratorCustomSelect(select, {
+          documentRef: document,
+          onRebuild: syncGeneratorCustomSelect
+        });
         syncGeneratorCustomSelect(select);
       });
   }

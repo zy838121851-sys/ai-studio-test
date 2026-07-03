@@ -12,6 +12,7 @@ import {
 } from "../src/client/features/canvas/workflows/image-generator-placement-utils.js";
 import {
   closeGeneratorCustomSelects,
+  createGeneratorCustomSelect,
   renderGeneratorSelectOptions,
   toggleGeneratorCustomSelect
 } from "../src/client/features/canvas/workflows/image-generator-select-utils.js";
@@ -121,7 +122,8 @@ assert(
 assert(
   generatorSelectUtils.includes("export function closeGeneratorCustomSelects")
     && generatorSelectUtils.includes("export function toggleGeneratorCustomSelect")
-    && generatorSelectUtils.includes("export function renderGeneratorSelectOptions"),
+    && generatorSelectUtils.includes("export function renderGeneratorSelectOptions")
+    && generatorSelectUtils.includes("export function createGeneratorCustomSelect"),
   "generator custom select open/close helpers should live in select utilities"
 );
 
@@ -294,6 +296,25 @@ assert(renderedOptions.includes('data-value="unsafe&quot;value"'), "generator se
 assert(renderedOptions.includes("class=\"generator-select-option selected\""), "generator select option renderer should mark selected options");
 assert(renderedOptions.includes('aria-selected="true"'), "generator select option renderer should set selected aria state");
 assert(renderedOptions.includes("&lt;Unsafe&gt;"), "generator select option renderer should escape labels");
+const createdSelectFixture = createGeneratorCustomSelectFixtureForCreate("ratio");
+const createdSelect = createGeneratorCustomSelect(createdSelectFixture.select, {
+  documentRef: createdSelectFixture.documentRef,
+  onRebuild: createdSelectFixture.onRebuild
+});
+assert(createdSelect.kind === "ratio", "generator custom select creator should preserve select kind");
+assert(createdSelectFixture.select.dataset.generatorCustomReady === "true", "generator custom select creator should mark select ready");
+assert(createdSelectFixture.select.classes.has("generator-native-select"), "generator custom select creator should mark native select class");
+assert(createdSelect.wrap.className === "generator-select-wrap", "generator custom select creator should create wrapper class");
+assert(createdSelect.wrap.dataset.generatorSelectKind === "ratio", "generator custom select creator should set wrapper kind");
+assert(createdSelect.trigger.type === "button", "generator custom select creator should create button triggers");
+assert(createdSelect.trigger.dataset.generatorSelectTrigger === "ratio", "generator custom select creator should set trigger kind");
+assert(createdSelect.menu.dataset.generatorSelectMenu === "ratio", "generator custom select creator should set menu kind");
+assert(createdSelect.menu.attributes.role === "listbox", "generator custom select creator should preserve listbox role");
+assert(createdSelect.wrap.children[0] === createdSelect.trigger && createdSelect.wrap.children[1] === createdSelect.menu, "generator custom select creator should append trigger and menu");
+assert(createdSelectFixture.select.afterNode === createdSelect.wrap, "generator custom select creator should insert wrapper after select");
+createdSelectFixture.select.__generatorSelectRebuild();
+assert(createdSelectFixture.rebuildCalls === 1, "generator custom select creator should wire rebuild callbacks");
+assert(createGeneratorCustomSelect(null, { documentRef: createdSelectFixture.documentRef }) === null, "generator custom select creator should ignore missing selects");
 
 const aiRoutes = read("src/server/routes/ai.routes.js");
 const aiJobQueryService = read("src/server/services/ai/ai-job-query.service.js");
@@ -677,6 +698,54 @@ function createGeneratorCustomSelectCloseFixture() {
       querySelectorAll(selector) {
         return selector === ".generator-select-wrap.open" ? wraps : [];
       }
+    }
+  };
+}
+
+function createGeneratorCustomSelectFixtureForCreate(kind = "ratio") {
+  let rebuildCalls = 0;
+  const selectClasses = new Set();
+  const select = {
+    dataset: {},
+    classes: selectClasses,
+    classList: createClassList(selectClasses),
+    after(node) {
+      this.afterNode = node;
+    },
+    matches(selector) {
+      if (selector === "[data-generator-model]") return kind === "model";
+      if (selector === "[data-generator-ratio]") return kind === "ratio";
+      if (selector === "[data-generator-count]") return kind === "count";
+      return false;
+    }
+  };
+  return {
+    select,
+    documentRef: {
+      createElement(tagName) {
+        return createGeneratorElement(tagName);
+      }
+    },
+    get rebuildCalls() {
+      return rebuildCalls;
+    },
+    onRebuild(nextSelect) {
+      if (nextSelect === select) rebuildCalls += 1;
+    }
+  };
+}
+
+function createGeneratorElement(tagName) {
+  return {
+    tagName,
+    dataset: {},
+    attributes: {},
+    children: [],
+    append(...nodes) {
+      this.children.push(...nodes);
+    },
+    setAttribute(name, value) {
+      this.attributes[name] = value;
     }
   };
 }

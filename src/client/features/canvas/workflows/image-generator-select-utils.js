@@ -53,3 +53,28 @@ export function renderGeneratorSelectOptions(select, kind = getGeneratorSelectKi
       </button>
     `).join("");
 }
+
+export function createGeneratorCustomSelect(select, {
+  documentRef = globalThis.document,
+  onRebuild = null
+} = {}) {
+  if (!select || !documentRef?.createElement) return null;
+  const kind = getGeneratorSelectKind(select);
+  select.dataset.generatorCustomReady = "true";
+  select.classList.add("generator-native-select");
+  const wrap = documentRef.createElement("div");
+  wrap.className = "generator-select-wrap";
+  wrap.dataset.generatorSelectKind = kind;
+  const trigger = documentRef.createElement("button");
+  trigger.type = "button";
+  trigger.className = "generator-select-trigger";
+  trigger.dataset.generatorSelectTrigger = kind;
+  const menu = documentRef.createElement("div");
+  menu.className = "generator-select-menu";
+  menu.dataset.generatorSelectMenu = kind;
+  menu.setAttribute("role", "listbox");
+  wrap.append(trigger, menu);
+  select.after(wrap);
+  select.__generatorSelectRebuild = typeof onRebuild === "function" ? () => onRebuild(select) : null;
+  return { wrap, trigger, menu, kind };
+}
