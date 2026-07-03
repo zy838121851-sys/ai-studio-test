@@ -10,6 +10,13 @@ import {
 } from "../src/client/features/workspace/asset-library/asset-library-normalizers.js";
 import { createAssetLibraryState } from "../src/client/features/workspace/asset-library/asset-library-state.js";
 import {
+  getVisibleAssetIds,
+  pruneAssetSelectionState,
+  setAssetSelectionModeState,
+  toggleAllAssetSelectionState,
+  toggleAssetSelectionState
+} from "../src/client/features/workspace/asset-library/asset-library-selection.js";
+import {
   syncAllRemoteAssetsState,
   syncRemoteAssetsState,
   syncRemoteCollectionsState
@@ -89,6 +96,7 @@ assertContains("src/client/features/workspace/asset-library/asset-panel.js", [
 assertContains("src/client/features/workspace/asset-library/asset-library-runtime.js", [
   "asset-library-normalizers.js",
   "asset-library-state.js",
+  "asset-library-selection.js",
   "asset-library-sync.js",
   "selectedAssetIds",
   "toggleAssetSelection",
@@ -190,6 +198,62 @@ if (externalState.readAssets()[0].id !== "external") {
 externalState.writeAssets([{ id: "written" }]);
 if (externalWrites[0][0].id !== "written") {
   throw new Error("Asset library state should write through external asset providers");
+}
+
+const selectionAssets = [
+  { id: "favorite", favorite: true },
+  { id: "collection", collectionName: "Board" },
+  { id: "generated", source: "generated" },
+  { id: "plain" },
+  { id: "" }
+];
+if (getVisibleAssetIds({ assets: selectionAssets, assetPageMode: "recent" }).join("|") !== "favorite|collection|generated") {
+  throw new Error("Asset selection helper should keep recent-mode visible asset filtering");
+}
+if (getVisibleAssetIds({ assets: selectionAssets, assetPageMode: "boards" }).join("|") !== "favorite|collection|generated|plain") {
+  throw new Error("Asset selection helper should keep board-mode visible asset filtering");
+}
+
+const selectionState = createAssetLibraryState();
+selectionState.assetPageMode = "all";
+setAssetSelectionModeState({ libraryState: selectionState, value: true });
+if (selectionState.assetSelectionMode !== true) {
+  throw new Error("Asset selection helper should enable selection outside board home");
+}
+toggleAssetSelectionState({ libraryState: selectionState, assetId: "asset-1" });
+if (!selectionState.selectedAssetIds.has("asset-1")) {
+  throw new Error("Asset selection helper should select an asset");
+}
+toggleAssetSelectionState({ libraryState: selectionState, assetId: "asset-1" });
+if (selectionState.selectedAssetIds.has("asset-1")) {
+  throw new Error("Asset selection helper should toggle an existing asset off");
+}
+toggleAllAssetSelectionState({ libraryState: selectionState, assetIds: ["asset-1", "asset-2"] });
+if (Array.from(selectionState.selectedAssetIds).join("|") !== "asset-1|asset-2") {
+  throw new Error("Asset selection helper should select every visible asset");
+}
+toggleAllAssetSelectionState({ libraryState: selectionState, assetIds: ["asset-1", "asset-2"] });
+if (selectionState.selectedAssetIds.size !== 0 || selectionState.assetSelectionMode !== true) {
+  throw new Error("Asset selection helper should clear all-selected assets while staying in selection mode");
+}
+selectionState.selectedAssetIds.add("asset-1");
+selectionState.selectedAssetIds.add("stale");
+pruneAssetSelectionState({ libraryState: selectionState, assets: [{ id: "asset-1" }] });
+if (Array.from(selectionState.selectedAssetIds).join("|") !== "asset-1") {
+  throw new Error("Asset selection helper should prune stale selections");
+}
+
+const boardHomeSelectionState = createAssetLibraryState();
+setAssetSelectionModeState({ libraryState: boardHomeSelectionState, value: true });
+toggleAssetSelectionState({ libraryState: boardHomeSelectionState, assetId: "asset-1" });
+if (boardHomeSelectionState.assetSelectionMode || boardHomeSelectionState.selectedAssetIds.size) {
+  throw new Error("Asset selection helper should block selection on the board home");
+}
+boardHomeSelectionState.assetSelectionMode = true;
+boardHomeSelectionState.selectedAssetIds.add("asset-1");
+pruneAssetSelectionState({ libraryState: boardHomeSelectionState, assets: [{ id: "asset-1" }] });
+if (boardHomeSelectionState.assetSelectionMode || boardHomeSelectionState.selectedAssetIds.size) {
+  throw new Error("Asset selection helper should clear selection when returning to board home");
 }
 
 const syncState = createAssetLibraryState();

@@ -9,6 +9,13 @@ import {
   syncRemoteAssetsState,
   syncRemoteCollectionsState
 } from "./asset-library-sync.js";
+import {
+  getVisibleAssetIds,
+  pruneAssetSelectionState,
+  setAssetSelectionModeState,
+  toggleAllAssetSelectionState,
+  toggleAssetSelectionState
+} from "./asset-library-selection.js";
 
 export function createAssetLibraryRuntime({
   eventBus,
@@ -51,50 +58,29 @@ export function createAssetLibraryRuntime({
   const getActiveCollectionId = () => libraryState.activeCollectionId;
   const readAssets = () => libraryState.readAssets();
   const writeAssets = (nextAssets = []) => libraryState.writeAssets(nextAssets);
-  const getVisibleAssetIds = () => {
-    const assets = readAssets();
-    if (libraryState.assetPageMode === "recent") {
-      return assets
-        .filter((asset) => asset.isFavorite || asset.favorite || asset.collectionName || asset.source === "generated")
-        .map((asset) => asset.id)
-        .filter(Boolean);
-    }
-    return assets.map((asset) => asset.id).filter(Boolean);
-  };
 
   function pruneAssetSelection(currentAssets = readAssets()) {
-    const assetIds = new Set((currentAssets || []).map((asset) => asset.id));
-    Array.from(libraryState.selectedAssetIds).forEach((assetId) => {
-      if (!assetIds.has(assetId)) libraryState.selectedAssetIds.delete(assetId);
-    });
-    if (libraryState.assetPageMode === "boards" && !libraryState.activeCollectionId) {
-      libraryState.assetSelectionMode = false;
-      libraryState.selectedAssetIds.clear();
-    }
+    pruneAssetSelectionState({ libraryState, assets: currentAssets });
   }
 
   function setAssetSelectionMode(value) {
-    libraryState.assetSelectionMode = Boolean(value)
-      && (libraryState.assetPageMode !== "boards" || Boolean(libraryState.activeCollectionId));
-    if (!libraryState.assetSelectionMode) libraryState.selectedAssetIds.clear();
+    setAssetSelectionModeState({ libraryState, value });
     renderAssets();
   }
 
   function toggleAssetSelection(assetId) {
-    if (!assetId || (libraryState.assetPageMode === "boards" && !libraryState.activeCollectionId)) return;
-    libraryState.assetSelectionMode = true;
-    if (libraryState.selectedAssetIds.has(assetId)) libraryState.selectedAssetIds.delete(assetId);
-    else libraryState.selectedAssetIds.add(assetId);
+    toggleAssetSelectionState({ libraryState, assetId });
     renderAssets();
   }
 
   function toggleAllAssetSelection() {
-    const visibleAssetIds = getVisibleAssetIds();
-    const allSelected = visibleAssetIds.length > 0
-      && visibleAssetIds.every((assetId) => libraryState.selectedAssetIds.has(assetId));
-    libraryState.selectedAssetIds.clear();
-    if (!allSelected) visibleAssetIds.forEach((assetId) => libraryState.selectedAssetIds.add(assetId));
-    libraryState.assetSelectionMode = true;
+    toggleAllAssetSelectionState({
+      libraryState,
+      assetIds: getVisibleAssetIds({
+        assets: readAssets(),
+        assetPageMode: libraryState.assetPageMode
+      })
+    });
     renderAssets();
   }
 
