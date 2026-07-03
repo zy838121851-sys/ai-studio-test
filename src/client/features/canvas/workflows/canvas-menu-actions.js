@@ -4,6 +4,7 @@ import {
   getNodeLayoutBounds,
   getLayoutUnionBounds,
   getNodeSortIndex,
+  normalizeLayerZIndex,
   recordLayoutMutation,
   getRectUnionBounds,
   getViewportUnionRect,
@@ -889,11 +890,6 @@ function getLayerOrderedNodes() {
     }))
     .sort((a, b) => a.zIndex - b.zIndex || a.index - b.index)
     .map(({ node }) => node);
-}
-
-function normalizeLayerZIndex(value, fallbackIndex = 0) {
-  const parsed = Number.parseInt(value || "", 10);
-  return Number.isFinite(parsed) ? parsed : 10 + fallbackIndex;
 }
 
 function alignNodes(nodes, mode, recordUndoAction) {

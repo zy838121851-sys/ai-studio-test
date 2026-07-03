@@ -42,6 +42,11 @@ export function getNodeSortIndex(node) {
   return Array.from(node.parentElement?.children || []).indexOf(node);
 }
 
+export function normalizeLayerZIndex(value, fallbackIndex = 0) {
+  const parsed = Number.parseInt(value || "", 10);
+  return Number.isFinite(parsed) ? parsed : 10 + fallbackIndex;
+}
+
 export function getNodeLayoutBounds(node) {
   if (node?.classList?.contains("node-image")) {
     const frame = node.querySelector(".image-frame");

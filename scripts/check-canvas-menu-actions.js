@@ -22,6 +22,7 @@ import {
   getLayoutUnionBounds,
   getNodeLayoutBounds,
   getNodeSortIndex,
+  normalizeLayerZIndex,
   recordLayoutMutation,
   getRectUnionBounds,
   getViewportUnionRect,
@@ -105,6 +106,7 @@ assertIncludes(menuLayoutUtils, "export function getImageFrameHeightFromAspect",
 assertIncludes(menuLayoutUtils, "export function getLayoutUnionBounds", "canvas layout union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getNodeLayoutBounds", "canvas node layout bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node sort index must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function normalizeLayerZIndex", "canvas layer z-index normalization must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getRectUnionBounds", "canvas rect union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getViewportUnionRect", "canvas viewport union rect must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function parseAspectRatio", "canvas aspect ratio parsing must live in layout utils");
@@ -224,6 +226,10 @@ const noDigitNode = { dataset: { nodeId: "node" }, parentElement: { children: [s
 assert(getNodeSortIndex(sortedNode) === 42, "node sort index should preserve numeric id parsing");
 assert(getNodeSortIndex(noDigitNode) === 0, "node sort index should preserve no-digit id behavior");
 assertIncludes(menuLayoutUtils, "parentElement?.children", "node sort index fallback must stay available");
+assert(normalizeLayerZIndex("12", 3) === 12, "layer z-index normalization should parse numeric strings");
+assert(normalizeLayerZIndex("12px", 3) === 12, "layer z-index normalization should preserve parseInt behavior");
+assert(normalizeLayerZIndex("", 3) === 13, "layer z-index normalization should use fallback for empty values");
+assert(normalizeLayerZIndex("bad", 4) === 14, "layer z-index normalization should use fallback for invalid values");
 
 const viewportRect = getViewportUnionRect([
   {
