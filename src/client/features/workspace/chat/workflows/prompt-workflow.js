@@ -86,6 +86,7 @@ import {
   waitForTripo3DTask
 } from "./prompt-job-utils.js";
 import {
+  buildConversationIntentState,
   buildMessageDoneReceivedPayload,
   buildMessageDoneState,
   buildConversationRunPayload,
@@ -1307,19 +1308,29 @@ async function runConversationAgent({
       return;
     }
     if (event.type === "agent.intent") {
-      intent = event.intent || intent;
-      taskType = event.taskType || taskType;
-      promptStrategy = event.promptStrategy || promptStrategy;
-      const nextStrategyTags = Array.isArray(event.strategyTags) ? event.strategyTags : null;
-      qwenVlMode = event.qwenVlMode || qwenVlMode;
-      promptOptimizerMode = event.promptOptimizerMode || promptOptimizerMode;
-      shouldGenerate = Boolean(event.shouldGenerate ?? (isGenerationIntent(intent) || shouldGenerate));
-      outputType = event.generationType || outputType;
+      const intentState = buildConversationIntentState(event, {
+        intent,
+        taskType,
+        promptStrategy,
+        qwenVlMode,
+        promptOptimizerMode,
+        shouldGenerate,
+        outputType
+      });
+      ({
+        intent,
+        taskType,
+        promptStrategy,
+        qwenVlMode,
+        promptOptimizerMode,
+        shouldGenerate,
+        outputType
+      } = intentState);
       if (debugRecord) {
         debugRecord.intent = intent;
         debugRecord.taskType = taskType;
         debugRecord.promptStrategy = promptStrategy;
-        if (nextStrategyTags) debugRecord.strategyTags = nextStrategyTags;
+        if (intentState.nextStrategyTags) debugRecord.strategyTags = intentState.nextStrategyTags;
         debugRecord.qwenVlMode = qwenVlMode;
         debugRecord.promptOptimizerMode = promptOptimizerMode;
         debugRecord.shouldGenerate = shouldGenerate;
@@ -1329,7 +1340,7 @@ async function runConversationAgent({
         intent,
         taskType,
         promptStrategy,
-        strategyTags: nextStrategyTags || debugRecord?.strategyTags || [],
+        strategyTags: intentState.nextStrategyTags || debugRecord?.strategyTags || [],
         shouldGenerate,
         generationType: outputType,
         qwenVlMode,
@@ -1347,13 +1358,24 @@ async function runConversationAgent({
       return;
     }
     if (event.type === "image.analysis.start") {
-      intent = event.intent || intent;
-      taskType = event.taskType || taskType;
-      promptStrategy = event.promptStrategy || promptStrategy;
-      qwenVlMode = event.qwenVlMode || qwenVlMode;
-      promptOptimizerMode = event.promptOptimizerMode || promptOptimizerMode;
-      shouldGenerate = Boolean(event.shouldGenerate ?? (isGenerationIntent(intent) || shouldGenerate));
-      outputType = event.generationType || outputType;
+      const intentState = buildConversationIntentState(event, {
+        intent,
+        taskType,
+        promptStrategy,
+        qwenVlMode,
+        promptOptimizerMode,
+        shouldGenerate,
+        outputType
+      });
+      ({
+        intent,
+        taskType,
+        promptStrategy,
+        qwenVlMode,
+        promptOptimizerMode,
+        shouldGenerate,
+        outputType
+      } = intentState);
       if (debugRecord) {
         debugRecord.intent = intent;
         debugRecord.taskType = taskType;

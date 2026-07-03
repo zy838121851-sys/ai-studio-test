@@ -139,6 +139,27 @@ export function buildMessageDoneState(event = {}, current = {}) {
   };
 }
 
+export function buildConversationIntentState(event = {}, current = {}) {
+  const intent = event.intent || current.intent || "";
+  const taskType = event.taskType || current.taskType || "";
+  const promptStrategy = event.promptStrategy || current.promptStrategy || "";
+  const nextStrategyTags = Array.isArray(event.strategyTags) ? event.strategyTags : null;
+  const qwenVlMode = event.qwenVlMode || current.qwenVlMode || "";
+  const promptOptimizerMode = event.promptOptimizerMode || current.promptOptimizerMode || "";
+  const shouldGenerate = Boolean(event.shouldGenerate ?? (isGenerationIntent(intent) || current.shouldGenerate));
+  const outputType = event.generationType || current.outputType || "";
+  return {
+    intent,
+    taskType,
+    promptStrategy,
+    nextStrategyTags,
+    qwenVlMode,
+    promptOptimizerMode,
+    shouldGenerate,
+    outputType
+  };
+}
+
 function isActiveRun({ runId = "", activeRunId = "" } = {}) {
   return !runId || activeRunId === runId;
 }

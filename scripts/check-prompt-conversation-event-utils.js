@@ -1,4 +1,5 @@
 import {
+  buildConversationIntentState,
   buildMessageDoneReceivedPayload,
   buildMessageDoneState,
   buildConversationRunPayload,
@@ -318,5 +319,59 @@ assert(currentFallbackState.imageAnalysis.source === "current", "Message done st
 assert(currentFallbackState.imageAnalysisError === "current-analysis-error", "Message done state should keep current image errors when event is empty");
 assert(currentFallbackState.shouldGenerate === false, "Message done state should keep current generation decisions when event is empty");
 assert(currentFallbackState.outputType === "image", "Message done state should keep current output types when event is empty");
+
+const intentState = buildConversationIntentState({
+  intent: "generate_image",
+  taskType: "event-task",
+  promptStrategy: "event-strategy",
+  strategyTags: ["fast", "image"],
+  qwenVlMode: "event-vl",
+  promptOptimizerMode: "event-optimizer",
+  generationType: "image"
+}, {
+  intent: "chat",
+  taskType: "current-task",
+  promptStrategy: "current-strategy",
+  qwenVlMode: "current-vl",
+  promptOptimizerMode: "current-optimizer",
+  shouldGenerate: false,
+  outputType: "video"
+});
+assert(intentState.intent === "generate_image", "Conversation intent state should prefer event intents");
+assert(intentState.taskType === "event-task", "Conversation intent state should prefer event task types");
+assert(intentState.promptStrategy === "event-strategy", "Conversation intent state should prefer event strategies");
+assert(intentState.nextStrategyTags.length === 2, "Conversation intent state should preserve event strategy tag arrays");
+assert(intentState.qwenVlMode === "event-vl", "Conversation intent state should prefer event VL modes");
+assert(intentState.promptOptimizerMode === "event-optimizer", "Conversation intent state should prefer event optimizer modes");
+assert(intentState.shouldGenerate === true, "Conversation intent state should infer generation from generation intents");
+assert(intentState.outputType === "image", "Conversation intent state should prefer event generation types");
+
+const explicitFalseIntentState = buildConversationIntentState({
+  intent: "generate_image",
+  shouldGenerate: false,
+  strategyTags: "not-array"
+}, {
+  shouldGenerate: true,
+  outputType: "image"
+});
+assert(explicitFalseIntentState.shouldGenerate === false, "Conversation intent state should preserve explicit false generation decisions");
+assert(explicitFalseIntentState.nextStrategyTags === null, "Conversation intent state should ignore malformed strategy tags");
+
+const fallbackIntentState = buildConversationIntentState({}, {
+  intent: "chat",
+  taskType: "current-task",
+  promptStrategy: "current-strategy",
+  qwenVlMode: "current-vl",
+  promptOptimizerMode: "current-optimizer",
+  shouldGenerate: true,
+  outputType: "video"
+});
+assert(fallbackIntentState.intent === "chat", "Conversation intent state should keep current intents when event is empty");
+assert(fallbackIntentState.taskType === "current-task", "Conversation intent state should keep current task types when event is empty");
+assert(fallbackIntentState.promptStrategy === "current-strategy", "Conversation intent state should keep current strategies when event is empty");
+assert(fallbackIntentState.qwenVlMode === "current-vl", "Conversation intent state should keep current VL modes when event is empty");
+assert(fallbackIntentState.promptOptimizerMode === "current-optimizer", "Conversation intent state should keep current optimizer modes when event is empty");
+assert(fallbackIntentState.shouldGenerate === true, "Conversation intent state should keep current generation decisions when event is empty");
+assert(fallbackIntentState.outputType === "video", "Conversation intent state should keep current output types when event is empty");
 
 console.log("Prompt conversation event utility checks passed.");
