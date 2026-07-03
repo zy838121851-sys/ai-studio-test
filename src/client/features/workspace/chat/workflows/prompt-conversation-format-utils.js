@@ -38,3 +38,13 @@ export function getConversationHistoryDisplay(conversation = {}) {
     summary: conversation?.summary || (conversation?.archived ? "历史会话" : "当前会话")
   };
 }
+
+export function renderConversationHistoryItemHtml(conversation = {}, currentId = "") {
+  const display = getConversationHistoryDisplay(conversation);
+  return `
+      <button class="conversation-history-item${conversation.id === currentId ? " active" : ""}" type="button" data-conversation-id="${escapeHtml(conversation.id)}">
+        <span><b>${escapeHtml(display.title)}</b><i>${display.time}</i></span>
+        <small>${escapeHtml(display.summary)}</small>
+      </button>
+    `;
+}

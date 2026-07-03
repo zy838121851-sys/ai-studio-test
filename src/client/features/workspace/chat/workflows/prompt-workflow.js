@@ -91,8 +91,8 @@ import {
 } from "./prompt-conversation-event-utils.js";
 import {
   escapeHtml,
-  getConversationHistoryDisplay,
-  getConversationRestoreImageAttachments
+  getConversationRestoreImageAttachments,
+  renderConversationHistoryItemHtml
 } from "./prompt-conversation-format-utils.js";
 import {
   fetchConversationMessages,
@@ -1845,15 +1845,7 @@ function renderConversationHistoryPopover(popover, { projectId, conversations, a
     return;
   }
   popover.innerHTML = `<strong>历史对话</strong><div class="conversation-history-list">${
-    conversations.map((conversation) => {
-      const display = getConversationHistoryDisplay(conversation);
-      return `
-      <button class="conversation-history-item${conversation.id === currentId ? " active" : ""}" type="button" data-conversation-id="${escapeHtml(conversation.id)}">
-        <span><b>${escapeHtml(display.title)}</b><i>${display.time}</i></span>
-        <small>${escapeHtml(display.summary)}</small>
-      </button>
-    `;
-    }).join("")
+    conversations.map((conversation) => renderConversationHistoryItemHtml(conversation, currentId)).join("")
   }</div>`;
   popover.querySelectorAll("[data-conversation-id]").forEach((item) => {
     item.addEventListener("click", async () => {
