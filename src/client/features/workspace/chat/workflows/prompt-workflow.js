@@ -90,7 +90,8 @@ import {
   isGenerationIntent
 } from "./prompt-conversation-event-utils.js";
 import {
-  clearConversationChatLog
+  clearConversationChatLog,
+  positionConversationHistoryPopover
 } from "./prompt-conversation-dom-utils.js";
 import {
   getConversationRestoreEntries,
@@ -1831,20 +1832,6 @@ function ensureConversationHistoryPopover() {
 function closeConversationHistoryPopover() {
   const popover = globalThis.document?.querySelector?.("#conversationHistoryPopover");
   if (popover) popover.hidden = true;
-}
-
-function positionConversationHistoryPopover(button, popover) {
-  if (!button || !popover) return;
-  const rect = button.getBoundingClientRect();
-  const viewportWidth = globalThis.innerWidth || 0;
-  const viewportHeight = globalThis.innerHeight || 0;
-  const gutter = 16;
-  const gap = 10;
-  const width = Math.min(320, viewportWidth - gutter * 2);
-  const left = Math.max(gutter, Math.min(rect.right - width, viewportWidth - gutter - width));
-  const top = Math.min(rect.bottom + gap, viewportHeight - gutter - 120);
-  popover.style.left = `${left}px`;
-  popover.style.top = `${Math.max(gutter, top)}px`;
 }
 
 function renderConversationHistoryPopover(popover, { projectId, conversations, addChat, addChatImage } = {}) {
