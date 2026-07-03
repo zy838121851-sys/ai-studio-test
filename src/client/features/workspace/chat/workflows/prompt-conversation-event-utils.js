@@ -119,6 +119,27 @@ export function buildMessageDoneReceivedPayload(details = {}) {
   return payload;
 }
 
+export function buildConversationDoneDebugPayload(state = {}, {
+  fallbackPrompt = "",
+  summarizePrompt = (value) => value
+} = {}) {
+  return {
+    intent: state.intent || "",
+    taskType: state.taskType || "",
+    promptStrategy: state.promptStrategy || "",
+    shouldGenerate: Boolean(state.shouldGenerate),
+    optimizedPrompt: summarizePrompt(state.optimizedPrompt || fallbackPrompt),
+    qwenVlMode: state.qwenVlMode || "",
+    promptOptimizerMode: state.promptOptimizerMode || "",
+    skippedOptimizer: Boolean(state.skippedOptimizer),
+    optimizerError: state.optimizerError || "",
+    usedFallbackPrompt: Boolean(state.usedFallbackPrompt),
+    totalBudgetExceeded: Boolean(state.totalBudgetExceeded),
+    imageAnalysisPresent: Boolean(state.imageAnalysis),
+    imageAnalysisError: state.imageAnalysisError || ""
+  };
+}
+
 export function buildMessageDoneState(event = {}, current = {}) {
   const content = event?.message?.content || {};
   const intent = event.intent || content.intent || current.intent || "";

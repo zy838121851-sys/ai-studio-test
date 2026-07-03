@@ -8,6 +8,7 @@ import {
   applyPromptOptimizedDebugState,
   applyPromptOptimizerStartDebugState,
   buildConversationIntentState,
+  buildConversationDoneDebugPayload,
   buildGenerationToolState,
   buildImageAnalysisErrorState,
   buildImageAnalysisState,
@@ -275,6 +276,57 @@ assert(
     && !Object.prototype.hasOwnProperty.call(staleMessageDonePayload, "promptStrategy"),
   "Message done payloads should not add optional task fields unless provided"
 );
+
+const conversationDonePayload = buildConversationDoneDebugPayload({
+  intent: "generate_image",
+  taskType: "image",
+  promptStrategy: "optimized",
+  shouldGenerate: true,
+  optimizedPrompt: "Long optimized prompt",
+  qwenVlMode: "event-vl",
+  promptOptimizerMode: "event-optimizer",
+  skippedOptimizer: false,
+  optimizerError: "optimizer-warning",
+  usedFallbackPrompt: true,
+  totalBudgetExceeded: true,
+  imageAnalysis: { source: "event" },
+  imageAnalysisError: "analysis-warning"
+}, {
+  fallbackPrompt: "Fallback prompt",
+  summarizePrompt: (value) => `summary:${value}`
+});
+assert(conversationDonePayload.intent === "generate_image", "Conversation done debug payloads should preserve intents");
+assert(conversationDonePayload.taskType === "image", "Conversation done debug payloads should preserve task types");
+assert(conversationDonePayload.promptStrategy === "optimized", "Conversation done debug payloads should preserve prompt strategies");
+assert(conversationDonePayload.shouldGenerate === true, "Conversation done debug payloads should preserve generation decisions");
+assert(
+  conversationDonePayload.optimizedPrompt === "summary:Long optimized prompt",
+  "Conversation done debug payloads should summarize optimized prompts"
+);
+assert(conversationDonePayload.qwenVlMode === "event-vl", "Conversation done debug payloads should preserve VL modes");
+assert(
+  conversationDonePayload.promptOptimizerMode === "event-optimizer",
+  "Conversation done debug payloads should preserve optimizer modes"
+);
+assert(conversationDonePayload.skippedOptimizer === false, "Conversation done debug payloads should preserve explicit false optimizer skips");
+assert(conversationDonePayload.optimizerError === "optimizer-warning", "Conversation done debug payloads should preserve optimizer errors");
+assert(conversationDonePayload.usedFallbackPrompt === true, "Conversation done debug payloads should preserve fallback prompt flags");
+assert(conversationDonePayload.totalBudgetExceeded === true, "Conversation done debug payloads should preserve budget flags");
+assert(conversationDonePayload.imageAnalysisPresent === true, "Conversation done debug payloads should preserve image analysis presence");
+assert(conversationDonePayload.imageAnalysisError === "analysis-warning", "Conversation done debug payloads should preserve image analysis errors");
+
+const fallbackConversationDonePayload = buildConversationDoneDebugPayload({
+  shouldGenerate: false
+}, {
+  fallbackPrompt: "Fallback prompt",
+  summarizePrompt: (value) => `summary:${value}`
+});
+assert(
+  fallbackConversationDonePayload.optimizedPrompt === "summary:Fallback prompt",
+  "Conversation done debug payloads should summarize fallback prompts"
+);
+assert(fallbackConversationDonePayload.shouldGenerate === false, "Conversation done debug payloads should preserve false generation decisions");
+assert(fallbackConversationDonePayload.imageAnalysisPresent === false, "Conversation done debug payloads should default image analysis presence to false");
 
 const messageDoneState = buildMessageDoneState({
   intent: "generate_video",

@@ -95,6 +95,7 @@ import {
   applyPromptOptimizedDebugState,
   applyPromptOptimizerStartDebugState,
   buildConversationIntentState,
+  buildConversationDoneDebugPayload,
   buildGenerationToolState,
   buildImageAnalysisErrorState,
   buildImageAnalysisState,
@@ -1514,21 +1515,21 @@ async function runConversationAgent({
         autoExecute: CHAT_AGENT_CONFIG.autoExecute,
         generationStarted: false
       }));
-      logAgentDebug(debugRecord, "conversation.done", {
+      logAgentDebug(debugRecord, "conversation.done", buildConversationDoneDebugPayload({
         intent,
         taskType,
         promptStrategy,
         shouldGenerate,
-        optimizedPrompt: summarizePrompt(optimizedPrompt || prompt),
+        optimizedPrompt,
         qwenVlMode,
         promptOptimizerMode,
         skippedOptimizer,
         optimizerError,
         usedFallbackPrompt,
         totalBudgetExceeded,
-        imageAnalysisPresent: Boolean(imageAnalysis),
+        imageAnalysis,
         imageAnalysisError
-      });
+      }, { fallbackPrompt: prompt, summarizePrompt }));
       updateAgentDebugPanel(debugRecord);
       return false;
     }
