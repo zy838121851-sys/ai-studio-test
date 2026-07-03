@@ -16,6 +16,9 @@ import {
   shouldCloseAssetContextMenuOnPointer
 } from "./asset-library-context-menu.js";
 import {
+  getAssetListClickIntent
+} from "./asset-library-click-intent.js";
+import {
   syncAllRemoteAssetsState,
   syncRemoteAssetsState,
   syncRemoteCollectionsState
@@ -581,46 +584,43 @@ export function createAssetLibraryRuntime({
       viewportHeight: window.innerHeight
     });
     list.addEventListener("click", (event) => {
-      const menuAction = event.target.closest("[data-asset-menu-action]");
-      if (menuAction) {
+      const intent = getAssetListClickIntent({ event, list });
+      if (!intent) return;
+
+      if (intent.type === "menu-action") {
         event.preventDefault();
         event.stopPropagation();
-        const menu = menuAction.closest("[data-asset-context-menu]");
-        const assetId = menu?.dataset.assetId || "";
-        const action = menuAction.dataset.assetMenuAction;
-        if (action === "move-open") {
-          menu?.classList.toggle("submenu-open");
+        if (intent.action === "move-open") {
+          intent.menu?.classList.toggle("submenu-open");
           return;
         }
-        if (!assetId) return;
-        if (action === "insert") {
+        if (!intent.assetId) return;
+        if (intent.action === "insert") {
           closeContextMenu();
-          openAssetCanvasPicker(assetId);
+          openAssetCanvasPicker(intent.assetId);
           return;
         }
-        if (action === "move") {
-          moveAssetToCollection(assetId, menuAction.dataset.collectionId || "");
+        if (intent.action === "move") {
+          moveAssetToCollection(intent.assetId, intent.menuAction.dataset.collectionId || "");
           closeContextMenu();
           return;
         }
-        if (action === "delete") {
-          removeAsset(assetId);
+        if (intent.action === "delete") {
+          removeAsset(intent.assetId);
           closeContextMenu();
           return;
         }
       }
 
-      const assetSelectModeButton = event.target.closest("[data-asset-select-mode]");
-      if (assetSelectModeButton) {
+      if (intent.type === "select-mode") {
         event.preventDefault();
         event.stopPropagation();
         closeContextMenu();
-        setAssetSelectionMode(!assetSelectModeButton.classList.contains("active"));
+        setAssetSelectionMode(!intent.button.classList.contains("active"));
         return;
       }
 
-      const assetSelectAllButton = event.target.closest("[data-asset-select-all]");
-      if (assetSelectAllButton) {
+      if (intent.type === "select-all") {
         event.preventDefault();
         event.stopPropagation();
         closeContextMenu();
@@ -628,8 +628,7 @@ export function createAssetLibraryRuntime({
         return;
       }
 
-      const assetBulkDeleteButton = event.target.closest("[data-asset-bulk-delete]");
-      if (assetBulkDeleteButton) {
+      if (intent.type === "bulk-delete") {
         event.preventDefault();
         event.stopPropagation();
         closeContextMenu();
@@ -637,36 +636,30 @@ export function createAssetLibraryRuntime({
         return;
       }
 
-      const assetSelectButton = event.target.closest("[data-asset-select]");
-      if (assetSelectButton) {
+      if (intent.type === "select-asset") {
         event.preventDefault();
         event.stopPropagation();
         closeContextMenu();
-        toggleAssetSelection(assetSelectButton.dataset.assetSelect);
+        toggleAssetSelection(intent.assetId);
         return;
       }
 
-      const deleteButton = event.target.closest("[data-delete-asset]");
-      if (deleteButton) {
+      if (intent.type === "delete-asset") {
         event.preventDefault();
         event.stopPropagation();
         closeContextMenu();
-        removeAsset(deleteButton.dataset.deleteAsset);
+        removeAsset(intent.assetId);
         return;
       }
 
-      const previewButton = event.target.closest("[data-preview-asset]");
-      if (previewButton) {
+      if (intent.type === "preview-asset") {
         event.preventDefault();
         event.stopPropagation();
-        previewAsset(previewButton.dataset.previewAsset);
+        previewAsset(intent.assetId);
         return;
       }
 
-      const isPageList = list.classList.contains("assets-page-list");
-
-      const uploadButton = event.target.closest("[data-upload-asset]");
-      if (uploadButton) {
+      if (intent.type === "upload") {
         event.preventDefault();
         event.stopPropagation();
         if (assetUploadInput?.dataset) assetUploadInput.dataset.uploadIntent = "library";
@@ -674,81 +667,72 @@ export function createAssetLibraryRuntime({
         return;
       }
 
-      const insertButton = event.target.closest("[data-insert-asset]");
-      if (insertButton) {
+      if (intent.type === "insert-asset") {
         event.preventDefault();
         event.stopPropagation();
-        openAssetCanvasPicker(insertButton.dataset.insertAsset);
+        openAssetCanvasPicker(intent.assetId);
         return;
       }
 
-      const moveButton = event.target.closest("[data-move-asset]");
-      if (moveButton) {
+      if (intent.type === "move-asset") {
         event.preventDefault();
         event.stopPropagation();
         return;
       }
 
-      const pageAssetCard = isPageList ? event.target.closest(".asset-pinterest-pin.asset-item[data-id]") : null;
-      if (pageAssetCard) {
+      if (intent.type === "page-asset-card") {
         event.preventDefault();
         event.stopPropagation();
         if (libraryState.assetSelectionMode) {
-          toggleAssetSelection(pageAssetCard.dataset.id);
+          toggleAssetSelection(intent.assetId);
           return;
         }
-        previewAsset(pageAssetCard.dataset.id);
+        previewAsset(intent.assetId);
         return;
       }
 
-      const pageModeButton = event.target.closest("[data-asset-page-mode]");
-      if (pageModeButton) {
+      if (intent.type === "page-mode") {
         event.preventDefault();
-        selectAssetPageMode(pageModeButton.dataset.assetPageMode || "boards");
+        selectAssetPageMode(intent.mode);
         return;
       }
 
-      const createCollectionButton = event.target.closest("[data-create-asset-collection]");
-      if (createCollectionButton) {
+      if (intent.type === "create-collection") {
         event.preventDefault();
         const name = window.prompt("新建图板名称", "");
         if (name?.trim()) createCollection(name.trim());
         return;
       }
 
-      const collectionButton = event.target.closest("[data-select-asset-collection]");
-      if (collectionButton) {
+      if (intent.type === "select-collection") {
         event.preventDefault();
-        selectCollection(collectionButton.dataset.selectAssetCollection || "");
+        selectCollection(intent.collectionId);
         return;
       }
 
-      const renameButton = event.target.closest("[data-rename-asset-collection]");
-      if (renameButton) {
+      if (intent.type === "rename-collection") {
         event.preventDefault();
         event.stopPropagation();
-        const collection = libraryState.collections.find((item) => item.id === renameButton.dataset.renameAssetCollection);
+        const collection = libraryState.collections.find((item) => item.id === intent.collectionId);
         const name = window.prompt("重命名图板", collection?.name || "");
-        if (name?.trim()) renameCollection(renameButton.dataset.renameAssetCollection, name.trim());
+        if (name?.trim()) renameCollection(intent.collectionId, name.trim());
         return;
       }
 
-      const deleteCollectionButton = event.target.closest("[data-delete-asset-collection]");
-      if (deleteCollectionButton) {
+      if (intent.type === "delete-collection") {
         event.preventDefault();
         event.stopPropagation();
-        const collection = libraryState.collections.find((item) => item.id === deleteCollectionButton.dataset.deleteAssetCollection);
+        const collection = libraryState.collections.find((item) => item.id === intent.collectionId);
         if (window.confirm(`删除图板「${collection?.name || "未命名"}」？素材不会被删除。`)) {
-          removeCollection(deleteCollectionButton.dataset.deleteAssetCollection);
+          removeCollection(intent.collectionId);
         }
         return;
       }
 
-      const card = event.target.closest(".asset-item[data-id]");
-      const assetId = !isPageList ? card?.dataset.id : "";
-      if (!assetId) return;
-      event.preventDefault();
-      insertAsset(assetId);
+      if (intent.type === "asset-card") {
+        event.preventDefault();
+        insertAsset(intent.assetId);
+      }
     });
     list.addEventListener("contextmenu", (event) => {
       if (!list.classList.contains("assets-page-list")) return;

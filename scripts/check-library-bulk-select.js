@@ -29,6 +29,9 @@ import {
   shouldCloseAssetContextMenuOnPointer
 } from "../src/client/features/workspace/asset-library/asset-library-context-menu.js";
 import {
+  getAssetListClickIntent
+} from "../src/client/features/workspace/asset-library/asset-library-click-intent.js";
+import {
   syncAllRemoteAssetsState,
   syncRemoteAssetsState,
   syncRemoteCollectionsState
@@ -132,6 +135,7 @@ assertContains("src/client/features/workspace/asset-library/asset-library-runtim
   "asset-library-state.js",
   "asset-library-collections.js",
   "asset-library-context-menu.js",
+  "asset-library-click-intent.js",
   "asset-library-selection.js",
   "asset-library-sync.js",
   "asset-library-project-insert.js",
@@ -291,6 +295,63 @@ if (
 }
 if (shouldCloseAssetContextMenuOnPointer({ list: contextMenuList, target: { label: "outside" } })) {
   throw new Error("Asset context menu helper should ignore outside pointers when hidden");
+}
+
+const menuIntent = getAssetListClickIntent({
+  list: createIntentList({ isPageList: true }),
+  event: {
+    target: createIntentTarget({
+      "[data-asset-menu-action]": {
+        dataset: { assetMenuAction: "move" },
+        closest(selector) {
+          return selector === "[data-asset-context-menu]"
+            ? { dataset: { assetId: "asset-menu" } }
+            : null;
+        }
+      },
+      "[data-preview-asset]": { dataset: { previewAsset: "asset-preview" } }
+    })
+  }
+});
+if (
+  menuIntent?.type !== "menu-action"
+  || menuIntent.action !== "move"
+  || menuIntent.assetId !== "asset-menu"
+) {
+  throw new Error("Asset click intent helper should preserve menu action priority and fields");
+}
+const pageCardIntent = getAssetListClickIntent({
+  list: createIntentList({ isPageList: true }),
+  event: {
+    target: createIntentTarget({
+      ".asset-pinterest-pin.asset-item[data-id]": { dataset: { id: "asset-page" } }
+    })
+  }
+});
+if (pageCardIntent?.type !== "page-asset-card" || pageCardIntent.assetId !== "asset-page") {
+  throw new Error("Asset click intent helper should detect page asset cards");
+}
+const floatingCardIntent = getAssetListClickIntent({
+  list: createIntentList({ isPageList: false }),
+  event: {
+    target: createIntentTarget({
+      ".asset-item[data-id]": { dataset: { id: "asset-floating" } }
+    })
+  }
+});
+if (floatingCardIntent?.type !== "asset-card" || floatingCardIntent.assetId !== "asset-floating") {
+  throw new Error("Asset click intent helper should detect floating library asset cards");
+}
+const pageModeIntent = getAssetListClickIntent({
+  list: createIntentList({ isPageList: true }),
+  event: {
+    target: createIntentTarget({
+      "[data-asset-page-mode]": { dataset: { assetPageMode: "recent" } }
+    })
+  }
+});
+if (pageModeIntent?.type !== "page-mode" || pageModeIntent.mode !== "recent") {
+  throw new Error("Asset click intent helper should preserve page mode fields");
 }
 
 const fallbackState = createAssetLibraryState({ assets: [{ id: "initial" }] });
@@ -799,6 +860,24 @@ assertContains("styles/legacy-assets.css", [
 ]);
 
 console.log("Library bulk select checks passed");
+
+function createIntentList({ isPageList = false } = {}) {
+  return {
+    classList: {
+      contains(name) {
+        return name === "assets-page-list" && isPageList;
+      }
+    }
+  };
+}
+
+function createIntentTarget(matches = {}) {
+  return {
+    closest(selector) {
+      return matches[selector] || null;
+    }
+  };
+}
 
 function createContextMenuList({ width = 100, height = 80 } = {}) {
   const classNames = new Set(["submenu-open"]);
