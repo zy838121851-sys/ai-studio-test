@@ -89,6 +89,7 @@ import {
   buildConversationIntentState,
   buildMessageDoneReceivedPayload,
   buildMessageDoneState,
+  buildPromptOptimizedState,
   buildConversationRunPayload,
   getGenerationToolNameFromEvent,
   isGenerationIntent
@@ -1393,28 +1394,41 @@ async function runConversationAgent({
       return;
     }
     if (event.type === "prompt.optimized") {
-      optimizedPrompt = event.optimizedPrompt || optimizedPrompt;
-      taskType = event.taskType || taskType;
-      promptStrategy = event.promptStrategy || promptStrategy;
-      qwenVlMode = event.qwenVlMode || qwenVlMode;
-      promptOptimizerMode = event.promptOptimizerMode || promptOptimizerMode;
-      skippedOptimizer = Boolean(event.skippedOptimizer ?? skippedOptimizer);
-      optimizerError = event.optimizerError || optimizerError;
-      usedFallbackPrompt = Boolean(event.usedFallbackPrompt ?? event.fallback ?? usedFallbackPrompt);
-      totalBudgetExceeded = Boolean(event.totalBudgetExceeded ?? totalBudgetExceeded);
+      const optimizedState = buildPromptOptimizedState(event, {
+        optimizedPrompt,
+        taskType,
+        promptStrategy,
+        qwenVlMode,
+        promptOptimizerMode,
+        skippedOptimizer,
+        optimizerError,
+        usedFallbackPrompt,
+        totalBudgetExceeded
+      });
+      ({
+        optimizedPrompt,
+        taskType,
+        promptStrategy,
+        qwenVlMode,
+        promptOptimizerMode,
+        skippedOptimizer,
+        optimizerError,
+        usedFallbackPrompt,
+        totalBudgetExceeded
+      } = optimizedState);
       if (debugRecord) {
         debugRecord.optimizedPrompt = optimizedPrompt;
         debugRecord.taskType = taskType;
         debugRecord.promptStrategy = promptStrategy;
-        debugRecord.strategyTags = Array.isArray(event.strategyTags) ? event.strategyTags : debugRecord.strategyTags;
-        debugRecord.promptDriftDetected = Boolean(event.promptDriftDetected);
-        debugRecord.usedConservativeFallback = Boolean(event.usedConservativeFallback || usedFallbackPrompt);
+        debugRecord.strategyTags = optimizedState.nextStrategyTags || debugRecord.strategyTags;
+        debugRecord.promptDriftDetected = optimizedState.promptDriftDetected;
+        debugRecord.usedConservativeFallback = optimizedState.usedConservativeFallback;
         debugRecord.qwenVlMode = qwenVlMode;
         debugRecord.promptOptimizerMode = promptOptimizerMode;
         debugRecord.skippedOptimizer = skippedOptimizer;
         debugRecord.optimizerStarted = true;
         debugRecord.optimizerFinished = true;
-        debugRecord.optimizerTimedOut = Boolean(event.optimizerTimedOut);
+        debugRecord.optimizerTimedOut = optimizedState.optimizerTimedOut;
         debugRecord.optimizerError = optimizerError;
         debugRecord.usedFallbackPrompt = usedFallbackPrompt;
         debugRecord.totalBudgetExceeded = totalBudgetExceeded;

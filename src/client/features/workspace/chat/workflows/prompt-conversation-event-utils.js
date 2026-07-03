@@ -160,6 +160,37 @@ export function buildConversationIntentState(event = {}, current = {}) {
   };
 }
 
+export function buildPromptOptimizedState(event = {}, current = {}) {
+  const optimizedPrompt = event.optimizedPrompt || current.optimizedPrompt || "";
+  const taskType = event.taskType || current.taskType || "";
+  const promptStrategy = event.promptStrategy || current.promptStrategy || "";
+  const nextStrategyTags = Array.isArray(event.strategyTags) ? event.strategyTags : null;
+  const promptDriftDetected = Boolean(event.promptDriftDetected);
+  const qwenVlMode = event.qwenVlMode || current.qwenVlMode || "";
+  const promptOptimizerMode = event.promptOptimizerMode || current.promptOptimizerMode || "";
+  const skippedOptimizer = Boolean(event.skippedOptimizer ?? current.skippedOptimizer);
+  const optimizerTimedOut = Boolean(event.optimizerTimedOut);
+  const optimizerError = event.optimizerError || current.optimizerError || "";
+  const usedFallbackPrompt = Boolean(event.usedFallbackPrompt ?? event.fallback ?? current.usedFallbackPrompt);
+  const usedConservativeFallback = Boolean(event.usedConservativeFallback || usedFallbackPrompt);
+  const totalBudgetExceeded = Boolean(event.totalBudgetExceeded ?? current.totalBudgetExceeded);
+  return {
+    optimizedPrompt,
+    taskType,
+    promptStrategy,
+    nextStrategyTags,
+    promptDriftDetected,
+    usedConservativeFallback,
+    qwenVlMode,
+    promptOptimizerMode,
+    skippedOptimizer,
+    optimizerTimedOut,
+    optimizerError,
+    usedFallbackPrompt,
+    totalBudgetExceeded
+  };
+}
+
 function isActiveRun({ runId = "", activeRunId = "" } = {}) {
   return !runId || activeRunId === runId;
 }

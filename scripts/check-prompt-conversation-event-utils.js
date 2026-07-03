@@ -2,6 +2,7 @@ import {
   buildConversationIntentState,
   buildMessageDoneReceivedPayload,
   buildMessageDoneState,
+  buildPromptOptimizedState,
   buildConversationRunPayload,
   getMessageDoneSkipReason,
   getGenerationToolNameFromEvent,
@@ -373,5 +374,72 @@ assert(fallbackIntentState.qwenVlMode === "current-vl", "Conversation intent sta
 assert(fallbackIntentState.promptOptimizerMode === "current-optimizer", "Conversation intent state should keep current optimizer modes when event is empty");
 assert(fallbackIntentState.shouldGenerate === true, "Conversation intent state should keep current generation decisions when event is empty");
 assert(fallbackIntentState.outputType === "video", "Conversation intent state should keep current output types when event is empty");
+
+const promptOptimizedState = buildPromptOptimizedState({
+  optimizedPrompt: "Event optimized prompt",
+  taskType: "event-task",
+  promptStrategy: "event-strategy",
+  strategyTags: ["direct", "safe"],
+  promptDriftDetected: true,
+  usedConservativeFallback: true,
+  qwenVlMode: "event-vl",
+  promptOptimizerMode: "event-optimizer",
+  skippedOptimizer: false,
+  optimizerTimedOut: true,
+  optimizerError: "event-error",
+  usedFallbackPrompt: true,
+  totalBudgetExceeded: true
+}, {
+  optimizedPrompt: "Current prompt",
+  taskType: "current-task",
+  promptStrategy: "current-strategy",
+  qwenVlMode: "current-vl",
+  promptOptimizerMode: "current-optimizer",
+  skippedOptimizer: true,
+  optimizerError: "current-error",
+  usedFallbackPrompt: false,
+  totalBudgetExceeded: false
+});
+assert(promptOptimizedState.optimizedPrompt === "Event optimized prompt", "Prompt optimized state should prefer event prompts");
+assert(promptOptimizedState.taskType === "event-task", "Prompt optimized state should prefer event task types");
+assert(promptOptimizedState.promptStrategy === "event-strategy", "Prompt optimized state should prefer event strategies");
+assert(promptOptimizedState.nextStrategyTags.length === 2, "Prompt optimized state should preserve strategy tag arrays");
+assert(promptOptimizedState.promptDriftDetected === true, "Prompt optimized state should preserve drift flags");
+assert(promptOptimizedState.usedConservativeFallback === true, "Prompt optimized state should preserve conservative fallback flags");
+assert(promptOptimizedState.qwenVlMode === "event-vl", "Prompt optimized state should prefer event VL modes");
+assert(promptOptimizedState.promptOptimizerMode === "event-optimizer", "Prompt optimized state should prefer event optimizer modes");
+assert(promptOptimizedState.skippedOptimizer === false, "Prompt optimized state should preserve explicit false optimizer skips");
+assert(promptOptimizedState.optimizerTimedOut === true, "Prompt optimized state should preserve timeout flags");
+assert(promptOptimizedState.optimizerError === "event-error", "Prompt optimized state should prefer event optimizer errors");
+assert(promptOptimizedState.usedFallbackPrompt === true, "Prompt optimized state should preserve fallback prompt flags");
+assert(promptOptimizedState.totalBudgetExceeded === true, "Prompt optimized state should preserve total budget flags");
+
+const fallbackPromptOptimizedState = buildPromptOptimizedState({
+  fallback: true,
+  strategyTags: "not-array"
+}, {
+  optimizedPrompt: "Current prompt",
+  taskType: "current-task",
+  promptStrategy: "current-strategy",
+  qwenVlMode: "current-vl",
+  promptOptimizerMode: "current-optimizer",
+  skippedOptimizer: true,
+  optimizerError: "current-error",
+  usedFallbackPrompt: false,
+  totalBudgetExceeded: true
+});
+assert(fallbackPromptOptimizedState.optimizedPrompt === "Current prompt", "Prompt optimized state should keep current prompts when event is empty");
+assert(fallbackPromptOptimizedState.taskType === "current-task", "Prompt optimized state should keep current task types when event is empty");
+assert(fallbackPromptOptimizedState.promptStrategy === "current-strategy", "Prompt optimized state should keep current strategies when event is empty");
+assert(fallbackPromptOptimizedState.nextStrategyTags === null, "Prompt optimized state should ignore malformed strategy tags");
+assert(fallbackPromptOptimizedState.promptDriftDetected === false, "Prompt optimized state should default missing drift flags to false");
+assert(fallbackPromptOptimizedState.usedConservativeFallback === true, "Prompt optimized state should treat fallback prompts as conservative fallback");
+assert(fallbackPromptOptimizedState.qwenVlMode === "current-vl", "Prompt optimized state should keep current VL modes when event is empty");
+assert(fallbackPromptOptimizedState.promptOptimizerMode === "current-optimizer", "Prompt optimized state should keep current optimizer modes when event is empty");
+assert(fallbackPromptOptimizedState.skippedOptimizer === true, "Prompt optimized state should keep current optimizer skips when event is empty");
+assert(fallbackPromptOptimizedState.optimizerTimedOut === false, "Prompt optimized state should default missing timeout flags to false");
+assert(fallbackPromptOptimizedState.optimizerError === "current-error", "Prompt optimized state should keep current optimizer errors when event is empty");
+assert(fallbackPromptOptimizedState.usedFallbackPrompt === true, "Prompt optimized state should read fallback aliases");
+assert(fallbackPromptOptimizedState.totalBudgetExceeded === true, "Prompt optimized state should keep current budget flags when event is empty");
 
 console.log("Prompt conversation event utility checks passed.");
