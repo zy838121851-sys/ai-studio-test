@@ -2,10 +2,12 @@ import {
   applyConversationIntentDebugState,
   applyMessageDoneDebugState,
   applyPromptOptimizedDebugState,
+  applyPromptOptimizerStartDebugState,
   buildConversationIntentState,
   buildMessageDoneReceivedPayload,
   buildMessageDoneState,
   buildPromptOptimizedState,
+  buildPromptOptimizerStartState,
   buildConversationRunPayload,
   getMessageDoneSkipReason,
   getGenerationToolNameFromEvent,
@@ -532,5 +534,56 @@ assert(
 );
 assert(promptOptimizedDebugRecordWithoutTags.optimizerTimedOut === false, "Prompt optimized debug sync should default missing timeout flags to false");
 assert(applyPromptOptimizedDebugState(null, promptOptimizedState) === null, "Prompt optimized debug sync should ignore missing debug records");
+
+const optimizerStartState = buildPromptOptimizerStartState({
+  qwenVlMode: "event-vl",
+  promptOptimizerMode: "event-optimizer"
+}, {
+  qwenVlMode: "current-vl",
+  promptOptimizerMode: "current-optimizer"
+});
+assert(optimizerStartState.qwenVlMode === "event-vl", "Prompt optimizer start state should prefer event VL modes");
+assert(
+  optimizerStartState.promptOptimizerMode === "event-optimizer",
+  "Prompt optimizer start state should prefer event optimizer modes"
+);
+
+const fallbackOptimizerStartState = buildPromptOptimizerStartState({}, {
+  qwenVlMode: "current-vl",
+  promptOptimizerMode: "current-optimizer"
+});
+assert(
+  fallbackOptimizerStartState.qwenVlMode === "current-vl",
+  "Prompt optimizer start state should keep current VL modes when event is empty"
+);
+assert(
+  fallbackOptimizerStartState.promptOptimizerMode === "current-optimizer",
+  "Prompt optimizer start state should keep current optimizer modes when event is empty"
+);
+
+const optimizerStartDebugRecord = {
+  qwenVlMode: "old-vl",
+  promptOptimizerMode: "old-optimizer",
+  optimizerFinished: true,
+  optimizerTimedOut: true,
+  optimizerError: "old-error"
+};
+assert(
+  applyPromptOptimizerStartDebugState(optimizerStartDebugRecord, optimizerStartState) === optimizerStartDebugRecord,
+  "Prompt optimizer start debug sync should return the debug record"
+);
+assert(optimizerStartDebugRecord.qwenVlMode === "event-vl", "Prompt optimizer start debug sync should write VL modes");
+assert(
+  optimizerStartDebugRecord.promptOptimizerMode === "event-optimizer",
+  "Prompt optimizer start debug sync should write optimizer modes"
+);
+assert(optimizerStartDebugRecord.optimizerStarted === true, "Prompt optimizer start debug sync should mark optimizer started");
+assert(optimizerStartDebugRecord.optimizerFinished === false, "Prompt optimizer start debug sync should clear optimizer finished");
+assert(optimizerStartDebugRecord.optimizerTimedOut === false, "Prompt optimizer start debug sync should clear optimizer timeout");
+assert(optimizerStartDebugRecord.optimizerError === "", "Prompt optimizer start debug sync should clear optimizer errors");
+assert(
+  applyPromptOptimizerStartDebugState(null, optimizerStartState) === null,
+  "Prompt optimizer start debug sync should ignore missing debug records"
+);
 
 console.log("Prompt conversation event utility checks passed.");

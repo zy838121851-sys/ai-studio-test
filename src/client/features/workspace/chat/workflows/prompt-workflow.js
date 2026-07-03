@@ -89,10 +89,12 @@ import {
   applyConversationIntentDebugState,
   applyMessageDoneDebugState,
   applyPromptOptimizedDebugState,
+  applyPromptOptimizerStartDebugState,
   buildConversationIntentState,
   buildMessageDoneReceivedPayload,
   buildMessageDoneState,
   buildPromptOptimizedState,
+  buildPromptOptimizerStartState,
   buildConversationRunPayload,
   getGenerationToolNameFromEvent,
   isGenerationIntent
@@ -1408,15 +1410,13 @@ async function runConversationAgent({
       return;
     }
     if (event.type === "prompt.optimizer.start") {
-      qwenVlMode = event.qwenVlMode || qwenVlMode;
-      promptOptimizerMode = event.promptOptimizerMode || promptOptimizerMode;
+      const optimizerStartState = buildPromptOptimizerStartState(event, {
+        qwenVlMode,
+        promptOptimizerMode
+      });
+      ({ qwenVlMode, promptOptimizerMode } = optimizerStartState);
       if (debugRecord) {
-        debugRecord.qwenVlMode = qwenVlMode;
-        debugRecord.promptOptimizerMode = promptOptimizerMode;
-        debugRecord.optimizerStarted = true;
-        debugRecord.optimizerFinished = false;
-        debugRecord.optimizerTimedOut = false;
-        debugRecord.optimizerError = "";
+        applyPromptOptimizerStartDebugState(debugRecord, optimizerStartState);
       }
       updateAgentDebugPanel(debugRecord);
       return;

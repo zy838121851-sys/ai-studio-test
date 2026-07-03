@@ -225,6 +225,24 @@ export function applyPromptOptimizedDebugState(debugRecord, state = {}) {
   return debugRecord;
 }
 
+export function buildPromptOptimizerStartState(event = {}, current = {}) {
+  return {
+    qwenVlMode: event.qwenVlMode || current.qwenVlMode || "",
+    promptOptimizerMode: event.promptOptimizerMode || current.promptOptimizerMode || ""
+  };
+}
+
+export function applyPromptOptimizerStartDebugState(debugRecord, state = {}) {
+  if (!debugRecord) return debugRecord;
+  debugRecord.qwenVlMode = state.qwenVlMode || "";
+  debugRecord.promptOptimizerMode = state.promptOptimizerMode || "";
+  debugRecord.optimizerStarted = true;
+  debugRecord.optimizerFinished = false;
+  debugRecord.optimizerTimedOut = false;
+  debugRecord.optimizerError = "";
+  return debugRecord;
+}
+
 export function buildPromptOptimizedState(event = {}, current = {}) {
   const optimizedPrompt = event.optimizedPrompt || current.optimizedPrompt || "";
   const taskType = event.taskType || current.taskType || "";
