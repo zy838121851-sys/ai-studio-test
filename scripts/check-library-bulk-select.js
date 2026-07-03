@@ -31,6 +31,12 @@ import {
   getAssetPreviewTitle,
   showAssetPreviewOverlay
 } from "../src/client/features/workspace/asset-library/asset-library-preview.js";
+import {
+  closeAssetPickerOverlay,
+  getAssetPickerDisplay,
+  getAvailableAssetPickerItems,
+  mountAssetPickerOverlay
+} from "../src/client/features/workspace/asset-library/asset-library-picker.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -110,6 +116,7 @@ assertContains("src/client/features/workspace/asset-library/asset-library-runtim
   "asset-library-sync.js",
   "asset-library-project-insert.js",
   "asset-library-preview.js",
+  "asset-library-picker.js",
   "selectedAssetIds",
   "toggleAssetSelection",
   "toggleAllAssetSelection",
@@ -402,6 +409,85 @@ if (otherProjectInsertCalls.join("|") !== "save|open:project-2|insert:asset-2|sa
   throw new Error("Asset project insert helper should save, switch, insert, and save for another project");
 }
 
+if (getAvailableAssetPickerItems([{ id: "" }, { id: "asset-1" }, null]).map((asset) => asset.id).join("|") !== "asset-1") {
+  throw new Error("Asset picker helper should filter picker items to assets with ids");
+}
+const pickerDisplay = getAssetPickerDisplay({
+  id: "asset-1",
+  thumbnailUrl: "/uploads/thumb-url.png",
+  thumbnail: "/uploads/thumb.png",
+  url: "/uploads/full.png",
+  title: "Title",
+  name: "Name",
+  collectionName: "Board",
+  type: "image"
+});
+if (
+  pickerDisplay.thumb !== "/uploads/thumb-url.png"
+  || pickerDisplay.title !== "Title"
+  || pickerDisplay.desc !== "Board"
+  || pickerDisplay.fallbackType !== "IMAGE"
+) {
+  throw new Error("Asset picker helper should preserve picker display field priority");
+}
+const pickerDocument = createPickerDocument();
+const pickerOverlay = createPickerOverlay();
+const pickerCalls = [];
+mountAssetPickerOverlay({
+  documentRef: pickerDocument,
+  picker: pickerOverlay,
+  point: { x: 10, y: 20 },
+  insertAsset: (assetId, point) => pickerCalls.push(["insert", assetId, point.x, point.y]),
+  closePicker: () => {
+    pickerCalls.push(["close"]);
+    closeAssetPickerOverlay(pickerDocument);
+  }
+});
+if (pickerDocument.body.children.length !== 1 || !pickerOverlay._assetPickerKeydown) {
+  throw new Error("Asset picker helper should mount the picker and store its keydown handler");
+}
+pickerOverlay.dispatchClick("[data-pick-asset]", "asset-1");
+if (
+  JSON.stringify(pickerCalls) !== JSON.stringify([["insert", "asset-1", 10, 20], ["close"]])
+  || pickerDocument.body.children.length !== 0
+  || pickerDocument.removedKeydownCount !== 1
+) {
+  throw new Error("Asset picker helper should insert the selected asset and close the picker");
+}
+const escapePickerOverlay = createPickerOverlay();
+mountAssetPickerOverlay({
+  documentRef: pickerDocument,
+  picker: escapePickerOverlay,
+  closePicker: () => {
+    pickerCalls.push(["escape-close"]);
+    closeAssetPickerOverlay(pickerDocument);
+  }
+});
+pickerDocument.dispatchKeydown("Escape");
+if (
+  pickerCalls[pickerCalls.length - 1]?.[0] !== "escape-close"
+  || pickerDocument.body.children.length !== 0
+  || pickerDocument.removedKeydownCount !== 2
+) {
+  throw new Error("Asset picker helper should close the picker on Escape and remove its listener");
+}
+const closePickerOverlay = createPickerOverlay();
+mountAssetPickerOverlay({
+  documentRef: pickerDocument,
+  picker: closePickerOverlay,
+  closePicker: () => {
+    pickerCalls.push(["button-close"]);
+    closeAssetPickerOverlay(pickerDocument);
+  }
+});
+closePickerOverlay.dispatchClick("[data-close-asset-picker]");
+if (
+  pickerCalls[pickerCalls.length - 1]?.[0] !== "button-close"
+  || pickerDocument.body.children.length !== 0
+) {
+  throw new Error("Asset picker helper should close the picker when close controls are clicked");
+}
+
 if (
   getAssetPreviewSource({ thumbnail: "/uploads/thumb.png" }) !== "/uploads/thumb.png"
   || getAssetPreviewSource({ thumbnailUrl: "/uploads/thumb-url.png", thumbnail: "/uploads/thumb.png" }) !== "/uploads/thumb-url.png"
@@ -494,6 +580,68 @@ assertContains("styles/legacy-assets.css", [
 ]);
 
 console.log("Library bulk select checks passed");
+
+function createPickerDocument() {
+  const listeners = new Map();
+  const body = {
+    children: [],
+    appendChild(node) {
+      this.children.push(node);
+      node.remove = () => {
+        const index = this.children.indexOf(node);
+        if (index >= 0) this.children.splice(index, 1);
+      };
+      return node;
+    }
+  };
+  return {
+    body,
+    removedKeydownCount: 0,
+    addEventListener(type, listener) {
+      listeners.set(type, listener);
+    },
+    removeEventListener(type, listener) {
+      if (listeners.get(type) === listener) {
+        listeners.delete(type);
+        if (type === "keydown") this.removedKeydownCount += 1;
+      }
+    },
+    querySelector(selector) {
+      return body.children.find((node) => node.matchesSelector(selector)) || null;
+    },
+    dispatchKeydown(key) {
+      listeners.get("keydown")?.({ key });
+    }
+  };
+}
+
+function createPickerOverlay() {
+  return {
+    listeners: new Map(),
+    dataset: {},
+    addEventListener(type, listener) {
+      this.listeners.set(type, listener);
+    },
+    matchesSelector(selector) {
+      return selector === ".asset-picker-popover";
+    },
+    dispatchClick(selector, assetId = "") {
+      this.listeners.get("click")?.({
+        target: {
+          closest(targetSelector) {
+            if (targetSelector !== selector) return null;
+            if (targetSelector === "[data-pick-asset]") {
+              return { dataset: { pickAsset: assetId } };
+            }
+            return {};
+          }
+        },
+        preventDefault() {},
+        stopPropagation() {}
+      });
+    }
+  };
+}
 
 function createPreviewDocument() {
   const listeners = new Map();

@@ -24,6 +24,12 @@ import {
   closeAssetPreviewOverlay,
   showAssetPreviewOverlay
 } from "./asset-library-preview.js";
+import {
+  closeAssetPickerOverlay,
+  getAssetPickerDisplay,
+  getAvailableAssetPickerItems,
+  mountAssetPickerOverlay
+} from "./asset-library-picker.js";
 
 export function createAssetLibraryRuntime({
   eventBus,
@@ -170,38 +176,21 @@ export function createAssetLibraryRuntime({
         </div>
       </div>
     `;
-    const onKeyDown = (event) => {
-      if (event.key === "Escape") closeAssetPickerPanel();
-    };
-    picker.addEventListener("click", (event) => {
-      if (event.target.closest("[data-close-asset-picker]")) {
-        closeAssetPickerPanel();
-        return;
-      }
-      const button = event.target.closest("[data-pick-asset]");
-      if (!button) return;
-      event.preventDefault();
-      event.stopPropagation();
-      insertAsset(button.dataset.pickAsset, point);
-      closeAssetPickerPanel();
+    return mountAssetPickerOverlay({
+      documentRef: document,
+      picker,
+      point,
+      closePicker: closeAssetPickerPanel,
+      insertAsset
     });
-    picker._assetPickerKeydown = onKeyDown;
-    document.addEventListener("keydown", onKeyDown, true);
-    document.body.appendChild(picker);
-    return picker;
   }
 
   function closeAssetPickerPanel() {
-    const picker = document.querySelector(".asset-picker-popover");
-    if (!picker) return;
-    if (picker._assetPickerKeydown) {
-      document.removeEventListener("keydown", picker._assetPickerKeydown, true);
-    }
-    picker.remove();
+    closeAssetPickerOverlay(document);
   }
 
   function renderAssetPickerItems(items = []) {
-    const availableAssets = Array.isArray(items) ? items.filter((asset) => asset?.id) : [];
+    const availableAssets = getAvailableAssetPickerItems(items);
     if (!availableAssets.length) {
       return `
         <div class="asset-picker-empty">
@@ -211,13 +200,11 @@ export function createAssetLibraryRuntime({
       `;
     }
     return availableAssets.map((asset) => {
-      const thumb = asset.thumbnailUrl || asset.thumbnail || asset.url || "";
-      const title = asset.title || asset.name || "Untitled asset";
-      const desc = asset.collectionName || asset.collection || asset.prompt || asset.desc || asset.source || asset.type || "";
+      const { thumb, title, desc, fallbackType } = getAssetPickerDisplay(asset);
       return `
         <button class="asset-picker-item" type="button" data-pick-asset="${safeEscapeHtml(asset.id)}">
           <span class="asset-picker-thumb">
-            ${thumb ? `<img src="${safeEscapeHtml(thumb)}" alt="${safeEscapeHtml(title)}" draggable="false" />` : `<i>${safeEscapeHtml(String(asset.type || "ASSET").slice(0, 5).toUpperCase())}</i>`}
+            ${thumb ? `<img src="${safeEscapeHtml(thumb)}" alt="${safeEscapeHtml(title)}" draggable="false" />` : `<i>${safeEscapeHtml(fallbackType)}</i>`}
           </span>
           <span class="asset-picker-meta">
             <strong>${safeEscapeHtml(title)}</strong>
