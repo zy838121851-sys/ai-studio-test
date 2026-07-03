@@ -48,6 +48,12 @@ export function getGeneratorCountValue(controls = {}, defaultCount = "1") {
   return Math.max(1, Math.min(4, value));
 }
 
+export function getGeneratorBatchCount(modelType = "", midjourney = false, selectedCount = 1, midjourneyCount = 4) {
+  if (modelType === "video") return 1;
+  if (midjourney) return midjourneyCount;
+  return selectedCount;
+}
+
 export function isMidjourneyGeneratorModel(model = "") {
   return String(model || "").trim().toLowerCase() === "midjourney";
 }

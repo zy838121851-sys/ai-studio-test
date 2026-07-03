@@ -97,6 +97,7 @@ import {
 } from "./image-generator-placement-utils.js";
 import {
   getGeneratorControls as getGeneratorControlsFromPopover,
+  getGeneratorBatchCount,
   getGeneratorCountValue,
   getGeneratorRatioValueFromControls,
   getSyncedGeneratorModelValue,
@@ -409,7 +410,7 @@ export function createImageGeneratorWorkflow({
     let resultModel = model;
     let modelUsage = `模型：${getImageModelDisplayName(model)}`;
     const midjourney = isMidjourneyModel(model);
-    const count = videoModel ? 1 : (midjourney ? MIDJOURNEY_IMAGE_COUNT : getGeneratorCount());
+    const count = getGeneratorBatchCount(getModelType(model), midjourney, getGeneratorCount(), MIDJOURNEY_IMAGE_COUNT);
     const images = references.map((item) => item.dataUrl).filter(Boolean);
     const size = resolveGeneratorOutputSize(node, references);
     const dimensions = getGeneratorOutputDimensions(node, getGeneratorRatioValue(node), references);

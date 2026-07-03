@@ -39,6 +39,7 @@ import {
   readGeneratorReferenceFiles
 } from "../src/client/features/canvas/workflows/image-generator-reference-utils.js";
 import {
+  getGeneratorBatchCount,
   getGeneratorControls,
   isMidjourneyGeneratorModel,
   resolveGeneratorModelValue
@@ -85,6 +86,8 @@ assert(
     && generatorWorkflow.includes("getGeneratorPreviewNodeWidth as getPreviewNodeWidth")
     && generatorWorkflow.includes("getGeneratedImagePlacement")
     && generatorWorkflow.includes("getGeneratorReplacementPlacement")
+    && generatorWorkflow.includes("getGeneratorBatchCount")
+    && generatorControlStateUtils.includes("export function getGeneratorBatchCount")
     && generatorWorkflow.includes("readGeneratorReferenceFiles")
     && generatorWorkflow.includes("markGeneratorPreviewFailed")
     && generatorWorkflow.includes("updateGeneratorPreviewStatus as updatePreviewStatus")
@@ -622,6 +625,18 @@ assert(
     querySelector: () => ({ offsetWidth: 100 })
   }) === 160,
   "generator preview width helper should preserve minimum width"
+);
+assert(
+  getGeneratorBatchCount("video", true, 4, 4) === 1,
+  "generator batch count should force video generations to a single result"
+);
+assert(
+  getGeneratorBatchCount("image", true, 1, 4) === 4,
+  "generator batch count should force Midjourney image batches to four results"
+);
+assert(
+  getGeneratorBatchCount("image", false, 3, 4) === 3,
+  "generator batch count should preserve selected image counts"
 );
 assert(
   resolveGeneratorOutputSize({ dataset: { generatorRatio: "16:9" } }) === "1344*768",
