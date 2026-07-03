@@ -2,6 +2,7 @@ import {
   applyConversationIntentDebugState,
   applyImageAnalysisDebugState,
   applyImageAnalysisErrorDebugState,
+  applyImageAnalysisStartDebugState,
   applyMessageDoneDebugState,
   applyPromptOptimizedDebugState,
   applyPromptOptimizerStartDebugState,
@@ -588,6 +589,34 @@ assert(optimizerStartDebugRecord.optimizerError === "", "Prompt optimizer start 
 assert(
   applyPromptOptimizerStartDebugState(null, optimizerStartState) === null,
   "Prompt optimizer start debug sync should ignore missing debug records"
+);
+
+const imageAnalysisStartDebugRecord = {
+  imageAnalysisFinished: true,
+  imageAnalysisTimedOut: true,
+  imageAnalysisError: "old-error"
+};
+assert(
+  applyImageAnalysisStartDebugState(imageAnalysisStartDebugRecord, intentState) === imageAnalysisStartDebugRecord,
+  "Image analysis start debug sync should return the debug record"
+);
+assert(imageAnalysisStartDebugRecord.intent === "generate_image", "Image analysis start debug sync should write intents");
+assert(imageAnalysisStartDebugRecord.taskType === "event-task", "Image analysis start debug sync should write task types");
+assert(imageAnalysisStartDebugRecord.promptStrategy === "event-strategy", "Image analysis start debug sync should write prompt strategies");
+assert(imageAnalysisStartDebugRecord.qwenVlMode === "event-vl", "Image analysis start debug sync should write VL modes");
+assert(
+  imageAnalysisStartDebugRecord.promptOptimizerMode === "event-optimizer",
+  "Image analysis start debug sync should write optimizer modes"
+);
+assert(imageAnalysisStartDebugRecord.shouldGenerate === true, "Image analysis start debug sync should write generation decisions");
+assert(imageAnalysisStartDebugRecord.generationType === "image", "Image analysis start debug sync should write generation types");
+assert(imageAnalysisStartDebugRecord.imageAnalysisStarted === true, "Image analysis start debug sync should mark analysis started");
+assert(imageAnalysisStartDebugRecord.imageAnalysisFinished === false, "Image analysis start debug sync should clear finished flags");
+assert(imageAnalysisStartDebugRecord.imageAnalysisTimedOut === false, "Image analysis start debug sync should clear timeout flags");
+assert(imageAnalysisStartDebugRecord.imageAnalysisError === "", "Image analysis start debug sync should clear analysis errors");
+assert(
+  applyImageAnalysisStartDebugState(null, intentState) === null,
+  "Image analysis start debug sync should ignore missing debug records"
 );
 
 const imageAnalysisState = buildImageAnalysisState({

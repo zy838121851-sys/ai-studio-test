@@ -89,6 +89,7 @@ import {
   applyConversationIntentDebugState,
   applyImageAnalysisDebugState,
   applyImageAnalysisErrorDebugState,
+  applyImageAnalysisStartDebugState,
   applyMessageDoneDebugState,
   applyPromptOptimizedDebugState,
   applyPromptOptimizerStartDebugState,
@@ -1375,11 +1376,7 @@ async function runConversationAgent({
         outputType
       } = intentState);
       if (debugRecord) {
-        applyConversationIntentDebugState(debugRecord, intentState);
-        debugRecord.imageAnalysisStarted = true;
-        debugRecord.imageAnalysisFinished = false;
-        debugRecord.imageAnalysisTimedOut = false;
-        debugRecord.imageAnalysisError = "";
+        applyImageAnalysisStartDebugState(debugRecord, intentState);
       }
       updateAgentDebugPanel(debugRecord);
       return;

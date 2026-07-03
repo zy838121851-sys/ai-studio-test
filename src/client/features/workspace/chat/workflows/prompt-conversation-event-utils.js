@@ -243,6 +243,16 @@ export function applyPromptOptimizerStartDebugState(debugRecord, state = {}) {
   return debugRecord;
 }
 
+export function applyImageAnalysisStartDebugState(debugRecord, state = {}) {
+  if (!debugRecord) return debugRecord;
+  applyConversationIntentDebugState(debugRecord, state);
+  debugRecord.imageAnalysisStarted = true;
+  debugRecord.imageAnalysisFinished = false;
+  debugRecord.imageAnalysisTimedOut = false;
+  debugRecord.imageAnalysisError = "";
+  return debugRecord;
+}
+
 export function buildImageAnalysisState(event = {}, current = {}) {
   return {
     imageAnalysis: event.analysis || event.summary || current.imageAnalysis || null
