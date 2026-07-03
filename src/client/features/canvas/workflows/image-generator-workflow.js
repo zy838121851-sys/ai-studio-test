@@ -89,9 +89,9 @@ import {
 } from "./image-generator-placement-utils.js";
 import {
   getGeneratorCountValue,
-  getGeneratorModelValue,
   getGeneratorRatioValueFromControls,
   getSyncedGeneratorModelValue,
+  resolveGeneratorModelValue,
   saveGeneratorControlDataset,
   setGeneratorModelSelectValue,
   setSelectValue
@@ -1380,11 +1380,8 @@ function getActiveGeneratorNode() {
 }
 
 function getGeneratorModel() {
-  const generatorSelect = globalThis.document?.querySelector?.(`${GENERATOR_POPOVER_SELECTOR} [data-generator-model]`);
-  const chatSelect = globalThis.document?.querySelector?.("#chatModelSelect");
-  return getGeneratorModelValue({
-    generatorSelect,
-    chatSelect,
+  return resolveGeneratorModelValue({
+    popoverSelector: GENERATOR_POPOVER_SELECTOR,
     defaultModel: DEFAULT_GENERATOR_MODEL
   });
 }

@@ -22,6 +22,9 @@ import {
   readGeneratorReferenceFiles
 } from "../src/client/features/canvas/workflows/image-generator-reference-utils.js";
 import {
+  resolveGeneratorModelValue
+} from "../src/client/features/canvas/workflows/image-generator-control-state-utils.js";
+import {
   applyGeneratorResult,
   hasGeneratorDropData,
   removeGeneratorReference,
@@ -45,6 +48,7 @@ const generatorResultUtils = read("src/client/features/canvas/workflows/image-ge
 const generatorJobPollingUtils = read("src/client/features/canvas/workflows/image-generator-job-polling-utils.js");
 const generatorPreviewJobUtils = read("src/client/features/canvas/workflows/image-generator-preview-job-utils.js");
 const generatorDomStateUtils = read("src/client/features/canvas/workflows/image-generator-dom-state-utils.js");
+const generatorControlStateUtils = read("src/client/features/canvas/workflows/image-generator-control-state-utils.js");
 assert(
   generatorWorkflow.includes("onJobCreated")
     && generatorWorkflow.includes("tagGeneratorPreviewJobs")
@@ -61,6 +65,7 @@ assert(
     && generatorWorkflow.includes("getGeneratorResultTitle")
     && generatorWorkflow.includes("image-generator-dom-state-utils.js")
     && generatorWorkflow.includes("resolveGeneratorOutputSize")
+    && generatorWorkflow.includes("resolveGeneratorModelValue")
     && generatorPreviewJobUtils.includes("applyGeneratorPreviewJobMetadata"),
   "generator must tag preview nodes with job ids when async jobs are created"
 );
@@ -95,6 +100,10 @@ assert(
     && generatorDomStateUtils.includes("export function resetGeneratorInput")
     && generatorDomStateUtils.includes("export function applyGeneratorResult"),
   "generator DOM state helpers must be extracted from the workflow module"
+);
+assert(
+  generatorControlStateUtils.includes("export function resolveGeneratorModelValue"),
+  "generator model value resolution should live in control state helpers"
 );
 
 assert(hasGeneratorDropData({ types: ["Files"] }) === true, "generator drop helper should accept file drops");
@@ -197,6 +206,34 @@ applyGeneratorResult(resultFixture.node, "/uploads/generated-ref.png", {
   documentRef: createGeneratorDocument({ popover: resultFixture.popover })
 });
 assert(resultFixture.popover.dataset.generatorStatus === "图生图 · 已生成", "generator result helper should sync image-to-image status");
+
+assert(
+  resolveGeneratorModelValue({
+    documentRef: createGeneratorModelDocument({
+      generatorSelect: { dataset: { selectedModelId: "generator-selected" }, value: "generator-value" },
+      chatSelect: { dataset: { selectedModelId: "chat-selected" }, value: "chat-value" }
+    }),
+    defaultModel: "default-model"
+  }) === "generator-selected",
+  "generator model helper should prefer generator selected model ids"
+);
+assert(
+  resolveGeneratorModelValue({
+    documentRef: createGeneratorModelDocument({
+      generatorSelect: { dataset: {}, value: "" },
+      chatSelect: { dataset: {}, value: "chat-value" }
+    }),
+    defaultModel: "default-model"
+  }) === "chat-value",
+  "generator model helper should fall back to chat model values"
+);
+assert(
+  resolveGeneratorModelValue({
+    documentRef: createGeneratorModelDocument({}),
+    defaultModel: "default-model"
+  }) === "default-model",
+  "generator model helper should use the configured default model"
+);
 
 const aiRoutes = read("src/server/routes/ai.routes.js");
 const aiJobQueryService = read("src/server/services/ai/ai-job-query.service.js");
@@ -458,6 +495,19 @@ function createGeneratorRatioDocument(value = "") {
   return {
     querySelector(selector) {
       return selector === "#imageGeneratorPopover [data-generator-ratio]" ? { value } : null;
+    }
+  };
+}
+
+function createGeneratorModelDocument({
+  generatorSelect = null,
+  chatSelect = null
+} = {}) {
+  return {
+    querySelector(selector) {
+      if (selector === "#imageGeneratorPopover [data-generator-model]") return generatorSelect;
+      if (selector === "#chatModelSelect") return chatSelect;
+      return null;
     }
   };
 }

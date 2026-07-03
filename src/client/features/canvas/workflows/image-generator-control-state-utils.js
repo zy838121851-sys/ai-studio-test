@@ -46,3 +46,18 @@ export function getGeneratorModelValue({
     || chatSelect?.value
     || defaultModel;
 }
+
+export function resolveGeneratorModelValue({
+  documentRef = globalThis.document,
+  popoverSelector = "#imageGeneratorPopover",
+  chatSelector = "#chatModelSelect",
+  defaultModel = ""
+} = {}) {
+  const generatorSelect = documentRef?.querySelector?.(`${popoverSelector} [data-generator-model]`);
+  const chatSelect = documentRef?.querySelector?.(chatSelector);
+  return getGeneratorModelValue({
+    generatorSelect,
+    chatSelect,
+    defaultModel
+  });
+}
