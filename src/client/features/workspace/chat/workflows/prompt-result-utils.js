@@ -115,6 +115,26 @@ export function buildGeneratedVideoNodeOptions({
   };
 }
 
+export function createPromptGeneratedVideoNode({
+  replacePreviewWithVideo = null,
+  previewNode = null,
+  url = "",
+  generationMetrics = {},
+  generationPrompt = "",
+  model = ""
+} = {}) {
+  if (typeof replacePreviewWithVideo !== "function") {
+    throw new Error("Video preview workflow is unavailable.");
+  }
+  return replacePreviewWithVideo(previewNode, buildGeneratedVideoNodeOptions({
+    url,
+    previewWidth: previewNode?.offsetWidth,
+    generationMetrics,
+    generationPrompt,
+    model
+  }));
+}
+
 export function buildGeneratedImageNodeOptions({
   url = "",
   index = 0,
@@ -135,4 +155,30 @@ export function buildGeneratedImageNodeOptions({
     actionType,
     model
   };
+}
+
+export function createPromptGeneratedImageNodes({
+  replacePreviewWithImage = null,
+  previewNodes = [],
+  imageUrls = [],
+  generationMetrics = {},
+  generationPrompt = "",
+  detectGenerationKind = () => "",
+  model = ""
+} = {}) {
+  return imageUrls
+    .map((imageUrl, index) => {
+      const previewNode = previewNodes[index] || previewNodes[0];
+      return replacePreviewWithImage(previewNode, buildGeneratedImageNodeOptions({
+        url: imageUrl,
+        index,
+        total: imageUrls.length,
+        previewWidth: previewNode?.offsetWidth,
+        generationMetrics,
+        generationPrompt,
+        actionType: detectGenerationKind(generationPrompt),
+        model
+      }));
+    })
+    .filter(Boolean);
 }

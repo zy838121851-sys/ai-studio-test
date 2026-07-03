@@ -4,6 +4,8 @@ import {
   buildGeneratedModelProjectPatch,
   buildGeneratedProjectPatch,
   buildGeneratedVideoNodeOptions,
+  createPromptGeneratedImageNodes,
+  createPromptGeneratedVideoNode,
   getResultImageUrls,
   getResultUrls,
   getResultVideoUrls,
@@ -168,6 +170,27 @@ assert(videoNodeOptions.prompt === "Video prompt", "Generated video node options
 assert(videoNodeOptions.actionType === "video_generation", "Generated video node options should preserve action types");
 assert(videoNodeOptions.model === "video-model", "Generated video node options should preserve models");
 
+const videoPreviewNode = { offsetWidth: 444 };
+const createdVideoNode = createPromptGeneratedVideoNode({
+  replacePreviewWithVideo: (previewNode, options) => ({ previewNode, options }),
+  previewNode: videoPreviewNode,
+  url: "/uploads/video.mp4",
+  generationMetrics: { width: 512, aspectRatio: "16 / 9" },
+  generationPrompt: "Video prompt",
+  model: "video-model"
+});
+assert(createdVideoNode.previewNode === videoPreviewNode, "Prompt video node creation should use the provided preview node");
+assert(createdVideoNode.options.width === 444, "Prompt video node creation should prefer preview widths");
+assert(createdVideoNode.options.actionType === "video_generation", "Prompt video node creation should preserve video action types");
+
+let missingVideoWorkflowError = "";
+try {
+  createPromptGeneratedVideoNode({ replacePreviewWithVideo: null });
+} catch (error) {
+  missingVideoWorkflowError = error.message;
+}
+assert(missingVideoWorkflowError === "Video preview workflow is unavailable.", "Prompt video node creation should preserve missing workflow errors");
+
 const singleImageNodeOptions = buildGeneratedImageNodeOptions({
   url: "/uploads/image.png",
   index: 0,
@@ -199,5 +222,31 @@ assert(multiImageNodeOptions.width === 256, "Generated image node options should
 assert(multiImageNodeOptions.aspectRatio === "4 / 3", "Generated image node options should preserve aspect ratios");
 assert(multiImageNodeOptions.prompt === "Image prompt", "Generated image node options should preserve prompts");
 assert(multiImageNodeOptions.model === "image-model", "Generated image node options should preserve models");
+
+const imagePreviewNodes = [
+  { offsetWidth: 111 },
+  { offsetWidth: 222 }
+];
+const imageReplacementCalls = [];
+const promptImageNodes = createPromptGeneratedImageNodes({
+  replacePreviewWithImage: (previewNode, options) => {
+    imageReplacementCalls.push({ previewNode, options });
+    return options.url === "/uploads/skip.png" ? null : { previewNode, options };
+  },
+  previewNodes: imagePreviewNodes,
+  imageUrls: ["/uploads/a.png", "/uploads/b.png", "/uploads/skip.png"],
+  generationMetrics: { width: 512, aspectRatio: "1 / 1" },
+  generationPrompt: "Image prompt",
+  detectGenerationKind: (value) => `kind:${value}`,
+  model: "image-model"
+});
+assert(promptImageNodes.length === 2, "Prompt image node creation should filter missing replacement nodes");
+assert(imageReplacementCalls[0].previewNode === imagePreviewNodes[0], "Prompt image node creation should use matching preview nodes");
+assert(imageReplacementCalls[1].previewNode === imagePreviewNodes[1], "Prompt image node creation should use second preview nodes");
+assert(imageReplacementCalls[2].previewNode === imagePreviewNodes[0], "Prompt image node creation should fall back to first preview node");
+assert(imageReplacementCalls[0].options.width === 111, "Prompt image node creation should prefer preview widths");
+assert(imageReplacementCalls[1].options.title === "Generated Image 2.png", "Prompt image node creation should preserve numbered titles");
+assert(imageReplacementCalls[0].options.actionType === "kind:Image prompt", "Prompt image node creation should use generation kind detection");
+assert(imageReplacementCalls[0].options.model === "image-model", "Prompt image node creation should preserve models");
 
 console.log("Prompt result utility checks passed.");

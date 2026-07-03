@@ -5,11 +5,11 @@ import {
   resolveImageModelId
 } from "../../../ai/model-catalog.js?v=20260627-library-bulk-select-1";
 import {
-  buildGeneratedImageNodeOptions,
   buildGeneratedModelNodeOptions,
   buildGeneratedModelProjectPatch,
   buildGeneratedProjectPatch,
-  buildGeneratedVideoNodeOptions,
+  createPromptGeneratedImageNodes,
+  createPromptGeneratedVideoNode,
   getResultImageUrls,
   getResultUrls,
   getResultVideoUrls,
@@ -492,33 +492,28 @@ export function bindPromptSubmit({
       refreshAgentBlocks();
     };
     const createGeneratedVideoNode = ({ url = "", generationPrompt = "", resultModel = "" } = {}) => {
-      if (typeof replacePreviewWithVideo !== "function") {
-        throw new Error("Video preview workflow is unavailable.");
-      }
-      return replacePreviewWithVideo(previewNode, buildGeneratedVideoNodeOptions({
+      return createPromptGeneratedVideoNode({
+        replacePreviewWithVideo,
+        previewNode,
         url,
-        previewWidth: previewNode?.offsetWidth,
         generationMetrics,
         generationPrompt,
         model: resultModel
-      }));
+      });
     };
     const createGeneratedImageNodes = ({
       imageUrls = [],
       generationPrompt = "",
       resultModel = ""
-    } = {}) => imageUrls
-      .map((imageUrl, index) => replacePreviewWithImage(previewNodes[index] || previewNodes[0], buildGeneratedImageNodeOptions({
-        url: imageUrl,
-        index,
-        total: imageUrls.length,
-        previewWidth: (previewNodes[index] || previewNodes[0])?.offsetWidth,
-        generationMetrics,
-        generationPrompt,
-        actionType: detectGenerationKind(generationPrompt),
-        model: resultModel
-      })))
-      .filter(Boolean);
+    } = {}) => createPromptGeneratedImageNodes({
+      replacePreviewWithImage,
+      previewNodes,
+      imageUrls,
+      generationMetrics,
+      generationPrompt,
+      detectGenerationKind,
+      model: resultModel
+    });
     const handleAgentStreamEvent = (event = {}) => {
       if (activeChatAgentRunId !== agentDebug.runId) return;
       if (applyAgentProgressStreamEvent(agentBlocksState, event, { prompt })) {
