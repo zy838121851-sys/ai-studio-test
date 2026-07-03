@@ -21,7 +21,9 @@ import {
   getNodeSortIndex,
   getRectUnionBounds,
   getViewportUnionRect,
-  parseAspectRatio
+  parseAspectRatio,
+  restoreLayoutNodes,
+  snapshotLayoutNodes
 } from "../src/client/features/canvas/workflows/canvas-menu-layout-utils.js";
 import {
   getCommandNodesFromSelection,
@@ -95,6 +97,8 @@ assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node
 assertIncludes(menuLayoutUtils, "export function getRectUnionBounds", "canvas rect union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getViewportUnionRect", "canvas viewport union rect must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function parseAspectRatio", "canvas aspect ratio parsing must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function snapshotLayoutNodes", "canvas layout snapshot capture must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function restoreLayoutNodes", "canvas layout snapshot restore must live in layout utils");
 assertIncludes(menuNodeUtils, "export function isNodeLocked", "canvas node lock check must live in node utils");
 assertIncludes(menuNodeUtils, "export function getNodeKind", "canvas node kind check must live in node utils");
 assertIncludes(menuNodeUtils, "export function getVisibleUniqueCanvasNodes", "canvas visible unique node filtering must live in node utils");
@@ -246,6 +250,49 @@ assert(parseAspectRatio("1.5") === 1.5, "aspect ratio parser should support nume
 assert(parseAspectRatio("auto") === 0, "aspect ratio parser should preserve auto fallback");
 assert(parseAspectRatio("0 / 3") === 0, "aspect ratio parser should reject non-positive ratio parts");
 assert(parseAspectRatio("invalid") === 0, "aspect ratio parser should reject invalid values");
+
+const snapshotFrame = { style: { aspectRatio: "4 / 3" } };
+const snapshotNode = {
+  isConnected: true,
+  dataset: { manualSize: "true" },
+  style: {
+    left: "10px",
+    top: "20px",
+    width: "300px",
+    height: "",
+    minHeight: "120px",
+    zIndex: "5"
+  },
+  querySelector(selector) {
+    if (selector === ".image-frame, .model-frame") return snapshotFrame;
+    return null;
+  }
+};
+const [capturedLayout] = snapshotLayoutNodes([snapshotNode]);
+assert(capturedLayout.node === snapshotNode, "layout snapshot should preserve node reference");
+assert(capturedLayout.left === "10px" && capturedLayout.top === "20px", "layout snapshot should capture position styles");
+assert(capturedLayout.width === "300px" && capturedLayout.minHeight === "120px", "layout snapshot should capture size styles");
+assert(capturedLayout.manualSize === "true", "layout snapshot should capture manual size dataset");
+assert(capturedLayout.frameAspectRatio === "4 / 3", "layout snapshot should capture frame aspect ratio");
+
+restoreLayoutNodes([{
+  node: snapshotNode,
+  left: "1px",
+  top: "2px",
+  width: "30px",
+  height: "40px",
+  minHeight: "50px",
+  zIndex: "6",
+  manualSize: undefined,
+  frameAspectRatio: "16 / 9"
+}]);
+assert(snapshotNode.style.left === "1px" && snapshotNode.style.top === "2px", "layout restore should restore position styles");
+assert(snapshotNode.style.width === "30px" && snapshotNode.style.height === "40px", "layout restore should restore size styles");
+assert(snapshotNode.style.minHeight === "50px" && snapshotNode.style.zIndex === "6", "layout restore should restore min height and z index");
+assert(snapshotNode.dataset.manualSize === undefined, "layout restore should delete missing manual size dataset");
+assert(snapshotFrame.style.aspectRatio === "16 / 9", "layout restore should restore frame aspect ratio");
+restoreLayoutNodes([{ node: { ...snapshotNode, isConnected: false }, left: "99px" }]);
+assert(snapshotNode.style.left === "1px", "layout restore should ignore disconnected nodes");
 
 function fakeNode({ classes = [], dataset = {} } = {}) {
   return {

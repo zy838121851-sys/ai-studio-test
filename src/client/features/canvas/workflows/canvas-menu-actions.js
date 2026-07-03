@@ -6,7 +6,9 @@ import {
   getNodeSortIndex,
   getRectUnionBounds,
   getViewportUnionRect,
-  parseAspectRatio
+  parseAspectRatio,
+  restoreLayoutNodes,
+  snapshotLayoutNodes
 } from "./canvas-menu-layout-utils.js";
 import {
   pasteNodeFromClipboard,
@@ -973,43 +975,6 @@ function relinkCanvasImage(node, addChat) {
     if (title) title.textContent = file.name;
   }, { once: true });
   input.click();
-}
-
-function snapshotLayoutNodes(nodes) {
-  return nodes.map((node) => {
-    const frame = node.querySelector(".image-frame, .model-frame");
-    return {
-      node,
-      left: node.style.left || "",
-      top: node.style.top || "",
-      width: node.style.width || "",
-      height: node.style.height || "",
-      minHeight: node.style.minHeight || "",
-      zIndex: node.style.zIndex || "",
-      manualSize: node.dataset.manualSize,
-      frameAspectRatio: frame?.style?.aspectRatio || ""
-    };
-  });
-}
-
-function restoreLayoutNodes(entries = []) {
-  entries.forEach((entry) => {
-    if (!entry?.node?.isConnected) return;
-    const { node } = entry;
-    node.style.left = entry.left;
-    node.style.top = entry.top;
-    node.style.width = entry.width;
-    node.style.height = entry.height;
-    node.style.minHeight = entry.minHeight;
-    node.style.zIndex = entry.zIndex;
-    if (entry.manualSize === undefined) {
-      delete node.dataset.manualSize;
-    } else {
-      node.dataset.manualSize = entry.manualSize;
-    }
-    const frame = node.querySelector(".image-frame, .model-frame");
-    if (frame) frame.style.aspectRatio = entry.frameAspectRatio;
-  });
 }
 
 function recordLayoutMutation(nodes, before, type, recordUndoAction) {
