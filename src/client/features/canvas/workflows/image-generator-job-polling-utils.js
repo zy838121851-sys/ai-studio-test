@@ -61,6 +61,26 @@ export function getMissingGeneratorUrlRetryState({
   };
 }
 
+export function getTerminalGeneratorJobPollDecision({
+  lastPayload = {},
+  expectedType = "image",
+  missingUrlAttempts = 0,
+  missingUrlRetries = 4
+} = {}) {
+  const terminalResult = getTerminalGeneratorJobResult(lastPayload, expectedType);
+  const retryState = getMissingGeneratorUrlRetryState({
+    terminalResult,
+    missingUrlAttempts,
+    missingUrlRetries
+  });
+  return {
+    terminalResult,
+    missingUrlAttempts: retryState.nextAttempts,
+    shouldRetryMissingUrl: retryState.shouldRetry,
+    error: terminalResult.error || null
+  };
+}
+
 export function getRetryAfterDelayMs(response, fallbackMs = 4000) {
   const value = Number.parseInt(response?.headers?.get?.("Retry-After") || "", 10);
   if (Number.isFinite(value) && value > 0) return value * 1000;

@@ -32,6 +32,7 @@ import {
   getGeneratorJobRequestError,
   getGeneratorJobStatusPath,
   getMissingGeneratorUrlRetryState,
+  getTerminalGeneratorJobPollDecision,
   mergeGeneratorJobPayload
 } from "../src/client/features/canvas/workflows/image-generator-job-polling-utils.js";
 import {
@@ -112,6 +113,7 @@ assert(
   generatorJobPollingUtils.includes("export function getGeneratorJobRequestError") &&
   generatorJobPollingUtils.includes("export function getGeneratorJobStatusPath") &&
   generatorJobPollingUtils.includes("export function getMissingGeneratorUrlRetryState") &&
+  generatorJobPollingUtils.includes("export function getTerminalGeneratorJobPollDecision") &&
   generatorJobPollingUtils.includes("export function mergeGeneratorJobPayload"),
   "generator polling must retry succeeded jobs that do not yet expose an image URL"
 );
@@ -175,6 +177,42 @@ assert(
     missingUrlRetries: 4
   })) === JSON.stringify({ nextAttempts: 2, shouldRetry: false }),
   "generator polling retry helper should not increment non-missing-URL terminal results"
+);
+const terminalSuccessDecision = getTerminalGeneratorJobPollDecision({
+  lastPayload: { status: "succeeded", imageUrl: "/uploads/image.png" },
+  expectedType: "image",
+  missingUrlAttempts: 1,
+  missingUrlRetries: 4
+});
+assert(
+  terminalSuccessDecision.missingUrlAttempts === 1
+    && terminalSuccessDecision.shouldRetryMissingUrl === false
+    && terminalSuccessDecision.error === null,
+  "generator terminal polling decisions should accept completed jobs with result URLs"
+);
+const terminalMissingUrlDecision = getTerminalGeneratorJobPollDecision({
+  lastPayload: { status: "succeeded" },
+  expectedType: "image",
+  missingUrlAttempts: 0,
+  missingUrlRetries: 4
+});
+assert(
+  terminalMissingUrlDecision.missingUrlAttempts === 1
+    && terminalMissingUrlDecision.shouldRetryMissingUrl === true
+    && terminalMissingUrlDecision.error?.message,
+  "generator terminal polling decisions should retry completed jobs that are missing result URLs"
+);
+const terminalFailureDecision = getTerminalGeneratorJobPollDecision({
+  lastPayload: { status: "failed", errorMessage: "failed" },
+  expectedType: "image",
+  missingUrlAttempts: 2,
+  missingUrlRetries: 4
+});
+assert(
+  terminalFailureDecision.missingUrlAttempts === 2
+    && terminalFailureDecision.shouldRetryMissingUrl === false
+    && terminalFailureDecision.error?.message === "failed",
+  "generator terminal polling decisions should surface failed job errors without missing-URL retries"
 );
 assert(
   generatorWorkflow.includes("logGeneratorJobPoll") &&

@@ -29,9 +29,8 @@ import {
   delayGeneratorJobPoll,
   getGeneratorJobRequestError,
   getGeneratorJobStatusPath,
-  getMissingGeneratorUrlRetryState,
   getRetryAfterDelayMs,
-  getTerminalGeneratorJobResult,
+  getTerminalGeneratorJobPollDecision,
   isTerminalGeneratorJobStatus,
   mergeGeneratorJobPayload
 } from "./image-generator-job-polling-utils.js";
@@ -1032,18 +1031,18 @@ export function createImageGeneratorWorkflow({
       lastPayload = mergeGeneratorJobPayload(fallback, payload);
       logGeneratorJobPoll(lastPayload);
       if (isTerminalGeneratorJobStatus(payload?.status)) {
-        const terminalResult = getTerminalGeneratorJobResult(lastPayload, expectedType);
-        const retryState = getMissingGeneratorUrlRetryState({
-          terminalResult,
+        const decision = getTerminalGeneratorJobPollDecision({
+          lastPayload,
+          expectedType,
           missingUrlAttempts,
           missingUrlRetries
         });
-        missingUrlAttempts = retryState.nextAttempts;
-        if (retryState.shouldRetry) {
+        missingUrlAttempts = decision.missingUrlAttempts;
+        if (decision.shouldRetryMissingUrl) {
           onProgress?.(buildGeneratorMissingUrlProgressPayload(lastPayload, expectedType));
           continue;
         }
-        if (terminalResult.error) throw terminalResult.error;
+        if (decision.error) throw decision.error;
         return lastPayload;
       }
       onProgress?.(payload);
