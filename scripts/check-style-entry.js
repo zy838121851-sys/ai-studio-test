@@ -77,6 +77,12 @@ const EXPECTED_AUTH_SELECTORS = [
   ".auth-submit"
 ];
 const EXPECTED_ASSET_SELECTORS = [
+  ".asset-billfish-shell",
+  ".asset-billfish-sidebar",
+  ".asset-billfish-main",
+  ".asset-billfish-grid",
+  ".asset-billfish-card.asset-item",
+  ".asset-billfish-inspector",
   ".floating-library",
   ".upload-asset",
   ".asset-list",

@@ -1,3 +1,455 @@
+.asset-billfish-shell {
+  display: grid;
+  grid-template-columns: 238px minmax(0, 1fr) 210px;
+  width: 100%;
+  height: 100vh;
+  color: #333943;
+  background: #f7f8fa;
+}
+
+.asset-billfish-sidebar,
+.asset-billfish-inspector {
+  min-width: 0;
+  background: #f1f2f4;
+}
+
+.asset-billfish-sidebar {
+  padding: 48px 12px 16px;
+  border-right: 1px solid #dedfe3;
+}
+
+.asset-billfish-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 28px;
+  margin: 0 4px 6px;
+  color: #505761;
+}
+
+.asset-billfish-section-head strong {
+  font-size: 14px;
+}
+
+.asset-billfish-section-head button {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  color: #8b929c;
+  background: transparent;
+  cursor: pointer;
+}
+
+.asset-billfish-section-head button:hover {
+  color: #30343b;
+  background: #e6e8ec;
+}
+
+.asset-billfish-section-head.muted {
+  margin-top: 22px;
+  padding-top: 12px;
+  border-top: 1px solid #dedfe3;
+}
+
+.asset-billfish-section-head.muted span {
+  color: #9aa1aa;
+  font-size: 12px;
+}
+
+.asset-billfish-tree,
+.asset-billfish-tags {
+  display: grid;
+  gap: 2px;
+}
+
+.asset-billfish-tree button,
+.asset-billfish-tags button {
+  display: grid;
+  align-items: center;
+  width: 100%;
+  min-height: 30px;
+  border: 0;
+  border-radius: 5px;
+  color: #555c66;
+  background: transparent;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.asset-billfish-tree button {
+  grid-template-columns: 14px 18px minmax(0, 1fr) auto;
+  gap: 6px;
+  padding: 0 8px 0 2px;
+}
+
+.asset-billfish-tree button.active,
+.asset-billfish-tree button:hover {
+  background: #e8ebef;
+}
+
+.asset-billfish-tree strong {
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asset-billfish-tree em {
+  color: #9aa1aa;
+  font-style: normal;
+  font-size: 12px;
+}
+
+.asset-tree-arrow {
+  color: #a6adb6;
+  font-size: 14px;
+}
+
+.asset-folder-icon {
+  position: relative;
+  display: inline-block;
+  width: 15px;
+  height: 11px;
+  border: 1.5px solid #69a9ff;
+  border-radius: 2px;
+}
+
+.asset-folder-icon::before {
+  position: absolute;
+  left: -1px;
+  top: -5px;
+  width: 7px;
+  height: 4px;
+  border: 1.5px solid currentColor;
+  border-bottom: 0;
+  border-radius: 2px 2px 0 0;
+  content: "";
+}
+
+.asset-folder-icon.red {
+  color: #ff6d64;
+  border-color: #ff6d64;
+}
+
+.asset-billfish-tags button {
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 6px;
+  padding: 0 8px;
+}
+
+.asset-tag-dot {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid currentColor;
+  border-radius: 50%;
+}
+
+.asset-tag-dot.orange {
+  color: #f0a33b;
+}
+
+.asset-tag-dot.green {
+  color: #75c978;
+}
+
+.asset-tag-dot.blue {
+  color: #63a8ff;
+}
+
+.asset-billfish-main {
+  min-width: 0;
+  padding: 44px 22px 24px;
+  overflow: auto;
+  background: #fbfbfc;
+}
+
+.asset-billfish-toolbar {
+  display: grid;
+  grid-template-columns: 1fr minmax(220px, 300px) 1fr;
+  align-items: center;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.asset-billfish-crumb,
+.asset-billfish-viewtools {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.asset-billfish-crumb button,
+.asset-billfish-viewtools button {
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  color: #7b838e;
+  background: transparent;
+  cursor: pointer;
+}
+
+.asset-billfish-crumb button:hover,
+.asset-billfish-viewtools button:hover {
+  background: #eef0f3;
+}
+
+.asset-billfish-crumb strong {
+  margin-left: 6px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.asset-billfish-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 34px;
+  padding: 0 14px;
+  border: 1px solid #e2e5e9;
+  border-radius: 18px;
+  background: #fff;
+}
+
+.asset-billfish-search span {
+  color: #9aa1aa;
+}
+
+.asset-billfish-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: #3a4048;
+  background: transparent;
+  font-size: 13px;
+}
+
+.asset-billfish-viewtools {
+  justify-content: flex-end;
+}
+
+.asset-billfish-viewtools span {
+  width: 88px;
+  height: 2px;
+  border-radius: 999px;
+  background: #e1e4e8;
+}
+
+.asset-billfish-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.asset-billfish-filters button {
+  border: 0;
+  color: #6f7680;
+  background: transparent;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.asset-billfish-count {
+  margin-bottom: 12px;
+  color: #666d78;
+  font-size: 13px;
+}
+
+.asset-billfish-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(218px, 1fr));
+  gap: 22px 18px;
+}
+
+.asset-billfish-card.asset-item {
+  display: block;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: default;
+}
+
+.asset-billfish-thumb {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1.58;
+  border: 1px solid #e2e6eb;
+  border-radius: 4px;
+  background: #f3f6fa;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.asset-billfish-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.asset-billfish-thumb span {
+  color: #97a0ac;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.asset-billfish-card-meta {
+  min-height: 38px;
+  padding: 8px 2px 0;
+}
+
+.asset-billfish-card-meta strong,
+.asset-billfish-card-meta span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asset-billfish-card-meta strong {
+  color: #3a4048;
+  font-size: 13px;
+}
+
+.asset-billfish-card-meta span {
+  margin-top: 2px;
+  color: #9aa1aa;
+  font-size: 12px;
+}
+
+.asset-billfish-card-actions {
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.16s ease;
+}
+
+.asset-billfish-card:hover .asset-billfish-card-actions {
+  opacity: 1;
+}
+
+.asset-billfish-card-actions button {
+  min-height: 24px;
+  border: 0;
+  border-radius: 5px;
+  color: #68707a;
+  background: #eef1f5;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.asset-billfish-empty {
+  display: grid;
+  place-items: center;
+  min-height: 280px;
+  border: 1px dashed #d8dde4;
+  border-radius: 8px;
+  color: #8b929c;
+  background: #fff;
+}
+
+.asset-billfish-empty strong,
+.asset-billfish-empty span {
+  display: block;
+}
+
+.asset-billfish-inspector {
+  padding: 60px 14px 18px;
+  border-left: 1px solid #e1e3e7;
+}
+
+.asset-billfish-preview {
+  display: grid;
+  place-items: center;
+  width: 112px;
+  height: 88px;
+  margin: 0 auto 18px;
+  border: 1px solid #dfe3e8;
+  border-radius: 8px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.asset-billfish-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.asset-billfish-preview span {
+  color: #6ba7ff;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.asset-billfish-inspector input,
+.asset-billfish-inspector textarea {
+  width: 100%;
+  border: 0;
+  border-radius: 6px;
+  color: #747c86;
+  background: #fff;
+  font-size: 13px;
+}
+
+.asset-billfish-inspector input {
+  min-height: 36px;
+  padding: 0 12px;
+}
+
+.asset-billfish-inspector textarea {
+  min-height: 44px;
+  margin-top: 8px;
+  padding: 12px;
+  resize: none;
+}
+
+.asset-billfish-inspector h3 {
+  margin: 22px 0 12px;
+  color: #5b626d;
+  font-size: 14px;
+}
+
+.asset-billfish-inspector dl {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px 12px;
+  margin: 0 0 22px;
+  color: #9aa1aa;
+  font-size: 13px;
+}
+
+.asset-billfish-inspector dd {
+  margin: 0;
+  color: #8b929c;
+}
+
+.asset-billfish-inspector > button {
+  width: 100%;
+  min-height: 34px;
+  border: 0;
+  border-radius: 999px;
+  color: #606873;
+  background: #e8eaee;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 980px) {
+  .asset-billfish-shell {
+    grid-template-columns: 190px minmax(0, 1fr);
+  }
+
+  .asset-billfish-inspector {
+    display: none;
+  }
+}
+
 .floating-library {
   position: absolute;
   left: 86px;
