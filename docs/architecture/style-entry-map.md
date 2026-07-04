@@ -183,7 +183,8 @@ Notes:
   reintroducing duplicate imports there.
 - `features/chat.css` owns the conversation history popover styles that were
   moved out of `legacy-chat.css`.
-- `features/node.css` owns director node styles, image generator node
+- `features/node.css` owns director node styles, image/video/model media node
+  preview styles, generation preview frame styles, image generator node
   frame/panel styles, tail-end node generator inline edit controls, and
   media/model/video preview helpers that were moved out of `legacy-node.css`;
   it is imported immediately after `legacy-node.css` so the moved blocks keep

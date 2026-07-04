@@ -124,6 +124,9 @@ const EXPECTED_LEGACY_NODE_SELECTORS = [
 const EXPECTED_NODE_SELECTORS = [
   ".node-director",
   ".director-tile",
+  ".node-video",
+  ".image-frame",
+  ".generation-frame",
   ".node-image-generator",
   ".image-generator-frame",
   ".image-generator-panel",

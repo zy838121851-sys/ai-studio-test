@@ -65,10 +65,10 @@ Largest files in the current source tree:
 | 2,273 | `styles/features/assets.css` |
 | 1,608 | `scripts/check-api-error-contract.js` |
 | 1,569 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
-| 1,530 | `styles/legacy-node.css` |
 | 1,529 | `styles/legacy-theme-sync.css` |
 | 1,503 | `styles/legacy-canvas.css` |
 | 1,446 | `scripts/check-generator-job-recovery.js` |
+| 1,370 | `styles/legacy-node.css` |
 | 1,303 | `styles/features/home.css` |
 | 1,252 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,214 | `scripts/check-canvas-menu-actions.js` |
@@ -89,7 +89,8 @@ Post-baseline CSS governance note:
 - `styles/features/chat.css` now owns the conversation history popover styles
   that were moved out of `styles/legacy-chat.css`; the selector guard tracks
   the migrated chat rules in their feature file.
-- `styles/features/node.css` now owns director node styles, image generator
+- `styles/features/node.css` now owns director node styles, image/video/model
+  media node preview styles, generation preview frame styles, image generator
   node frame/panel styles, tail-end node generator inline edit controls, and
   media/model/video preview helpers that were moved out of
   `styles/legacy-node.css`; it is imported immediately after
