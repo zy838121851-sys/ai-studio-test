@@ -25,6 +25,9 @@ try {
     getDefaultBillingProvider
   } = await import("../src/server/services/billing.service.js");
   const {
+    normalizeBillingAccountBalance
+  } = await import("../src/server/providers/billing/local-billing.provider.js");
+  const {
     getCreditBalance,
     reserveCredits,
     chargeReservedCredits,
@@ -48,6 +51,15 @@ try {
   assert(defaultProvider?.reserve, "Billing service should expose a default provider with reserve");
   assert(defaultProvider?.chargeReserved, "Billing service should expose a default provider with chargeReserved");
   assert(defaultProvider?.releaseReserved, "Billing service should expose a default provider with releaseReserved");
+  const normalizedBalance = normalizeBillingAccountBalance({
+    balance_credits: "500",
+    reserved_credits: "10"
+  });
+  assert(normalizedBalance.balance === 500, "Billing provider should normalize account balance");
+  assert(normalizedBalance.reserved === 10, "Billing provider should normalize reserved credits");
+  const defaultBalance = normalizeBillingAccountBalance();
+  assert(defaultBalance.balance === 0, "Billing provider should default missing balance to zero");
+  assert(defaultBalance.reserved === 0, "Billing provider should default missing reserved credits to zero");
 
   const serviceReservation = calculateCreditReservation({
     account: { balance_credits: 500, reserved_credits: 10 },

@@ -1,4 +1,4 @@
-function accountBalance(account = {}) {
+export function normalizeBillingAccountBalance(account = {}) {
   return {
     balance: Number(account.balance_credits || 0),
     reserved: Number(account.reserved_credits || 0)
@@ -8,7 +8,7 @@ function accountBalance(account = {}) {
 export function createLocalBillingProvider() {
   return {
     reserve({ account, credits }) {
-      const { balance, reserved } = accountBalance(account);
+      const { balance, reserved } = normalizeBillingAccountBalance(account);
       return {
         balance,
         nextReserved: reserved + credits
@@ -16,7 +16,7 @@ export function createLocalBillingProvider() {
     },
 
     chargeReserved({ account, chargeCredits, reservedCredits }) {
-      const { balance, reserved } = accountBalance(account);
+      const { balance, reserved } = normalizeBillingAccountBalance(account);
       const reservedReduction = Math.min(reserved, Math.min(reservedCredits || chargeCredits, chargeCredits));
       return {
         nextBalance: balance - chargeCredits,
@@ -26,7 +26,7 @@ export function createLocalBillingProvider() {
     },
 
     releaseReserved({ account, credits }) {
-      const { balance, reserved } = accountBalance(account);
+      const { balance, reserved } = normalizeBillingAccountBalance(account);
       return {
         balance,
         nextReserved: Math.max(0, reserved - credits)
