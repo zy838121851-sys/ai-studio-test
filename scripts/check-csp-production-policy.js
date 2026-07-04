@@ -71,6 +71,17 @@ try {
   assert(bootState.initialized, "production CSP startup did not initialize window.AIStudio state");
   assert(bootState.hasCanvasController, "production CSP startup missing canvasController");
   assert(bootState.hasWorkspaceRuntime, "production CSP startup missing workspaceRuntime");
+
+  const apiState = await page.evaluate(async () => {
+    const health = await fetch("/api/health", { credentials: "include" });
+    const providers = await fetch("/api/auth/providers", { credentials: "include" });
+    return {
+      healthStatus: health.status,
+      providersStatus: providers.status
+    };
+  });
+  assert(apiState.healthStatus === 200, `same-origin /api/health should return 200, got ${apiState.healthStatus}`);
+  assert(apiState.providersStatus === 200, `same-origin /api/auth/providers should return 200, got ${apiState.providersStatus}`);
   assert(pageErrors.length === 0, `production CSP page errors: ${pageErrors.join(" | ")}`);
 
   const blockingConsoleErrors = consoleErrors.filter((message) =>
@@ -92,6 +103,17 @@ try {
 function assertProductionCsp(csp) {
   assert(csp, "Content-Security-Policy header should be present in production");
   assert(csp.includes("script-src"), "production CSP should include script-src");
+  assert(csp.includes("connect-src"), "production CSP should include connect-src");
   assert(!csp.includes("'unsafe-eval'"), "production CSP must not include unsafe-eval");
+  assert(!getCspDirectiveValues(csp, "connect-src").includes("http:"), "production CSP connect-src must not include http:");
   assert(csp.includes("'unsafe-inline'"), "production CSP should keep unsafe-inline until import map/style work is complete");
+}
+
+function getCspDirectiveValues(csp, directive) {
+  const entry = String(csp || "")
+    .split(";")
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${directive} `));
+  if (!entry) return [];
+  return entry.split(/\s+/).slice(1);
 }

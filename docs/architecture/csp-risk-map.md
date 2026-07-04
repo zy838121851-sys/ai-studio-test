@@ -19,11 +19,12 @@ script-src 'self' 'unsafe-inline'
 style-src 'self' 'unsafe-inline'
 img-src 'self' data: blob: https: http:
 media-src 'self' data: blob: https: http:
-connect-src 'self' https: http:
+connect-src 'self' https:
 ```
 
 Development/test CSP may still include `script-src 'unsafe-eval'` for tooling
-compatibility. Production CSP must not include `unsafe-eval`.
+compatibility and `connect-src http:` for local tooling. Production CSP must not
+include `unsafe-eval` or `connect-src http:`.
 
 Existing gate:
 
@@ -36,7 +37,8 @@ Existing gate:
   - `http:` in `media-src`
   - `http:` in `connect-src`
 - `scripts/check-csp-production-policy.js` verifies production CSP does not
-  include `unsafe-eval` and that the browser startup reaches `app-ready`.
+  include `unsafe-eval` or `connect-src http:`, that the browser startup reaches
+  `app-ready`, and that same-origin API requests still work.
 
 Strict evidence command:
 
@@ -182,24 +184,29 @@ Risk:
 
 - Production `connect-src http:` permits insecure browser network calls.
 
-Likely mitigation path:
+Status:
 
-1. Split production CSP from local development CSP.
-2. Keep local development flexible if needed.
-3. In production, reduce `connect-src` to `'self' https:`.
-4. Verify login, project load/save, upload, generation polling, asset library,
-   and health checks.
+- Production CSP no longer includes `connect-src http:`.
+- Same-origin API calls are still covered by `'self'` and verified by
+  `scripts/check-csp-production-policy.js`.
+- Development/test CSP may still include `connect-src http:`.
+
+Remaining mitigation path:
+
+1. Keep production `connect-src` at `'self' https:`.
+2. Add broader browser/API smoke for login, project load/save, upload,
+   generation polling, and asset library before further CSP tightening.
+3. Investigate whether development/test still needs `connect-src http:`.
 
 ## Recommended Tightening Order
 
-1. Remove `http:` from `connect-src` in production.
-2. Remove `http:` from `img-src` and `media-src` after media URL normalization
+1. Remove `http:` from `img-src` and `media-src` after media URL normalization
    and legacy snapshot restore checks.
-3. Replace static inline style attributes in `index.html`.
-4. Gradually reduce runtime generated inline style dependencies by feature.
-5. Replace or hash/nonce the inline import map.
-6. Remove `script-src 'unsafe-inline'`.
-7. Remove `style-src 'unsafe-inline'`.
+2. Replace static inline style attributes in `index.html`.
+3. Gradually reduce runtime generated inline style dependencies by feature.
+4. Replace or hash/nonce the inline import map.
+5. Remove `script-src 'unsafe-inline'`.
+6. Remove `style-src 'unsafe-inline'`.
 
 ## Gates Before Any CSP Change
 
@@ -221,7 +228,8 @@ Before changing `src/server/index.js` CSP:
 
 ## Current Decision
 
-The first safe implementation stage has been completed: production CSP removes
-`unsafe-eval`, while development/test CSP is unchanged. The next safe
-implementation stage is production-only removal of `http:` from `connect-src`
-with a matching browser/API check.
+The first two safe implementation stages have been completed: production CSP
+removes `unsafe-eval` and `connect-src http:`, while development/test CSP keeps
+broader allowances. The next safe implementation stage is production-only
+removal of `http:` from `img-src` and `media-src` after media URL normalization
+and restore checks.

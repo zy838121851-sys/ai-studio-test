@@ -110,9 +110,9 @@ Already present:
 
 Known release-readiness gaps:
 
-- CSP still allows `unsafe-inline` and broad `http:` media/connect sources;
-  production CSP no longer allows `unsafe-eval`, while development/test paths
-  may keep it for tooling compatibility.
+- CSP still allows `unsafe-inline` and broad `http:` media sources; production
+  CSP no longer allows `unsafe-eval` or `connect-src http:`, while
+  development/test paths may keep broader allowances for tooling compatibility.
 - Rate limiting uses an in-memory Map, which is not suitable for multi-instance
   production.
 - Uploads are local filesystem based; future SaaS release should use an object
