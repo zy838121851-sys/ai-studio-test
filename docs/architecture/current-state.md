@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,349 |
-| `styles` | 54 | 15,222 |
-| `scripts` | 90 | 20,784 |
+| `styles` | 55 | 15,223 |
+| `scripts` | 90 | 20,792 |
 
 Largest files in the current source tree:
 
@@ -153,11 +153,15 @@ Post-baseline CSS governance note:
 - `styles/legacy-canvas-choice-overlays.css` owns canvas viewport cursor states,
   upload choice bubbles, generation choice overlay, floating suggestions, and
   their related keyframes.
+- `styles/legacy-canvas-world.css` owns canvas selection box, canvas world,
+  empty state, hint line, and quick action styles that were moved out of
+  `styles/legacy-canvas.css`.
 - `styles/legacy-canvas.css` now imports `styles/legacy-canvas-shell.css`,
   `styles/legacy-canvas-image-edit.css`, and
   `styles/legacy-canvas-add-node.css`, and
-  `styles/legacy-canvas-choice-overlays.css` before the remaining legacy canvas
-  styles to preserve cascade order.
+  `styles/legacy-canvas-choice-overlays.css`, and
+  `styles/legacy-canvas-world.css` before the remaining legacy canvas styles to
+  preserve cascade order.
 - `styles/features/node-base.css` owns base node/card/resize/action styles that
   were moved out of `styles/legacy-node.css`; it is imported at the top of
   `styles/features/node.css` to preserve cascade order.
