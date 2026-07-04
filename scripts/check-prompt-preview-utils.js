@@ -1,4 +1,5 @@
 import {
+  buildPromptPreviewWaitingStatus,
   createPromptPreviewBatch,
   markPromptPreviewsFailed,
   updatePromptPreviewStatus
@@ -59,6 +60,23 @@ const videoPreviews = collectPreviewCalls({
 });
 assert(videoPreviews[0].title === "Generated Video.mp4", "Video previews should use video title");
 assert(videoPreviews[0].desc === "Waiting for video result...", "Video previews should use video waiting text");
+
+assert(
+  buildPromptPreviewWaitingStatus({ index: 2, count: 3, outputType: "image" }) === "Waiting for result 3/3...",
+  "Prompt preview waiting status should preserve multi-result text"
+);
+assert(
+  buildPromptPreviewWaitingStatus({ index: 0, count: 1, outputType: "video" }) === "Waiting for video result...",
+  "Prompt preview waiting status should preserve single video text"
+);
+assert(
+  buildPromptPreviewWaitingStatus({ index: 0, count: 1, outputType: "image" }) === "Waiting for generation result...",
+  "Prompt preview waiting status should preserve single image text"
+);
+assert(
+  buildPromptPreviewWaitingStatus({ index: 0, count: 1, outputType: "3d" }) === "Waiting for generation result...",
+  "Prompt preview waiting status should preserve non-video fallback text"
+);
 
 const filtered = createPromptPreviewBatch({
   addGenerationPreview: (_config) => null,

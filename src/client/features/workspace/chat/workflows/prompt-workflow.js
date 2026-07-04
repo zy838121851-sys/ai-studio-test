@@ -83,6 +83,7 @@ import {
   getPublicImageUrlFromNode
 } from "./prompt-canvas-context-utils.js";
 import {
+  buildPromptPreviewWaitingStatus,
   createPromptPreviewBatch,
   markPromptPreviewsFailed,
   updatePromptPreviewStatus
@@ -961,9 +962,11 @@ export function bindPromptSubmit({
               progress: payload?.progress,
               modelUsage: formatModelUsage(result, model)
             }));
-            previewNodes.forEach((node, index) => updatePromptPreviewStatus(node, previewCount > 1
-              ? `Waiting for result ${index + 1}/${previewCount}...`
-              : (videoModel ? "Waiting for video result..." : "Waiting for generation result...")));
+            previewNodes.forEach((node, index) => updatePromptPreviewStatus(node, buildPromptPreviewWaitingStatus({
+              index,
+              count: previewCount,
+              outputType: generationType
+            })));
             if (isAIJobRunningStatus(status)) {
               updateThinking(thinking, 4);
             }

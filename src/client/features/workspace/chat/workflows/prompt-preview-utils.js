@@ -38,6 +38,16 @@ export function updatePromptPreviewStatus(previewNode, text = "") {
   if (statusText && text) statusText.textContent = text;
 }
 
+export function buildPromptPreviewWaitingStatus({
+  index = 0,
+  count = 1,
+  outputType = "image"
+} = {}) {
+  return count > 1
+    ? `Waiting for result ${index + 1}/${count}...`
+    : (outputType === "video" ? "Waiting for video result..." : "Waiting for generation result...");
+}
+
 export function markPromptPreviewsFailed(previewNodes = [], text = "Generation failed, please try again.") {
   const nodes = Array.isArray(previewNodes) ? previewNodes : [previewNodes];
   let updatedCount = 0;
