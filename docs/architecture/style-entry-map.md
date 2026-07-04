@@ -111,6 +111,12 @@ styles/features/home-community.css
 styles/features/home-shell.css
 ```
 
+`styles/legacy-theme-sync.css` currently imports:
+
+```text
+styles/legacy-theme-sync-base.css
+```
+
 ## `/styles` and `/assets/styles`
 
 Current server behavior in `src/server/index.js`:
@@ -275,6 +281,10 @@ Notes:
 - `features/home.css` imports `features/home-history.css`,
   `features/home-community.css`, and `features/home-shell.css`, then keeps
   responsive overrides for the home feature submodules.
+- `legacy-theme-sync-base.css` owns root light/dark theme variables, dark canvas
+  background, and light/dark theme switch styles.
+- `legacy-theme-sync.css` imports `legacy-theme-sync-base.css`, then keeps the
+  remaining cross-component theme surface synchronization rules.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.
@@ -334,6 +344,7 @@ styles/legacy-compact-controls.css
 styles/legacy-rail-polish.css
 styles/legacy-light-refinements.css
 styles/legacy-theme-ios.css
+styles/legacy-theme-sync-base.css
 styles/legacy-theme-sync.css
 styles/menu-select-overrides.css
 ```

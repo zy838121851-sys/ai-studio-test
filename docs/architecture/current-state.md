@@ -55,17 +55,17 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,349 |
-| `styles` | 49 | 15,216 |
-| `scripts` | 90 | 20,715 |
+| `styles` | 50 | 15,217 |
+| `scripts` | 90 | 20,740 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
-| 1,745 | `styles/legacy-theme-sync.css` |
 | 1,723 | `styles/legacy-canvas.css` |
 | 1,709 | `scripts/check-api-error-contract.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
+| 1,553 | `styles/legacy-theme-sync.css` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
@@ -132,6 +132,11 @@ Post-baseline CSS governance note:
   animation styles; it is imported by `styles/features/home.css`.
 - `styles/features/home.css` is now a home feature CSS aggregation entry plus
   responsive overrides for home submodules.
+- `styles/legacy-theme-sync-base.css` owns root light/dark theme variables,
+  dark canvas background, and the light/dark theme switch styles; it is
+  imported by `styles/legacy-theme-sync.css`.
+- `styles/legacy-theme-sync.css` now imports the theme sync base submodule
+  before the remaining cross-component theme surface synchronization rules.
 - `styles/features/node-base.css` owns base node/card/resize/action styles that
   were moved out of `styles/legacy-node.css`; it is imported at the top of
   `styles/features/node.css` to preserve cascade order.
