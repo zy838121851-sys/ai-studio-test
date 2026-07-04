@@ -121,6 +121,9 @@ const EXPECTED_LEGACY_NODE_SELECTORS = [
   ".node-loading-image"
 ];
 const EXPECTED_NODE_SELECTORS = [
+  ".image-text-panel",
+  ".image-text-status",
+  ".image-text-list",
   ".image-lightbox",
   ".image-lightbox-close",
   ".node-card.has-stack::after",
