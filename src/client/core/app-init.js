@@ -1,9 +1,6 @@
 import { eventBus } from "./event-bus.js";
 import { appState, patchState } from "./state.js";
 import { initCanvasController } from "../features/canvas/canvas-controller.js";
-import { createAgentEventSystem } from "../features/agent/agent-event-system.js";
-import { createSuggestionEngine } from "../features/agent/agent-suggestions.js";
-import { executeAgentAction } from "../features/agent/agent-actions.js";
 import { registerAIProvider, setActiveAIProvider } from "../features/ai/ai-client.js";
 import { mockProvider } from "../features/ai/providers/mock-provider.js";
 import { serverAPIProvider } from "../features/ai/providers/server-api-provider.js";
@@ -11,7 +8,6 @@ import { initModelCatalog } from "../features/ai/model-catalog.js?v=20260628-boo
 import { initAuthEntry } from "../features/auth/auth-entry.js";
 import { initCreditQuoteBadges } from "../features/credits/quote-badges.js?v=20260628-boot-inline-1";
 import { initAssetPanel } from "../features/workspace/asset-library/asset-panel.js?v=20260628-boot-inline-1";
-import { initAgentPanel } from "../features/agent/agent-panel.js";
 import { mountWorkspaceApp } from "../features/workspace/workflows/workspace-app-mount.js?v=20260628-boot-inline-1";
 
 function markAppBootState(state = "ready") {
@@ -54,8 +50,6 @@ export async function initApp() {
     const creditQuoteBadges = initCreditQuoteBadges(document);
     const workspaceRuntime = workspaceMount.runtime;
     const canvasController = initCanvasController({ eventBus, root: document });
-    const agentEventSystem = createAgentEventSystem({ eventBus, canvasController });
-    const suggestionEngine = createSuggestionEngine({ canvasController, eventBus });
 
     await Promise.all([
       waitForBootTask(authEntry.ready, 1800),
@@ -65,29 +59,16 @@ export async function initApp() {
     ]);
 
     const assetPanel = initAssetPanel({ eventBus });
-    initAgentPanel({
-      eventBus,
-      onAction: (suggestion) => executeAgentAction(suggestion, {
-        eventBus,
-        canvasRoot: document
-      })
-    });
     const architecture = {
       eventBus,
       state: appState,
       canvasController,
-      agentEventSystem,
-      suggestionEngine,
       assetPanel,
       authEntry,
       creditQuoteBadges,
       workspaceMount,
       workspaceRuntime,
-      modelCatalog,
-      executeAgentAction: (suggestion) => executeAgentAction(suggestion, {
-        eventBus,
-        canvasRoot: document
-      })
+      modelCatalog
     };
 
     window.AIStudio = architecture;

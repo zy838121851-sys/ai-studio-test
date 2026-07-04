@@ -1,23 +1,6 @@
 import {
-  createWorkspaceAICoreControllerRuntime,
-  createWorkspaceAICoreWorkspaceAppRuntime,
   createWorkspaceDirectorRuntime
 } from "../runtime/workspace-agent-runtime.js";
-
-export function createWorkspaceAICoreControllerCompositionRuntime({
-  elements,
-  timers,
-  setEnabledState
-}) {
-  return createWorkspaceAICoreControllerRuntime({
-    elements,
-    uiState: {
-      getAgentTimer: timers.getAgentTimer,
-      getSuggestionTimer: timers.getSuggestionTimer,
-      setEnabledState
-    },
-  });
-}
 
 function createWorkspaceDirectorCompositionRuntime({
   elements,
@@ -57,53 +40,6 @@ export function createWorkspaceDirectorActionCompositionRuntime({
       replacePreviewWithImage: (...args) => canvas.canvasGenerationRuntime.replacePreviewWithImage(...args),
       saveCurrentProjectAfterGeneration: services.saveCurrentProjectAfterGeneration,
       escapeHtml: services.escapeHtml
-    }
-  });
-}
-
-function createWorkspaceAICoreWorkspaceCompositionRuntime({
-  elements,
-  defaults,
-  services
-}) {
-  return createWorkspaceAICoreWorkspaceAppRuntime({
-    elements,
-    defaults,
-    services
-  });
-}
-
-export function createWorkspaceAICoreWorkspaceBundle({
-  elements,
-  defaults,
-  canvasWorld,
-  canvas,
-  chatRuntime,
-  actions,
-  services
-}) {
-  return createWorkspaceAICoreWorkspaceCompositionRuntime({
-    elements,
-    defaults,
-    services: {
-      setAICoreState: actions.setAICoreState,
-      addChat: chatRuntime.addChat,
-      inferDirectorProductProfile: services.inferDirectorProductProfile,
-      getNodeTitle: services.getNodeTitle,
-      addUploadedFiles: canvas.canvasGenerationRuntime.addUploadedFiles,
-      readImageSourceAsDataUrl: services.readImageSourceAsDataUrl,
-      readFileAsDataUrl: services.readFileAsDataUrl,
-      runDirectorAction: actions.runDirectorAction,
-      normalizeAnalysis: services.normalizeAnalysis,
-      postJsonRequest: services.postJsonRequest,
-      getChatModel: services.getChatModel,
-      getNodeBounds: canvas.getNodeBounds,
-      findCanvasNodeById: (nodeId) => services.findCanvasNodeById(canvasWorld, nodeId),
-      renderStackTray: canvas.renderStackTray,
-      escapeHtml: services.escapeHtml,
-      ensureCanvasNodeId: services.ensureCanvasNodeId,
-      nextCanvasNodeId: canvas.canvasInteractionRuntime.nextCanvasNodeId,
-      positionBubbleAtAgent: services.positionBubbleAtAgent
     }
   });
 }

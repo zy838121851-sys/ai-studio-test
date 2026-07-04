@@ -44,10 +44,6 @@ export function createCanvasNodeDragRuntimeInputs({
       positionImageTextPanel: canvasInteractionRuntime.positionImageTextPanel,
       setAICoreState: actions.setAICoreState,
       updateAICoreDragState: actions.updateAICoreDragState,
-      setAICoreAwakeClass: (isAwake) => {
-        if (!appRoot?.classList) return;
-        appRoot.classList.toggle("ai-core-awake", Boolean(isAwake));
-      },
       getNextCanvasNodeId: canvasInteractionRuntime.nextCanvasNodeId,
       ensureCanvasNodeId: services.ensureCanvasNodeId,
       getNodeThumbnail: services.getNodeThumbnail,

@@ -35,10 +35,6 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
     applyTransform,
     showAddNodeMenu,
     showCanvasContextMenu,
-    isPointInAICore,
-    setAICoreState,
-    updateAICoreDragState,
-    uploadIntoAICore,
     uploadAsReference,
     addChat = () => {},
     hideAddNodeMenu,
@@ -343,14 +339,12 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
     event.preventDefault();
     if (!hasCanvasImageDropData(event.dataTransfer)) return;
     event.dataTransfer.dropEffect = "copy";
-    updateAICoreDragState(event.clientX, event.clientY);
   });
 
   resolvedCanvasViewport.addEventListener("dragenter", (event) => {
     if (!hasCanvasImageDropData(event.dataTransfer)) return;
     event.preventDefault();
     setUploadDragDepth(getUploadDragDepth() + 1);
-    updateAICoreDragState(event.clientX, event.clientY);
   });
 
   resolvedCanvasViewport.addEventListener("dragleave", (event) => {
@@ -360,10 +354,7 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
       || event.clientY <= 0
       || event.clientX >= window.innerWidth
       || event.clientY >= window.innerHeight;
-    if (!getUploadDragDepth() && outsideWindow) {
-      if (resolvedAppRoot?.classList) resolvedAppRoot.classList.remove("ai-core-awake");
-      setAICoreState("idle");
-    }
+    if (!getUploadDragDepth() && outsideWindow) return;
   });
 
   resolvedCanvasViewport.addEventListener("drop", (event) => {
@@ -372,13 +363,7 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
     if (event.dataTransfer.files.length) {
       event.stopPropagation();
       const point = viewportPointToWorld(event.clientX, event.clientY);
-      if (isPointInAICore(event.clientX, event.clientY)) {
-        uploadIntoAICore(event.dataTransfer.files, point);
-      } else {
-        uploadAsReference(event.dataTransfer.files, point);
-        setAICoreState("idle");
-      }
-      if (resolvedAppRoot?.classList) resolvedAppRoot.classList.remove("ai-core-awake");
+      uploadAsReference(event.dataTransfer.files, point);
       setUploadDragDepth(0);
       return;
     }
@@ -391,19 +376,13 @@ export function bindCanvasViewportEvents({ canvasViewport, appRoot, state, actio
       event.stopPropagation();
       importExternalImageUrl(externalImageUrl)
         .then((file) => {
-          if (isPointInAICore(event.clientX, event.clientY)) {
-            uploadIntoAICore([file], point);
-          } else {
-            uploadAsReference([file], point);
-            setAICoreState("idle");
-          }
+          uploadAsReference([file], point);
         })
         .catch((error) => {
           console.warn("[canvas] Failed to import dropped external image", error);
           addChat("assistant", "无法导入这个网页图片。请尝试打开原图后拖拽，或先保存到本地再导入。");
         })
         .finally(() => {
-          if (resolvedAppRoot?.classList) resolvedAppRoot.classList.remove("ai-core-awake");
           setUploadDragDepth(0);
         });
       return;

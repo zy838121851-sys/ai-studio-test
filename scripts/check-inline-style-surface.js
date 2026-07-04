@@ -14,11 +14,7 @@ const BASELINE_MAX = {
 const BASELINE_FILE_MAX = 52;
 
 const ALLOWED_FILES = new Set([
-  "src/client/features/agent/agent-actions.js",
   "src/client/features/agent/agent-ui.js",
-  "src/client/features/agent/ai-core-interactions.js",
-  "src/client/features/agent/ai-core-workspace.js",
-  "src/client/features/agent/runtime/ai-core-workspace-controller.js",
   "src/client/features/agent/workflows/director-action-workflow.js",
   "src/client/features/agent/workflows/director-card-workflow.js",
   "src/client/features/ai/image-edit-actions.js",

@@ -87,7 +87,6 @@ Practical rule:
 | `#presetSkill` | chat | `features/workspace/runtime/ui-elements.js`, `features/workspace/chat/workflows/prompt-workflow.js` | Chat submitter mode detection | High. |
 | `#newConversation`, `#conversationHistory` | chat | `features/workspace/chat/workflows/prompt-workflow.js` | Conversation controls | High. |
 | `#collapseChat` | chat | `features/workspace/runtime/ui-elements.js` | Chat collapse button | High. |
-| `#aiCore`, `#aiCoreHint` | agent/workspace | `features/workspace/runtime/ui-elements.js`, agent/workspace runtime through elements | AI Core entry and hint | High. |
 | `#taskLogPage` | task-log | `features/workspace/task-log/task-log-runtime.js` | Task log page root | Critical for task-log runtime. |
 | `#taskLogRefresh` | task-log | `features/workspace/task-log/task-log-runtime.js` | Refresh button and loading state | High. |
 | `#taskLogSearch`, `#taskLogDateFrom`, `#taskLogDateTo`, `#taskLogType`, `#taskLogStatus` | task-log | `features/workspace/task-log/task-log-runtime.js` | Task log filters | High. |
@@ -111,7 +110,6 @@ These classes are runtime state, not only CSS.
 | `.show` | `home-back-top.js`, `home-inspiration-feed.js`, `project-library.js` | Revealed transient UI such as back-to-top/loading/save status | Medium-high. |
 | `.has-chat` | `chat-log.js` | Chat panel mode after messages exist | High for chat layout. |
 | `.drag-over` | `home-library-interactions.js`, `chat-image-preview.js` | Drag/drop visual and prompt attachment state | Medium-high. |
-| `.ai-core-awake` | `global-interactions.js`, `footer-events.js`, `canvas-viewport-events.js`, `workspace-canvas-node-drag-inputs.js` | Workspace AI Core awake/near-canvas state | High for agent/canvas interaction. |
 | `.canvas-entering`, `.home-transitioning`, `.canvas-restoring` | `project-workflow.js` | Navigation/restore transition state | High during project open/generation. |
 | `.upload-choosing` | `upload-choice-bubbles.js` | Upload choice overlay mode | High for canvas upload flow. |
 | `.generation-failed` | `prompt-workflow.js`, `task-bar.js`, `image-edit-actions.js` | Failed generation preview state | Medium-high. |
@@ -170,7 +168,6 @@ template split must preserve:
 | `data-kind`, `data-created-by`, `data-source-mode`, `data-asset-type` | canvas, agent, AI generation | Node type/source metadata | High. |
 | `data-generation-prompt`, `data-generation-model`, `data-edit-prompt`, `data-edit-model` | AI/chat/canvas workflows | Generation/edit provenance and model fallback | High. |
 | `data-selected-model-id`, `data-model-user-selected`, `data-model-auto`, `data-model-type`, `data-selected-modality`, `data-selected-provider` | `features/ai/model-catalog.js`, model preference menu, chat/home/generator workflows | Model catalog state stored on `<select>` nodes | Critical. |
-| `data-product-name`, `data-product-type`, `data-ai-core-analysis-*` | agent/AI Core workflows | Product analysis and agent decision context | High. |
 | `data-task-log-detail`, `data-task-log-copy`, `data-task-log-output` | task log runtime | Runtime row action buttons | High. |
 | `data-open-project`, `data-project-select-*`, `data-asset-*` | project/asset renderers and runtimes | Runtime list/card actions | High. |
 
@@ -387,25 +384,6 @@ Primary files:
 - `src/client/features/auth/auth-entry.js`
 - `src/client/features/credits/quote-badges.js`
 
-### agent
-
-Locked DOM/data:
-
-- `#aiCore`
-- `#aiCoreHint`
-- `.ai-core`
-- `.ai-core-awake`
-- `data-product-name`
-- `data-product-type`
-- `data-ai-core-analysis-*`
-- `data-node-id`
-
-Primary files:
-
-- `src/client/features/agent/*`
-- `src/client/features/workspace/runtime/ui-elements.js`
-- `src/client/features/workspace/workflows/workspace-agent-composition.js`
-
 ### task-log
 
 Locked DOM:
@@ -526,7 +504,6 @@ Primary files:
 - `.selected`
 - `.loading`
 - `.has-chat`
-- `.ai-core-awake`
 - `.canvas-entering`
 - `.upload-choosing`
 

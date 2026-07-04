@@ -104,7 +104,6 @@ export function bindCanvasKeyboardShortcuts({ root, stateHost, actions }) {
       hideAICoreWorkspace();
       clearPendingUploadChoice();
       setUploadModeHover(null);
-      stateHost.classList.remove("ai-core-awake");
       setAICoreState("idle");
       return;
     }

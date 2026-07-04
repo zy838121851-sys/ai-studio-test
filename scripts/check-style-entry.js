@@ -16,7 +16,6 @@ const EXPECTED_WORKSPACE_IMPORTS = [
   "./workspace-layout.css",
   "./features/auth.css",
   "./features/home.css",
-  "./features/ai-core.css",
   "./features/project-library.css"
 ];
 const EXPECTED_LEGACY_SPLIT_IMPORTS = [
@@ -33,10 +32,6 @@ const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./legacy-light-refinements.css",
   "./legacy-theme-ios.css",
   "./legacy-theme-sync.css",
-  "./legacy-ai-core.css",
-  "./legacy-ai-core-analysis.css",
-  "./legacy-ai-core-workspace.css",
-  "./legacy-ai-core-ambient.css",
   "./menu-select-overrides.css"
 ];
 const EXPECTED_LEGACY_BASE_IMPORTS = [];
@@ -49,15 +44,6 @@ const EXPECTED_PROJECT_LIBRARY_SELECTORS = [
   ".project-card-board",
   ".library-small-card",
   "body[data-view=\"library\"] .project-card-board"
-];
-const EXPECTED_AI_CORE_SELECTORS = [
-  ".ai-core",
-  ".ai-core-orb",
-  ".canvas-ai-suggestions",
-  ".ai-core-workspace",
-  ".ai-suggestion-panel",
-  ".ai-core-stage",
-  "@keyframes aiCoreSenseWave"
 ];
 const EXPECTED_HOME_SELECTORS = [
   "body.app-booting",
@@ -78,12 +64,6 @@ const EXPECTED_AUTH_SELECTORS = [
   ".auth-submit"
 ];
 const EXPECTED_ASSET_SELECTORS = [
-  ".asset-billfish-shell",
-  ".asset-billfish-sidebar",
-  ".asset-billfish-main",
-  ".asset-billfish-grid",
-  ".asset-billfish-card.asset-item",
-  ".asset-billfish-inspector",
   ".floating-library",
   ".upload-asset",
   ".asset-list",
@@ -304,7 +284,6 @@ checkFileContains("styles/features/auth.css", EXPECTED_AUTH_SELECTORS);
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
-checkFileContains("styles/features/ai-core.css", EXPECTED_AI_CORE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
 checkFileContains("styles/legacy-canvas.css", EXPECTED_LEGACY_CANVAS_SELECTORS);
 checkFileContains("styles/legacy-node.css", EXPECTED_LEGACY_NODE_SELECTORS);

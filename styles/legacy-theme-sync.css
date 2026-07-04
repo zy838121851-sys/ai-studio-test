@@ -210,8 +210,6 @@ body[data-theme="dark"] .theme-track strong {
 .asset-generation-card,
 .asset-generation-toolbar,
 .node-director,
-.ai-core-workspace-card,
-.ai-decision-panel,
 .composer,
 .chat-panel,
 .chat-float {
@@ -231,7 +229,6 @@ body[data-theme="dark"] .theme-track strong {
 .upload-choice-bubbles button,
 .floating-suggestions button,
 .asset-generation-toolbar button,
-.ai-decision-panel button,
 .edit-actions button,
 .edit-actions select,
 .composer-actions button,
@@ -250,7 +247,6 @@ body[data-theme="dark"] .theme-track strong {
 .upload-choice-bubbles button:hover,
 .floating-suggestions button:hover,
 .asset-generation-toolbar button:hover,
-.ai-decision-panel button:hover,
 .edit-actions button:hover,
 .composer-actions button:hover {
   border-color: color-mix(in srgb, var(--theme-primary) 42%, transparent) !important;
@@ -700,66 +696,14 @@ body[data-theme="dark"] .image-expand-actions .crop-confirm:hover:not(:disabled)
   display: none !important;
 }
 
-.ai-core-workspace {
-  color: var(--theme-text) !important;
-  background:
-    radial-gradient(circle at 54% 47%, color-mix(in srgb, var(--theme-primary) 14%, transparent), transparent 18%),
-    color-mix(in srgb, var(--theme-bg) 68%, transparent) !important;
-}
-
-.ai-core-workspace-close,
-.ai-core-status,
-.ai-decision-panel {
-  color: var(--theme-text) !important;
-  border-color: var(--theme-border) !important;
-  background: var(--theme-surface) !important;
-}
-
-.ai-core-big {
-  border-color: var(--theme-border) !important;
-  background:
-    radial-gradient(circle at 34% 24%, color-mix(in srgb, var(--theme-surface-strong) 76%, transparent), transparent 12%),
-    radial-gradient(circle, var(--theme-surface-strong), var(--theme-surface-deep) 68%) !important;
-  box-shadow: var(--theme-shadow-heavy) !important;
-}
-
-.ai-core-big-copy strong,
-.ai-core-status strong,
-.ai-decision-panel h3,
-.ai-decision-panel strong,
 .asset-generation-card h3,
 .add-node-menu strong,
 .canvas-context-menu strong {
   color: var(--theme-heading) !important;
 }
 
-.ai-core-big-copy span,
-.ai-core-status small,
-.ai-decision-panel p,
 .asset-generation-card p {
   color: var(--theme-muted) !important;
-}
-
-body[data-theme="dark"] .ai-core-orb {
-  color: #f4f7fb;
-  border-color: rgba(255, 255, 255, 0.16);
-  background:
-    radial-gradient(circle at 34% 24%, rgba(255, 255, 255, 0.45), transparent 12%),
-    radial-gradient(circle at 60% 68%, rgba(154, 160, 255, 0.18), transparent 32%),
-    radial-gradient(circle at center, rgba(25, 25, 27, 0.96), rgba(0, 0, 0, 0.98) 66%);
-  box-shadow:
-    inset 14px 18px 34px rgba(255, 255, 255, 0.08),
-    inset -18px -22px 36px rgba(0, 0, 0, 0.9),
-    0 0 26px rgba(245, 247, 250, 0.16);
-}
-
-body[data-theme="dark"] .ai-core-orb span {
-  color: #dcd8ff;
-  text-shadow: 0 0 22px rgba(205, 202, 255, 0.82);
-}
-
-body[data-theme="dark"] .ai-core-orb strong {
-  color: #f4f7fb;
 }
 
 body[data-theme="dark"] .node-card,

@@ -1,7 +1,4 @@
-import { bindAICoreInteractions } from "../../agent/ai-core-interactions.js";
-
 export function bindFooterEvents({
-  aiCore,
   appRoot,
   canvasWorld,
   projectMenu,
@@ -25,33 +22,12 @@ export function bindFooterEvents({
   setUploadDragDepth = () => {},
   setUploadModeHover = () => {},
   setAICoreState = () => {},
-  updateAICoreDragState = () => {},
   uploadAsReference = () => {},
   viewportPointToWorld = () => ({ x: 0, y: 0 }),
-  getAiCoreDragState = () => null,
-  setAiCoreDragState = () => {},
-  getAiCoreSuppressClick = () => false,
-  setAiCoreSuppressClick = () => {},
-  getAiCoreAgentEnabled = () => false,
-  setAiCoreAgentEnabled = () => {},
-  positionCanvasSuggestionBubble,
-  positionAgentBubble
 } = {}) {
   if (!appRoot || !canvasWorld) return;
 
   const presetSkillPrompt = "Use AI skill for focused generation suggestions.";
-
-  bindAICoreInteractions({
-    aiCore,
-    getDragState: getAiCoreDragState,
-    setDragState: setAiCoreDragState,
-    getSuppressClick: getAiCoreSuppressClick,
-    setSuppressClick: setAiCoreSuppressClick,
-    getEnabled: getAiCoreAgentEnabled,
-    setEnabled: setAiCoreAgentEnabled,
-    positionCanvasSuggestionBubble,
-    positionAgentBubble
-  });
 
   appRoot.addEventListener("click", (event) => {
     if (!event.target.closest("#projectMenu") && !event.target.closest("#projectMenuTrigger")) {
@@ -94,7 +70,6 @@ export function bindFooterEvents({
     if (!event.dataTransfer?.types?.includes("Files")) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = "copy";
-    updateAICoreDragState(event.clientX, event.clientY);
   });
 
   appRoot.addEventListener("drop", (event) => {
@@ -104,7 +79,6 @@ export function bindFooterEvents({
     const point = viewportPointToWorld(event.clientX, event.clientY);
     uploadAsReference(event.dataTransfer.files, point);
     setAICoreState("idle");
-    appRootElement?.classList.remove("ai-core-awake");
     setUploadDragDepth(0);
   });
 
@@ -112,7 +86,6 @@ export function bindFooterEvents({
     hideUploadModeBubbles();
     setPendingUploadChoice(null);
     setUploadModeHover(null);
-    appRootElement?.classList.remove("ai-core-awake");
     setAICoreState("idle");
   });
 

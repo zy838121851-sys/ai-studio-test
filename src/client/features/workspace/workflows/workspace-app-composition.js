@@ -11,8 +11,6 @@ import {
   createWorkspaceCanvasCompositionBundle
 } from "./workspace-canvas-composition.js";
 import {
-  createWorkspaceAICoreControllerCompositionRuntime,
-  createWorkspaceAICoreWorkspaceBundle,
   createWorkspaceDirectorActionCompositionRuntime
 } from "./workspace-agent-composition.js";
 import { createWorkspaceImageEditCompositionBundle } from "./workspace-ai-composition.js";
@@ -115,23 +113,12 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
     if (assetRuntime?.syncRemoteAssets) return assetRuntime.syncRemoteAssets();
     return Promise.resolve(false);
   };
-  const {
-    setAICoreAgentEnabled,
-    positionAgentBubble,
-    positionCanvasSuggestionBubble,
-    setAICoreState,
-    isPointInAICore,
-    updateAICoreDragState
-  } = createWorkspaceAICoreControllerCompositionRuntime({
-    elements: workspaceElements,
-    timers: {
-      getAgentTimer: () => appState.aiCoreAgentTimer,
-      getSuggestionTimer: () => appState.aiCoreSuggestionTimer
-    },
-    setEnabledState: (enabled) => {
-      appState.aiCoreAgentEnabled = enabled;
-    }
-  });
+  const setAICoreAgentEnabled = () => {};
+  const positionAgentBubble = () => {};
+  const positionCanvasSuggestionBubble = () => {};
+  const setAICoreState = () => {};
+  const isPointInAICore = () => false;
+  const updateAICoreDragState = () => {};
 
   const projectHomeRuntime = createWorkspaceProjectHomeCompositionBundle({
     document,
@@ -366,33 +353,11 @@ export function startWorkspaceApp(documentRoot = globalThis.document) {
     getNodeBounds,
     renderStackTray
   };
-  const aiCoreWorkspaceRuntime = createWorkspaceAICoreWorkspaceBundle({
-    elements: workspaceElements,
-    defaults: {
-      directorActions
-    },
-    canvasWorld,
-    canvas: canvasCompositionRuntime,
-    chatRuntime,
-    actions: {
-      setAICoreState,
-      runDirectorAction
-    },
-    services: {
-      inferDirectorProductProfile: aiDeps.inferDirectorProductProfile,
-      getNodeTitle: canvasDeps.getNodeTitle,
-      readImageSourceAsDataUrl: aiDeps.readImageSourceAsDataUrl,
-      readFileAsDataUrl: aiDeps.readFileAsDataUrl,
-      normalizeAnalysis: aiDeps.normalizeCoreAnalysis,
-      postJsonRequest: libDeps.postJsonRequest,
-      getChatModel: () => workspaceElements.chatModelSelect?.dataset?.selectedModelId
-        || workspaceElements.chatModelSelect?.value,
-      findCanvasNodeById: canvasDeps.findCanvasNodeById,
-      escapeHtml: libDeps.escapeHtmlText,
-      ensureCanvasNodeId: canvasDeps.ensureCanvasNodeId,
-      positionBubbleAtAgent: aiDeps.positionBubbleAtAgent
-    }
-  });
+  const aiCoreWorkspaceRuntime = {
+    uploadIntoAICore: (files, point) => canvasGenerationRuntime.addUploadedFiles(files, point, { createDirector: false }),
+    uploadAsReference: (files, point) => canvasGenerationRuntime.addUploadedFiles(files, point, { createDirector: false }),
+    hideAICoreWorkspace: () => {}
+  };
   runImageEditCommand = createWorkspaceImageEditCompositionBundle({
     elements: workspaceElements,
     canvas: canvasCompositionRuntime,

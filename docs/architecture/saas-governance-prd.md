@@ -536,6 +536,48 @@ Task Log 后续任务：
 - CSS 文件职责更清楚。
 - legacy CSS 行数逐步下降。
 
+### 阶段 8.5：失效功能与历史遗留清理治理
+
+状态：持续执行。
+
+目标：
+
+- 将全失效、半失效、被替代、页面不再需要的备用代码纳入长期治理，而不是凭感觉删除。
+- 在不改变现有 UI、交互、生成、上传、保存、项目库、素材库、登录、计费和持久化行为的前提下，持续减少历史遗留代码。
+- 让每一次删除都有静态证据、运行验证、风险分级和清晰回滚点。
+
+审计对象：
+
+- 全失效代码：无静态 import、无 HTML 引用、无 CSS import、无 package script 调用、无动态 import、无字符串路径或全局对象引用、无运行入口。
+- 半失效代码：初始化仍存在，但事件类型不匹配、UI 不可见、动作是 mock、功能链路断开、默认禁用且无用户入口。
+- 页面不再需要的备用代码：旧页面、旧弹窗、旧按钮、旧 panel、旧交互方案、旧视觉风格、旧素材库或项目库备用样式。
+- 历史遗留功能：新方案已经替代，但旧兼容层、状态字段、dataset、CSS selector、空函数、forwarding module 或文档仍残留。
+
+删除分级：
+
+- 高置信可删：静态不可达、无动态引用、无页面引用、无样式引用、检查通过，并且删除后可通过简单 commit revert 回滚。
+- 中风险候选：功能半失效、mock、兼容空壳、备用 UI、旧交互残留，或是否还符合产品方向需要用户确认。
+- 高风险不能删：仍参与生成、保存、上传、项目库、素材库、auth、credits、billing、conversation、AI job、持久化、权限隔离或生产配置链路。
+
+执行流程：
+
+1. 先审计，不删除，输出候选清单和证据。
+2. 每批只处理一个功能域，例如 AI Core 残留、旧 Agent bubble、素材库旧样式、项目库旧样式、task-log 文档债。
+3. 删除前确认候选没有静态 import、HTML 引用、CSS import、package script 调用、动态 import、字符串路径、window 全局对象或服务端暴露依赖。
+4. 半失效功能必须先确认产品方向：继续修复、保留禁用、还是删除。
+5. 涉及 UI、DOM 或 CSS 时，必须有 selector 证据；必要时补浏览器 smoke。
+6. 删除后必须运行 `npm run check` 和 `npm run build`。
+7. 报告必须说明删了什么、为什么能删、什么没删、风险、回滚方式和下一批建议。
+
+验收：
+
+- `scripts/check-client-reachability.js` 通过。
+- CSS 清理后 `scripts/check-style-entry.js` 通过。
+- 启动链路清理后 `scripts/check-browser-startup-lazy-load.js` 通过。
+- 页面上不再出现被删除功能的 DOM/UI。
+- 核心功能行为不变。
+- 生成、上传、保存、项目库、素材库、auth、计费、持久化和 AI job 链路没有被削弱。
+
 ### 阶段 9：后端 SaaS Provider 深化
 
 状态：已有 seam，需增强。
@@ -789,7 +831,8 @@ task-log 文档处理：
 4. 再做检查脚本补强。
 5. 再做后端 provider/service 深化。
 6. 再做 CSS 小范围迁移。
-7. 最后做文档债清理。
+7. 再做失效功能与历史遗留清理。
+8. 最后做文档债清理。
 
 ### 5.2 每轮任务大小
 
@@ -877,6 +920,7 @@ task-log 文档处理：
 5. 合并 task-log 文档，删除冗余文档。
 6. 开始 CSS selector/smoke 检查增强。
 7. 小范围 CSS feature 迁移。
-8. 深化 StorageProvider / JobQueue / RateLimitStore。
-9. 补 API contract 和 UI smoke。
-10. 做 production-like 发布演练。
+8. 审计并小批删除失效功能、半失效功能和历史遗留备用代码。
+9. 深化 StorageProvider / JobQueue / RateLimitStore。
+10. 补 API contract 和 UI smoke。
+11. 做 production-like 发布演练。

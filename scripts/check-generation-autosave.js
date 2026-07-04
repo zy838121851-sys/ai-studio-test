@@ -97,7 +97,7 @@ assert(
   "canvas upload workflow must receive generation autosave service"
 );
 
-const canvasStatusCss = read("styles/legacy-ai-core-workspace.css");
+const canvasStatusCss = read("styles/legacy-canvas.css");
 assert(
   canvasStatusCss.includes("body[data-view=\"canvas\"] .project-header") &&
   canvasStatusCss.includes("z-index: 14000") &&
