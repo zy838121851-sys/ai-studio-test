@@ -120,9 +120,7 @@ const EXPECTED_NODE_BASE_SELECTORS = [
   ".node-expand",
   ".node-download"
 ];
-const EXPECTED_NODE_SELECTORS = [
-  ".node-card.node-zoomed",
-  ".node-loading-image.node-zoomed",
+const EXPECTED_NODE_IMAGE_EDIT_SELECTORS = [
   ".node-image.cropping",
   ".node-image.expanding",
   ".node-crop-layer",
@@ -132,7 +130,11 @@ const EXPECTED_NODE_SELECTORS = [
   ".image-expand-source",
   ".image-expand-actions",
   ".image-expand-prompt-field",
-  ".image-expand-action-row",
+  ".image-expand-action-row"
+];
+const EXPECTED_NODE_SELECTORS = [
+  ".node-card.node-zoomed",
+  ".node-loading-image.node-zoomed",
   ".node-card.selected",
   ".source-badge",
   ".node-label",
@@ -331,6 +333,7 @@ checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/node-base.css", EXPECTED_NODE_BASE_SELECTORS);
+checkFileContains("styles/features/node-image-edit.css", EXPECTED_NODE_IMAGE_EDIT_SELECTORS);
 checkFileContains("styles/features/node.css", EXPECTED_NODE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
 checkFileContains("styles/legacy-canvas.css", EXPECTED_LEGACY_CANVAS_SELECTORS);

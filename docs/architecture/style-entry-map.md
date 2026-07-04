@@ -79,6 +79,7 @@ styles/menu-select-overrides.css
 
 ```text
 styles/features/node-base.css
+styles/features/node-image-edit.css
 ```
 
 ## `/styles` and `/assets/styles`
@@ -193,10 +194,13 @@ Notes:
 - `features/node-base.css` owns base node/card/resize/action styles that were
   moved out of `legacy-node.css`; it is imported at the top of
   `features/node.css`.
+- `features/node-image-edit.css` owns crop controls, expand controls, and
+  crop/expand edit-state visibility suppression; it is imported by
+  `features/node.css` immediately after node base styles to preserve the
+  previous cascade position.
 - `features/node.css` owns generic node zoom/selected/source/label state styles,
   image node toolbar and canvas asset savebar styles, image text panel styles,
-  image lightbox styles, stack/folded node styles, director node styles, crop
-  controls, expand controls, crop/expand edit-state visibility suppression,
+  image lightbox styles, stack/folded node styles, director node styles,
   image/video/model media node preview styles, generation preview frame styles,
   image generator node frame/panel styles, tail-end node generator inline edit
   controls, and media/model/video preview helpers.
@@ -223,6 +227,7 @@ styles/features/assets.css
 styles/features/chat.css
 styles/features/home.css
 styles/features/node-base.css
+styles/features/node-image-edit.css
 styles/features/node.css
 styles/features/project-library.css
 styles/components.css
@@ -270,8 +275,9 @@ Additional caution:
 - Keep `scripts/check-style-entry.js` as the static CSS entry and selector guard.
   It now checks key selectors for feature CSS plus the legacy canvas and chat
   modules, including migrated node base selectors in `features/node-base.css`
-  and migrated node selectors in `features/node.css`; it also keeps
-  compatibility shims such as `legacy-node.css` outside the active import graph.
+  migrated image edit selectors in `features/node-image-edit.css`, and migrated
+  node selectors in `features/node.css`; it also keeps compatibility shims such
+  as `legacy-node.css` outside the active import graph.
 - Move one feature area at a time from legacy files into a clearer structure.
 - Start with documentation and smoke checks before moving selectors.
 - Prefer feature grouping such as:
