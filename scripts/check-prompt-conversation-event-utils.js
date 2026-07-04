@@ -8,6 +8,7 @@ import {
   applyPromptOptimizedDebugState,
   applyPromptOptimizerStartDebugState,
   buildConversationAgentResult,
+  buildConversationIntentEventResult,
   buildConversationIntentState,
   buildConversationDoneDebugPayload,
   buildMissingProjectConversationResult,
@@ -537,6 +538,56 @@ assert(currentFallbackState.imageAnalysis.source === "current", "Message done st
 assert(currentFallbackState.imageAnalysisError === "current-analysis-error", "Message done state should keep current image errors when event is empty");
 assert(currentFallbackState.shouldGenerate === false, "Message done state should keep current generation decisions when event is empty");
 assert(currentFallbackState.outputType === "image", "Message done state should keep current output types when event is empty");
+
+const intentEventResult = buildConversationIntentEventResult({
+  intent: "generate_video",
+  taskType: "video-task",
+  promptStrategy: "storyboard",
+  strategyTags: ["event-tag"],
+  qwenVlMode: "event-vl",
+  promptOptimizerMode: "event-optimizer",
+  shouldGenerate: true,
+  generationType: "video"
+}, {
+  intent: "chat",
+  taskType: "current-task",
+  promptStrategy: "current-strategy",
+  qwenVlMode: "current-vl",
+  promptOptimizerMode: "current-optimizer",
+  shouldGenerate: false,
+  outputType: "image"
+}, {
+  autoExecute: true,
+  strategyTags: ["debug-tag"]
+});
+assert(intentEventResult.state.intent === "generate_video", "Intent event results should expose merged intent state");
+assert(intentEventResult.state.outputType === "video", "Intent event results should preserve generation types");
+assert(intentEventResult.logPayload.intent === "generate_video", "Intent event logs should preserve intents");
+assert(intentEventResult.logPayload.taskType === "video-task", "Intent event logs should preserve task types");
+assert(intentEventResult.logPayload.promptStrategy === "storyboard", "Intent event logs should preserve prompt strategies");
+assert(intentEventResult.logPayload.strategyTags[0] === "event-tag", "Intent event logs should prefer event strategy tags");
+assert(intentEventResult.logPayload.shouldGenerate === true, "Intent event logs should preserve generation decisions");
+assert(intentEventResult.logPayload.generationType === "video", "Intent event logs should preserve generation types");
+assert(intentEventResult.logPayload.qwenVlMode === "event-vl", "Intent event logs should preserve VL modes");
+assert(intentEventResult.logPayload.promptOptimizerMode === "event-optimizer", "Intent event logs should preserve optimizer modes");
+assert(intentEventResult.shouldNotifyGenerateIntent === true, "Intent event results should notify when generation auto execution is enabled");
+assert(intentEventResult.generateIntentPayload.intent === "generate_video", "Intent notification payloads should preserve intents");
+assert(intentEventResult.generateIntentPayload.outputType === "video", "Intent notification payloads should preserve output types");
+assert(intentEventResult.generateIntentPayload.qwenVlMode === "event-vl", "Intent notification payloads should preserve VL modes");
+assert(
+  intentEventResult.generateIntentPayload.promptOptimizerMode === "event-optimizer",
+  "Intent notification payloads should preserve optimizer modes"
+);
+
+const intentEventNoNotifyResult = buildConversationIntentEventResult({
+  intent: "generate_image",
+  shouldGenerate: true
+}, {}, {
+  autoExecute: false,
+  strategyTags: ["debug-tag"]
+});
+assert(intentEventNoNotifyResult.shouldNotifyGenerateIntent === false, "Intent event results should respect disabled auto execution");
+assert(intentEventNoNotifyResult.logPayload.strategyTags[0] === "debug-tag", "Intent event logs should fall back to debug strategy tags");
 
 const messageDoneDebugRecord = { strategyTags: ["existing"] };
 assert(

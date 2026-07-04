@@ -109,6 +109,7 @@ import {
   applyPromptOptimizedDebugState,
   applyPromptOptimizerStartDebugState,
   buildConversationAgentResult,
+  buildConversationIntentEventResult,
   buildConversationIntentState,
   buildConversationDoneDebugPayload,
   buildMissingProjectConversationResult,
@@ -1336,7 +1337,7 @@ async function runConversationAgent({
       return;
     }
     if (event.type === "agent.intent") {
-      const intentState = buildConversationIntentState(event, {
+      const intentResult = buildConversationIntentEventResult(event, {
         intent,
         taskType,
         promptStrategy,
@@ -1344,7 +1345,11 @@ async function runConversationAgent({
         promptOptimizerMode,
         shouldGenerate,
         outputType
+      }, {
+        autoExecute: CHAT_AGENT_CONFIG.autoExecute,
+        strategyTags: debugRecord?.strategyTags || []
       });
+      const intentState = intentResult.state;
       ({
         intent,
         taskType,
@@ -1357,23 +1362,9 @@ async function runConversationAgent({
       if (debugRecord) {
         applyConversationIntentDebugState(debugRecord, intentState, { includeStrategyTags: true });
       }
-      logAgentDebug(debugRecord, "conversation.intent", {
-        intent,
-        taskType,
-        promptStrategy,
-        strategyTags: intentState.nextStrategyTags || debugRecord?.strategyTags || [],
-        shouldGenerate,
-        generationType: outputType,
-        qwenVlMode,
-        promptOptimizerMode
-      });
-      if (shouldGenerate && CHAT_AGENT_CONFIG.autoExecute && typeof onShouldGenerateIntent === "function") {
-        onShouldGenerateIntent({
-          intent,
-          outputType,
-          qwenVlMode,
-          promptOptimizerMode
-        });
+      logAgentDebug(debugRecord, "conversation.intent", intentResult.logPayload);
+      if (intentResult.shouldNotifyGenerateIntent && typeof onShouldGenerateIntent === "function") {
+        onShouldGenerateIntent(intentResult.generateIntentPayload);
       }
       updateAgentDebugPanel(debugRecord);
       return;

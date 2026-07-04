@@ -269,6 +269,33 @@ export function buildConversationIntentState(event = {}, current = {}) {
   };
 }
 
+export function buildConversationIntentEventResult(event = {}, current = {}, {
+  autoExecute = false,
+  strategyTags = []
+} = {}) {
+  const state = buildConversationIntentState(event, current);
+  return {
+    state,
+    logPayload: {
+      intent: state.intent,
+      taskType: state.taskType,
+      promptStrategy: state.promptStrategy,
+      strategyTags: state.nextStrategyTags || strategyTags,
+      shouldGenerate: state.shouldGenerate,
+      generationType: state.outputType,
+      qwenVlMode: state.qwenVlMode,
+      promptOptimizerMode: state.promptOptimizerMode
+    },
+    shouldNotifyGenerateIntent: Boolean(state.shouldGenerate && autoExecute),
+    generateIntentPayload: {
+      intent: state.intent,
+      outputType: state.outputType,
+      qwenVlMode: state.qwenVlMode,
+      promptOptimizerMode: state.promptOptimizerMode
+    }
+  };
+}
+
 export function applyConversationIntentDebugState(debugRecord, state = {}, {
   includeStrategyTags = false
 } = {}) {
