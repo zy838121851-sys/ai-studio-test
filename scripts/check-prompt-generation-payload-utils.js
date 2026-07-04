@@ -1,5 +1,6 @@
 import {
   buildPromptGenerationPayload,
+  isPromptVideoGeneration,
   isPromptGenerationPayloadMissing,
   resolvePromptAgentGenerationType,
   resolvePromptGenerationType
@@ -17,6 +18,10 @@ assert(resolvePromptAgentGenerationType("3d") === "3d", "Prompt agent generation
 assert(resolvePromptAgentGenerationType("video") === "video", "Prompt agent generation type should preserve video model types");
 assert(resolvePromptAgentGenerationType("image") === "image", "Prompt agent generation type should preserve image model types");
 assert(resolvePromptAgentGenerationType("unknown") === "image", "Prompt agent generation type should fall back to image for unknown model types");
+assert(isPromptVideoGeneration({ modelType: "video", outputType: "" }), "Prompt video generation should accept video model types");
+assert(isPromptVideoGeneration({ modelType: "image", outputType: "video" }), "Prompt video generation should accept video output intents");
+assert(!isPromptVideoGeneration({ modelType: "image", outputType: "image" }), "Prompt video generation should reject image-only requests");
+assert(!isPromptVideoGeneration({}), "Prompt video generation should default to false");
 
 const calls = [];
 const payload = buildPromptGenerationPayload({

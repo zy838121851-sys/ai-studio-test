@@ -73,6 +73,7 @@ import {
 } from "./prompt-generation-metrics-utils.js";
 import {
   buildPromptGenerationPayload,
+  isPromptVideoGeneration,
   isPromptGenerationPayloadMissing,
   resolvePromptAgentGenerationType,
   resolvePromptGenerationType
@@ -544,7 +545,7 @@ export function bindPromptSubmit({
         if (typeof addGenerationPreview !== "function") {
           throw new Error("missing createPreview function");
         }
-        const videoModel = getModelType(model) === "video" || outputType === "video";
+        const videoModel = isPromptVideoGeneration({ modelType: getModelType(model), outputType });
         const target = viewportPointToWorld(
           resolvedCanvasViewport.getBoundingClientRect().left + resolvedCanvasViewport.clientWidth / 2,
           resolvedCanvasViewport.getBoundingClientRect().top + resolvedCanvasViewport.clientHeight / 2
@@ -874,7 +875,10 @@ export function bindPromptSubmit({
       progress = conversationResult.message || (typeof addChatBlocks === "function" ? null : addChat("assistant", "Generating result..."));
       progress?.classList?.add("loading");
       const generationPrompt = conversationResult.optimizedPrompt || prompt;
-      const videoModel = getModelType(model) === "video" || conversationResult.outputType === "video";
+      const videoModel = isPromptVideoGeneration({
+        modelType: getModelType(model),
+        outputType: conversationResult.outputType
+      });
       const generationType = resolvePromptGenerationType(videoModel);
       if (videoModel && typeof replacePreviewWithVideo !== "function") {
         logMessageDoneGenerationDecision(agentDebug, markAgentGuardSkip(agentDebug, "skipped because missing replacePreviewWithVideo"));

@@ -8,6 +8,10 @@ export function resolvePromptAgentGenerationType(modelType = "") {
   return "image";
 }
 
+export function isPromptVideoGeneration({ modelType = "", outputType = "" } = {}) {
+  return modelType === "video" || outputType === "video";
+}
+
 export function buildPromptGenerationPayload({
   buildChatImagePayload,
   model,
