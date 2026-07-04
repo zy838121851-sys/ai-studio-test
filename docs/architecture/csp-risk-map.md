@@ -2,11 +2,11 @@
 
 Date: 2026-07-04
 
-This document records the current Content Security Policy risk surface before
-any CSP tightening. It is evidence-only and does not change runtime behavior,
-UI, or interaction.
+This document records the current Content Security Policy risk surface and the
+staged tightening path. It is evidence-focused and must not be used to justify
+UI or interaction changes.
 
-## Current CSP
+## Current Production CSP
 
 Source: `src/server/index.js`
 
@@ -15,23 +15,28 @@ default-src 'self'
 base-uri 'self'
 object-src 'none'
 frame-ancestors 'self'
-script-src 'self' 'unsafe-inline' 'unsafe-eval'
+script-src 'self' 'unsafe-inline'
 style-src 'self' 'unsafe-inline'
 img-src 'self' data: blob: https: http:
 media-src 'self' data: blob: https: http:
 connect-src 'self' https: http:
 ```
 
+Development/test CSP may still include `script-src 'unsafe-eval'` for tooling
+compatibility. Production CSP must not include `unsafe-eval`.
+
 Existing gate:
 
 - `scripts/check-security-headers.js` verifies baseline headers.
 - Default mode passes but reports known risks.
-- Strict mode currently fails because the policy still allows:
+- Strict mode currently fails because the default test policy still allows:
   - `unsafe-inline`
   - `unsafe-eval`
   - `http:` in `img-src`
   - `http:` in `media-src`
   - `http:` in `connect-src`
+- `scripts/check-csp-production-policy.js` verifies production CSP does not
+  include `unsafe-eval` and that the browser startup reaches `app-ready`.
 
 Strict evidence command:
 
@@ -108,13 +113,17 @@ Risk:
 - `unsafe-eval` may be legacy allowance or dev-server allowance rather than a
   production need.
 
-Likely mitigation path:
+Status:
 
-1. Add a production-like browser smoke that runs with `SECURITY_HEADERS_STRICT=1`
-   after temporarily removing only `unsafe-eval`.
-2. If production build boots and core flows pass, remove `unsafe-eval` from
-   production CSP first.
-3. Keep dev-only allowances separate if Vite dev tooling needs them.
+- Production CSP no longer includes `unsafe-eval`.
+- Development/test CSP may still include it.
+
+Remaining mitigation path:
+
+1. Keep `scripts/check-csp-production-policy.js` in `npm run check`.
+2. Investigate whether development/test still needs `unsafe-eval`.
+3. Remove the non-production allowance only after local dev tooling and browser
+   startup checks prove it is unnecessary.
 
 ### 3. `style-src 'unsafe-inline'`
 
@@ -183,15 +192,14 @@ Likely mitigation path:
 
 ## Recommended Tightening Order
 
-1. Remove `unsafe-eval` from production CSP after a production-like boot smoke.
-2. Remove `http:` from `connect-src` in production.
-3. Remove `http:` from `img-src` and `media-src` after media URL normalization
+1. Remove `http:` from `connect-src` in production.
+2. Remove `http:` from `img-src` and `media-src` after media URL normalization
    and legacy snapshot restore checks.
-4. Replace static inline style attributes in `index.html`.
-5. Gradually reduce runtime generated inline style dependencies by feature.
-6. Replace or hash/nonce the inline import map.
-7. Remove `script-src 'unsafe-inline'`.
-8. Remove `style-src 'unsafe-inline'`.
+3. Replace static inline style attributes in `index.html`.
+4. Gradually reduce runtime generated inline style dependencies by feature.
+5. Replace or hash/nonce the inline import map.
+6. Remove `script-src 'unsafe-inline'`.
+7. Remove `style-src 'unsafe-inline'`.
 
 ## Gates Before Any CSP Change
 
@@ -213,7 +221,7 @@ Before changing `src/server/index.js` CSP:
 
 ## Current Decision
 
-Do not tighten CSP in the same stage as this map. The next safe implementation
-stage is a narrowly scoped production-only CSP change with a matching check,
-starting with `unsafe-eval` because current source evidence shows no direct
-runtime dependency.
+The first safe implementation stage has been completed: production CSP removes
+`unsafe-eval`, while development/test CSP is unchanged. The next safe
+implementation stage is production-only removal of `http:` from `connect-src`
+with a matching browser/API check.

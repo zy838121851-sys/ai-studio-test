@@ -133,18 +133,26 @@ function securityHeaders(_req, res, next) {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
   res.setHeader("X-Frame-Options", "SAMEORIGIN");
-  res.setHeader("Content-Security-Policy", [
+  res.setHeader("Content-Security-Policy", buildContentSecurityPolicy());
+  next();
+}
+
+function buildContentSecurityPolicy() {
+  const scriptSources = ["'self'", "'unsafe-inline'"];
+  if (env.nodeEnv !== "production") {
+    scriptSources.push("'unsafe-eval'");
+  }
+  return [
     "default-src 'self'",
     "base-uri 'self'",
     "object-src 'none'",
     "frame-ancestors 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
+    `script-src ${scriptSources.join(" ")}`,
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: blob: https: http:",
     "media-src 'self' data: blob: https: http:",
     "connect-src 'self' https: http:"
-  ].join("; "));
-  next();
+  ].join("; ");
 }
 
 function noStoreStatic(res) {
