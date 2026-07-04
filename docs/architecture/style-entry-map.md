@@ -51,6 +51,7 @@ styles/legacy-split.css
 
 ```text
 styles/workspace-layout.css
+styles/features/ai-core.css
 styles/features/project-library.css
 ```
 
@@ -197,6 +198,7 @@ styles.css
 styles/globals.css
 styles/workspace.css
 styles/workspace-layout.css
+styles/features/ai-core.css
 styles/features/project-library.css
 styles/components.css
 styles/image-compare.css

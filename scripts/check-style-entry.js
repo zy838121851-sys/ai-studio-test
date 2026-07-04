@@ -14,6 +14,7 @@ const EXPECTED_STYLES_IMPORTS = [
 ];
 const EXPECTED_WORKSPACE_IMPORTS = [
   "./workspace-layout.css",
+  "./features/ai-core.css",
   "./features/project-library.css"
 ];
 const EXPECTED_LEGACY_SPLIT_IMPORTS = [
@@ -44,6 +45,15 @@ const EXPECTED_PROJECT_LIBRARY_SELECTORS = [
   ".project-card-board",
   ".library-small-card",
   "body[data-view=\"library\"] .project-card-board"
+];
+const EXPECTED_AI_CORE_SELECTORS = [
+  ".ai-core",
+  ".ai-core-orb",
+  ".canvas-ai-suggestions",
+  ".ai-core-workspace",
+  ".ai-suggestion-panel",
+  ".ai-core-stage",
+  "@keyframes aiCoreSenseWave"
 ];
 
 const errors = [];
@@ -192,6 +202,7 @@ checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(legacySplitImports, "styles");
 checkCssReachability();
+checkFileContains("styles/features/ai-core.css", EXPECTED_AI_CORE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
 
 if (errors.length > 0) {
