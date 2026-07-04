@@ -558,11 +558,12 @@ export function createImageGeneratorWorkflow({
             dimensions
           })),
           onProgress: (payload) => {
-            const progress = Number(payload?.progress || 0);
             previewNodes.forEach((previewNode, index) => {
-              updatePreviewStatus(previewNode, progress > 0
-                ? `正在等待第 ${index + 1}/${count} 张结果 (${Math.min(99, progress)}%)`
-                : `正在等待第 ${index + 1}/${count} 张结果`);
+              const waitingText = `正在等待第 ${index + 1}/${count} 张结果`;
+              updatePreviewStatus(previewNode, getGeneratorProgressStatusText(payload?.progress, {
+                idleText: waitingText,
+                activeText: waitingText
+              }));
             });
           }
         });

@@ -733,6 +733,20 @@ assert(
   }) === "Waiting for video result (99%)",
   "generator progress status helper should cap progress at 99 percent"
 );
+assert(
+  getGeneratorProgressStatusText(0, {
+    idleText: "正在等待第 2/4 张结果",
+    activeText: "正在等待第 2/4 张结果"
+  }) === "正在等待第 2/4 张结果",
+  "generator progress status helper should preserve Midjourney idle text"
+);
+assert(
+  getGeneratorProgressStatusText(58, {
+    idleText: "正在等待第 2/4 张结果",
+    activeText: "正在等待第 2/4 张结果"
+  }) === "正在等待第 2/4 张结果 (58%)",
+  "generator progress status helper should format Midjourney progress text"
+);
 assert(getGeneratorPreviewDescription("", 0, 1) === "正在生成图片", "promptless generator preview description should stay stable");
 assert(getGeneratorPreviewDescription("A prompt", 0, 1) === "正在根据当前提示生成结果", "prompt generator preview description should stay stable");
 assert(getGeneratorPreviewDescription("A prompt", 1, 3) === "正在生成第 2/3 张", "multi preview description should include one-based progress");
