@@ -23,11 +23,17 @@ export function initHomeInspirationFeed(root = document) {
   let activeChannel = "all";
   let lastScrollTop = homeView.scrollTop;
 
-  const getChannelMeta = () => Array.from(channelStrip?.querySelectorAll("button[data-channel]") || []).map((button) => ({
-    id: button.dataset.channel,
-    label: button.textContent.trim(),
-    tone: button.querySelector("i")?.style.getPropertyValue("--tone") || FALLBACK_CHANNEL.tone
-  }));
+  const getChannelMeta = () => Array.from(channelStrip?.querySelectorAll("button[data-channel]") || []).map((button) => {
+    const toneSource = button.querySelector("i");
+    const tone = toneSource
+      ? getComputedStyle(toneSource).getPropertyValue("--tone").trim() || toneSource.style.getPropertyValue("--tone")
+      : "";
+    return {
+      id: button.dataset.channel,
+      label: button.textContent.trim(),
+      tone: tone || FALLBACK_CHANNEL.tone
+    };
+  });
 
   const resolveCardChannel = (index) => {
     const channels = getChannelMeta();

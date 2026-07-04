@@ -81,8 +81,8 @@ Findings:
 - `index.html` contains an inline import map and the external module boot script:
   - `index.html:9` inline `<script type="importmap">`
   - `index.html:750` `<script type="module" src="./app.js?...">`
-- `index.html` contains inline style attributes for channel color tokens:
-  - `index.html:221-231`
+- `index.html` channel color tokens no longer use inline style attributes; they
+  are mapped through `home-channel-tone-*` classes.
 - Runtime templates still contain inline style attributes and generated HTML:
   - `src/client/features/projects/components/project-library.js`
   - `src/client/features/canvas/workflows/canvas-menu-actions.js`
@@ -138,7 +138,8 @@ Remaining mitigation path:
 
 Known dependencies:
 
-- Static inline `style=` attributes in `index.html`.
+- Static `index.html` channel token inline styles have been replaced with
+  classes, but runtime templates still contain inline style attributes.
 - Runtime generated `style=` attributes for swatches, snapshot/export markup,
   project cards, and generated canvas/export HTML.
 - Runtime `.style` and `cssText` writes are still used for canvas geometry,
@@ -151,17 +152,18 @@ Risk:
 
 Likely mitigation path:
 
-1. Replace low-risk static inline style attributes with classes or data
-   attributes.
-2. Keep runtime style generation isolated behind helper APIs.
-3. Add selector/visual smoke for the edited feature before removing inline style.
+1. Keep runtime style generation isolated behind helper APIs.
+2. Add selector/visual smoke for the edited feature before removing inline style.
+3. Continue replacing low-risk runtime template inline styles with classes or
+   data attributes.
 4. Remove `unsafe-inline` from `style-src` only after runtime templates no
    longer depend on inline style attributes.
 
 Current gate:
 
-- `scripts/check-inline-style-surface.js` allows the existing surface but blocks
-  new inline style dependency files or count growth.
+- `scripts/check-inline-style-surface.js` allows the existing runtime surface
+  but blocks new inline style dependency files, `index.html` reintroductions, or
+  count growth.
 
 ### 4. `img-src http:` and `media-src http:`
 
@@ -215,11 +217,10 @@ Remaining mitigation path:
 
 ## Recommended Tightening Order
 
-1. Replace static inline style attributes in `index.html`.
-2. Gradually reduce runtime generated inline style dependencies by feature.
-3. Replace or hash/nonce the inline import map.
-4. Remove `script-src 'unsafe-inline'`.
-5. Remove `style-src 'unsafe-inline'`.
+1. Gradually reduce runtime generated inline style dependencies by feature.
+2. Replace or hash/nonce the inline import map.
+3. Remove `script-src 'unsafe-inline'`.
+4. Remove `style-src 'unsafe-inline'`.
 
 ## Gates Before Any CSP Change
 

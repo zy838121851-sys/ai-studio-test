@@ -6,14 +6,14 @@ const SCAN_ROOTS = ["index.html", "app.js", "src/client", "src/server"];
 const SOURCE_EXTENSIONS = new Set([".html", ".js"]);
 
 const BASELINE_MAX = {
-  inlineAttribute: 32,
+  inlineAttribute: 21,
   styleSetAttribute: 7,
   styleProperty: 299,
   cssText: 2
 };
+const BASELINE_FILE_MAX = 53;
 
 const ALLOWED_FILES = new Set([
-  "index.html",
   "src/client/features/agent/agent-actions.js",
   "src/client/features/agent/agent-ui.js",
   "src/client/features/agent/ai-core-interactions.js",
@@ -101,8 +101,8 @@ for (const [key, max] of Object.entries(BASELINE_MAX)) {
   }
 }
 
-if (filesWithInlineStyle.length > ALLOWED_FILES.size) {
-  errors.push(`Inline style file count increased: expected <= ${ALLOWED_FILES.size}, got ${filesWithInlineStyle.length}`);
+if (filesWithInlineStyle.length > BASELINE_FILE_MAX) {
+  errors.push(`Inline style file count increased: expected <= ${BASELINE_FILE_MAX}, got ${filesWithInlineStyle.length}`);
 }
 
 if (errors.length) {

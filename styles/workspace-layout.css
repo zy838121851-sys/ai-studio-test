@@ -1960,6 +1960,50 @@ body.canvas-entering .chat-panel {
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.36), 0 8px 18px rgba(31, 46, 72, 0.16);
 }
 
+.home-channel-tone-xr {
+  --tone: #8b5cf6;
+}
+
+.home-channel-tone-reality-scan {
+  --tone: #0ea5e9;
+}
+
+.home-channel-tone-game-art {
+  --tone: #22c55e;
+}
+
+.home-channel-tone-archviz {
+  --tone: #f97316;
+}
+
+.home-channel-tone-pixel-voxel {
+  --tone: #06b6d4;
+}
+
+.home-channel-tone-character-animation {
+  --tone: #f59e0b;
+}
+
+.home-channel-tone-matte-painting {
+  --tone: #a855f7;
+}
+
+.home-channel-tone-fantasy {
+  --tone: #2563eb;
+}
+
+.home-channel-tone-kids-art {
+  --tone: #ec4899;
+}
+
+.home-channel-tone-twinmotion {
+  --tone: #14b8a6;
+}
+
+.home-channel-tone-abstract {
+  --tone: #ef4444;
+}
+
 .home-channel-scroll {
   position: absolute;
   top: 50%;
