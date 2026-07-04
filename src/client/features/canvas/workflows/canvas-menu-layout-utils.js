@@ -38,6 +38,11 @@ export function getRectUnionBounds(rects = []) {
   };
 }
 
+export function getNodesUnionBounds(nodes = []) {
+  const rects = nodes.map(getNodeLayoutBounds);
+  return getRectUnionBounds(rects);
+}
+
 export function getNodeSortIndex(node) {
   const idNumber = Number(String(node.dataset.nodeId || "").replace(/\D+/g, ""));
   if (Number.isFinite(idNumber)) return idNumber;

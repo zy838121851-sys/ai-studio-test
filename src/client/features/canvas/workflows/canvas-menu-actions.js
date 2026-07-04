@@ -7,7 +7,7 @@ import {
   layoutNodesInCompactGallery,
   normalizeNodesByMode,
   reorderLayerNodesByMode,
-  getRectUnionBounds,
+  getNodesUnionBounds,
   getViewportUnionRect,
   getViewportCenterWorldPoint,
   getLayerOrderedNodes,
@@ -1066,11 +1066,6 @@ async function buildNodesSvg(nodes) {
     </body>
   </foreignObject>
 </svg>`.trim();
-}
-
-function getNodesUnionBounds(nodes) {
-  const rects = nodes.map(getNodeLayoutBounds);
-  return getRectUnionBounds(rects);
 }
 
 async function buildNodeSvg(node) {

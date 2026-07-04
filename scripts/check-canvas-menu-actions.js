@@ -23,6 +23,7 @@ import {
   getLayoutUnionBounds,
   getNodeLayoutBounds,
   getNodeSortIndex,
+  getNodesUnionBounds,
   layoutNodesByColumns,
   layoutNodesByRows,
   layoutNodesInCompactGallery,
@@ -116,6 +117,7 @@ assertIncludes(menuLayoutUtils, "export function getLayerOrderedNodes", "canvas 
 assertIncludes(menuLayoutUtils, "export function getLayoutUnionBounds", "canvas layout union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getNodeLayoutBounds", "canvas node layout bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node sort index must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function getNodesUnionBounds", "canvas node union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function layoutNodesInCompactGallery", "canvas compact gallery layout must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function layoutNodesByRows", "canvas row layout must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function layoutNodesByColumns", "canvas column layout must live in layout utils");
@@ -337,7 +339,7 @@ assert(rectUnionBounds.width === 37, "rect union bounds should ceil total width"
 assert(rectUnionBounds.height === 37, "rect union bounds should ceil total height");
 assert(getRectUnionBounds([]).width === 1, "rect union bounds should preserve empty input width fallback");
 assert(getRectUnionBounds([]).height === 1, "rect union bounds should preserve empty input height fallback");
-assertIncludes(menuActions, "return getRectUnionBounds(rects);", "node union bounds should reuse rect union calculation");
+assertIncludes(menuLayoutUtils, "return getRectUnionBounds(rects);", "node union bounds should reuse rect union calculation");
 
 assert(parseAspectRatio("16 / 9") === 16 / 9, "aspect ratio parser should support ratio strings");
 assert(parseAspectRatio("1.5") === 1.5, "aspect ratio parser should support numeric strings");
@@ -361,6 +363,28 @@ try {
   const plainBounds = getNodeLayoutBounds(plainLayoutNode);
   assert(plainBounds.x === 12.5 && plainBounds.y === 0, "node layout bounds should parse position styles");
   assert(plainBounds.width === 240 && plainBounds.height === 48, "node layout bounds should prefer offset height and style width fallback");
+
+  const nodeUnionBounds = getNodesUnionBounds([
+    {
+      offsetWidth: 0,
+      offsetHeight: 20,
+      style: { left: "10px", top: "30px", width: "40px", minHeight: "20px" },
+      classList: { contains: () => false }
+    },
+    {
+      offsetWidth: 0,
+      offsetHeight: 60,
+      style: { left: "-5px", top: "10px", width: "20px", minHeight: "60px" },
+      classList: { contains: () => false }
+    }
+  ]);
+  assert(
+    nodeUnionBounds.x === -5
+      && nodeUnionBounds.y === 10
+      && nodeUnionBounds.width === 55
+      && nodeUnionBounds.height === 60,
+    "node union bounds should derive rect union from layout bounds"
+  );
 
   const imageFrame = {
     offsetWidth: 320,
