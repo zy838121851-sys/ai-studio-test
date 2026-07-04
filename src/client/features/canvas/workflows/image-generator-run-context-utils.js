@@ -45,6 +45,35 @@ export function applyGeneratorCreatedNodeMetadata(createdNode, {
   return createdNode;
 }
 
+export function registerGeneratorCreatedNode(createdNode, {
+  createdNodes = [],
+  firstSuccessfulNode = null,
+  sourceNodeId = "",
+  index = 0,
+  count = 1,
+  trackBatch = false
+} = {}) {
+  if (!createdNode) {
+    return {
+      createdNode: null,
+      createdNodes,
+      firstSuccessfulNode
+    };
+  }
+  applyGeneratorCreatedNodeMetadata(createdNode, {
+    sourceNodeId,
+    index,
+    count,
+    trackBatch
+  });
+  if (Array.isArray(createdNodes)) createdNodes.push(createdNode);
+  return {
+    createdNode,
+    createdNodes,
+    firstSuccessfulNode: firstSuccessfulNode || createdNode
+  };
+}
+
 function normalizeGeneratorRunDimensions(dimensions = {}) {
   const width = Number(dimensions?.width || 0);
   const height = Number(dimensions?.height || 0);

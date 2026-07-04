@@ -69,7 +69,8 @@ import {
 } from "../src/client/features/canvas/workflows/image-generator-debug-log-utils.js";
 import {
   applyGeneratorCreatedNodeMetadata,
-  buildGeneratorRunContext
+  buildGeneratorRunContext,
+  registerGeneratorCreatedNode
 } from "../src/client/features/canvas/workflows/image-generator-run-context-utils.js";
 
 function read(path) {
@@ -111,9 +112,10 @@ assert(
     && generatorWorkflow.includes("resolveGeneratorModelValue")
     && generatorWorkflow.includes("syncGeneratorFrameStateToRatio")
     && generatorWorkflow.includes("buildGeneratorRunContext")
-    && generatorWorkflow.includes("applyGeneratorCreatedNodeMetadata")
+    && generatorWorkflow.includes("registerGeneratorCreatedNode")
     && generatorRunContextUtils.includes("export function buildGeneratorRunContext")
     && generatorRunContextUtils.includes("export function applyGeneratorCreatedNodeMetadata")
+    && generatorRunContextUtils.includes("export function registerGeneratorCreatedNode")
     && generatorPreviewJobUtils.includes("applyGeneratorPreviewJobMetadata"),
   "generator must tag preview nodes with job ids when async jobs are created"
 );
@@ -870,6 +872,34 @@ assert(
   "generator created-node metadata helper should skip batch metadata when not tracking batches"
 );
 assert(applyGeneratorCreatedNodeMetadata(null) === null, "generator created-node metadata helper should tolerate missing nodes");
+const registeredNodes = [];
+const firstRegisteredNode = { dataset: {} };
+const firstRegistration = registerGeneratorCreatedNode(firstRegisteredNode, {
+  createdNodes: registeredNodes,
+  sourceNodeId: "generator-1",
+  index: 1,
+  count: 3,
+  trackBatch: true
+});
+assert(firstRegistration.createdNode === firstRegisteredNode, "generator created-node registration should return created nodes");
+assert(firstRegistration.firstSuccessfulNode === firstRegisteredNode, "generator created-node registration should keep first successful node");
+assert(registeredNodes.length === 1 && registeredNodes[0] === firstRegisteredNode, "generator created-node registration should append created nodes");
+assert(firstRegisteredNode.dataset.generatorBatchIndex === "2", "generator created-node registration should apply batch metadata");
+const secondRegisteredNode = { dataset: {} };
+const secondRegistration = registerGeneratorCreatedNode(secondRegisteredNode, {
+  createdNodes: registeredNodes,
+  firstSuccessfulNode: firstRegisteredNode,
+  index: 2,
+  count: 3,
+  trackBatch: false
+});
+assert(secondRegistration.firstSuccessfulNode === firstRegisteredNode, "generator created-node registration should preserve existing first successful node");
+assert(registeredNodes.length === 2 && registeredNodes[1] === secondRegisteredNode, "generator created-node registration should append later nodes");
+const missingRegistration = registerGeneratorCreatedNode(null, {
+  createdNodes: registeredNodes,
+  firstSuccessfulNode: firstRegisteredNode
+});
+assert(missingRegistration.firstSuccessfulNode === firstRegisteredNode, "generator created-node registration should tolerate missing nodes");
 assert(
   resolveGeneratorOutputSize({ dataset: { generatorRatio: "16:9" } }) === "1344*768",
   "generator output size helper should prefer node ratio"

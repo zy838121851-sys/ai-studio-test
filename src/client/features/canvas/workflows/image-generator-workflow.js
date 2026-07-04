@@ -413,8 +413,8 @@ export function createImageGeneratorWorkflow({
 
   async function runGeneratorBatch(node, { prompt = "", references = [] } = {}) {
     const {
-      applyGeneratorCreatedNodeMetadata,
-      buildGeneratorRunContext
+      buildGeneratorRunContext,
+      registerGeneratorCreatedNode
     } = await import("./image-generator-run-context-utils.js");
     const model = getGeneratorModel();
     const modelType = getModelType(model);
@@ -477,10 +477,16 @@ export function createImageGeneratorWorkflow({
 
       const createdNodes = [];
       const registerGeneratedNode = (createdNode, index = 0, { trackBatch = false } = {}) => {
-        applyGeneratorCreatedNodeMetadata(createdNode, { sourceNodeId, index, count, trackBatch });
-        createdNodes.push(createdNode);
-        if (!firstSuccessfulNode) firstSuccessfulNode = createdNode;
-        return createdNode;
+        const registration = registerGeneratorCreatedNode(createdNode, {
+          createdNodes,
+          firstSuccessfulNode,
+          sourceNodeId,
+          index,
+          count,
+          trackBatch
+        });
+        firstSuccessfulNode = registration.firstSuccessfulNode;
+        return registration.createdNode;
       };
       const replaceGeneratorImagePreview = (previewNode, url, index = 0) => {
         const createdNode = ensureGeneratorPreviewReplacement(replaceGeneratorImagePreviewNode(previewNode, buildGeneratorImagePreviewReplacementOptions({
