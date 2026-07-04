@@ -847,13 +847,13 @@ if (showAssetPreviewOverlay({
   throw new Error("Asset preview helper should ignore assets without a preview source");
 }
 
-assertContains("styles/workspace-layout.css", [
+assertContains("styles/features/project-library.css", [
   ".library-selection-bar",
   ".library-card-check",
   ".library-small-card.selected"
 ]);
 
-assertContains("styles/legacy-assets.css", [
+assertContains("styles/features/assets.css", [
   ".asset-selection-bar",
   ".asset-card-check",
   ".asset-pinterest-pin.selected"

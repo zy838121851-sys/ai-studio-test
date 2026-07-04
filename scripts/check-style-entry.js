@@ -21,7 +21,6 @@ const EXPECTED_WORKSPACE_IMPORTS = [
 ];
 const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./legacy-base.css",
-  "./legacy-assets.css",
   "./features/assets.css",
   "./legacy-canvas.css",
   "./legacy-canvas-visual.css",
@@ -39,7 +38,9 @@ const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./legacy-ai-core-ambient.css",
   "./menu-select-overrides.css"
 ];
-const ALLOWED_UNREACHABLE_CSS = [];
+const ALLOWED_UNREACHABLE_CSS = [
+  "styles/legacy-assets.css"
+];
 const EXPECTED_PROJECT_LIBRARY_SELECTORS = [
   ".library-shell",
   ".library-title",

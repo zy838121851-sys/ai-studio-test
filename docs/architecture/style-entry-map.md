@@ -61,7 +61,6 @@ styles/features/project-library.css
 
 ```text
 styles/legacy-base.css
-styles/legacy-assets.css
 styles/features/assets.css
 styles/legacy-canvas.css
 styles/legacy-canvas-visual.css
@@ -186,6 +185,9 @@ Notes:
 
 - `legacy-split.css` is the active legacy bundle entry imported by `styles.css`.
 - Most `legacy-*.css` files are still reachable through `legacy-split.css`.
+- `legacy-assets.css` is currently an empty compatibility shim; asset library
+  styles now live in `styles/features/assets.css` and the empty shim is outside
+  the active entry graph.
 - `legacy.css` was previously identified as a low-risk unused compatibility shim,
   but must not be deleted without separate static evidence, runtime verification,
   and a rollback point.
@@ -211,7 +213,6 @@ styles/image-compare.css
 styles/task-log.css
 styles/legacy-split.css
 styles/legacy-base.css
-styles/legacy-assets.css
 styles/legacy-canvas.css
 styles/legacy-canvas-visual.css
 styles/legacy-chat.css
