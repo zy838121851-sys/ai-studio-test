@@ -84,7 +84,8 @@ Post-baseline CSS governance note:
   imports of `legacy-canvas.css`, `legacy-node.css`, and `legacy-chat.css` were
   removed; `scripts/check-style-entry.js` now guards that it stays import-free.
 - `scripts/check-style-entry.js` now guards key selectors in
-  `legacy-canvas.css`, `legacy-node.css`, and `legacy-chat.css` so later
+  `legacy-canvas.css`, `legacy-node.css`, and `legacy-chat.css`; the
+  `legacy-node.css` guard includes crop/expand interaction selectors so later
   feature CSS migrations have a static safety net before visual smoke checks.
 - `styles/features/chat.css` now owns the conversation history popover styles
   that were moved out of `styles/legacy-chat.css`; the selector guard tracks

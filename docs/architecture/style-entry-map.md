@@ -259,8 +259,9 @@ Additional caution:
   runtime. Treat serialization/export/snapshot as the highest-risk category.
 - Keep `scripts/check-style-entry.js` as the static CSS entry and selector guard.
   It now checks key selectors for feature CSS plus the legacy canvas, node, and
-  chat modules, which gives future CSS migrations an automated way to catch
-  dropped runtime hooks before browser smoke checks.
+  chat modules, including crop/expand selectors that remain in
+  `legacy-node.css`, which gives future CSS migrations an automated way to
+  catch dropped runtime hooks before browser smoke checks.
 - Move one feature area at a time from legacy files into a clearer structure.
 - Start with documentation and smoke checks before moving selectors.
 - Prefer feature grouping such as:

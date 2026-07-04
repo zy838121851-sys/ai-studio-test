@@ -114,7 +114,17 @@ const EXPECTED_LEGACY_CANVAS_SELECTORS = [
 const EXPECTED_LEGACY_NODE_SELECTORS = [
   ".node-card",
   ".resize-handle",
-  ".node-card.node-group"
+  ".node-card.node-group",
+  ".node-image.cropping",
+  ".node-image.expanding",
+  ".node-crop-layer",
+  ".crop-box",
+  ".crop-actions",
+  ".image-expand-box",
+  ".image-expand-source",
+  ".image-expand-actions",
+  ".image-expand-prompt-field",
+  ".image-expand-action-row"
 ];
 const EXPECTED_NODE_SELECTORS = [
   ".node-card.node-zoomed",
