@@ -1,5 +1,10 @@
 import { createLocalJobQueue } from "../src/server/providers/queue/local-job-queue.provider.js";
-import { getDefaultJobQueue, isJobActive, scheduleUniqueJob } from "../src/server/services/job-queue.service.js";
+import {
+  createJobQueueKey,
+  getDefaultJobQueue,
+  isJobActive,
+  scheduleUniqueJob
+} from "../src/server/services/job-queue.service.js";
 
 function assert(condition, message) {
   if (!condition) {
@@ -23,6 +28,8 @@ const queue = createLocalJobQueue();
 const defaultQueue = getDefaultJobQueue();
 assert(defaultQueue?.scheduleUnique, "Job queue service should expose a default queue with scheduleUnique");
 assert(defaultQueue?.isActive, "Job queue service should expose a default queue with isActive");
+assert(createJobQueueKey("user-1", "job-1") === "user-1:job-1", "Job queue service should format scoped keys");
+assert(createJobQueueKey("user-1", "", "job-1") === "user-1::job-1", "Job queue service should preserve key parts");
 
 let invalidCalls = 0;
 

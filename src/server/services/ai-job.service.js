@@ -4,7 +4,7 @@ import { prepare, transaction } from "../db/sqlite.js";
 import { normalizePaginationLimit, normalizePaginationOffset } from "../lib/api-pagination.js";
 import { chargeReservedCredits, releaseReservedCredits } from "./credits/credit.service.js";
 import { createGeneratedAsset, createGeneratedAssetFromBuffer, getAsset } from "./asset.service.js";
-import { scheduleUniqueJob } from "./job-queue.service.js";
+import { createJobQueueKey, scheduleUniqueJob } from "./job-queue.service.js";
 import { getApimartTaskStatus } from "./providers/apimart/apimart-task.service.js";
 import { sanitizePromptPreview, stripLargeInputs } from "./providers/apimart/apimart.client.js";
 import { ensureUserWorkspaceWithDb } from "./workspace.service.js";
@@ -153,8 +153,8 @@ export async function refreshAIJob(userId, id) {
 }
 
 export function scheduleAIJobRefresh(userId, id, { attempts = 180, delayMs = 2000 } = {}) {
-  const key = `${userId}:${id}`;
   if (!userId || !id) return;
+  const key = createJobQueueKey(userId, id);
   scheduleUniqueJob(key, () => runScheduledAIJobRefresh(userId, id, { attempts, delayMs }));
 }
 

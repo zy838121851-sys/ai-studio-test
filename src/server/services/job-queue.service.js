@@ -4,6 +4,10 @@ export function getDefaultJobQueue() {
   return localJobQueue;
 }
 
+export function createJobQueueKey(...parts) {
+  return parts.map((part) => String(part ?? "")).join(":");
+}
+
 export function scheduleUniqueJob(key, task) {
   return getDefaultJobQueue().scheduleUnique(key, task);
 }
