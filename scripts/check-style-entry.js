@@ -77,6 +77,10 @@ const EXPECTED_AUTH_SELECTORS = [
   ".auth-submit"
 ];
 const EXPECTED_ASSET_SELECTORS = [
+  ".asset-pinterest-shell",
+  ".asset-pinterest-board",
+  ".asset-pinterest-pin.asset-item",
+  ".asset-pinterest-empty",
   ".asset-board-bar",
   ".asset-board-card",
   ".asset-board-cover",
