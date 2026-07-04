@@ -132,16 +132,25 @@ const EXPECTED_NODE_IMAGE_EDIT_SELECTORS = [
   ".image-expand-prompt-field",
   ".image-expand-action-row"
 ];
-const EXPECTED_NODE_SELECTORS = [
+const EXPECTED_NODE_STATE_SELECTORS = [
   ".node-card.node-zoomed",
   ".node-loading-image.node-zoomed",
   ".node-card.selected",
   ".source-badge",
   ".node-label",
-  "@keyframes sourcePulse",
+  "@keyframes sourcePulse"
+];
+const EXPECTED_NODE_IMAGE_TOOLBAR_SELECTORS = [
   ".image-node-toolbar",
+  ".image-toolbar-menu",
   ".image-toolbar-upscale-controls",
   ".canvas-asset-savebar",
+  ".canvas-asset-board-select",
+  ".canvas-asset-save-submit",
+  ".image-toolbar-label",
+  ".image-toolbar-compare"
+];
+const EXPECTED_NODE_SELECTORS = [
   ".image-text-panel",
   ".image-text-status",
   ".image-text-list",
@@ -334,6 +343,8 @@ checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/node-base.css", EXPECTED_NODE_BASE_SELECTORS);
 checkFileContains("styles/features/node-image-edit.css", EXPECTED_NODE_IMAGE_EDIT_SELECTORS);
+checkFileContains("styles/features/node-state.css", EXPECTED_NODE_STATE_SELECTORS);
+checkFileContains("styles/features/node-image-toolbar.css", EXPECTED_NODE_IMAGE_TOOLBAR_SELECTORS);
 checkFileContains("styles/features/node.css", EXPECTED_NODE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
 checkFileContains("styles/legacy-canvas.css", EXPECTED_LEGACY_CANVAS_SELECTORS);

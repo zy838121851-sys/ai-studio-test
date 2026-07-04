@@ -55,20 +55,20 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 30 | 13,294 |
-| `scripts` | 90 | 18,874 |
+| `styles` | 32 | 13,296 |
+| `scripts` | 90 | 18,885 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
 | 2,273 | `styles/features/assets.css` |
-| 1,904 | `styles/features/node.css` |
 | 1,608 | `scripts/check-api-error-contract.js` |
 | 1,569 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,529 | `styles/legacy-theme-sync.css` |
 | 1,503 | `styles/legacy-canvas.css` |
 | 1,446 | `scripts/check-generator-job-recovery.js` |
+| 1,356 | `styles/features/node.css` |
 | 1,303 | `styles/features/home.css` |
 | 1,252 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,214 | `scripts/check-canvas-menu-actions.js` |
@@ -87,8 +87,9 @@ Post-baseline CSS governance note:
 - `scripts/check-style-entry.js` now guards key selectors in
   `legacy-canvas.css`, `legacy-chat.css`, and feature CSS modules; the node
   selector guards now track migrated node selectors in
-  `styles/features/node-base.css`, `styles/features/node-image-edit.css`, and
-  `styles/features/node.css` so later feature CSS migrations have a static
+  `styles/features/node-base.css`, `styles/features/node-image-edit.css`,
+  `styles/features/node-state.css`, `styles/features/node-image-toolbar.css`,
+  and `styles/features/node.css` so later feature CSS migrations have a static
   safety net before visual smoke checks.
   `legacy-node.css` is currently a compatibility shim with no active selector
   ownership and is intentionally outside the active `legacy-split.css` import
@@ -103,12 +104,16 @@ Post-baseline CSS governance note:
   crop/expand edit-state visibility suppression; it is imported by
   `styles/features/node.css` immediately after node base styles to preserve the
   previous cascade position.
-- `styles/features/node.css` now owns generic node zoom/selected/source/label
-  state styles, image node toolbar and canvas asset savebar styles, image text
-  panel styles, image lightbox styles, stack/folded node styles, director node
-  styles, image/video/model media node preview styles, generation preview frame
-  styles, image generator node frame/panel styles, tail-end node generator
-  inline edit controls, and media/model/video preview helpers.
+- `styles/features/node-state.css` owns generic node zoom/selected/source/label
+  state styles; it is imported before image toolbar styles to preserve the
+  previous cascade position.
+- `styles/features/node-image-toolbar.css` owns image node toolbar, toolbar menu,
+  upscale controls, and canvas asset savebar styles.
+- `styles/features/node.css` now owns image text panel styles, image lightbox
+  styles, stack/folded node styles, director node styles, image/video/model
+  media node preview styles, generation preview frame styles, image generator
+  node frame/panel styles, tail-end node generator inline edit controls, and
+  media/model/video preview helpers.
 - The inactive AI Core runtime and its legacy style modules were removed after
   dead-code audit evidence and check/build verification; `legacy-split.css` no
   longer imports `legacy-ai-core*.css`.
