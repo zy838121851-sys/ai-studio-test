@@ -27,6 +27,7 @@ import {
   applyGeneratedImageNodeResult,
   applyGeneratedImageNodeSize,
   getRequiredGeneratorResultUrl,
+  getRequiredGeneratorResultUrls,
   getGeneratorResultTitle,
   shouldUseImmediateGeneratorResult
 } from "../src/client/features/canvas/workflows/image-generator-result-utils.js";
@@ -694,6 +695,21 @@ try {
 assert(
   missingRequiredGeneratorVideoUrlError?.message === "Model returned without a video URL (jobId=job-2, status=succeeded)",
   "generator required result helper should preserve missing video URL errors"
+);
+assert(
+  JSON.stringify(getRequiredGeneratorResultUrls({ urls: ["/uploads/1.png", "/uploads/2.png", "/uploads/3.png"] }, 2))
+    === JSON.stringify(["/uploads/1.png", "/uploads/2.png"]),
+  "generator required result URLs helper should preserve batch truncation"
+);
+let missingMidjourneyResultUrlsError = null;
+try {
+  getRequiredGeneratorResultUrls({ urls: ["/uploads/1.png"] }, 4);
+} catch (error) {
+  missingMidjourneyResultUrlsError = error;
+}
+assert(
+  missingMidjourneyResultUrlsError?.message === "Midjourney returned 1/4 images",
+  "generator required result URLs helper should preserve Midjourney count errors"
 );
 assert(getGeneratorPreviewDescription("", 0, 1) === "正在生成图片", "promptless generator preview description should stay stable");
 assert(getGeneratorPreviewDescription("A prompt", 0, 1) === "正在根据当前提示生成结果", "prompt generator preview description should stay stable");

@@ -10,6 +10,7 @@ import {
   getMissingGeneratorResultMessage,
   getGeneratorResultTitle,
   getRequiredGeneratorResultUrl,
+  getRequiredGeneratorResultUrls,
   getResultImageUrls,
   parseGeneratorResult,
   shouldUseImmediateGeneratorResult
@@ -565,10 +566,9 @@ export function createImageGeneratorWorkflow({
           }
         });
         const parsedResult = parseGeneratorResult(result, model);
-        const resultUrls = parsedResult.urls;
-        if (resultUrls.length < count) throw new Error(`Midjourney returned ${resultUrls.length || 0}/${count} images`);
+        const resultUrls = getRequiredGeneratorResultUrls(parsedResult, count);
         ({ resultModel, modelUsage } = parsedResult);
-        resultUrls.slice(0, count).forEach((url, index) => {
+        resultUrls.forEach((url, index) => {
           replaceGeneratorImagePreview(previewNodes[index], url, index);
         });
       } else {

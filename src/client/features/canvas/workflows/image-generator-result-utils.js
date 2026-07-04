@@ -65,6 +65,12 @@ export function getRequiredGeneratorResultUrl(result = {}, parsedResult = {}, ex
   return url;
 }
 
+export function getRequiredGeneratorResultUrls(parsedResult = {}, count = 1, label = "Midjourney") {
+  const urls = Array.isArray(parsedResult?.urls) ? parsedResult.urls : [];
+  if (urls.length < count) throw new Error(`${label} returned ${urls.length || 0}/${count} images`);
+  return urls.slice(0, count);
+}
+
 export function getResultImageUrls(result = {}) {
   const urls = [];
   if (Array.isArray(result?.imageUrls)) urls.push(...result.imageUrls);
