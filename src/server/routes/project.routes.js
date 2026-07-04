@@ -25,6 +25,14 @@ function sendProjectNotFound(res) {
   sendErrorResponse(res, 404, "Project not found");
 }
 
+function readProjectRouteInput(req) {
+  return {
+    context: getRequestContext(req),
+    projectId: getRouteParam(req, "id"),
+    body: getRequestBody(req)
+  };
+}
+
 export function createProjectRouter() {
   const router = Router();
   router.use(requireAuth);
@@ -35,7 +43,8 @@ export function createProjectRouter() {
 
   router.post("/projects", (req, res) => {
     try {
-      const project = createProject(getRequestContext(req), getRequestBody(req));
+      const { context, body } = readProjectRouteInput(req);
+      const project = createProject(context, body);
       res.status(201).json({ project });
     } catch (error) {
       handleProjectError(res, error);
@@ -43,7 +52,8 @@ export function createProjectRouter() {
   });
 
   router.get("/projects/:id", (req, res) => {
-    const project = getProject(getRequestContext(req), getRouteParam(req, "id"), { touchLastOpened: true });
+    const { context, projectId } = readProjectRouteInput(req);
+    const project = getProject(context, projectId, { touchLastOpened: true });
     if (!project) {
       sendProjectNotFound(res);
       return;
@@ -53,7 +63,8 @@ export function createProjectRouter() {
 
   router.patch("/projects/:id", (req, res) => {
     try {
-      const project = updateProject(getRequestContext(req), getRouteParam(req, "id"), getRequestBody(req));
+      const { context, projectId, body } = readProjectRouteInput(req);
+      const project = updateProject(context, projectId, body);
       if (!project) {
         sendProjectNotFound(res);
         return;
@@ -65,8 +76,7 @@ export function createProjectRouter() {
   });
 
   router.delete("/projects/:id", (req, res) => {
-    const context = getRequestContext(req);
-    const projectId = getRouteParam(req, "id");
+    const { context, projectId } = readProjectRouteInput(req);
     const project = softDeleteProject(context, projectId);
     if (!project) {
       recordAuditEvent(req, "project.delete.failed", {
@@ -88,7 +98,8 @@ export function createProjectRouter() {
 
   router.post("/projects/:id/save-canvas", (req, res) => {
     try {
-      const project = saveProjectCanvas(getRequestContext(req), getRouteParam(req, "id"), getRequestBody(req));
+      const { context, projectId, body } = readProjectRouteInput(req);
+      const project = saveProjectCanvas(context, projectId, body);
       if (!project) {
         sendProjectNotFound(res);
         return;
