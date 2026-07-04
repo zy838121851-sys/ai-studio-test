@@ -123,6 +123,7 @@ styles/legacy-theme-sync-base.css
 styles/legacy-canvas-shell.css
 styles/legacy-canvas-image-edit.css
 styles/legacy-canvas-add-node.css
+styles/legacy-canvas-choice-overlays.css
 ```
 
 ## `/styles` and `/assets/styles`
@@ -301,11 +302,14 @@ Notes:
   popover control styles.
 - `legacy-canvas-add-node.css` owns add-node menu detail styles and canvas-view
   add-node menu overrides.
+- `legacy-canvas-choice-overlays.css` owns canvas viewport cursor states, upload
+  choice bubbles, generation choice overlay, floating suggestions, and related
+  keyframes.
 - `legacy-canvas.css` imports `legacy-canvas-shell.css`,
-  `legacy-canvas-image-edit.css`, and `legacy-canvas-add-node.css`, then keeps
-  the remaining library head, canvas viewport, upload/generation choice,
-  floating suggestions, canvas world, empty state, video generator, project
-  title, and return-control styles.
+  `legacy-canvas-image-edit.css`, `legacy-canvas-add-node.css`, and
+  `legacy-canvas-choice-overlays.css`, then keeps the remaining library head,
+  canvas world, empty state, video generator, project title, and return-control
+  styles.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.
@@ -359,6 +363,7 @@ styles/legacy-base.css
 styles/legacy-canvas-shell.css
 styles/legacy-canvas-image-edit.css
 styles/legacy-canvas-add-node.css
+styles/legacy-canvas-choice-overlays.css
 styles/legacy-canvas.css
 styles/legacy-canvas-visual.css
 styles/legacy-chat.css
@@ -420,8 +425,8 @@ Additional caution:
   `features/node.css`; it also keeps compatibility shims such as
   `legacy-node.css` outside the active import graph, and guards the
   `legacy-canvas.css` imports of `legacy-canvas-shell.css` and
-  `legacy-canvas-image-edit.css` and `legacy-canvas-add-node.css` plus
-  selectors in the canvas files.
+  `legacy-canvas-image-edit.css`, `legacy-canvas-add-node.css`, and
+  `legacy-canvas-choice-overlays.css` plus selectors in the canvas files.
 - Move one feature area at a time from legacy files into a clearer structure.
 - Start with documentation and smoke checks before moving selectors.
 - Prefer feature grouping such as:

@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,349 |
-| `styles` | 53 | 15,221 |
-| `scripts` | 90 | 20,772 |
+| `styles` | 54 | 15,222 |
+| `scripts` | 90 | 20,784 |
 
 Largest files in the current source tree:
 
@@ -79,7 +79,7 @@ Largest files in the current source tree:
 | 781 | `src/client/features/canvas/model-viewer.js` |
 | 779 | `styles/legacy-chat.css` |
 | 716 | `styles/legacy-canvas-visual.css` |
-| 716 | `styles/legacy-canvas.css` |
+| 708 | `src/client/features/workspace/asset-library/asset-panel.js` |
 
 Post-baseline CSS governance note:
 
@@ -150,10 +150,14 @@ Post-baseline CSS governance note:
 - `styles/legacy-canvas-add-node.css` owns add-node menu detail styles and
   canvas-view add-node menu overrides that were moved out of
   `styles/legacy-canvas.css`.
+- `styles/legacy-canvas-choice-overlays.css` owns canvas viewport cursor states,
+  upload choice bubbles, generation choice overlay, floating suggestions, and
+  their related keyframes.
 - `styles/legacy-canvas.css` now imports `styles/legacy-canvas-shell.css`,
   `styles/legacy-canvas-image-edit.css`, and
-  `styles/legacy-canvas-add-node.css` before the remaining legacy canvas styles
-  to preserve cascade order.
+  `styles/legacy-canvas-add-node.css`, and
+  `styles/legacy-canvas-choice-overlays.css` before the remaining legacy canvas
+  styles to preserve cascade order.
 - `styles/features/node-base.css` owns base node/card/resize/action styles that
   were moved out of `styles/legacy-node.css`; it is imported at the top of
   `styles/features/node.css` to preserve cascade order.
