@@ -1,4 +1,7 @@
-import { createLocalAuditLogger } from "../src/server/providers/audit/local-audit-logger.js";
+import {
+  createLocalAuditLogger,
+  sanitizeAuditDetail
+} from "../src/server/providers/audit/local-audit-logger.js";
 import { getDefaultAuditLogger, recordAuditEvent } from "../src/server/services/audit.service.js";
 
 function assert(condition, message) {
@@ -31,6 +34,17 @@ const logger = createLocalAuditLogger();
 const defaultLogger = getDefaultAuditLogger();
 assert(defaultLogger?.record, "Audit service should expose a default logger with record");
 assert(defaultLogger?.requestMetadata, "Audit service should expose a default logger with requestMetadata");
+const sanitizedDetail = sanitizeAuditDetail({
+  userId: "user_audit",
+  apiKey: "secret",
+  imageDataUrl: "data:image/png;base64,secret",
+  safeLongValue: "x".repeat(310)
+});
+assert(sanitizedDetail.userId === "user_audit", "Audit sanitizer should keep safe fields");
+assert(!("apiKey" in sanitizedDetail), "Audit sanitizer should drop api key fields");
+assert(!("imageDataUrl" in sanitizedDetail), "Audit sanitizer should drop image data fields");
+assert(sanitizedDetail.safeLongValue.length === 303, "Audit sanitizer should truncate long string fields");
+assert(sanitizedDetail.safeLongValue.endsWith("..."), "Audit sanitizer should mark truncated string fields");
 
 const originalNow = Date.now;
 Date.now = () => 1700000000000;
