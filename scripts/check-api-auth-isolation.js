@@ -26,6 +26,51 @@ try {
   server = await listen(app);
   const baseUrl = `http://127.0.0.1:${server.address().port}`;
 
+  const anonymousMe = await request(baseUrl, "/api/auth/me");
+  assert(anonymousMe.status === 200, "Anonymous /auth/me should keep the public session contract");
+  assert(anonymousMe.body.user === null, "Anonymous /auth/me should return a null user");
+
+  const invalidRegisterEmail = await request(baseUrl, "/api/auth/register", {
+    method: "POST",
+    body: {
+      email: "not-an-email",
+      password: "password123",
+      name: "Invalid Email"
+    }
+  });
+  assertErrorContract(invalidRegisterEmail, {
+    label: "invalid registration email",
+    status: 400,
+    message: "Valid email is required"
+  });
+
+  const weakRegisterPassword = await request(baseUrl, "/api/auth/register", {
+    method: "POST",
+    body: {
+      email: "weak-password@example.com",
+      password: "short",
+      name: "Weak Password"
+    }
+  });
+  assertErrorContract(weakRegisterPassword, {
+    label: "weak registration password",
+    status: 400,
+    message: "Password must be at least 8 characters"
+  });
+
+  const invalidLogin = await request(baseUrl, "/api/auth/login", {
+    method: "POST",
+    body: {
+      email: "missing-user@example.com",
+      password: "password123"
+    }
+  });
+  assertErrorContract(invalidLogin, {
+    label: "invalid login",
+    status: 401,
+    message: "Invalid email or password"
+  });
+
   await assertProtected(baseUrl, "/api/projects");
   await assertProtected(baseUrl, "/api/assets");
   await assertProtected(baseUrl, "/api/asset-collections");
@@ -51,7 +96,11 @@ try {
       name: "Duplicate User"
     }
   });
-  assert(duplicate.status === 409, "Duplicate registration should return 409");
+  assertErrorContract(duplicate, {
+    label: "duplicate registration",
+    status: 409,
+    message: "Email already registered"
+  });
 
   const project = await createProject(baseUrl, userA.cookie);
   await assertProjectIsolation(baseUrl, project.id, userA.cookie, userB.cookie);
@@ -101,8 +150,19 @@ function listen(app) {
 
 async function assertProtected(baseUrl, path) {
   const response = await request(baseUrl, path);
-  assert(response.status === 401, `${path} should require authentication`);
-  assert(response.body.message === "Authentication required", `${path} should return the auth error contract`);
+  assertErrorContract(response, {
+    label: path,
+    status: 401,
+    message: "Authentication required"
+  });
+}
+
+function assertErrorContract(response, { label, status, message }) {
+  assert(response.status === status, `${label} should return ${status}`);
+  assert(response.contentType.includes("application/json"), `${label} should return JSON`);
+  assert(response.body.message === message, `${label} should return "${message}"`);
+  assert(!("stack" in response.body), `${label} should not expose stack`);
+  assert(!("trace" in response.body), `${label} should not expose trace`);
 }
 
 async function register(baseUrl, email, name) {
@@ -240,6 +300,7 @@ async function request(baseUrl, path, {
   const setCookie = setCookies[0] || response.headers.get("set-cookie") || "";
   return {
     status: response.status,
+    contentType: response.headers.get("content-type") || "",
     cookie: setCookie.split(";")[0],
     body: text ? JSON.parse(text) : null
   };
