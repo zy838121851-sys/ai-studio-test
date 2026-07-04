@@ -53,30 +53,30 @@ Current source footprint, excluding `node_modules` and `dist`:
 
 | Area | Files | Lines |
 | --- | ---: | ---: |
-| `src/client` | 298 | 36,815 |
-| `src/server` | 80 | 13,381 |
-| `styles` | 41 | 13,305 |
-| `scripts` | 90 | 18,953 |
+| `src/client` | 298 | 39,385 |
+| `src/server` | 80 | 14,349 |
+| `styles` | 42 | 15,211 |
+| `scripts` | 90 | 20,646 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
-| 1,718 | `styles/features/assets.css` |
-| 1,608 | `scripts/check-api-error-contract.js` |
-| 1,569 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
-| 1,529 | `styles/legacy-theme-sync.css` |
-| 1,503 | `styles/legacy-canvas.css` |
-| 1,446 | `scripts/check-generator-job-recovery.js` |
-| 1,303 | `styles/features/home.css` |
-| 1,252 | `src/server/services/conversation-orchestrator.service.js` |
-| 1,214 | `scripts/check-canvas-menu-actions.js` |
-| 1,203 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
-| 1,065 | `scripts/check-library-bulk-select.js` |
-| 1,030 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
-| 898 | `scripts/check-prompt-conversation-event-utils.js` |
-| 765 | `src/server/services/ai-job.service.js` |
-| 760 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
+| 1,745 | `styles/legacy-theme-sync.css` |
+| 1,723 | `styles/legacy-canvas.css` |
+| 1,709 | `scripts/check-api-error-contract.js` |
+| 1,646 | `styles/features/assets.css` |
+| 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
+| 1,487 | `styles/features/home.css` |
+| 1,479 | `scripts/check-generator-job-recovery.js` |
+| 1,302 | `src/server/services/conversation-orchestrator.service.js` |
+| 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
+| 1,282 | `scripts/check-canvas-menu-actions.js` |
+| 1,120 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
+| 1,112 | `scripts/check-library-bulk-select.js` |
+| 948 | `scripts/check-prompt-conversation-event-utils.js` |
+| 823 | `styles/features/auth.css` |
+| 819 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
 
 Post-baseline CSS governance note:
 
@@ -108,6 +108,8 @@ Post-baseline CSS governance note:
 - `styles/features/assets-board.css` owns asset board/list/card/thumb,
   move/delete action, and empty-state styles; it is imported by
   `styles/features/assets.css`.
+- `styles/features/assets-save.css` owns asset save popover and canvas asset
+  board popover styles; it is imported by `styles/features/assets.css`.
 - `styles/features/node-base.css` owns base node/card/resize/action styles that
   were moved out of `styles/legacy-node.css`; it is imported at the top of
   `styles/features/node.css` to preserve cascade order.

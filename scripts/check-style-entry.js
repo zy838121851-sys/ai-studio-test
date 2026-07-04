@@ -50,7 +50,8 @@ const EXPECTED_NODE_IMPORTS = [
 ];
 const EXPECTED_ASSET_IMPORTS = [
   "./assets-page.css",
-  "./assets-board.css"
+  "./assets-board.css",
+  "./assets-save.css"
 ];
 const ALLOWED_UNREACHABLE_CSS = [
   "styles/legacy-node.css"
@@ -103,11 +104,13 @@ const EXPECTED_ASSET_BOARD_SELECTORS = [
   ".asset-thumb",
   ".asset-empty"
 ];
-const EXPECTED_ASSET_SELECTORS = [
+const EXPECTED_ASSET_SAVE_SELECTORS = [
   ".asset-save-popover",
   ".canvas-asset-board-popover",
   ".asset-save-section",
-  ".asset-save-new-board",
+  ".asset-save-new-board"
+];
+const EXPECTED_ASSET_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-pinterest-shell",
   "body[data-view=\"assetsPage\"] .asset-pinterest-stats",
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-grid",
@@ -399,6 +402,7 @@ checkCssReachability();
 checkFileContains("styles/features/auth.css", EXPECTED_AUTH_SELECTORS);
 checkFileContains("styles/features/assets-page.css", EXPECTED_ASSET_PAGE_SELECTORS);
 checkFileContains("styles/features/assets-board.css", EXPECTED_ASSET_BOARD_SELECTORS);
+checkFileContains("styles/features/assets-save.css", EXPECTED_ASSET_SAVE_SELECTORS);
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
