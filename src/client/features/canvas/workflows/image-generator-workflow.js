@@ -681,10 +681,10 @@ export function createImageGeneratorWorkflow({
       delayMs: 1500,
       fallback: { jobId },
       onProgress: (payload) => {
-        const progress = Number(payload?.progress || 0);
-        nodes.forEach((node) => updatePreviewStatus(node, progress > 0
-          ? `正在恢复生成结果 (${Math.min(99, progress)}%)`
-          : "正在恢复生成结果..."));
+        nodes.forEach((node) => updatePreviewStatus(node, getGeneratorProgressStatusText(payload?.progress, {
+          idleText: "正在恢复生成结果...",
+          activeText: "正在恢复生成结果"
+        })));
       }
     }).then((result) => {
       completeRecoveredGeneratorPreviewGroup(jobId, nodes, result);

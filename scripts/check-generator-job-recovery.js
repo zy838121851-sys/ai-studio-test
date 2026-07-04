@@ -761,6 +761,20 @@ assert(
   }) === "正在生成第 3/4 张 (63%)",
   "generator progress status helper should format multi-image progress text"
 );
+assert(
+  getGeneratorProgressStatusText(0, {
+    idleText: "正在恢复生成结果...",
+    activeText: "正在恢复生成结果"
+  }) === "正在恢复生成结果...",
+  "generator progress status helper should preserve recovered-job idle text"
+);
+assert(
+  getGeneratorProgressStatusText(77, {
+    idleText: "正在恢复生成结果...",
+    activeText: "正在恢复生成结果"
+  }) === "正在恢复生成结果 (77%)",
+  "generator progress status helper should format recovered-job progress text"
+);
 assert(getGeneratorPreviewDescription("", 0, 1) === "正在生成图片", "promptless generator preview description should stay stable");
 assert(getGeneratorPreviewDescription("A prompt", 0, 1) === "正在根据当前提示生成结果", "prompt generator preview description should stay stable");
 assert(getGeneratorPreviewDescription("A prompt", 1, 3) === "正在生成第 2/3 张", "multi preview description should include one-based progress");
