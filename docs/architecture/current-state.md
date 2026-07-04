@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,349 |
-| `styles` | 51 | 15,219 |
-| `scripts` | 90 | 20,749 |
+| `styles` | 52 | 15,220 |
+| `scripts` | 90 | 20,764 |
 
 Largest files in the current source tree:
 
@@ -69,11 +69,11 @@ Largest files in the current source tree:
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,282 | `scripts/check-canvas-menu-actions.js` |
-| 1,246 | `styles/legacy-canvas.css` |
 | 1,124 | `styles/features/assets-pinterest.css` |
 | 1,120 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,112 | `scripts/check-library-bulk-select.js` |
 | 948 | `scripts/check-prompt-conversation-event-utils.js` |
+| 839 | `styles/legacy-canvas.css` |
 | 823 | `styles/features/auth.css` |
 | 819 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
 | 810 | `src/server/services/ai-job.service.js` |
@@ -141,8 +141,12 @@ Post-baseline CSS governance note:
   moved out of `styles/legacy-canvas.css`: canvas area background, project
   header/logo, top actions, tool rail, add-node menu, canvas context menu, and
   selection action bar styles.
-- `styles/legacy-canvas.css` now imports `styles/legacy-canvas-shell.css`
-  before the remaining legacy canvas styles to preserve cascade order.
+- `styles/legacy-canvas-image-edit.css` owns image edit popover and image
+  generator popover control styles that were moved out of
+  `styles/legacy-canvas.css`.
+- `styles/legacy-canvas.css` now imports `styles/legacy-canvas-shell.css` and
+  `styles/legacy-canvas-image-edit.css` before the remaining legacy canvas
+  styles to preserve cascade order.
 - `styles/features/node-base.css` owns base node/card/resize/action styles that
   were moved out of `styles/legacy-node.css`; it is imported at the top of
   `styles/features/node.css` to preserve cascade order.

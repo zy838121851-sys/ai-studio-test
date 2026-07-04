@@ -39,7 +39,8 @@ const EXPECTED_LEGACY_THEME_SYNC_IMPORTS = [
   "./legacy-theme-sync-base.css"
 ];
 const EXPECTED_LEGACY_CANVAS_IMPORTS = [
-  "./legacy-canvas-shell.css"
+  "./legacy-canvas-shell.css",
+  "./legacy-canvas-image-edit.css"
 ];
 const EXPECTED_NODE_IMPORTS = [
   "./node-base.css",
@@ -217,8 +218,21 @@ const EXPECTED_LEGACY_CANVAS_SHELL_SELECTORS = [
   ".selection-action-bar",
   ".selection-color-swatch"
 ];
-const EXPECTED_LEGACY_CANVAS_SELECTORS = [
+const EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_SELECTORS = [
   ".image-edit-popover",
+  ".edit-head",
+  ".edit-actions",
+  "#imageGeneratorPopover .generator-select-wrap",
+  ".image-edit-popover .compact-select",
+  "#imageGeneratorPopover.generator-panel-expanded"
+];
+const EXPECTED_LEGACY_CANVAS_SELECTORS = [
+  ".add-menu-title",
+  ".canvas-viewport",
+  ".upload-choice-bubbles",
+  ".generation-choice-overlay",
+  ".floating-suggestions",
+  ".canvas-world",
   ".video-generator-popover"
 ];
 const EXPECTED_LEGACY_NODE_SELECTORS = [];
@@ -505,6 +519,7 @@ checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-base.css", EXPECTED_LEGACY_THEME_SYNC_BASE_SELECTORS);
 checkFileContains("styles/legacy-theme-sync.css", EXPECTED_LEGACY_THEME_SYNC_SELECTORS);
 checkFileContains("styles/legacy-canvas-shell.css", EXPECTED_LEGACY_CANVAS_SHELL_SELECTORS);
+checkFileContains("styles/legacy-canvas-image-edit.css", EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/home-shell.css", EXPECTED_HOME_SHELL_SELECTORS);
 checkFileContains("styles/features/home-history.css", EXPECTED_HOME_HISTORY_SELECTORS);

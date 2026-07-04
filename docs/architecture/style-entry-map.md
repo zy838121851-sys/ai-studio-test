@@ -121,6 +121,7 @@ styles/legacy-theme-sync-base.css
 
 ```text
 styles/legacy-canvas-shell.css
+styles/legacy-canvas-image-edit.css
 ```
 
 ## `/styles` and `/assets/styles`
@@ -295,10 +296,12 @@ Notes:
   area background, project header/logo, top actions, tool rail, add-node menu,
   canvas context menu, selection action bar, and related mobile selection-bar
   overrides.
-- `legacy-canvas.css` imports `legacy-canvas-shell.css`, then keeps the
-  remaining image edit popover, upload/generation choice, floating suggestions,
-  canvas world, empty state, video generator, project title, and return-control
-  styles.
+- `legacy-canvas-image-edit.css` owns image edit popover and image generator
+  popover control styles.
+- `legacy-canvas.css` imports `legacy-canvas-shell.css` and
+  `legacy-canvas-image-edit.css`, then keeps the remaining add-node menu
+  details, upload/generation choice, floating suggestions, canvas world, empty
+  state, video generator, project title, and return-control styles.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.
@@ -350,6 +353,7 @@ styles/task-log.css
 styles/legacy-split.css
 styles/legacy-base.css
 styles/legacy-canvas-shell.css
+styles/legacy-canvas-image-edit.css
 styles/legacy-canvas.css
 styles/legacy-canvas-visual.css
 styles/legacy-chat.css
@@ -410,8 +414,8 @@ Additional caution:
   `features/node-preview.css`, and the node aggregation entry in
   `features/node.css`; it also keeps compatibility shims such as
   `legacy-node.css` outside the active import graph, and guards the
-  `legacy-canvas.css` import of `legacy-canvas-shell.css` plus selectors in both
-  canvas files.
+  `legacy-canvas.css` imports of `legacy-canvas-shell.css` and
+  `legacy-canvas-image-edit.css` plus selectors in the canvas files.
 - Move one feature area at a time from legacy files into a clearer structure.
 - Start with documentation and smoke checks before moving selectors.
 - Prefer feature grouping such as:
