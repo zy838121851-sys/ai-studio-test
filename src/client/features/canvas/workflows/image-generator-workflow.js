@@ -7,6 +7,7 @@ import { renderModelPreferenceMenu } from "../../ai/model-preference-menu.js";
 import {
   applyGeneratedImageNodeResult,
   applyGeneratedImageNodeSize,
+  applyPersistedGeneratedImageNodeResult,
   buildGeneratedImageNodeOptions,
   getMissingGeneratorResultMessage,
   getGeneratorResultTitle,
@@ -763,7 +764,9 @@ export function createImageGeneratorWorkflow({
       prompt,
       model
     });
-    applyGeneratedImageNodeResult(createdNode, displayUrl || sourceUrl, {
+    applyPersistedGeneratedImageNodeResult(createdNode, {
+      displayUrl,
+      sourceUrl,
       prompt,
       model,
       dimensions,
@@ -800,7 +803,9 @@ export function createImageGeneratorWorkflow({
       prompt,
       model
     });
-    applyGeneratedImageNodeResult(createdNode, displayUrl || sourceUrl, {
+    applyPersistedGeneratedImageNodeResult(createdNode, {
+      displayUrl,
+      sourceUrl,
       prompt,
       model,
       dimensions,

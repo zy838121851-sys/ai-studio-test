@@ -27,6 +27,7 @@ import {
 import {
   applyGeneratedImageNodeResult,
   applyGeneratedImageNodeSize,
+  applyPersistedGeneratedImageNodeResult,
   buildGeneratedImageNodeOptions,
   getRequiredGeneratorResultUrl,
   getRequiredGeneratorResultUrls,
@@ -107,6 +108,7 @@ assert(
     && generatorWorkflow.includes("updateGeneratorPreviewStatus as updatePreviewStatus")
     && generatorWorkflow.includes("buildGeneratedImageNodeOptions")
     && generatorWorkflow.includes("applyGeneratedImageNodeResult")
+    && generatorWorkflow.includes("applyPersistedGeneratedImageNodeResult")
     && generatorWorkflow.includes("applyGeneratedImageNodeSize")
     && generatorWorkflow.includes("getGeneratorResultTitle")
     && generatorWorkflow.includes("image-generator-dom-state-utils.js")
@@ -1048,6 +1050,43 @@ assert(resultNode.dataset.generationModel === "model-1", "generated image result
 assert(resultNode.dataset.generatorSourceNodeId === "source-1", "generated image result helper should persist source node id");
 assert(resultNode.dataset.outputWidth === "640", "generated image result helper should persist output width");
 assert(resultNode.dataset.outputHeight === "480", "generated image result helper should persist output height");
+const persistedResultImage = {
+  src: "",
+  dataset: {},
+  removeAttribute() {}
+};
+const persistedResultNode = {
+  dataset: {},
+  querySelector(selector) {
+    return selector === ".image-frame img" ? persistedResultImage : null;
+  }
+};
+applyPersistedGeneratedImageNodeResult(persistedResultNode, {
+  displayUrl: "/uploads/display.png",
+  sourceUrl: "/uploads/source.png",
+  prompt: "Prompt",
+  model: "model-1",
+  dimensions: { width: 320, height: 240 },
+  sourceNode: { dataset: { nodeId: "source-2" } }
+});
+assert(persistedResultImage.src === "/uploads/display.png", "persisted generated image result helper should prefer display URLs");
+assert(persistedResultNode.dataset.objectUrl === "/uploads/display.png", "persisted generated image result helper should persist display URLs");
+assert(persistedResultNode.dataset.generatorSourceNodeId === "source-2", "persisted generated image result helper should preserve source node ids");
+const fallbackPersistedResultImage = {
+  src: "",
+  dataset: {},
+  removeAttribute() {}
+};
+const fallbackPersistedResultNode = {
+  dataset: {},
+  querySelector(selector) {
+    return selector === ".image-frame img" ? fallbackPersistedResultImage : null;
+  }
+};
+applyPersistedGeneratedImageNodeResult(fallbackPersistedResultNode, {
+  sourceUrl: "/uploads/source-only.png"
+});
+assert(fallbackPersistedResultImage.src === "/uploads/source-only.png", "persisted generated image result helper should fall back to source URLs");
 const referenceReads = [];
 const referenceFiles = [
   { name: "one.png", type: "image/png" },

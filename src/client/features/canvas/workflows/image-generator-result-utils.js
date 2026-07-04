@@ -67,6 +67,22 @@ export function applyGeneratedImageNodeResult(node, url, {
   if (dimensions?.height > 0) node.dataset.outputHeight = String(dimensions.height);
 }
 
+export function applyPersistedGeneratedImageNodeResult(node, {
+  displayUrl = "",
+  sourceUrl = "",
+  prompt = "",
+  model = "",
+  dimensions = {},
+  sourceNode = null
+} = {}) {
+  applyGeneratedImageNodeResult(node, displayUrl || sourceUrl, {
+    prompt,
+    model,
+    dimensions,
+    sourceNode
+  });
+}
+
 export function parseGeneratorResult(result = {}, selectedModel = "", expectedType = "image") {
   const urls = getGeneratorResultUrls(result, expectedType);
   return {
