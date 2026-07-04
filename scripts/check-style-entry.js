@@ -166,9 +166,14 @@ const EXPECTED_NODE_STACK_SELECTORS = [
   ".stack-row",
   ".stack-thumb"
 ];
-const EXPECTED_NODE_SELECTORS = [
+const EXPECTED_NODE_DIRECTOR_SELECTORS = [
   ".node-director",
-  ".director-tile",
+  ".director-head",
+  ".director-refresh",
+  ".director-actions",
+  ".director-tile"
+];
+const EXPECTED_NODE_SELECTORS = [
   ".node-video",
   ".image-frame",
   ".generation-frame",
@@ -355,6 +360,7 @@ checkFileContains("styles/features/node-state.css", EXPECTED_NODE_STATE_SELECTOR
 checkFileContains("styles/features/node-image-toolbar.css", EXPECTED_NODE_IMAGE_TOOLBAR_SELECTORS);
 checkFileContains("styles/features/node-image-panels.css", EXPECTED_NODE_IMAGE_PANELS_SELECTORS);
 checkFileContains("styles/features/node-stack.css", EXPECTED_NODE_STACK_SELECTORS);
+checkFileContains("styles/features/node-director.css", EXPECTED_NODE_DIRECTOR_SELECTORS);
 checkFileContains("styles/features/node.css", EXPECTED_NODE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
 checkFileContains("styles/legacy-canvas.css", EXPECTED_LEGACY_CANVAS_SELECTORS);
