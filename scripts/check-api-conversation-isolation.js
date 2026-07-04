@@ -40,9 +40,32 @@ try {
   const projectA = await createProject(baseUrl, userA.cookie, "Conversation project A");
   const projectB = await createProject(baseUrl, userB.cookie, "Conversation project B");
 
+  const missingListProjectId = await request(baseUrl, "/api/conversations", { cookie: userA.cookie });
+  assertErrorContract(missingListProjectId, {
+    label: "conversation list without projectId",
+    status: 400,
+    message: "Missing projectId"
+  });
+
+  const missingCreateProjectId = await request(baseUrl, "/api/conversations", {
+    method: "POST",
+    cookie: userA.cookie,
+    body: {
+      title: "missing project"
+    }
+  });
+  assertErrorContract(missingCreateProjectId, {
+    label: "conversation create without projectId",
+    status: 400,
+    message: "Missing projectId"
+  });
+
   const missingProject = await request(baseUrl, "/api/conversations?projectId=missing-project", { cookie: userA.cookie });
-  assert(missingProject.status === 404, "Conversation list should reject missing projects");
-  assert(missingProject.body.message === "Project not found", "Missing project should keep the error contract");
+  assertErrorContract(missingProject, {
+    label: "conversation list for missing project",
+    status: 404,
+    message: "Project not found"
+  });
 
   const crossProjectCreate = await request(baseUrl, "/api/conversations", {
     method: "POST",
@@ -52,8 +75,11 @@ try {
       title: "cross-user create"
     }
   });
-  assert(crossProjectCreate.status === 404, "Other users should not create conversations for owner projects");
-  assert(crossProjectCreate.body.message === "Project not found", "Cross-user project create should keep the not-found contract");
+  assertErrorContract(crossProjectCreate, {
+    label: "cross-user conversation create",
+    status: 404,
+    message: "Project not found"
+  });
 
   const created = await request(baseUrl, "/api/conversations", {
     method: "POST",
@@ -118,15 +144,21 @@ try {
   assert(ownerMessages.body.messages[0].conversationId === conversationId, "Message should stay scoped to the conversation");
 
   const otherMessages = await request(baseUrl, `/api/conversations/${conversationId}/messages`, { cookie: userB.cookie });
-  assert(otherMessages.status === 404, "Other users should not read owner conversation messages");
-  assert(otherMessages.body.message === "Conversation not found", "Cross-user message read should keep the not-found contract");
+  assertErrorContract(otherMessages, {
+    label: "cross-user message read",
+    status: 404,
+    message: "Conversation not found"
+  });
 
   const otherRestore = await request(baseUrl, `/api/conversations/${conversationId}/restore`, {
     method: "POST",
     cookie: userB.cookie
   });
-  assert(otherRestore.status === 404, "Other users should not restore owner conversations");
-  assert(otherRestore.body.message === "Conversation not found", "Cross-user restore should keep the not-found contract");
+  assertErrorContract(otherRestore, {
+    label: "cross-user conversation restore",
+    status: 404,
+    message: "Conversation not found"
+  });
 
   const otherRun = await request(baseUrl, `/api/conversations/${conversationId}/runs`, {
     method: "POST",
@@ -135,12 +167,18 @@ try {
       text: "cross-user run"
     }
   });
-  assert(otherRun.status === 404, "Other users should not start runs for owner conversations");
-  assert(otherRun.body.message === "Conversation not found", "Cross-user run should keep the not-found contract");
+  assertErrorContract(otherRun, {
+    label: "cross-user conversation run",
+    status: 404,
+    message: "Conversation not found"
+  });
 
   const otherList = await request(baseUrl, `/api/conversations?projectId=${projectA.id}`, { cookie: userB.cookie });
-  assert(otherList.status === 404, "Other users should not list owner project conversations");
-  assert(otherList.body.message === "Project not found", "Cross-user conversation list should keep the not-found contract");
+  assertErrorContract(otherList, {
+    label: "cross-user conversation list",
+    status: 404,
+    message: "Project not found"
+  });
 
   const reset = await request(baseUrl, "/api/conversations", {
     method: "POST",
@@ -243,8 +281,19 @@ function listen(app) {
 
 async function assertProtected(baseUrl, path) {
   const response = await request(baseUrl, path);
-  assert(response.status === 401, `${path} should require authentication`);
-  assert(response.body.message === "Authentication required", `${path} should return the auth error contract`);
+  assertErrorContract(response, {
+    label: path,
+    status: 401,
+    message: "Authentication required"
+  });
+}
+
+function assertErrorContract(response, { label, status, message }) {
+  assert(response.status === status, `${label} should return ${status}`);
+  assert(response.contentType.includes("application/json"), `${label} should return JSON`);
+  assert(response.body.message === message, `${label} should return "${message}"`);
+  assert(!("stack" in response.body), `${label} should not expose stack`);
+  assert(!("trace" in response.body), `${label} should not expose trace`);
 }
 
 async function register(baseUrl, email, name) {
@@ -299,6 +348,7 @@ async function request(baseUrl, path, {
   const setCookie = setCookies[0] || response.headers.get("set-cookie") || "";
   return {
     status: response.status,
+    contentType: response.headers.get("content-type") || "",
     cookie: setCookie.split(";")[0],
     body: text ? JSON.parse(text) : null
   };
