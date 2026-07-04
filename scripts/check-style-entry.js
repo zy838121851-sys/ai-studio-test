@@ -118,10 +118,11 @@ const EXPECTED_LEGACY_NODE_SELECTORS = [
   ".image-node-toolbar",
   ".image-toolbar-upscale-controls",
   ".canvas-asset-savebar",
-  ".image-lightbox",
   ".node-loading-image"
 ];
 const EXPECTED_NODE_SELECTORS = [
+  ".image-lightbox",
+  ".image-lightbox-close",
   ".node-card.has-stack::after",
   ".stack-toggle",
   ".stack-tray",

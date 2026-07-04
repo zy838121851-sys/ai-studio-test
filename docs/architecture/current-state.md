@@ -70,9 +70,9 @@ Largest files in the current source tree:
 | 1,446 | `scripts/check-generator-job-recovery.js` |
 | 1,303 | `styles/features/home.css` |
 | 1,252 | `src/server/services/conversation-orchestrator.service.js` |
-| 1,238 | `styles/legacy-node.css` |
 | 1,214 | `scripts/check-canvas-menu-actions.js` |
 | 1,203 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
+| 1,162 | `styles/legacy-node.css` |
 | 1,065 | `scripts/check-library-bulk-select.js` |
 
 Post-baseline CSS governance note:
@@ -89,12 +89,12 @@ Post-baseline CSS governance note:
 - `styles/features/chat.css` now owns the conversation history popover styles
   that were moved out of `styles/legacy-chat.css`; the selector guard tracks
   the migrated chat rules in their feature file.
-- `styles/features/node.css` now owns stack/folded node styles, director node
-  styles, image/video/model media node preview styles, generation preview frame
-  styles, image generator node frame/panel styles, tail-end node generator
-  inline edit controls, and media/model/video preview helpers that were moved
-  out of `styles/legacy-node.css`; it is imported immediately after
-  `legacy-node.css` to preserve cascade order.
+- `styles/features/node.css` now owns image lightbox styles, stack/folded node
+  styles, director node styles, image/video/model media node preview styles,
+  generation preview frame styles, image generator node frame/panel styles,
+  tail-end node generator inline edit controls, and media/model/video preview
+  helpers that were moved out of `styles/legacy-node.css`; it is imported
+  immediately after `legacy-node.css` to preserve cascade order.
 - The inactive AI Core runtime and its legacy style modules were removed after
   dead-code audit evidence and check/build verification; `legacy-split.css` no
   longer imports `legacy-ai-core*.css`.
