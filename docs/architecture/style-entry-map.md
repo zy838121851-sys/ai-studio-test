@@ -53,7 +53,6 @@ styles/legacy-split.css
 styles/workspace-layout.css
 styles/features/auth.css
 styles/features/home.css
-styles/features/ai-core.css
 styles/features/project-library.css
 ```
 
@@ -67,16 +66,13 @@ styles/legacy-canvas-visual.css
 styles/features/chat.css
 styles/legacy-chat.css
 styles/legacy-node.css
+styles/features/node.css
 styles/legacy-overrides.css
 styles/legacy-compact-controls.css
 styles/legacy-rail-polish.css
 styles/legacy-light-refinements.css
 styles/legacy-theme-ios.css
 styles/legacy-theme-sync.css
-styles/legacy-ai-core.css
-styles/legacy-ai-core-analysis.css
-styles/legacy-ai-core-workspace.css
-styles/legacy-ai-core-ambient.css
 styles/menu-select-overrides.css
 ```
 
@@ -162,10 +158,6 @@ Current legacy-style files:
 
 ```text
 styles/legacy.css
-styles/legacy-ai-core.css
-styles/legacy-ai-core-ambient.css
-styles/legacy-ai-core-analysis.css
-styles/legacy-ai-core-workspace.css
 styles/legacy-base.css
 styles/legacy-canvas.css
 styles/legacy-canvas-visual.css
@@ -191,6 +183,10 @@ Notes:
   reintroducing duplicate imports there.
 - `features/chat.css` owns the conversation history popover styles that were
   moved out of `legacy-chat.css`.
+- `features/node.css` owns tail-end node media/model/video preview helpers that
+  were moved out of `legacy-node.css`; it is imported immediately after
+  `legacy-node.css` so the moved block keeps the same cascade position before
+  later overrides.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.
@@ -213,7 +209,7 @@ styles/features/auth.css
 styles/features/assets.css
 styles/features/chat.css
 styles/features/home.css
-styles/features/ai-core.css
+styles/features/node.css
 styles/features/project-library.css
 styles/components.css
 styles/image-compare.css
@@ -230,17 +226,13 @@ styles/legacy-rail-polish.css
 styles/legacy-light-refinements.css
 styles/legacy-theme-ios.css
 styles/legacy-theme-sync.css
-styles/legacy-ai-core.css
-styles/legacy-ai-core-analysis.css
-styles/legacy-ai-core-workspace.css
-styles/legacy-ai-core-ambient.css
 styles/menu-select-overrides.css
 ```
 
 Additional caution:
 
-- `styles/task-log.css` currently has an unrelated pre-existing worktree change.
-  Do not include it in cleanup batches unless explicitly requested.
+- `styles/task-log.css` has had unrelated worktree edits in earlier governance
+  stages. Confirm `git status` before including it in cleanup batches.
 - Class reachability cannot be proven from ESM imports alone. CSS deletion needs
   both import evidence and visual/runtime evidence.
 

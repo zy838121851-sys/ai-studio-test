@@ -26,6 +26,7 @@ const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./features/chat.css",
   "./legacy-chat.css",
   "./legacy-node.css",
+  "./features/node.css",
   "./legacy-overrides.css",
   "./legacy-compact-controls.css",
   "./legacy-rail-polish.css",
@@ -120,6 +121,16 @@ const EXPECTED_LEGACY_NODE_SELECTORS = [
   ".image-lightbox",
   ".node-loading-image",
   ".image-generator-frame"
+];
+const EXPECTED_NODE_SELECTORS = [
+  ".media-preview",
+  ".model-preview",
+  ".model-viewer",
+  ".model-viewer-mode-toggle",
+  ".cube-scene",
+  ".video-preview",
+  ".bottom-controls",
+  "@keyframes spinCube"
 ];
 const EXPECTED_LEGACY_CHAT_SELECTORS = [
   ".chat-panel",
@@ -284,6 +295,7 @@ checkFileContains("styles/features/auth.css", EXPECTED_AUTH_SELECTORS);
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
+checkFileContains("styles/features/node.css", EXPECTED_NODE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
 checkFileContains("styles/legacy-canvas.css", EXPECTED_LEGACY_CANVAS_SELECTORS);
 checkFileContains("styles/legacy-node.css", EXPECTED_LEGACY_NODE_SELECTORS);

@@ -55,15 +55,15 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,758 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 27 | 13,292 |
-| `scripts` | 90 | 18,760 |
+| `styles` | 28 | 13,293 |
+| `scripts` | 90 | 18,772 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
-| 2,427 | `styles/legacy-node.css` |
 | 2,273 | `styles/features/assets.css` |
+| 2,201 | `styles/legacy-node.css` |
 | 1,608 | `scripts/check-api-error-contract.js` |
 | 1,567 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,529 | `styles/legacy-theme-sync.css` |
@@ -89,6 +89,9 @@ Post-baseline CSS governance note:
 - `styles/features/chat.css` now owns the conversation history popover styles
   that were moved out of `styles/legacy-chat.css`; the selector guard tracks
   the migrated chat rules in their feature file.
+- `styles/features/node.css` now owns tail-end node media/model/video preview
+  helpers that were moved out of `styles/legacy-node.css`; it is imported
+  immediately after `legacy-node.css` to preserve cascade order.
 - The inactive AI Core runtime and its legacy style modules were removed after
   dead-code audit evidence and check/build verification; `legacy-split.css` no
   longer imports `legacy-ai-core*.css`.
