@@ -1,11 +1,16 @@
 import { randomUUID } from "node:crypto";
-import { basename, extname } from "node:path";
+import { extname } from "node:path";
 import { env } from "../config/env.js";
 import { prepare, transaction } from "../db/sqlite.js";
 import { createHttpError, normalizeText } from "../lib/input-validation.js";
 import { getAssetCollection } from "./asset-collection.service.js";
 import { getProject } from "./project.service.js";
-import { resolveStoredFilePath, saveStoredBuffer, storedFileExists } from "./storage.service.js";
+import {
+  normalizeStoredUploadPublicPath,
+  resolveStoredFilePath,
+  saveStoredBuffer,
+  storedFileExists
+} from "./storage.service.js";
 import { ensureUserWorkspace, ensureUserWorkspaceWithDb } from "./workspace.service.js";
 
 const ASSET_TYPES = new Set(["image", "model3d", "video", "document", "other"]);
@@ -22,12 +27,7 @@ const ALLOWED_UPLOAD_MIME_TYPES = new Set([
 ]);
 
 function normalizeUploadPublicPath(value = "") {
-  const pathname = String(value || "").split("?")[0].split("#")[0];
-  const clean = pathname.startsWith("/") ? pathname : `/uploads/${pathname}`;
-  if (!clean.startsWith("/uploads/")) return "";
-  const filename = clean.slice("/uploads/".length);
-  if (!filename || filename !== basename(filename)) return "";
-  return `/uploads/${filename}`;
+  return normalizeStoredUploadPublicPath(value);
 }
 
 function normalizeAssetType(type, mimeType = "") {

@@ -2,7 +2,12 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { createLocalStorageProvider } from "../src/server/providers/storage/local-storage.provider.js";
-import { getDefaultStorageProvider, resolveStoredFilePath, storedFileExists } from "../src/server/services/storage.service.js";
+import {
+  getDefaultStorageProvider,
+  normalizeStoredUploadPublicPath,
+  resolveStoredFilePath,
+  storedFileExists
+} from "../src/server/services/storage.service.js";
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -50,6 +55,26 @@ try {
   assert(!storage.storedPathExists("package.json"), "Paths outside upload root should not report as present");
   assert(resolveStoredFilePath("package.json") === "", "Storage service should reject paths outside upload root");
   assert(!storedFileExists("package.json"), "Storage service should not report outside paths as present");
+  assert(
+    normalizeStoredUploadPublicPath("/uploads/sample.txt?cache=1#view") === "/uploads/sample.txt",
+    "Storage service should normalize upload public paths"
+  );
+  assert(
+    normalizeStoredUploadPublicPath("sample.txt") === "/uploads/sample.txt",
+    "Storage service should normalize bare upload file names"
+  );
+  assert(
+    normalizeStoredUploadPublicPath("/assets/sample.txt", { publicBasePath: "assets" }) === "/assets/sample.txt",
+    "Storage service should support a custom public base path"
+  );
+  assert(
+    normalizeStoredUploadPublicPath("/uploads/nested/sample.txt") === "",
+    "Storage service should reject nested upload public paths until subdirectory storage is explicit"
+  );
+  assert(
+    normalizeStoredUploadPublicPath("/static/sample.txt") === "",
+    "Storage service should reject paths outside the configured public base path"
+  );
 
   assertThrows(
     () => storage.saveBuffer("../escape.txt", Buffer.from("bad")),
