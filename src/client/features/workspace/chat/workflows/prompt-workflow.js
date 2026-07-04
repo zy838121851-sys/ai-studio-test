@@ -116,6 +116,9 @@ import {
   ensureProjectConversation
 } from "./prompt-conversation-api-utils.js";
 import {
+  ensureActiveProjectReadyForGeneration
+} from "./prompt-project-persistence-utils.js";
+import {
   applyCaughtStreamErrorDebugState,
   applyStreamEventErrorDebugState,
   applyStreamFinishedDebugState
@@ -607,7 +610,8 @@ export function bindPromptSubmit({
       const projectReady = await ensureActiveProjectReadyForGeneration({
         saveCurrentProject,
         getActiveProject,
-        debugRecord: agentDebug
+        debugRecord: agentDebug,
+        logAgentDebug
       });
       if (!projectReady.ok) {
         agentDebug.error = projectReady.message;
@@ -1561,41 +1565,6 @@ async function runConversationAgent({
 
 async function ensureConversation(projectId, { reset = false } = {}) {
   return ensureProjectConversation(projectId, { conversationIdsByProject, reset });
-}
-
-async function ensureActiveProjectReadyForGeneration({
-  saveCurrentProject,
-  getActiveProject,
-  debugRecord = null
-} = {}) {
-  const beforeProjectId = getActiveProject?.()?.id || "";
-  if (typeof saveCurrentProject !== "function") {
-    return { ok: true, projectId: beforeProjectId };
-  }
-  try {
-    logAgentDebug(debugRecord, "project.persistence.start", { projectId: beforeProjectId });
-    const saved = await saveCurrentProject({
-      pendingText: "正在保存当前项目...",
-      successText: "项目已保存，开始生成",
-      failureText: "项目保存失败，无法开始生成"
-    });
-    const projectId = getActiveProject?.()?.id || beforeProjectId;
-    if (!saved || !projectId) {
-      return {
-        ok: false,
-        projectId,
-        message: "项目保存失败，无法开始生成"
-      };
-    }
-    logAgentDebug(debugRecord, "project.persistence.ready", { projectId });
-    return { ok: true, projectId };
-  } catch (error) {
-    return {
-      ok: false,
-      projectId: getActiveProject?.()?.id || beforeProjectId,
-      message: error?.message || "项目保存失败，无法开始生成"
-    };
-  }
 }
 
 async function streamConversationRun(conversationId, payload, onEvent, { timeoutMs = CONVERSATION_STREAM_TIMEOUT_MS, debugRecord = null } = {}) {
