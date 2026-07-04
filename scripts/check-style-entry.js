@@ -44,7 +44,8 @@ const EXPECTED_NODE_IMPORTS = [
   "./node-stack.css",
   "./node-director.css",
   "./node-media.css",
-  "./node-generation.css"
+  "./node-generation.css",
+  "./node-image-generator.css"
 ];
 const ALLOWED_UNREACHABLE_CSS = [
   "styles/legacy-node.css"
@@ -202,12 +203,14 @@ const EXPECTED_NODE_GENERATION_SELECTORS = [
   ".generation-failed .generation-frame",
   "@keyframes shimmerPreview"
 ];
-const EXPECTED_NODE_SELECTORS = [
+const EXPECTED_NODE_IMAGE_GENERATOR_SELECTORS = [
   ".node-image-generator",
   ".image-generator-frame",
   ".image-generator-panel",
   ".image-generator-panel.image-edit-popover-inline",
-  ".image-generator-bottom.edit-actions",
+  ".image-generator-bottom.edit-actions"
+];
+const EXPECTED_NODE_SELECTORS = [
   ".media-preview",
   ".model-preview",
   ".model-viewer",
@@ -392,6 +395,7 @@ checkFileContains("styles/features/node-stack.css", EXPECTED_NODE_STACK_SELECTOR
 checkFileContains("styles/features/node-director.css", EXPECTED_NODE_DIRECTOR_SELECTORS);
 checkFileContains("styles/features/node-media.css", EXPECTED_NODE_MEDIA_SELECTORS);
 checkFileContains("styles/features/node-generation.css", EXPECTED_NODE_GENERATION_SELECTORS);
+checkFileContains("styles/features/node-image-generator.css", EXPECTED_NODE_IMAGE_GENERATOR_SELECTORS);
 checkFileContains("styles/features/node.css", EXPECTED_NODE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
 checkFileContains("styles/legacy-canvas.css", EXPECTED_LEGACY_CANVAS_SELECTORS);
