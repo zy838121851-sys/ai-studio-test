@@ -150,12 +150,14 @@ const EXPECTED_NODE_IMAGE_TOOLBAR_SELECTORS = [
   ".image-toolbar-label",
   ".image-toolbar-compare"
 ];
-const EXPECTED_NODE_SELECTORS = [
+const EXPECTED_NODE_IMAGE_PANELS_SELECTORS = [
   ".image-text-panel",
   ".image-text-status",
   ".image-text-list",
   ".image-lightbox",
-  ".image-lightbox-close",
+  ".image-lightbox-close"
+];
+const EXPECTED_NODE_SELECTORS = [
   ".node-card.has-stack::after",
   ".stack-toggle",
   ".stack-tray",
@@ -345,6 +347,7 @@ checkFileContains("styles/features/node-base.css", EXPECTED_NODE_BASE_SELECTORS)
 checkFileContains("styles/features/node-image-edit.css", EXPECTED_NODE_IMAGE_EDIT_SELECTORS);
 checkFileContains("styles/features/node-state.css", EXPECTED_NODE_STATE_SELECTORS);
 checkFileContains("styles/features/node-image-toolbar.css", EXPECTED_NODE_IMAGE_TOOLBAR_SELECTORS);
+checkFileContains("styles/features/node-image-panels.css", EXPECTED_NODE_IMAGE_PANELS_SELECTORS);
 checkFileContains("styles/features/node.css", EXPECTED_NODE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
 checkFileContains("styles/legacy-canvas.css", EXPECTED_LEGACY_CANVAS_SELECTORS);
