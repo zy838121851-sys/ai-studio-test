@@ -1,8 +1,10 @@
 import { createRateLimiter } from "../src/server/middleware/rate-limit.middleware.js";
 import { createMemoryRateLimitStore } from "../src/server/providers/rate-limit/memory-rate-limit-store.js";
 import {
+  createRateLimitBucketKey,
   getDefaultRateLimitStore,
   getRateLimitBucketTtl,
+  getRateLimitRetryAfterSeconds,
   hitRateLimitBucket,
   resetRateLimitBucket
 } from "../src/server/services/rate-limit.service.js";
@@ -41,12 +43,16 @@ function checkStoreWindowBehavior() {
 
 function checkServiceStoreBehavior() {
   const store = createMemoryRateLimitStore();
-  const first = hitRateLimitBucket(store, "service:127.0.0.1", 1000, 3000);
+  const bucketKey = createRateLimitBucketKey("service", "127.0.0.1");
+  assert(bucketKey === "service:127.0.0.1", "Rate limit service should format bucket keys");
+  const first = hitRateLimitBucket(store, bucketKey, 1000, 3000);
   assert(first.count === 1, "Rate limit service should hit the provided store");
   assert(first.resetAt === 4000, "Rate limit service should preserve store reset behavior");
-  assert(getRateLimitBucketTtl(store, "service:127.0.0.1", 2500) === 1500, "Rate limit service should expose ttl");
-  resetRateLimitBucket(store, "service:127.0.0.1");
-  assert(getRateLimitBucketTtl(store, "service:127.0.0.1", 2500) === 0, "Rate limit service should expose reset");
+  assert(getRateLimitBucketTtl(store, bucketKey, 2500) === 1500, "Rate limit service should expose ttl");
+  assert(getRateLimitRetryAfterSeconds(first, 2500) === 2, "Rate limit service should calculate Retry-After");
+  assert(getRateLimitRetryAfterSeconds(first, 5000) === 1, "Rate limit service should keep Retry-After at least one second");
+  resetRateLimitBucket(store, bucketKey);
+  assert(getRateLimitBucketTtl(store, bucketKey, 2500) === 0, "Rate limit service should expose reset");
 
   const defaultStore = getDefaultRateLimitStore();
   assert(defaultStore?.hit, "Rate limit service should expose a default store with hit");
