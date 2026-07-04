@@ -113,18 +113,13 @@ import {
   restoreProjectConversation
 } from "./prompt-conversation-history-workflow.js";
 import {
-  requestConversation
+  ensureProjectConversation
 } from "./prompt-conversation-api-utils.js";
 import {
   applyCaughtStreamErrorDebugState,
   applyStreamEventErrorDebugState,
   applyStreamFinishedDebugState
 } from "./prompt-stream-debug-utils.js";
-import {
-  forgetConversationId,
-  getCachedConversationId,
-  rememberConversationId
-} from "./prompt-conversation-state-utils.js";
 import {
   runConversationStream
 } from "./prompt-conversation-stream-workflow.js";
@@ -1565,20 +1560,7 @@ async function runConversationAgent({
 }
 
 async function ensureConversation(projectId, { reset = false } = {}) {
-  const cleanProjectId = String(projectId || "").trim();
-  if (!cleanProjectId) throw new Error("Missing active project");
-  const cachedConversationId = getCachedConversationId(conversationIdsByProject, cleanProjectId);
-  if (!reset && cachedConversationId) {
-    return { id: cachedConversationId, projectId: cleanProjectId };
-  }
-  try {
-    const conversation = await requestConversation(cleanProjectId, { reset });
-    rememberConversationId(conversationIdsByProject, cleanProjectId, conversation.id);
-    return conversation;
-  } catch (error) {
-    if (error?.status === 404) forgetConversationId(conversationIdsByProject, cleanProjectId);
-    throw error;
-  }
+  return ensureProjectConversation(projectId, { conversationIdsByProject, reset });
 }
 
 async function ensureActiveProjectReadyForGeneration({

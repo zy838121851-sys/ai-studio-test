@@ -1,3 +1,9 @@
+import {
+  forgetConversationId,
+  getCachedConversationId,
+  rememberConversationId
+} from "./prompt-conversation-state-utils.js";
+
 export async function requestConversation(projectId, { reset = false } = {}) {
   const cleanProjectId = String(projectId || "").trim();
   if (!cleanProjectId) throw new Error("Missing active project");
@@ -16,6 +22,29 @@ export async function requestConversation(projectId, { reset = false } = {}) {
   const conversation = payload.conversation;
   if (!conversation?.id) throw new Error("Conversation response did not include an id");
   return conversation;
+}
+
+export async function ensureProjectConversation(projectId, {
+  conversationIdsByProject,
+  reset = false,
+  requestConversationFn = requestConversation
+} = {}) {
+  const cleanProjectId = String(projectId || "").trim();
+  if (!cleanProjectId) throw new Error("Missing active project");
+
+  const cachedConversationId = getCachedConversationId(conversationIdsByProject, cleanProjectId);
+  if (!reset && cachedConversationId) {
+    return { id: cachedConversationId, projectId: cleanProjectId };
+  }
+
+  try {
+    const conversation = await requestConversationFn(cleanProjectId, { reset });
+    rememberConversationId(conversationIdsByProject, cleanProjectId, conversation.id);
+    return conversation;
+  } catch (error) {
+    if (error?.status === 404) forgetConversationId(conversationIdsByProject, cleanProjectId);
+    throw error;
+  }
 }
 
 export async function fetchConversationMessages(conversationId) {
