@@ -99,6 +99,7 @@ styles/features/assets-board.css
 styles/features/assets-save.css
 styles/features/assets-picker.css
 styles/features/assets-canvas-picker.css
+styles/features/assets-context-menu.css
 ```
 
 ## `/styles` and `/assets/styles`
@@ -219,6 +220,8 @@ Notes:
   styles; it is imported by `features/assets.css`.
 - `features/assets-canvas-picker.css` owns canvas project picker overlay styles
   for asset insertion; it is imported by `features/assets.css`.
+- `features/assets-context-menu.css` owns asset page card context menu styles;
+  it is imported by `features/assets.css`.
 - `legacy-node.css` is currently a compatibility shim with no active selector
   ownership and is intentionally outside the active CSS import graph.
 - `features/node-base.css` owns base node/card/resize/action styles that were
@@ -271,6 +274,7 @@ styles/features/assets-board.css
 styles/features/assets-save.css
 styles/features/assets-picker.css
 styles/features/assets-canvas-picker.css
+styles/features/assets-context-menu.css
 styles/features/assets.css
 styles/features/chat.css
 styles/features/home.css
@@ -335,7 +339,8 @@ Additional caution:
   migrated asset board selectors in `features/assets-board.css`, migrated asset
   save selectors in `features/assets-save.css`, migrated asset picker selectors
   in `features/assets-picker.css`, migrated canvas asset picker selectors in
-  `features/assets-canvas-picker.css`, migrated node base selectors in
+  `features/assets-canvas-picker.css`, migrated asset context menu selectors in
+  `features/assets-context-menu.css`, migrated node base selectors in
   `features/node-base.css`,
   migrated image edit selectors in `features/node-image-edit.css`, migrated node
   state selectors in `features/node-state.css`, migrated image toolbar selectors

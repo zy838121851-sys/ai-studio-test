@@ -53,7 +53,8 @@ const EXPECTED_ASSET_IMPORTS = [
   "./assets-board.css",
   "./assets-save.css",
   "./assets-picker.css",
-  "./assets-canvas-picker.css"
+  "./assets-canvas-picker.css",
+  "./assets-context-menu.css"
 ];
 const ALLOWED_UNREACHABLE_CSS = [
   "styles/legacy-node.css"
@@ -126,12 +127,18 @@ const EXPECTED_ASSET_CANVAS_PICKER_SELECTORS = [
   ".asset-canvas-picker-thumb",
   ".asset-canvas-picker-meta"
 ];
+const EXPECTED_ASSET_CONTEXT_MENU_SELECTORS = [
+  "body[data-view=\"assetsPage\"] .asset-card-context-menu",
+  "body[data-view=\"assetsPage\"] .asset-card-context-menu[hidden]",
+  "body[data-view=\"assetsPage\"] .asset-card-context-icon",
+  "body[data-view=\"assetsPage\"] .asset-card-context-submenu",
+  "body[data-view=\"assetsPage\"] .asset-card-context-submenu-panel"
+];
 const EXPECTED_ASSET_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-pinterest-shell",
   "body[data-view=\"assetsPage\"] .asset-pinterest-stats",
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-grid",
-  "body[data-view=\"assetsPage\"] .asset-pinterest-masonry",
-  "body[data-view=\"assetsPage\"] .asset-card-context-menu"
+  "body[data-view=\"assetsPage\"] .asset-pinterest-masonry"
 ];
 const EXPECTED_CHAT_SELECTORS = [
   ".conversation-history-popover",
@@ -418,6 +425,7 @@ checkFileContains("styles/features/assets-board.css", EXPECTED_ASSET_BOARD_SELEC
 checkFileContains("styles/features/assets-save.css", EXPECTED_ASSET_SAVE_SELECTORS);
 checkFileContains("styles/features/assets-picker.css", EXPECTED_ASSET_PICKER_SELECTORS);
 checkFileContains("styles/features/assets-canvas-picker.css", EXPECTED_ASSET_CANVAS_PICKER_SELECTORS);
+checkFileContains("styles/features/assets-context-menu.css", EXPECTED_ASSET_CONTEXT_MENU_SELECTORS);
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
