@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,349 |
-| `styles` | 43 | 15,212 |
-| `scripts` | 90 | 20,653 |
+| `styles` | 44 | 15,213 |
+| `scripts` | 90 | 20,661 |
 
 Largest files in the current source tree:
 
@@ -68,10 +68,10 @@ Largest files in the current source tree:
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,487 | `styles/features/home.css` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
-| 1,408 | `styles/features/assets.css` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,282 | `scripts/check-canvas-menu-actions.js` |
+| 1,240 | `styles/features/assets.css` |
 | 1,120 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,112 | `scripts/check-library-bulk-select.js` |
 | 948 | `scripts/check-prompt-conversation-event-utils.js` |
@@ -112,6 +112,8 @@ Post-baseline CSS governance note:
   board popover styles; it is imported by `styles/features/assets.css`.
 - `styles/features/assets-picker.css` owns asset picker modal and asset preview
   overlay styles; it is imported by `styles/features/assets.css`.
+- `styles/features/assets-canvas-picker.css` owns canvas project picker overlay
+  styles for asset insertion; it is imported by `styles/features/assets.css`.
 - `styles/features/node-base.css` owns base node/card/resize/action styles that
   were moved out of `styles/legacy-node.css`; it is imported at the top of
   `styles/features/node.css` to preserve cascade order.
