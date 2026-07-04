@@ -23,17 +23,27 @@ function sendCollectionNotFound(res) {
   sendErrorResponse(res, 404, "Asset collection not found");
 }
 
+function readAssetCollectionRouteInput(req) {
+  return {
+    context: getRequestContext(req),
+    collectionId: getRouteParam(req, "id"),
+    body: getRequestBody(req)
+  };
+}
+
 export function createAssetCollectionRouter() {
   const router = Router();
   router.use(requireAuth);
 
   router.get("/asset-collections", (req, res) => {
-    res.json({ collections: listAssetCollections(getRequestContext(req)) });
+    const { context } = readAssetCollectionRouteInput(req);
+    res.json({ collections: listAssetCollections(context) });
   });
 
   router.post("/asset-collections", (req, res) => {
     try {
-      const collection = createAssetCollection(getRequestContext(req), getRequestBody(req));
+      const { context, body } = readAssetCollectionRouteInput(req);
+      const collection = createAssetCollection(context, body);
       res.status(201).json({ collection });
     } catch (error) {
       handleCollectionError(res, error);
@@ -42,7 +52,8 @@ export function createAssetCollectionRouter() {
 
   router.patch("/asset-collections/:id", (req, res) => {
     try {
-      const collection = updateAssetCollection(getRequestContext(req), getRouteParam(req, "id"), getRequestBody(req));
+      const { context, collectionId, body } = readAssetCollectionRouteInput(req);
+      const collection = updateAssetCollection(context, collectionId, body);
       if (!collection) {
         sendCollectionNotFound(res);
         return;
@@ -54,7 +65,8 @@ export function createAssetCollectionRouter() {
   });
 
   router.delete("/asset-collections/:id", (req, res) => {
-    const collection = deleteAssetCollection(getRequestContext(req), getRouteParam(req, "id"));
+    const { context, collectionId } = readAssetCollectionRouteInput(req);
+    const collection = deleteAssetCollection(context, collectionId);
     if (!collection) {
       sendCollectionNotFound(res);
       return;
@@ -63,7 +75,8 @@ export function createAssetCollectionRouter() {
   });
 
   router.get("/asset-collections/:id/assets", (req, res) => {
-    const assets = listAssetsForCollection(getRequestContext(req), getRouteParam(req, "id"));
+    const { context, collectionId } = readAssetCollectionRouteInput(req);
+    const assets = listAssetsForCollection(context, collectionId);
     if (!assets) {
       sendCollectionNotFound(res);
       return;
