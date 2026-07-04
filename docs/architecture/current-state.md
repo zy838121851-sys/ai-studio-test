@@ -55,14 +55,13 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,349 |
-| `styles` | 50 | 15,217 |
-| `scripts` | 90 | 20,740 |
+| `styles` | 51 | 15,219 |
+| `scripts` | 90 | 20,749 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
-| 1,723 | `styles/legacy-canvas.css` |
 | 1,709 | `scripts/check-api-error-contract.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,553 | `styles/legacy-theme-sync.css` |
@@ -70,6 +69,7 @@ Largest files in the current source tree:
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,282 | `scripts/check-canvas-menu-actions.js` |
+| 1,246 | `styles/legacy-canvas.css` |
 | 1,124 | `styles/features/assets-pinterest.css` |
 | 1,120 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,112 | `scripts/check-library-bulk-select.js` |
@@ -137,6 +137,12 @@ Post-baseline CSS governance note:
   imported by `styles/legacy-theme-sync.css`.
 - `styles/legacy-theme-sync.css` now imports the theme sync base submodule
   before the remaining cross-component theme surface synchronization rules.
+- `styles/legacy-canvas-shell.css` owns the first canvas shell block that was
+  moved out of `styles/legacy-canvas.css`: canvas area background, project
+  header/logo, top actions, tool rail, add-node menu, canvas context menu, and
+  selection action bar styles.
+- `styles/legacy-canvas.css` now imports `styles/legacy-canvas-shell.css`
+  before the remaining legacy canvas styles to preserve cascade order.
 - `styles/features/node-base.css` owns base node/card/resize/action styles that
   were moved out of `styles/legacy-node.css`; it is imported at the top of
   `styles/features/node.css` to preserve cascade order.

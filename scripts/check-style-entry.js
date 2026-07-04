@@ -38,6 +38,9 @@ const EXPECTED_LEGACY_BASE_IMPORTS = [];
 const EXPECTED_LEGACY_THEME_SYNC_IMPORTS = [
   "./legacy-theme-sync-base.css"
 ];
+const EXPECTED_LEGACY_CANVAS_IMPORTS = [
+  "./legacy-canvas-shell.css"
+];
 const EXPECTED_NODE_IMPORTS = [
   "./node-base.css",
   "./node-image-edit.css",
@@ -206,13 +209,15 @@ const EXPECTED_LEGACY_THEME_SYNC_SELECTORS = [
   ".image-expand-actions",
   "body[data-theme=\"dark\"] .node-card"
 ];
-const EXPECTED_LEGACY_CANVAS_SELECTORS = [
+const EXPECTED_LEGACY_CANVAS_SHELL_SELECTORS = [
   ".canvas-area",
   ".tool-rail",
   ".add-node-menu",
   ".canvas-context-menu",
   ".selection-action-bar",
-  ".selection-color-swatch",
+  ".selection-color-swatch"
+];
+const EXPECTED_LEGACY_CANVAS_SELECTORS = [
   ".image-edit-popover",
   ".video-generator-popover"
 ];
@@ -463,6 +468,7 @@ const workspaceImports = parseCssImports("styles/workspace.css");
 const legacySplitImports = parseCssImports("styles/legacy-split.css");
 const legacyBaseImports = parseCssImports("styles/legacy-base.css");
 const legacyThemeSyncImports = parseCssImports("styles/legacy-theme-sync.css");
+const legacyCanvasImports = parseCssImports("styles/legacy-canvas.css");
 const nodeImports = parseCssImports("styles/features/node.css");
 const assetImports = parseCssImports("styles/features/assets.css");
 const homeImports = parseCssImports("styles/features/home.css");
@@ -473,6 +479,7 @@ assertListEqual("styles/workspace.css", workspaceImports, EXPECTED_WORKSPACE_IMP
 assertListEqual("styles/legacy-split.css", legacySplitImports, EXPECTED_LEGACY_SPLIT_IMPORTS);
 assertListEqual("styles/legacy-base.css", legacyBaseImports, EXPECTED_LEGACY_BASE_IMPORTS);
 assertListEqual("styles/legacy-theme-sync.css", legacyThemeSyncImports, EXPECTED_LEGACY_THEME_SYNC_IMPORTS);
+assertListEqual("styles/legacy-canvas.css", legacyCanvasImports, EXPECTED_LEGACY_CANVAS_IMPORTS);
 assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
 assertListEqual("styles/features/assets.css", assetImports, EXPECTED_ASSET_IMPORTS);
 assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
@@ -480,6 +487,7 @@ checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(legacySplitImports, "styles");
 checkImportedFilesExist(legacyThemeSyncImports, "styles");
+checkImportedFilesExist(legacyCanvasImports, "styles");
 checkImportedFilesExist(nodeImports, "styles/features");
 checkImportedFilesExist(assetImports, "styles/features");
 checkImportedFilesExist(homeImports, "styles/features");
@@ -496,6 +504,7 @@ checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-base.css", EXPECTED_LEGACY_THEME_SYNC_BASE_SELECTORS);
 checkFileContains("styles/legacy-theme-sync.css", EXPECTED_LEGACY_THEME_SYNC_SELECTORS);
+checkFileContains("styles/legacy-canvas-shell.css", EXPECTED_LEGACY_CANVAS_SHELL_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/home-shell.css", EXPECTED_HOME_SHELL_SELECTORS);
 checkFileContains("styles/features/home-history.css", EXPECTED_HOME_HISTORY_SELECTORS);

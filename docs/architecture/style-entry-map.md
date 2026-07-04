@@ -117,6 +117,12 @@ styles/features/home-shell.css
 styles/legacy-theme-sync-base.css
 ```
 
+`styles/legacy-canvas.css` currently imports:
+
+```text
+styles/legacy-canvas-shell.css
+```
+
 ## `/styles` and `/assets/styles`
 
 Current server behavior in `src/server/index.js`:
@@ -285,6 +291,14 @@ Notes:
   background, and light/dark theme switch styles.
 - `legacy-theme-sync.css` imports `legacy-theme-sync-base.css`, then keeps the
   remaining cross-component theme surface synchronization rules.
+- `legacy-canvas-shell.css` owns the first legacy canvas shell block: canvas
+  area background, project header/logo, top actions, tool rail, add-node menu,
+  canvas context menu, selection action bar, and related mobile selection-bar
+  overrides.
+- `legacy-canvas.css` imports `legacy-canvas-shell.css`, then keeps the
+  remaining image edit popover, upload/generation choice, floating suggestions,
+  canvas world, empty state, video generator, project title, and return-control
+  styles.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.
@@ -335,6 +349,7 @@ styles/image-compare.css
 styles/task-log.css
 styles/legacy-split.css
 styles/legacy-base.css
+styles/legacy-canvas-shell.css
 styles/legacy-canvas.css
 styles/legacy-canvas-visual.css
 styles/legacy-chat.css
@@ -394,7 +409,9 @@ Additional caution:
   `features/node-image-generator.css`, migrated preview selectors in
   `features/node-preview.css`, and the node aggregation entry in
   `features/node.css`; it also keeps compatibility shims such as
-  `legacy-node.css` outside the active import graph.
+  `legacy-node.css` outside the active import graph, and guards the
+  `legacy-canvas.css` import of `legacy-canvas-shell.css` plus selectors in both
+  canvas files.
 - Move one feature area at a time from legacy files into a clearer structure.
 - Start with documentation and smoke checks before moving selectors.
 - Prefer feature grouping such as:
