@@ -122,6 +122,9 @@ const EXPECTED_LEGACY_NODE_SELECTORS = [
   ".node-loading-image"
 ];
 const EXPECTED_NODE_SELECTORS = [
+  ".node-card.has-stack::after",
+  ".stack-toggle",
+  ".stack-tray",
   ".node-director",
   ".director-tile",
   ".node-video",
