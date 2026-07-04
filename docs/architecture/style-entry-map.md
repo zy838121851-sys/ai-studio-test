@@ -238,6 +238,11 @@ Additional caution:
   style dependency files, and the chat agent debug panel static styles now live
   in `styles/legacy-chat.css`. Selection group color swatches now use
   `selection-swatch-*` classes instead of inline `--swatch` style attributes.
+- Keep `scripts/check-inline-style-categories.js` in `npm run check` to prevent
+  the remaining inline style surface from becoming an undifferentiated bucket.
+  Its current categories are agent runtime, AI editor dynamic runtime, canvas
+  dynamic runtime, serialization/export/snapshot, and workspace floating UI
+  runtime. Treat serialization/export/snapshot as the highest-risk category.
 - Move one feature area at a time from legacy files into a clearer structure.
 - Start with documentation and smoke checks before moving selectors.
 - Prefer feature grouping such as:

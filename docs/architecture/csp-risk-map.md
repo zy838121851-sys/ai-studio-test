@@ -46,6 +46,8 @@ Existing gate:
   `/uploads/...` URLs.
 - `scripts/check-inline-style-surface.js` records the current inline style
   dependency surface and fails if new files or higher counts are added.
+- `scripts/check-inline-style-categories.js` classifies the remaining inline
+  style surface and fails if a new unclassified file or category count appears.
 
 Strict evidence command:
 
@@ -172,6 +174,20 @@ Current gate:
 - `scripts/check-inline-style-surface.js` allows the existing runtime surface
   but blocks new inline style dependency files, `index.html` reintroductions, or
   count growth.
+- `scripts/check-inline-style-categories.js` keeps the remaining surface split
+  into these production-risk categories:
+
+| Category | Files | Purpose | Current Counts |
+| --- | ---: | --- | --- |
+| `agent-runtime` | 7 | Agent workspace positioning and debug/runtime sizing. | `style=2`, `.style=17` |
+| `ai-editor-dynamic-runtime` | 1 | Image edit runtime layout writes. | `.style=19` |
+| `canvas-dynamic-runtime` | 32 | Canvas geometry, node sizing, drag, crop, drawing, and toolbar state. | `style=1`, `setAttribute=6`, `.style=190` |
+| `serialization-export-snapshot` | 3 | Snapshot restore/sanitization and SVG/foreignObject export serialization. | `style=5`, `setAttribute=1`, `.style=28`, `cssText=1` |
+| `workspace-floating-ui-runtime` | 9 | Floating menus, chat/taskbar positioning, compact select, and task-log runtime layout. | `.style=44` |
+
+The `serialization-export-snapshot` category is intentionally high risk: do not
+move or delete its inline styles without export/snapshot-specific tests and a
+rollback point.
 
 ### 4. `img-src http:` and `media-src http:`
 
