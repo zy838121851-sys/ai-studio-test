@@ -13,7 +13,8 @@ const EXPECTED_STYLES_IMPORTS = [
   "./styles/legacy-split.css"
 ];
 const EXPECTED_WORKSPACE_IMPORTS = [
-  "./workspace-layout.css"
+  "./workspace-layout.css",
+  "./features/project-library.css"
 ];
 const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./legacy-base.css",
@@ -35,6 +36,13 @@ const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./menu-select-overrides.css"
 ];
 const ALLOWED_UNREACHABLE_CSS = [];
+const EXPECTED_PROJECT_LIBRARY_SELECTORS = [
+  ".project-grid",
+  ".library-page-header",
+  ".project-card-board",
+  ".library-small-card",
+  "body[data-view=\"library\"] .project-card-board"
+];
 
 const errors = [];
 
@@ -161,6 +169,15 @@ function checkCssReachability() {
   }
 }
 
+function checkFileContains(filePath, snippets) {
+  const text = readText(filePath);
+  snippets.forEach((snippet) => {
+    if (!text.includes(snippet)) {
+      fail(`${filePath} is missing expected snippet: ${snippet}`);
+    }
+  });
+}
+
 const stylesImports = parseCssImports("styles.css");
 const workspaceImports = parseCssImports("styles/workspace.css");
 const legacySplitImports = parseCssImports("styles/legacy-split.css");
@@ -173,6 +190,7 @@ checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(legacySplitImports, "styles");
 checkCssReachability();
+checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
 
 if (errors.length > 0) {
   console.error("Style entry check failed:");
