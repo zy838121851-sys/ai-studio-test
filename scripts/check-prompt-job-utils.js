@@ -1,5 +1,6 @@
 import {
   delay,
+  shouldUseImmediateAIResult,
   waitForAIJob,
   waitForTripo3DTask
 } from "../src/client/features/workspace/chat/workflows/prompt-job-utils.js";
@@ -12,6 +13,19 @@ const originalFetch = globalThis.fetch;
 
 try {
   await delay(0);
+
+  assert(shouldUseImmediateAIResult({ imageUrl: "/uploads/a.png", jobId: "job-image" }), "AI job helper should use immediate image results");
+  assert(shouldUseImmediateAIResult({ videoUrl: "/uploads/a.mp4", jobId: "job-video" }), "AI job helper should use immediate video results");
+  assert(shouldUseImmediateAIResult({}), "AI job helper should use immediate results when no job id is present");
+  assert(!shouldUseImmediateAIResult({ jobId: "job-queued" }), "AI job helper should poll when only job id is present");
+  assert(!shouldUseImmediateAIResult({ imageUrl: "", videoUrl: "", jobId: "job-queued" }), "AI job helper should preserve falsy URL behavior");
+  let immediateNullError = null;
+  try {
+    shouldUseImmediateAIResult(null);
+  } catch (error) {
+    immediateNullError = error;
+  }
+  assert(immediateNullError instanceof TypeError, "AI job helper should preserve null result errors");
 
   const runningProgress = [];
   const aiSuccessCalls = mockFetchSequence([

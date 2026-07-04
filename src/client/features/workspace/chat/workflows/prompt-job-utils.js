@@ -1,5 +1,9 @@
 import { getRetryAfterDelayMs } from "./prompt-error-utils.js";
 
+export function shouldUseImmediateAIResult(result) {
+  return Boolean(result.imageUrl || result.videoUrl || !result.jobId);
+}
+
 export async function waitForAIJob(jobId, { attempts = 180, delayMs = 2000, onProgress = null } = {}) {
   let lastPayload = { jobId };
   for (let index = 0; index < attempts; index += 1) {

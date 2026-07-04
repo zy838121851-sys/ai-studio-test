@@ -87,6 +87,7 @@ import {
   updatePromptPreviewStatus
 } from "./prompt-preview-utils.js";
 import {
+  shouldUseImmediateAIResult,
   waitForAIJob,
   waitForTripo3DTask
 } from "./prompt-job-utils.js";
@@ -941,7 +942,7 @@ export function bindPromptSubmit({
       const result = await postJsonRequest("/api/ai/generate", generationPayload);
       storeAgentGenerateResult(agentDebug, summarizeGenerationResult(result));
       logAgentDebug(agentDebug, "generate.response.initial", agentDebug.generateResult);
-      const finalResult = result.imageUrl || result.videoUrl || !result.jobId
+      const finalResult = shouldUseImmediateAIResult(result)
         ? result
         : await waitForAIJob(result.jobId, {
           onProgress: (payload) => {
