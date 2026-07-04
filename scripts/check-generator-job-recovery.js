@@ -27,6 +27,7 @@ import {
 import {
   applyGeneratedImageNodeResult,
   applyGeneratedImageNodeSize,
+  buildGeneratedImageNodeOptions,
   getRequiredGeneratorResultUrl,
   getRequiredGeneratorResultUrls,
   getGeneratorResultTitle,
@@ -104,6 +105,7 @@ assert(
     && generatorWorkflow.includes("readGeneratorReferenceFiles")
     && generatorWorkflow.includes("markGeneratorPreviewFailed")
     && generatorWorkflow.includes("updateGeneratorPreviewStatus as updatePreviewStatus")
+    && generatorWorkflow.includes("buildGeneratedImageNodeOptions")
     && generatorWorkflow.includes("applyGeneratedImageNodeResult")
     && generatorWorkflow.includes("applyGeneratedImageNodeSize")
     && generatorWorkflow.includes("getGeneratorResultTitle")
@@ -666,6 +668,31 @@ assert(fallbackRecoveredMeta.model === "result-model", "recovered generator prev
 assert(getGeneratorResultTitle(0, 1) === "Image Generator Result.png", "single image generator result title should stay stable");
 assert(getGeneratorResultTitle(1, 3) === "Image Generator Result 2.png", "multi image generator result title should include one-based index");
 assert(getGeneratorResultTitle(0, 4) === "Image Generator Result 1.png", "generator replacement title should preserve first numbered result");
+assert(
+  JSON.stringify(buildGeneratedImageNodeOptions({
+    title: "Image Generator Result 2.png",
+    prompt: "Prompt",
+    sourceUrl: "/uploads/result.png",
+    x: 12,
+    y: 24
+  })) === JSON.stringify({
+    kind: "image",
+    title: "Image Generator Result 2.png",
+    desc: "Prompt",
+    x: 12,
+    y: 24,
+    media: {
+      url: "/uploads/result.png",
+      name: "Image Generator Result 2.png",
+      type: "image/png"
+    }
+  }),
+  "generated image node options helper should preserve addNode payloads"
+);
+assert(
+  buildGeneratedImageNodeOptions({ sourceUrl: "/uploads/result.png" }).desc === "Image generator result",
+  "generated image node options helper should preserve fallback descriptions"
+);
 assert(shouldUseImmediateGeneratorResult(null) === true, "generator should keep immediate fallback behavior for missing results");
 assert(shouldUseImmediateGeneratorResult({}) === true, "generator should keep immediate fallback behavior when no job id exists");
 assert(shouldUseImmediateGeneratorResult({ jobId: "job-1" }) === false, "generator should poll async jobs that have no result URL yet");

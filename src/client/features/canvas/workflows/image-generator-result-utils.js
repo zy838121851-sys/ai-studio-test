@@ -12,6 +12,27 @@ export function getGeneratorResultTitle(index = 0, count = 1) {
     : "Image Generator Result.png";
 }
 
+export function buildGeneratedImageNodeOptions({
+  title = "Image Generator Result.png",
+  prompt = "",
+  sourceUrl = "",
+  x = 0,
+  y = 0
+} = {}) {
+  return {
+    kind: "image",
+    title,
+    desc: prompt || "Image generator result",
+    x,
+    y,
+    media: {
+      url: sourceUrl,
+      name: title,
+      type: "image/png"
+    }
+  };
+}
+
 export function applyGeneratedImageNodeSize(node, { width, dimensions } = {}) {
   if (!node) return;
   if (width) node.style.width = `${Math.round(width)}px`;

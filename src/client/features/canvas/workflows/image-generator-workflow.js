@@ -7,6 +7,7 @@ import { renderModelPreferenceMenu } from "../../ai/model-preference-menu.js";
 import {
   applyGeneratedImageNodeResult,
   applyGeneratedImageNodeSize,
+  buildGeneratedImageNodeOptions,
   getMissingGeneratorResultMessage,
   getGeneratorResultTitle,
   getRequiredGeneratorResultUrl,
@@ -744,18 +745,13 @@ export function createImageGeneratorWorkflow({
     const placement = getGeneratedImagePlacement(node, index);
     const dimensions = getGeneratorOutputDimensions(node, getGeneratorRatioValue(node), getGeneratorReferences(node));
     const title = getGeneratorResultTitle(index, count);
-    const createdNode = addNode?.({
-      kind: "image",
+    const createdNode = addNode?.(buildGeneratedImageNodeOptions({
       title,
-      desc: prompt || "Image generator result",
+      prompt,
+      sourceUrl,
       x: placement.x,
-      y: placement.y,
-      media: {
-        url: sourceUrl,
-        name: title,
-        type: "image/png"
-      }
-    });
+      y: placement.y
+    }));
     if (!createdNode) return null;
     applyGeneratedImageNodeSize(createdNode, {
       width: placement.width,
@@ -786,18 +782,13 @@ export function createImageGeneratorWorkflow({
     const dimensions = getGeneratorOutputDimensions(node, getGeneratorRatioValue(node), getGeneratorReferences(node));
     const placement = getGeneratorReplacementPlacement(node);
     const title = getGeneratorResultTitle(0, count);
-    const createdNode = addNode({
-      kind: "image",
+    const createdNode = addNode(buildGeneratedImageNodeOptions({
       title,
-      desc: prompt || "Image generator result",
+      prompt,
+      sourceUrl,
       x: placement.x,
-      y: placement.y,
-      media: {
-        url: sourceUrl,
-        name: title,
-        type: "image/png"
-      }
-    });
+      y: placement.y
+    }));
     if (!createdNode) return null;
     applyGeneratedImageNodeSize(createdNode, {
       width: placement.width,
