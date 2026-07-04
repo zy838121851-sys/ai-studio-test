@@ -186,12 +186,12 @@ Notes:
 - `features/node.css` owns generic node zoom/selected/source/label state
   styles, image node toolbar and canvas asset savebar styles, image text panel
   styles, image lightbox styles, stack/folded node styles, director node
-  styles, crop controls and crop/expand edit-state visibility suppression,
-  image/video/model media node preview styles, generation preview frame styles,
-  image generator node frame/panel styles, tail-end node generator inline edit
-  controls, and media/model/video preview helpers that were moved out of
-  `legacy-node.css`; it is imported immediately after `legacy-node.css` so the
-  moved blocks keep the same cascade position before later overrides.
+  styles, crop controls, expand controls, crop/expand edit-state visibility
+  suppression, image/video/model media node preview styles, generation preview
+  frame styles, image generator node frame/panel styles, tail-end node generator
+  inline edit controls, and media/model/video preview helpers that were moved
+  out of `legacy-node.css`; it is imported immediately after `legacy-node.css`
+  so the moved blocks keep the same cascade position before later overrides.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.
@@ -260,10 +260,9 @@ Additional caution:
   runtime. Treat serialization/export/snapshot as the highest-risk category.
 - Keep `scripts/check-style-entry.js` as the static CSS entry and selector guard.
   It now checks key selectors for feature CSS plus the legacy canvas, node, and
-  chat modules, including migrated crop selectors in `features/node.css` and
-  remaining expand selectors in `legacy-node.css`, which gives future CSS
-  migrations an automated way to catch dropped runtime hooks before browser
-  smoke checks.
+  chat modules, including migrated crop and expand selectors in
+  `features/node.css`, which gives future CSS migrations an automated way to
+  catch dropped runtime hooks before browser smoke checks.
 - Move one feature area at a time from legacy files into a clearer structure.
 - Start with documentation and smoke checks before moving selectors.
 - Prefer feature grouping such as:
