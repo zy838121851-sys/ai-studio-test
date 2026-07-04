@@ -115,12 +115,12 @@ const EXPECTED_LEGACY_NODE_SELECTORS = [
   ".node-card",
   ".resize-handle",
   ".node-card.node-group",
-  ".image-node-toolbar",
-  ".image-toolbar-upscale-controls",
-  ".canvas-asset-savebar",
   ".node-loading-image"
 ];
 const EXPECTED_NODE_SELECTORS = [
+  ".image-node-toolbar",
+  ".image-toolbar-upscale-controls",
+  ".canvas-asset-savebar",
   ".image-text-panel",
   ".image-text-status",
   ".image-text-list",
