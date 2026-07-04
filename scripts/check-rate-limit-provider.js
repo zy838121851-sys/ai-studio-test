@@ -1,6 +1,11 @@
 import { createRateLimiter } from "../src/server/middleware/rate-limit.middleware.js";
 import { createMemoryRateLimitStore } from "../src/server/providers/rate-limit/memory-rate-limit-store.js";
-import { getDefaultRateLimitStore, hitRateLimitBucket } from "../src/server/services/rate-limit.service.js";
+import {
+  getDefaultRateLimitStore,
+  getRateLimitBucketTtl,
+  hitRateLimitBucket,
+  resetRateLimitBucket
+} from "../src/server/services/rate-limit.service.js";
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -21,9 +26,13 @@ function checkStoreWindowBehavior() {
   const second = store.hit("auth:127.0.0.1", 2000, 5000);
   assert(second.count === 2, "Second hit should increment the same bucket");
   assert(second.resetAt === 6000, "Second hit should preserve reset time");
+  assert(store.ttl("auth:127.0.0.1", 3000) === 3000, "Store ttl should report remaining window time");
 
   const otherNamespace = store.hit("upload:127.0.0.1", 2000, 5000);
   assert(otherNamespace.count === 1, "Different keys should not share counters");
+
+  store.reset("upload:127.0.0.1");
+  assert(store.ttl("upload:127.0.0.1", 3000) === 0, "Store reset should clear a bucket");
 
   const reset = store.hit("auth:127.0.0.1", 6000, 5000);
   assert(reset.count === 1, "Window boundary should start a new bucket");
@@ -35,7 +44,14 @@ function checkServiceStoreBehavior() {
   const first = hitRateLimitBucket(store, "service:127.0.0.1", 1000, 3000);
   assert(first.count === 1, "Rate limit service should hit the provided store");
   assert(first.resetAt === 4000, "Rate limit service should preserve store reset behavior");
-  assert(getDefaultRateLimitStore()?.hit, "Rate limit service should expose a default store");
+  assert(getRateLimitBucketTtl(store, "service:127.0.0.1", 2500) === 1500, "Rate limit service should expose ttl");
+  resetRateLimitBucket(store, "service:127.0.0.1");
+  assert(getRateLimitBucketTtl(store, "service:127.0.0.1", 2500) === 0, "Rate limit service should expose reset");
+
+  const defaultStore = getDefaultRateLimitStore();
+  assert(defaultStore?.hit, "Rate limit service should expose a default store with hit");
+  assert(defaultStore?.reset, "Rate limit service should expose a default store with reset");
+  assert(defaultStore?.ttl, "Rate limit service should expose a default store with ttl");
 }
 
 function checkMiddlewareLimitResponse() {

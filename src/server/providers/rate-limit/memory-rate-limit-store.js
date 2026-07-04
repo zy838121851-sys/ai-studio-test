@@ -12,6 +12,16 @@ export function createMemoryRateLimitStore() {
 
       current.count += 1;
       return current;
+    },
+
+    reset(key) {
+      buckets.delete(key);
+    },
+
+    ttl(key, now) {
+      const current = buckets.get(key);
+      if (!current) return 0;
+      return Math.max(0, current.resetAt - now);
     }
   };
 }
