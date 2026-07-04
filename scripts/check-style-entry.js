@@ -77,6 +77,11 @@ const EXPECTED_AUTH_SELECTORS = [
   ".auth-submit"
 ];
 const EXPECTED_ASSET_SELECTORS = [
+  ".asset-board-bar",
+  ".asset-board-card",
+  ".asset-board-cover",
+  ".asset-item",
+  ".asset-thumb",
   ".asset-save-popover",
   ".canvas-asset-board-popover",
   ".asset-save-section",
