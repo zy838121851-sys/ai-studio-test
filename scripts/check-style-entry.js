@@ -14,6 +14,7 @@ const EXPECTED_STYLES_IMPORTS = [
 ];
 const EXPECTED_WORKSPACE_IMPORTS = [
   "./workspace-layout.css",
+  "./features/auth.css",
   "./features/home.css",
   "./features/ai-core.css",
   "./features/project-library.css"
@@ -64,6 +65,15 @@ const EXPECTED_HOME_SELECTORS = [
   ".home-history",
   ".home-masonry-feed",
   "@keyframes homeBootSkeleton"
+];
+const EXPECTED_AUTH_SELECTORS = [
+  ".auth-entry",
+  ".auth-account-popover",
+  ".credit-detail-dialog",
+  ".credit-profile-card",
+  ".auth-dialog",
+  ".auth-form",
+  ".auth-submit"
 ];
 
 const errors = [];
@@ -212,6 +222,7 @@ checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(legacySplitImports, "styles");
 checkCssReachability();
+checkFileContains("styles/features/auth.css", EXPECTED_AUTH_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/ai-core.css", EXPECTED_AI_CORE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);

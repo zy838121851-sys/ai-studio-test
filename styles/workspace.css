@@ -1,4 +1,5 @@
 @import url("./workspace-layout.css?v=20260628-boot-inline-1");
+@import url("./features/auth.css");
 @import url("./features/home.css");
 @import url("./features/ai-core.css");
 @import url("./features/project-library.css");
