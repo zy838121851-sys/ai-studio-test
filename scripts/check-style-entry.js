@@ -119,10 +119,12 @@ const EXPECTED_LEGACY_NODE_SELECTORS = [
   ".image-toolbar-upscale-controls",
   ".canvas-asset-savebar",
   ".image-lightbox",
-  ".node-loading-image",
-  ".image-generator-frame"
+  ".node-loading-image"
 ];
 const EXPECTED_NODE_SELECTORS = [
+  ".node-image-generator",
+  ".image-generator-frame",
+  ".image-generator-panel",
   ".image-generator-panel.image-edit-popover-inline",
   ".image-generator-bottom.edit-actions",
   ".media-preview",
