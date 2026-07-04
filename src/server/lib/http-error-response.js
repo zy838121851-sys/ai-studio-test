@@ -5,7 +5,7 @@ export function sendErrorResponse(res, status, message, extra = {}) {
   });
 }
 
-export function sendCaughtErrorResponse(res, error, {
+export function buildCaughtErrorResponse(error, {
   defaultStatus = 500,
   defaultMessage = "Request failed",
   useStatusMessageOnly = false
@@ -14,5 +14,10 @@ export function sendCaughtErrorResponse(res, error, {
   const message = useStatusMessageOnly && (error?.status || error?.statusCode)
     ? error.message
     : (error?.message || defaultMessage);
+  return { status, message };
+}
+
+export function sendCaughtErrorResponse(res, error, options = {}) {
+  const { status, message } = buildCaughtErrorResponse(error, options);
   sendErrorResponse(res, status, message);
 }

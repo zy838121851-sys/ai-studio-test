@@ -16,6 +16,9 @@ import {
   buildTripo3DResponseLog
 } from "../src/server/lib/ai-job-log-payload.js";
 import {
+  buildCaughtErrorResponse
+} from "../src/server/lib/http-error-response.js";
+import {
   buildCompletedGenerationResponse,
   buildDeferredImageEditResult,
   buildQueuedGenerationResponse,
@@ -76,6 +79,7 @@ const restoreConsole = suppressAuditLogs();
 
 try {
   assertNoInlineMessageErrorResponses();
+  assertCaughtErrorResponseHelpers();
   assertAIErrorClassification();
   assertAIErrorResponseBody();
   await assertAIAsyncHandler();
@@ -1563,6 +1567,36 @@ function assertNoInlineMessageErrorResponses() {
       "Route error responses should use sendErrorResponse/sendCaughtErrorResponse instead of inline { message } JSON.",
       ...offenders
     ].join("\n")
+  );
+}
+
+function assertCaughtErrorResponseHelpers() {
+  assertDeepEqual(
+    buildCaughtErrorResponse(errorWith({ status: 404, message: "Project not found" }), {
+      defaultStatus: 400,
+      defaultMessage: "Invalid request",
+      useStatusMessageOnly: true
+    }),
+    { status: 404, message: "Project not found" },
+    "Caught error response should preserve explicit status and message when status-message-only is enabled"
+  );
+
+  assertDeepEqual(
+    buildCaughtErrorResponse(errorWith({ status: 409, message: "Email already registered" }), {
+      defaultStatus: 400,
+      defaultMessage: "Invalid request"
+    }),
+    { status: 409, message: "Email already registered" },
+    "Caught error response should preserve explicit status and message"
+  );
+
+  assertDeepEqual(
+    buildCaughtErrorResponse({}, {
+      defaultStatus: 400,
+      defaultMessage: "Invalid request"
+    }),
+    { status: 400, message: "Invalid request" },
+    "Caught error response should preserve fallback status and message"
   );
 }
 
