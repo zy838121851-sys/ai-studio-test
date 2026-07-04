@@ -85,6 +85,7 @@ styles/features/node-image-toolbar.css
 styles/features/node-image-panels.css
 styles/features/node-stack.css
 styles/features/node-director.css
+styles/features/node-media.css
 ```
 
 ## `/styles` and `/assets/styles`
@@ -212,10 +213,11 @@ Notes:
   styles.
 - `features/node-stack.css` owns stack/folded node styles.
 - `features/node-director.css` owns director node styles.
-- `features/node.css` owns image/video/model media node preview styles,
-  generation preview frame styles, image generator node frame/panel styles,
-  tail-end node generator inline edit controls, and media/model/video preview
-  helpers.
+- `features/node-media.css` owns image/video/model node shell, image frame, and
+  video file preview styles.
+- `features/node.css` owns generation preview frame styles, image generator node
+  frame/panel styles, tail-end node generator inline edit controls, and
+  media/model/video preview helpers.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.
@@ -245,6 +247,7 @@ styles/features/node-image-toolbar.css
 styles/features/node-image-panels.css
 styles/features/node-stack.css
 styles/features/node-director.css
+styles/features/node-media.css
 styles/features/node.css
 styles/features/project-library.css
 styles/components.css
@@ -297,7 +300,8 @@ Additional caution:
   in `features/node-image-toolbar.css`, migrated image panel selectors in
   `features/node-image-panels.css`, migrated stack selectors in
   `features/node-stack.css`, migrated director selectors in
-  `features/node-director.css`, and migrated node selectors in
+  `features/node-director.css`, migrated media node selectors in
+  `features/node-media.css`, and remaining migrated node selectors in
   `features/node.css`; it also keeps compatibility shims such as
   `legacy-node.css` outside the active import graph.
 - Move one feature area at a time from legacy files into a clearer structure.
