@@ -27,6 +27,7 @@ import {
   layoutNodesByRows,
   layoutNodesInCompactGallery,
   normalizeLayerZIndex,
+  normalizeNodesByMode,
   recordLayoutMutation,
   getRectUnionBounds,
   getViewportCenterWorldPoint,
@@ -38,7 +39,8 @@ import {
   setNodeLayoutSize,
   setNodeLayoutWidth,
   snapshotLayoutNodes,
-  sortNodesByCanvasPosition
+  sortNodesByCanvasPosition,
+  stackNodesByOffset
 } from "../src/client/features/canvas/workflows/canvas-menu-layout-utils.js";
 import {
   getCommandNodesFromSelection,
@@ -117,12 +119,14 @@ assertIncludes(menuLayoutUtils, "export function layoutNodesInCompactGallery", "
 assertIncludes(menuLayoutUtils, "export function layoutNodesByRows", "canvas row layout must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function layoutNodesByColumns", "canvas column layout must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function normalizeLayerZIndex", "canvas layer z-index normalization must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function normalizeNodesByMode", "canvas normalize layout command must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getRectUnionBounds", "canvas rect union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getViewportCenterWorldPoint", "canvas viewport center world point must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getViewportUnionRect", "canvas viewport union rect must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function parseAspectRatio", "canvas aspect ratio parsing must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function recordLayoutMutation", "canvas layout mutation recorder must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function snapshotLayoutNodes", "canvas layout snapshot capture must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function stackNodesByOffset", "canvas stack layout command must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function restoreLayoutNodes", "canvas layout snapshot restore must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function setNodeLayoutFrameSize", "canvas layout frame size writer must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function setNodeLayoutHeight", "canvas layout height writer must live in layout utils");
@@ -496,6 +500,29 @@ try {
   assert(galleryMutation?.type === "test-gallery", "compact gallery layout should preserve mutation type");
   assert(galleryNodeB.style.left === "120px", "compact gallery layout should skip locked nodes");
 
+  const stackNodeA = createCompactLayoutNode({ left: 12, top: 24, width: 40, height: 20 });
+  const stackNodeB = createCompactLayoutNode({ left: 90, top: 90, width: 40, height: 20 });
+  let stackMutation = null;
+  assert(
+    stackNodesByOffset([stackNodeA, stackNodeB], {
+      offset: 18,
+      recordUndoAction: (entry) => {
+        stackMutation = entry;
+      },
+      type: "stack-test"
+    }) === true,
+    "stack layout should record changed node positions"
+  );
+  assert(
+    stackNodeA.style.left === "12px"
+      && stackNodeA.style.top === "24px"
+      && stackNodeB.style.left === "30px"
+      && stackNodeB.style.top === "42px"
+      && stackNodeB.style.zIndex === "21",
+    "stack layout should preserve anchor offset behavior"
+  );
+  assert(stackMutation?.type === "stack-test", "stack layout should preserve mutation type");
+
   function createLayoutWriterNode(classes = [], options = {}) {
     const frame = options.frame || { style: { aspectRatio: options.aspectRatio || "" } };
     const image = options.image || { naturalWidth: 0, naturalHeight: 0 };
@@ -568,6 +595,55 @@ try {
   assert(imageFrameSizeNode.style.width === "91px", "layout frame size writer should round image width");
   assert(imageFrameSizeNode.frame.style.aspectRatio === "91 / 45", "layout frame size writer should write image frame ratio");
   assert(imageFrameSizeNode.style.minHeight === "" && imageFrameSizeNode.style.height === "", "layout frame size writer should clear image height styles");
+
+  const normalizeWidthNodeA = createLayoutWriterNode([], { width: "120px", minHeight: "60px" });
+  const normalizeWidthNodeB = createLayoutWriterNode([], { width: "240px", minHeight: "60px" });
+  let normalizeWidthMutation = null;
+  assert(
+    normalizeNodesByMode([normalizeWidthNodeA, normalizeWidthNodeB], "width", (entry) => {
+      normalizeWidthMutation = entry;
+    }) === true,
+    "normalize width command should record changed widths"
+  );
+  assert(
+    normalizeWidthNodeA.style.width === "180px" && normalizeWidthNodeB.style.width === "180px",
+    "normalize width command should set average width"
+  );
+  assert(normalizeWidthMutation?.type === "normalize-images", "normalize width command should preserve mutation type");
+
+  const normalizeRatioNodeA = createLayoutWriterNode(["node-image"], {
+    width: "120px",
+    minHeight: "60px",
+    dataset: { imageNaturalWidth: "120", imageNaturalHeight: "60" }
+  });
+  const normalizeRatioNodeB = createLayoutWriterNode(["node-image"], {
+    width: "80px",
+    minHeight: "80px",
+    dataset: { imageNaturalWidth: "80", imageNaturalHeight: "80" }
+  });
+  let normalizeRatioMutation = null;
+  assert(
+    normalizeNodesByMode([normalizeRatioNodeA, normalizeRatioNodeB], "ratio", (entry) => {
+      normalizeRatioMutation = entry;
+    }) === true,
+    "normalize ratio command should record changed frame sizes"
+  );
+  assert(
+    normalizeRatioNodeA.frame.style.aspectRatio
+      && normalizeRatioNodeB.frame.style.aspectRatio
+      && normalizeRatioMutation?.type === "normalize-images",
+    "normalize ratio command should update frame ratios and preserve mutation type"
+  );
+
+  const unchangedNormalizeNode = createLayoutWriterNode([], { width: "100px", minHeight: "50px" });
+  assert(
+    normalizeNodesByMode([unchangedNormalizeNode], "width", () => {}) === false,
+    "normalize command should preserve single-node no-op behavior"
+  );
+  assert(
+    normalizeNodesByMode([normalizeWidthNodeA, normalizeWidthNodeB], "unknown", () => {}) === false,
+    "normalize command should reject unknown modes"
+  );
 } finally {
   globalThis.window = OriginalWindowForLayout;
 }

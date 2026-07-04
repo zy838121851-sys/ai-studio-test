@@ -340,6 +340,55 @@ export function layoutNodesByColumns(nodes, bounds, {
   });
 }
 
+export function stackNodesByOffset(nodes, {
+  offset = 18,
+  recordUndoAction = null,
+  type = "align-images"
+} = {}) {
+  if (nodes.length <= 1) return false;
+  const before = snapshotLayoutNodes(nodes);
+  const bounds = nodes.map(getNodeLayoutBounds);
+  const anchor = bounds[0] || { x: 0, y: 0 };
+  nodes.forEach((node, index) => {
+    node.style.left = `${anchor.x + index * offset}px`;
+    node.style.top = `${anchor.y + index * offset}px`;
+    node.style.zIndex = String(20 + index);
+  });
+  return recordLayoutMutation(nodes, before, type, recordUndoAction);
+}
+
+export function normalizeNodesByMode(nodes, mode, recordUndoAction) {
+  if (nodes.length <= 1) return false;
+  const before = snapshotLayoutNodes(nodes);
+  const bounds = nodes.map(getNodeLayoutBounds);
+  const averageWidth = bounds.reduce((sum, item) => sum + item.width, 0) / bounds.length;
+  const averageHeight = bounds.reduce((sum, item) => sum + item.height, 0) / bounds.length;
+  if (mode === "height") {
+    nodes.forEach((node) => setNodeLayoutHeight(node, averageHeight));
+    return recordLayoutMutation(nodes, before, "normalize-images", recordUndoAction);
+  }
+  if (mode === "width") {
+    nodes.forEach((node) => setNodeLayoutWidth(node, averageWidth));
+    return recordLayoutMutation(nodes, before, "normalize-images", recordUndoAction);
+  }
+  if (mode === "size") {
+    nodes.forEach((node) => {
+      setNodeLayoutSize(node, averageWidth, averageHeight);
+    });
+    return recordLayoutMutation(nodes, before, "normalize-images", recordUndoAction);
+  }
+  if (mode === "ratio") {
+    const averageRatio = bounds.reduce((sum, item) => sum + (item.width / Math.max(1, item.height)), 0) / bounds.length;
+    nodes.forEach((node, index) => {
+      const area = Math.max(24 * 24, bounds[index].width * bounds[index].height);
+      const width = Math.sqrt(area * averageRatio);
+      setNodeLayoutFrameSize(node, width, width / averageRatio);
+    });
+    return recordLayoutMutation(nodes, before, "normalize-images", recordUndoAction);
+  }
+  return false;
+}
+
 export function parseAspectRatio(value = "") {
   const normalized = String(value || "").trim();
   if (!normalized || normalized === "auto") return 0;

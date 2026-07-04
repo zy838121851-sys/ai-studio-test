@@ -5,18 +5,14 @@ import {
   getNodeSortIndex,
   normalizeLayerZIndex,
   layoutNodesInCompactGallery,
-  recordLayoutMutation,
+  normalizeNodesByMode,
   getRectUnionBounds,
   getViewportUnionRect,
   getViewportCenterWorldPoint,
   getLayerOrderedNodes,
   parseAspectRatio,
-  setNodeLayoutFrameSize,
-  setNodeLayoutHeight,
-  setNodeLayoutSize,
-  setNodeLayoutWidth,
-  snapshotLayoutNodes,
-  sortNodesByCanvasPosition
+  sortNodesByCanvasPosition,
+  stackNodesByOffset
 } from "./canvas-menu-layout-utils.js";
 import {
   pasteNodeFromClipboard,
@@ -739,50 +735,14 @@ function alignNodes(nodes, mode, recordUndoAction) {
       anchorY: mode === "bottom" ? "bottom" : "top"
     });
   }
-  const before = snapshotLayoutNodes(nodes);
-  const bounds = nodes.map(getNodeLayoutBounds);
   if (mode === "stack") {
-    const anchor = bounds[0] || { x: 0, y: 0 };
-    nodes.forEach((node, index) => {
-      node.style.left = `${anchor.x + index * 18}px`;
-      node.style.top = `${anchor.y + index * 18}px`;
-      node.style.zIndex = String(20 + index);
-    });
-    return recordLayoutMutation(nodes, before, "align-images", recordUndoAction);
+    return stackNodesByOffset(nodes, { offset: 18, recordUndoAction, type: "align-images" });
   }
   return false;
 }
 
 function normalizeNodes(nodes, mode, recordUndoAction) {
-  if (nodes.length <= 1) return false;
-  const before = snapshotLayoutNodes(nodes);
-  const bounds = nodes.map(getNodeLayoutBounds);
-  const averageWidth = bounds.reduce((sum, item) => sum + item.width, 0) / bounds.length;
-  const averageHeight = bounds.reduce((sum, item) => sum + item.height, 0) / bounds.length;
-  if (mode === "height") {
-    nodes.forEach((node) => setNodeLayoutHeight(node, averageHeight));
-    return recordLayoutMutation(nodes, before, "normalize-images", recordUndoAction);
-  }
-  if (mode === "width") {
-    nodes.forEach((node) => setNodeLayoutWidth(node, averageWidth));
-    return recordLayoutMutation(nodes, before, "normalize-images", recordUndoAction);
-  }
-  if (mode === "size") {
-    nodes.forEach((node) => {
-      setNodeLayoutSize(node, averageWidth, averageHeight);
-    });
-    return recordLayoutMutation(nodes, before, "normalize-images", recordUndoAction);
-  }
-  if (mode === "ratio") {
-    const averageRatio = bounds.reduce((sum, item) => sum + (item.width / Math.max(1, item.height)), 0) / bounds.length;
-    nodes.forEach((node, index) => {
-      const area = Math.max(24 * 24, bounds[index].width * bounds[index].height);
-      const width = Math.sqrt(area * averageRatio);
-      setNodeLayoutFrameSize(node, width, width / averageRatio);
-    });
-    return recordLayoutMutation(nodes, before, "normalize-images", recordUndoAction);
-  }
-  return false;
+  return normalizeNodesByMode(nodes, mode, recordUndoAction);
 }
 
 function relinkCanvasImage(node, addChat) {
