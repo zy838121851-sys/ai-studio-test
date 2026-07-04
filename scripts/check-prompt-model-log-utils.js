@@ -1,5 +1,6 @@
 import {
   logSubmittedModel,
+  resolveGenerationResultModel,
   warnIfModelMismatch
 } from "../src/client/features/workspace/chat/workflows/prompt-model-log-utils.js";
 
@@ -17,6 +18,17 @@ console.warn = (...args) => warnings.push(args);
 console.debug = (...args) => debugs.push(args);
 
 try {
+  assert(resolveGenerationResultModel({ requestedModel: "requested", model: "returned" }, "fallback") === "requested", "Result model resolution should prefer requested models");
+  assert(resolveGenerationResultModel({ requestedModel: "", model: "returned" }, "fallback") === "returned", "Result model resolution should fall back to returned models");
+  assert(resolveGenerationResultModel({ requestedModel: "", model: "" }, "fallback") === "fallback", "Result model resolution should fall back to selected models");
+  let nullResultError = null;
+  try {
+    resolveGenerationResultModel(null, "fallback");
+  } catch (error) {
+    nullResultError = error;
+  }
+  assert(nullResultError instanceof TypeError, "Result model resolution should preserve null result errors");
+
   warnIfModelMismatch(" seedream ", "seedream", { jobId: "same" });
   assert(warnings.length === 0, "Matching models should not warn");
 

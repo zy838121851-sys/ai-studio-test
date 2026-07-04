@@ -22,6 +22,7 @@ import {
 } from "./prompt-error-utils.js";
 import {
   logSubmittedModel,
+  resolveGenerationResultModel,
   warnIfModelMismatch
 } from "./prompt-model-log-utils.js";
 import {
@@ -977,7 +978,7 @@ export function bindPromptSubmit({
         outputCount: getResultUrls(finalResult).length
       }));
       updateAgentDebugPanel(agentDebug);
-      const resultModel = finalResult.requestedModel || finalResult.model || model;
+      const resultModel = resolveGenerationResultModel(finalResult, model);
       warnIfModelMismatch(model, resultModel, finalResult);
       const modelUsage = formatModelUsage(finalResult, resultModel);
       syncAgentChatBlocksAvailability(agentDebug, addChatBlocks);

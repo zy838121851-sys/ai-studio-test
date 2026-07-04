@@ -1,3 +1,7 @@
+export function resolveGenerationResultModel(result, fallbackModel = "") {
+  return result.requestedModel || result.model || fallbackModel;
+}
+
 export function warnIfModelMismatch(selectedModel, returnedModel, result = {}) {
   const selected = String(selectedModel || "").trim();
   const returned = String(returnedModel || "").trim();
