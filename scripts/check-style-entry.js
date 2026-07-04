@@ -40,7 +40,8 @@ const EXPECTED_LEGACY_THEME_SYNC_IMPORTS = [
 ];
 const EXPECTED_LEGACY_CANVAS_IMPORTS = [
   "./legacy-canvas-shell.css",
-  "./legacy-canvas-image-edit.css"
+  "./legacy-canvas-image-edit.css",
+  "./legacy-canvas-add-node.css"
 ];
 const EXPECTED_NODE_IMPORTS = [
   "./node-base.css",
@@ -226,8 +227,14 @@ const EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_SELECTORS = [
   ".image-edit-popover .compact-select",
   "#imageGeneratorPopover.generator-panel-expanded"
 ];
-const EXPECTED_LEGACY_CANVAS_SELECTORS = [
+const EXPECTED_LEGACY_CANVAS_ADD_NODE_SELECTORS = [
   ".add-menu-title",
+  ".add-node-menu button",
+  ".add-node-menu em",
+  "body[data-view=\"canvas\"] .add-node-menu",
+  "body[data-view=\"canvas\"] .add-node-menu button"
+];
+const EXPECTED_LEGACY_CANVAS_SELECTORS = [
   ".canvas-viewport",
   ".upload-choice-bubbles",
   ".generation-choice-overlay",
@@ -520,6 +527,7 @@ checkFileContains("styles/legacy-theme-sync-base.css", EXPECTED_LEGACY_THEME_SYN
 checkFileContains("styles/legacy-theme-sync.css", EXPECTED_LEGACY_THEME_SYNC_SELECTORS);
 checkFileContains("styles/legacy-canvas-shell.css", EXPECTED_LEGACY_CANVAS_SHELL_SELECTORS);
 checkFileContains("styles/legacy-canvas-image-edit.css", EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_SELECTORS);
+checkFileContains("styles/legacy-canvas-add-node.css", EXPECTED_LEGACY_CANVAS_ADD_NODE_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/home-shell.css", EXPECTED_HOME_SHELL_SELECTORS);
 checkFileContains("styles/features/home-history.css", EXPECTED_HOME_HISTORY_SELECTORS);

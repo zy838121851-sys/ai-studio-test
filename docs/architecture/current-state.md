@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,349 |
-| `styles` | 52 | 15,220 |
-| `scripts` | 90 | 20,764 |
+| `styles` | 53 | 15,221 |
+| `scripts` | 90 | 20,772 |
 
 Largest files in the current source tree:
 
@@ -73,10 +73,13 @@ Largest files in the current source tree:
 | 1,120 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,112 | `scripts/check-library-bulk-select.js` |
 | 948 | `scripts/check-prompt-conversation-event-utils.js` |
-| 839 | `styles/legacy-canvas.css` |
 | 823 | `styles/features/auth.css` |
 | 819 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
 | 810 | `src/server/services/ai-job.service.js` |
+| 781 | `src/client/features/canvas/model-viewer.js` |
+| 779 | `styles/legacy-chat.css` |
+| 716 | `styles/legacy-canvas-visual.css` |
+| 716 | `styles/legacy-canvas.css` |
 
 Post-baseline CSS governance note:
 
@@ -144,9 +147,13 @@ Post-baseline CSS governance note:
 - `styles/legacy-canvas-image-edit.css` owns image edit popover and image
   generator popover control styles that were moved out of
   `styles/legacy-canvas.css`.
-- `styles/legacy-canvas.css` now imports `styles/legacy-canvas-shell.css` and
-  `styles/legacy-canvas-image-edit.css` before the remaining legacy canvas
-  styles to preserve cascade order.
+- `styles/legacy-canvas-add-node.css` owns add-node menu detail styles and
+  canvas-view add-node menu overrides that were moved out of
+  `styles/legacy-canvas.css`.
+- `styles/legacy-canvas.css` now imports `styles/legacy-canvas-shell.css`,
+  `styles/legacy-canvas-image-edit.css`, and
+  `styles/legacy-canvas-add-node.css` before the remaining legacy canvas styles
+  to preserve cascade order.
 - `styles/features/node-base.css` owns base node/card/resize/action styles that
   were moved out of `styles/legacy-node.css`; it is imported at the top of
   `styles/features/node.css` to preserve cascade order.
