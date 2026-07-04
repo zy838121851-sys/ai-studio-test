@@ -144,6 +144,8 @@ Known dependencies:
   inline `--history-index` style attributes.
 - Shape toolbar color swatches now map fixed palette values through
   `shape-color-token-*` classes instead of inline `--color` style attributes.
+- Chat agent debug panel static styles now use classes in `styles/legacy-chat.css`;
+  only dynamic placement values remain in runtime `.style` writes.
 - Runtime generated `style=` attributes for swatches, snapshot/export markup,
   project cards, and generated canvas/export HTML.
 - Runtime `.style` and `cssText` writes are still used for canvas geometry,

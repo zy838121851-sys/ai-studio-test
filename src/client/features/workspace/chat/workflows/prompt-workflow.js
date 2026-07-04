@@ -204,24 +204,10 @@ function ensureAgentDebugPanel() {
   }
   panel = globalThis.document.createElement("section");
   panel.id = "chatAgentDebugPanel";
-  panel.style.cssText = [
-    "position:fixed",
-    "left:16px",
-    "bottom:24px",
-    "z-index:9999",
-    "width:360px",
-    "max-height:44vh",
-    "font:12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace",
-    "color:#111827",
-    "background:rgba(255,255,255,.96)",
-    "border:1px solid rgba(15,23,42,.16)",
-    "border-radius:10px",
-    "box-shadow:0 16px 45px rgba(15,23,42,.18)",
-    "overflow:hidden"
-  ].join(";");
+  panel.className = "agent-debug-panel";
   panel.innerHTML = `
-    <button type="button" data-agent-debug-toggle style="width:100%;border:0;background:#111827;color:#fff;padding:7px 10px;text-align:left;font:inherit;cursor:pointer;">Agent Debug</button>
-    <pre data-agent-debug-output style="margin:0;padding:10px;max-height:calc(42vh - 32px);overflow:auto;white-space:pre-wrap;"></pre>
+    <button type="button" data-agent-debug-toggle class="agent-debug-toggle">Agent Debug</button>
+    <pre data-agent-debug-output class="agent-debug-output"></pre>
   `;
   const output = panel.querySelector("[data-agent-debug-output]");
   if (output) output.hidden = true;

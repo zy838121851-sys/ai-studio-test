@@ -232,10 +232,11 @@ Additional caution:
   entry migration is planned.
 - Keep `scripts/check-inline-style-surface.js` in `npm run check` while
   reducing `style-src 'unsafe-inline'` dependencies. The current baseline is 52
-  files with inline style dependencies, including 11 `style=` attributes, 7
-  `setAttribute("style")` calls, 299 `.style` operations, and 2 `cssText`
-  writes. `index.html` and `project-library.js` are no longer allowed inline
-  style dependency files.
+  files with inline style dependencies, including 9 `style=` attributes, 7
+  `setAttribute("style")` calls, 298 `.style` operations, and 1 `cssText`
+  write. `index.html` and `project-library.js` are no longer allowed inline
+  style dependency files, and the chat agent debug panel static styles now live
+  in `styles/legacy-chat.css`.
 - Move one feature area at a time from legacy files into a clearer structure.
 - Start with documentation and smoke checks before moving selectors.
 - Prefer feature grouping such as:

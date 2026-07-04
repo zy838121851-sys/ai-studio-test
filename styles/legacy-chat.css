@@ -47,6 +47,41 @@
   cursor: grabbing;
 }
 
+.agent-debug-panel {
+  position: fixed;
+  left: 16px;
+  bottom: 24px;
+  z-index: 9999;
+  width: 360px;
+  max-height: 44vh;
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.16);
+  border-radius: 10px;
+  color: #111827;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 16px 45px rgba(15, 23, 42, 0.18);
+  font: 12px/1.4 ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+
+.agent-debug-toggle {
+  width: 100%;
+  padding: 7px 10px;
+  border: 0;
+  color: #fff;
+  background: #111827;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.agent-debug-output {
+  max-height: calc(42vh - 32px);
+  margin: 0;
+  padding: 10px;
+  overflow: auto;
+  white-space: pre-wrap;
+}
+
 .window-actions {
   position: absolute;
   right: 18px;
