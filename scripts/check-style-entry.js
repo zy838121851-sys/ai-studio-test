@@ -112,6 +112,38 @@ const EXPECTED_ASSET_SELECTORS = [
   ".asset-preview-overlay",
   ".asset-canvas-picker"
 ];
+const EXPECTED_LEGACY_CANVAS_SELECTORS = [
+  ".canvas-area",
+  ".tool-rail",
+  ".add-node-menu",
+  ".canvas-context-menu",
+  ".selection-action-bar",
+  ".selection-color-swatch",
+  ".image-edit-popover",
+  ".video-generator-popover"
+];
+const EXPECTED_LEGACY_NODE_SELECTORS = [
+  ".node-card",
+  ".resize-handle",
+  ".node-card.node-group",
+  ".image-node-toolbar",
+  ".image-toolbar-upscale-controls",
+  ".canvas-asset-savebar",
+  ".image-lightbox",
+  ".node-loading-image",
+  ".image-generator-frame"
+];
+const EXPECTED_LEGACY_CHAT_SELECTORS = [
+  ".chat-panel",
+  ".chat-float",
+  ".conversation-history-popover",
+  ".chat-log",
+  ".message",
+  ".image-message",
+  ".agent-result-card",
+  ".composer",
+  ".composer-actions"
+];
 
 const errors = [];
 
@@ -266,6 +298,9 @@ checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/ai-core.css", EXPECTED_AI_CORE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
+checkFileContains("styles/legacy-canvas.css", EXPECTED_LEGACY_CANVAS_SELECTORS);
+checkFileContains("styles/legacy-node.css", EXPECTED_LEGACY_NODE_SELECTORS);
+checkFileContains("styles/legacy-chat.css", EXPECTED_LEGACY_CHAT_SELECTORS);
 
 if (errors.length > 0) {
   console.error("Style entry check failed:");

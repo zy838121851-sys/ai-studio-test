@@ -257,6 +257,10 @@ Additional caution:
   Its current categories are agent runtime, AI editor dynamic runtime, canvas
   dynamic runtime, serialization/export/snapshot, and workspace floating UI
   runtime. Treat serialization/export/snapshot as the highest-risk category.
+- Keep `scripts/check-style-entry.js` as the static CSS entry and selector guard.
+  It now checks key selectors for feature CSS plus the legacy canvas, node, and
+  chat modules, which gives future CSS migrations an automated way to catch
+  dropped runtime hooks before browser smoke checks.
 - Move one feature area at a time from legacy files into a clearer structure.
 - Start with documentation and smoke checks before moving selectors.
 - Prefer feature grouping such as:

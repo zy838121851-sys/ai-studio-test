@@ -82,6 +82,9 @@ Post-baseline CSS governance note:
 - `styles/legacy-base.css` was reduced to a compatibility shim after duplicate
   imports of `legacy-canvas.css`, `legacy-node.css`, and `legacy-chat.css` were
   removed; `scripts/check-style-entry.js` now guards that it stays import-free.
+- `scripts/check-style-entry.js` now guards key selectors in
+  `legacy-canvas.css`, `legacy-node.css`, and `legacy-chat.css` so later
+  feature CSS migrations have a static safety net before visual smoke checks.
 
 ## Static Reachability Snapshot
 
