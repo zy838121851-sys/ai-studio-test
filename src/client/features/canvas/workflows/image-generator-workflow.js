@@ -44,6 +44,7 @@ import {
   buildRecoveredGeneratorPreviewItems,
   getGeneratorPreviewDescription,
   getGeneratorPreviewNodeWidth as getPreviewNodeWidth,
+  getGeneratorProgressStatusText,
   getPendingGeneratorPreviewGroups,
   getRecoveredGeneratorPreviewReplacementMeta,
   markGeneratorPreviewFailed,
@@ -530,10 +531,10 @@ export function createImageGeneratorWorkflow({
             dimensions
           })),
           onProgress: (payload) => {
-            const progress = Number(payload?.progress || 0);
-            updatePreviewStatus(previewNodes[0], progress > 0
-              ? `Waiting for video result (${Math.min(99, progress)}%)`
-              : "Waiting for video result...");
+            updatePreviewStatus(previewNodes[0], getGeneratorProgressStatusText(payload?.progress, {
+              idleText: "Waiting for video result...",
+              activeText: "Waiting for video result"
+            }));
           }
         });
         const parsedResult = parseGeneratorResult(result, model, "video");

@@ -39,6 +39,16 @@ export function getGeneratorPreviewDescription(prompt = "", index = 0, count = 1
   return prompt ? "正在根据当前提示生成结果" : "正在生成图片";
 }
 
+export function getGeneratorProgressStatusText(progressValue = 0, {
+  idleText = "",
+  activeText = idleText
+} = {}) {
+  const progress = Number(progressValue || 0);
+  return progress > 0
+    ? `${activeText} (${Math.min(99, progress)}%)`
+    : idleText;
+}
+
 export function getGeneratorPreviewNodeWidth(previewNode) {
   const frame = previewNode?.querySelector?.(".image-frame");
   return Math.max(160, frame?.offsetWidth || previewNode?.offsetWidth || 560);

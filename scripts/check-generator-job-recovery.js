@@ -3,6 +3,7 @@ import {
   buildRecoveredGeneratorPreviewItems,
   getGeneratorPreviewDescription,
   getGeneratorPreviewNodeWidth,
+  getGeneratorProgressStatusText,
   getRecoveredGeneratorPreviewReplacementMeta,
   getRecoveredGeneratorPreviewUrl,
   markGeneratorPreviewFailed,
@@ -710,6 +711,27 @@ try {
 assert(
   missingMidjourneyResultUrlsError?.message === "Midjourney returned 1/4 images",
   "generator required result URLs helper should preserve Midjourney count errors"
+);
+assert(
+  getGeneratorProgressStatusText(0, {
+    idleText: "Waiting for video result...",
+    activeText: "Waiting for video result"
+  }) === "Waiting for video result...",
+  "generator progress status helper should preserve idle text"
+);
+assert(
+  getGeneratorProgressStatusText(42, {
+    idleText: "Waiting for video result...",
+    activeText: "Waiting for video result"
+  }) === "Waiting for video result (42%)",
+  "generator progress status helper should format active progress text"
+);
+assert(
+  getGeneratorProgressStatusText(120, {
+    idleText: "Waiting for video result...",
+    activeText: "Waiting for video result"
+  }) === "Waiting for video result (99%)",
+  "generator progress status helper should cap progress at 99 percent"
 );
 assert(getGeneratorPreviewDescription("", 0, 1) === "正在生成图片", "promptless generator preview description should stay stable");
 assert(getGeneratorPreviewDescription("A prompt", 0, 1) === "正在根据当前提示生成结果", "prompt generator preview description should stay stable");
