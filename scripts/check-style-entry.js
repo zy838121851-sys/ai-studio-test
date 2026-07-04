@@ -37,6 +37,8 @@ const EXPECTED_LEGACY_SPLIT_IMPORTS = [
 ];
 const ALLOWED_UNREACHABLE_CSS = [];
 const EXPECTED_PROJECT_LIBRARY_SELECTORS = [
+  ".library-shell",
+  ".library-title",
   ".project-grid",
   ".library-page-header",
   ".project-card-board",

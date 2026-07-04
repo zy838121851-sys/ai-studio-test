@@ -2450,32 +2450,6 @@ body.canvas-entering .chat-panel {
   }
 }
 
-.library-shell {
-  position: relative;
-  z-index: 1;
-  width: min(1580px, calc(100vw - 52px));
-  margin: 0 auto;
-  animation: librarySlideUp 0.42s cubic-bezier(0.2, 0.75, 0.2, 1) both;
-}
-
-.library-title {
-  display: none;
-  justify-items: center;
-  margin-bottom: 18px;
-}
-
-.library-title span {
-  display: none;
-}
-
-.library-title h1 {
-  margin: 0;
-  color: #17202c;
-  font-size: 13px;
-  font-weight: 800;
-  letter-spacing: 0;
-}
-
 .ai-core {
   position: fixed;
   right: 48px;
