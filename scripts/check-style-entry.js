@@ -122,6 +122,8 @@ const EXPECTED_LEGACY_NODE_SELECTORS = [
   ".node-loading-image"
 ];
 const EXPECTED_NODE_SELECTORS = [
+  ".node-director",
+  ".director-tile",
   ".node-image-generator",
   ".image-generator-frame",
   ".image-generator-panel",

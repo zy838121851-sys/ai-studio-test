@@ -1,3 +1,138 @@
+.node-director {
+  width: 360px;
+  min-height: 0;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 26px;
+  color: #eef6ff;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(255, 255, 255, 0.16), transparent 32%),
+    linear-gradient(145deg, rgba(38, 38, 38, 0.76), rgba(13, 13, 13, 0.68));
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.44),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  backdrop-filter: blur(26px) saturate(128%);
+  -webkit-backdrop-filter: blur(26px) saturate(128%);
+}
+
+.node-director.selected {
+  border-color: rgba(127, 200, 255, 0.34);
+  box-shadow:
+    0 0 0 2px rgba(127, 200, 255, 0.12),
+    0 18px 48px rgba(0, 0, 0, 0.36);
+}
+
+.director-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 18px;
+  color: rgba(245, 247, 250, 0.86);
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.director-refresh {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  color: rgba(245, 247, 250, 0.8);
+  background: transparent;
+  font-size: 20px;
+}
+
+.director-refresh:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.director-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 0;
+}
+
+.director-tile {
+  position: relative;
+  display: grid;
+  align-content: space-between;
+  min-height: 132px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 28px;
+  color: rgba(245, 247, 250, 0.88);
+  background:
+    radial-gradient(circle at 20% 8%, rgba(255, 255, 255, 0.12), transparent 34%),
+    linear-gradient(145deg, rgba(42, 42, 42, 0.76), rgba(12, 12, 12, 0.68));
+  box-shadow:
+    0 12px 36px rgba(0, 0, 0, 0.24),
+    0 0 0 1px rgba(255, 255, 255, 0.04) inset;
+  font-weight: 500;
+  text-align: left;
+  overflow: hidden;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease, background 0.16s ease;
+}
+
+.director-tile::after {
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(circle at 75% 80%, rgba(255, 255, 255, 0.2), transparent 34%);
+  opacity: 0;
+  content: "";
+  pointer-events: none;
+  transition: opacity 0.16s ease;
+}
+
+.director-tile:hover {
+  border-color: rgba(245, 247, 250, 0.54);
+  background:
+    radial-gradient(circle at 24% 10%, rgba(255, 255, 255, 0.16), transparent 34%),
+    linear-gradient(145deg, rgba(62, 62, 62, 0.82), rgba(18, 18, 18, 0.72));
+  box-shadow:
+    0 18px 46px rgba(0, 0, 0, 0.3),
+    0 0 22px rgba(245, 247, 250, 0.24),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+  transform: translateY(-2px);
+}
+
+.director-tile:hover::after {
+  opacity: 1;
+}
+
+.director-tile small {
+  color: rgba(245, 247, 250, 0.68);
+  font-size: 18px;
+  font-style: italic;
+}
+
+.director-tile span {
+  position: relative;
+  z-index: 1;
+  max-width: 7em;
+  color: rgba(245, 247, 250, 0.88);
+  font-size: 21px;
+  line-height: 1.28;
+}
+
+.director-tile b {
+  position: absolute;
+  right: 20px;
+  bottom: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 32px;
+  font-weight: 400;
+}
+
+.director-tile.running {
+  color: #9fb4ca;
+  cursor: wait;
+}
+
 .node-image-generator {
   width: 560px;
   min-height: 0;

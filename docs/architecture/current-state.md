@@ -63,9 +63,9 @@ Largest files in the current source tree:
 | Lines | Path |
 | ---: | --- |
 | 2,273 | `styles/features/assets.css` |
-| 1,651 | `styles/legacy-node.css` |
 | 1,608 | `scripts/check-api-error-contract.js` |
 | 1,569 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
+| 1,530 | `styles/legacy-node.css` |
 | 1,529 | `styles/legacy-theme-sync.css` |
 | 1,503 | `styles/legacy-canvas.css` |
 | 1,446 | `scripts/check-generator-job-recovery.js` |
@@ -89,10 +89,11 @@ Post-baseline CSS governance note:
 - `styles/features/chat.css` now owns the conversation history popover styles
   that were moved out of `styles/legacy-chat.css`; the selector guard tracks
   the migrated chat rules in their feature file.
-- `styles/features/node.css` now owns image generator node frame/panel styles,
-  tail-end node generator inline edit controls, and media/model/video preview
-  helpers that were moved out of `styles/legacy-node.css`; it is imported
-  immediately after `legacy-node.css` to preserve cascade order.
+- `styles/features/node.css` now owns director node styles, image generator
+  node frame/panel styles, tail-end node generator inline edit controls, and
+  media/model/video preview helpers that were moved out of
+  `styles/legacy-node.css`; it is imported immediately after
+  `legacy-node.css` to preserve cascade order.
 - The inactive AI Core runtime and its legacy style modules were removed after
   dead-code audit evidence and check/build verification; `legacy-split.css` no
   longer imports `legacy-ai-core*.css`.
