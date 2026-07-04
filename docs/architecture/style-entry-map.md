@@ -62,6 +62,7 @@ styles/features/project-library.css
 ```text
 styles/legacy-base.css
 styles/legacy-assets.css
+styles/features/assets.css
 styles/legacy-canvas.css
 styles/legacy-canvas-visual.css
 styles/legacy-chat.css
@@ -201,6 +202,7 @@ styles/globals.css
 styles/workspace.css
 styles/workspace-layout.css
 styles/features/auth.css
+styles/features/assets.css
 styles/features/home.css
 styles/features/ai-core.css
 styles/features/project-library.css

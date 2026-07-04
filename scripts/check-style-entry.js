@@ -22,6 +22,7 @@ const EXPECTED_WORKSPACE_IMPORTS = [
 const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./legacy-base.css",
   "./legacy-assets.css",
+  "./features/assets.css",
   "./legacy-canvas.css",
   "./legacy-canvas-visual.css",
   "./legacy-chat.css",
@@ -74,6 +75,16 @@ const EXPECTED_AUTH_SELECTORS = [
   ".auth-dialog",
   ".auth-form",
   ".auth-submit"
+];
+const EXPECTED_ASSET_SELECTORS = [
+  "body[data-view=\"assetsPage\"] .asset-pinterest-shell",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-stats",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-board-grid",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-masonry",
+  "body[data-view=\"assetsPage\"] .asset-card-context-menu",
+  ".asset-picker-popover",
+  ".asset-preview-overlay",
+  ".asset-canvas-picker"
 ];
 
 const errors = [];
@@ -223,6 +234,7 @@ checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(legacySplitImports, "styles");
 checkCssReachability();
 checkFileContains("styles/features/auth.css", EXPECTED_AUTH_SELECTORS);
+checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/ai-core.css", EXPECTED_AI_CORE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
