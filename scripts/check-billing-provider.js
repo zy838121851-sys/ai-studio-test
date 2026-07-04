@@ -21,7 +21,8 @@ try {
   const {
     calculateCreditReservation,
     calculateReservedCreditCharge,
-    calculateReservedCreditRelease
+    calculateReservedCreditRelease,
+    getDefaultBillingProvider
   } = await import("../src/server/services/billing.service.js");
   const {
     getCreditBalance,
@@ -42,6 +43,11 @@ try {
   const initial = getCreditBalance(user.id);
   assert(initial.balanceCredits === 500, "New user should start with default credits");
   assert(initial.reservedCredits === 0, "New user should start with no reserved credits");
+
+  const defaultProvider = getDefaultBillingProvider();
+  assert(defaultProvider?.reserve, "Billing service should expose a default provider with reserve");
+  assert(defaultProvider?.chargeReserved, "Billing service should expose a default provider with chargeReserved");
+  assert(defaultProvider?.releaseReserved, "Billing service should expose a default provider with releaseReserved");
 
   const serviceReservation = calculateCreditReservation({
     account: { balance_credits: 500, reserved_credits: 10 },
