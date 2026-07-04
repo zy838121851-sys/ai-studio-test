@@ -41,6 +41,12 @@ export function resolvePromptPreviewCount({ model = "", videoModel = false, midj
   return videoModel ? 1 : (isMidjourneyModel(model) ? midjourneyCount : 1);
 }
 
+export function buildGeneratedImageChatCaption({ index = 0, total = 1, modelUsage = "" } = {}) {
+  return total > 1
+    ? `\u751f\u6210\u56fe\u7247 ${index + 1}/${total} \u00b7 ${modelUsage}`
+    : `\u751f\u6210\u56fe\u7247 \u00b7 ${modelUsage}`;
+}
+
 export function buildGeneratedProjectPatch({
   project = null,
   prompt = "",

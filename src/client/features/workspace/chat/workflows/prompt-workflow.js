@@ -7,6 +7,7 @@ import {
 import {
   buildGeneratedModelNodeOptions,
   buildGeneratedModelProjectPatch,
+  buildGeneratedImageChatCaption,
   buildGeneratedMediaProjectPatch,
   createPromptGeneratedImageNodes,
   createPromptGeneratedVideoNode,
@@ -1068,9 +1069,11 @@ export function bindPromptSubmit({
           progress?.remove?.();
           progress = null;
           imageUrls.forEach((imageUrl, index) => {
-            addChatImage("assistant", imageUrl, imageUrls.length > 1
-              ? `\u751f\u6210\u56fe\u7247 ${index + 1}/${imageUrls.length} \u00b7 ${modelUsage}`
-              : `\u751f\u6210\u56fe\u7247 \u00b7 ${modelUsage}`);
+            addChatImage("assistant", imageUrl, buildGeneratedImageChatCaption({
+              index,
+              total: imageUrls.length,
+              modelUsage
+            }));
           });
         }
         window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));

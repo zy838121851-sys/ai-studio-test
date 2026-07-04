@@ -1,4 +1,5 @@
 import {
+  buildGeneratedImageChatCaption,
   buildGeneratedImageNodeOptions,
   buildGeneratedMediaProjectPatch,
   buildGeneratedModelNodeOptions,
@@ -71,6 +72,8 @@ assert(!isMidjourneyModel("seedream-5-lite"), "Non-Midjourney models should not 
 assert(resolvePromptPreviewCount({ model: "midjourney", videoModel: false, midjourneyCount: 4 }) === 4, "Prompt preview count should use Midjourney image batches");
 assert(resolvePromptPreviewCount({ model: "seedream-5-lite", videoModel: false, midjourneyCount: 4 }) === 1, "Prompt preview count should use single image previews for non-Midjourney image models");
 assert(resolvePromptPreviewCount({ model: "midjourney", videoModel: true, midjourneyCount: 4 }) === 1, "Prompt preview count should keep video previews single");
+assert(buildGeneratedImageChatCaption({ index: 0, total: 1, modelUsage: "10 credits" }) === "\u751f\u6210\u56fe\u7247 \u00b7 10 credits", "Single generated image chat captions should preserve copy");
+assert(buildGeneratedImageChatCaption({ index: 1, total: 4, modelUsage: "20 credits" }) === "\u751f\u6210\u56fe\u7247 2/4 \u00b7 20 credits", "Multi generated image chat captions should preserve numbering");
 
 const existingProjectPatch = buildGeneratedProjectPatch({
   project: { title: "Existing title", itemCount: 2 },
