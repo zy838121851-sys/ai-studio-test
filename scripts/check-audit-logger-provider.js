@@ -1,5 +1,5 @@
 import { createLocalAuditLogger } from "../src/server/providers/audit/local-audit-logger.js";
-import { recordAuditEvent } from "../src/server/services/audit.service.js";
+import { getDefaultAuditLogger, recordAuditEvent } from "../src/server/services/audit.service.js";
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -28,6 +28,10 @@ function captureConsole(callback) {
 }
 
 const logger = createLocalAuditLogger();
+const defaultLogger = getDefaultAuditLogger();
+assert(defaultLogger?.record, "Audit service should expose a default logger with record");
+assert(defaultLogger?.requestMetadata, "Audit service should expose a default logger with requestMetadata");
+
 const originalNow = Date.now;
 Date.now = () => 1700000000000;
 

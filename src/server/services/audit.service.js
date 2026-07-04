@@ -1,8 +1,13 @@
 import { localAuditLogger } from "../providers/audit/local-audit-logger.js";
 
+export function getDefaultAuditLogger() {
+  return localAuditLogger;
+}
+
 export function recordAuditEvent(req, event, detail = {}) {
-  localAuditLogger.record(event, {
-    ...localAuditLogger.requestMetadata(req),
+  const logger = getDefaultAuditLogger();
+  logger.record(event, {
+    ...logger.requestMetadata(req),
     ...detail
   });
 }
