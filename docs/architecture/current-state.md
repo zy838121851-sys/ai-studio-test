@@ -1,6 +1,6 @@
 # AI Studio Current Architecture Baseline
 
-Date: 2026-06-30
+Date: 2026-07-05
 
 This document records the non-behavioral governance baseline for AI Studio. It
 is intentionally descriptive only: governance work must not change existing
@@ -29,7 +29,7 @@ Current app initialization in `app-init.js`:
 - Registers mock and server AI providers, then selects the server provider.
 - Mounts the workspace app through `mountWorkspaceApp`.
 - Initializes model catalog, auth entry, credit quote badges, canvas controller,
-  agent event system, suggestion engine, asset panel, and agent panel.
+  and asset panel.
 - Exposes the runtime on `window.AIStudio`.
 
 Server boot path:
@@ -53,26 +53,27 @@ Current source footprint, excluding `node_modules` and `dist`:
 
 | Area | Files | Lines |
 | --- | ---: | ---: |
-| `src/client` | 286 | 35,884 |
-| `src/server` | 54 | 12,068 |
-| `styles` | 28 | 15,360 |
-| `scripts` | 38 | 3,728 |
-| other | 1 | 1 |
+| `src/client` | 298 | 36,758 |
+| `src/server` | 80 | 13,381 |
+| `styles` | 27 | 13,292 |
+| `scripts` | 90 | 18,760 |
 
-Largest files at baseline:
+Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
-| 3,103 | `styles/workspace-layout.css` |
-| 2,922 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
-| 2,660 | `styles/legacy-assets.css` |
 | 2,427 | `styles/legacy-node.css` |
-| 1,669 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
-| 1,665 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
-| 1,579 | `styles/legacy-theme-sync.css` |
-| 1,426 | `src/server/routes/ai.routes.js` |
-| 1,411 | `styles/legacy-canvas.css` |
-| 1,255 | `src/server/services/conversation-orchestrator.service.js` |
+| 2,273 | `styles/features/assets.css` |
+| 1,608 | `scripts/check-api-error-contract.js` |
+| 1,567 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
+| 1,529 | `styles/legacy-theme-sync.css` |
+| 1,503 | `styles/legacy-canvas.css` |
+| 1,446 | `scripts/check-generator-job-recovery.js` |
+| 1,303 | `styles/features/home.css` |
+| 1,252 | `src/server/services/conversation-orchestrator.service.js` |
+| 1,214 | `scripts/check-canvas-menu-actions.js` |
+| 1,203 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
+| 1,065 | `scripts/check-library-bulk-select.js` |
 
 Post-baseline CSS governance note:
 
@@ -88,22 +89,21 @@ Post-baseline CSS governance note:
 - `styles/features/chat.css` now owns the conversation history popover styles
   that were moved out of `styles/legacy-chat.css`; the selector guard tracks
   the migrated chat rules in their feature file.
+- The inactive AI Core runtime and its legacy style modules were removed after
+  dead-code audit evidence and check/build verification; `legacy-split.css` no
+  longer imports `legacy-ai-core*.css`.
 
 ## Static Reachability Snapshot
 
 Static ESM import graph from `app.js` and `server.js`:
 
-- JavaScript files scanned: 341
-- Reachable from runtime entrypoints: 336
-- Static unreachable candidates: 5
+- JavaScript files scanned by `npm run check`: 470
+- Client modules reachable from startup: 378
+- Static client unreachable candidates: 0
 
-Unreachable candidates require manual verification before deletion:
-
-- `src/client/features/workspace/interactions/global-interactions.js`
-- `src/client/features/workspace/interactions/app-interactions.js`
-- `src/client/features/projects/index.js`
-- `src/client/features/workspace/index.js`
-- `src/client/features/projects/display.js`
+The previous static unreachable client candidates were resolved or retained
+through later governance work. Future deletion candidates must still be audited
+with static references, runtime/check-script verification, and a rollback point.
 
 CSS reachability from `styles.css` previously showed almost all CSS loaded via
 imports, with `styles/legacy.css` as a low-risk unused shim candidate. Deleting
