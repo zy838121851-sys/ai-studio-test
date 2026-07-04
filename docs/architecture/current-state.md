@@ -55,14 +55,14 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 39 | 13,303 |
-| `scripts` | 90 | 18,939 |
+| `styles` | 40 | 13,304 |
+| `scripts` | 90 | 18,948 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
-| 2,273 | `styles/features/assets.css` |
+| 1,903 | `styles/features/assets.css` |
 | 1,608 | `scripts/check-api-error-contract.js` |
 | 1,569 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,529 | `styles/legacy-theme-sync.css` |
@@ -102,6 +102,9 @@ Post-baseline CSS governance note:
 - `styles/features/chat.css` now owns the conversation history popover styles
   that were moved out of `styles/legacy-chat.css`; the selector guard tracks
   the migrated chat rules in their feature file.
+- `styles/features/assets-page.css` owns floating asset library shell, upload
+  button/list basics, asset page shell, and first-pass Pinterest-style asset
+  page overview styles; it is imported by `styles/features/assets.css`.
 - `styles/features/node-base.css` owns base node/card/resize/action styles that
   were moved out of `styles/legacy-node.css`; it is imported at the top of
   `styles/features/node.css` to preserve cascade order.

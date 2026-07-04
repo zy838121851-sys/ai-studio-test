@@ -91,6 +91,12 @@ styles/features/node-image-generator.css
 styles/features/node-preview.css
 ```
 
+`styles/features/assets.css` currently imports:
+
+```text
+styles/features/assets-page.css
+```
+
 ## `/styles` and `/assets/styles`
 
 Current server behavior in `src/server/index.js`:
@@ -198,6 +204,9 @@ Notes:
   imports there.
 - `features/chat.css` owns the conversation history popover styles that were
   moved out of `legacy-chat.css`.
+- `features/assets-page.css` owns floating asset library shell, upload
+  button/list basics, asset page shell, and first-pass Pinterest-style asset
+  page overview styles; it is imported by `features/assets.css`.
 - `legacy-node.css` is currently a compatibility shim with no active selector
   ownership and is intentionally outside the active CSS import graph.
 - `features/node-base.css` owns base node/card/resize/action styles that were
@@ -245,6 +254,7 @@ styles/globals.css
 styles/workspace.css
 styles/workspace-layout.css
 styles/features/auth.css
+styles/features/assets-page.css
 styles/features/assets.css
 styles/features/chat.css
 styles/features/home.css
@@ -305,7 +315,8 @@ Additional caution:
   runtime. Treat serialization/export/snapshot as the highest-risk category.
 - Keep `scripts/check-style-entry.js` as the static CSS entry and selector guard.
   It now checks key selectors for feature CSS plus the legacy canvas and chat
-  modules, including migrated node base selectors in `features/node-base.css`
+  modules, including migrated asset page selectors in `features/assets-page.css`,
+  migrated node base selectors in `features/node-base.css`
   migrated image edit selectors in `features/node-image-edit.css`, migrated node
   state selectors in `features/node-state.css`, migrated image toolbar selectors
   in `features/node-image-toolbar.css`, migrated image panel selectors in
