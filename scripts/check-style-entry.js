@@ -49,7 +49,8 @@ const EXPECTED_NODE_IMPORTS = [
   "./node-preview.css"
 ];
 const EXPECTED_ASSET_IMPORTS = [
-  "./assets-page.css"
+  "./assets-page.css",
+  "./assets-board.css"
 ];
 const ALLOWED_UNREACHABLE_CSS = [
   "styles/legacy-node.css"
@@ -94,12 +95,15 @@ const EXPECTED_ASSET_PAGE_SELECTORS = [
   ".asset-pinterest-pin.asset-item",
   ".asset-pinterest-empty"
 ];
-const EXPECTED_ASSET_SELECTORS = [
+const EXPECTED_ASSET_BOARD_SELECTORS = [
   ".asset-board-bar",
   ".asset-board-card",
   ".asset-board-cover",
   ".asset-item",
   ".asset-thumb",
+  ".asset-empty"
+];
+const EXPECTED_ASSET_SELECTORS = [
   ".asset-save-popover",
   ".canvas-asset-board-popover",
   ".asset-save-section",
@@ -394,6 +398,7 @@ checkImportedFilesExist(assetImports, "styles/features");
 checkCssReachability();
 checkFileContains("styles/features/auth.css", EXPECTED_AUTH_SELECTORS);
 checkFileContains("styles/features/assets-page.css", EXPECTED_ASSET_PAGE_SELECTORS);
+checkFileContains("styles/features/assets-board.css", EXPECTED_ASSET_BOARD_SELECTORS);
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
