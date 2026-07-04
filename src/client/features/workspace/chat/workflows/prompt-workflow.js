@@ -70,6 +70,11 @@ import {
   resolveGenerationMetrics
 } from "./prompt-generation-metrics-utils.js";
 import {
+  buildPromptGenerationPayload,
+  isPromptGenerationPayloadMissing,
+  resolvePromptGenerationType
+} from "./prompt-generation-payload-utils.js";
+import {
   collectReferenceImages
 } from "./prompt-reference-image-utils.js";
 import {
@@ -863,17 +868,18 @@ export function bindPromptSubmit({
       progress?.classList?.add("loading");
       const generationPrompt = conversationResult.optimizedPrompt || prompt;
       const videoModel = getModelType(model) === "video" || conversationResult.outputType === "video";
+      const generationType = resolvePromptGenerationType(videoModel);
       if (videoModel && typeof replacePreviewWithVideo !== "function") {
         logMessageDoneGenerationDecision(agentDebug, markAgentGuardSkip(agentDebug, "skipped because missing replacePreviewWithVideo"));
         throw new Error("missing replacePreviewWithVideo");
       }
-      agentDebug.generationType = videoModel ? "video" : "image";
+      agentDebug.generationType = generationType;
       agentBlocksState.generationType = agentDebug.generationType;
       agentBlocksState.optimizedPrompt = generationPrompt;
       agentBlocksState.resultStatus = "pending";
       agentBlocksState.size = generationMetrics.outputSize || "";
       refreshAgentBlocks();
-      updateChat(progress, `${conversationResult.text || "Generating result..."}\nCalling ${videoModel ? "video" : "image"} generation model...`);
+      updateChat(progress, `${conversationResult.text || "Generating result..."}\nCalling ${generationType} generation model...`);
 
       previewCount = videoModel ? 1 : (isMidjourneyModel(model) ? MIDJOURNEY_IMAGE_COUNT : 1);
       agentDebug.previewCreationAttempted = true;
@@ -890,7 +896,7 @@ export function bindPromptSubmit({
           generationMetrics,
           files,
           count: previewCount,
-          outputType: videoModel ? "video" : "image"
+          outputType: generationType
         });
       }
       if (!previewNodes.length) {
@@ -901,7 +907,7 @@ export function bindPromptSubmit({
       agentDebug.pendingPreviewCreated = true;
       logAgentDebug(agentDebug, "preview.created", {
         count: previewNodes.length,
-        generationType: videoModel ? "video" : "image"
+        generationType
       });
       clearComposerAttachments({
         setChatImageFiles,
@@ -909,25 +915,26 @@ export function bindPromptSubmit({
       });
 
       logSubmittedModel("chat", model);
-      const generationPayload = buildChatImagePayload({
+      const generationPayload = buildPromptGenerationPayload({
+        buildChatImagePayload,
         model,
         prompt: generationPrompt,
         images,
         size: generationMetrics.outputSize
       });
-      if (!generationPayload?.prompt && !Array.isArray(generationPayload?.images)) {
+      if (isPromptGenerationPayloadMissing(generationPayload)) {
         logMessageDoneGenerationDecision(agentDebug, markAgentGuardSkip(agentDebug, "skipped because missing payload"));
         throw new Error("missing payload");
       }
       logMessageDoneGenerationDecision(agentDebug, markAgentGeneratePayloadBuilt(
         agentDebug,
-        summarizeGeneratePayload(generationPayload, videoModel ? "video" : "image")
+        summarizeGeneratePayload(generationPayload, generationType)
       ));
       logAgentDebug(agentDebug, "generate.request", agentDebug.generatePayload);
       updateAgentDebugPanel(agentDebug);
       setAgentGenerationStage(agentDebug, "generateRequest", {
         model,
-        generationType: videoModel ? "video" : "image"
+        generationType
       });
       logMessageDoneGenerationDecision(agentDebug, markAgentGenerateRequestStarted(agentDebug));
       updateAgentDebugPanel(agentDebug);
