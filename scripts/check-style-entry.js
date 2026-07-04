@@ -77,6 +77,10 @@ const EXPECTED_AUTH_SELECTORS = [
   ".auth-submit"
 ];
 const EXPECTED_ASSET_SELECTORS = [
+  ".asset-save-popover",
+  ".canvas-asset-board-popover",
+  ".asset-save-section",
+  ".asset-save-new-board",
   "body[data-view=\"assetsPage\"] .asset-pinterest-shell",
   "body[data-view=\"assetsPage\"] .asset-pinterest-stats",
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-grid",

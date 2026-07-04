@@ -1,3 +1,323 @@
+.asset-save-popover {
+  position: fixed;
+  z-index: 80;
+  width: min(420px, calc(100vw - 24px));
+  min-height: 520px;
+  padding: 20px 20px 18px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 14px;
+  color: #f7f7f7;
+  background: rgba(34, 34, 34, 0.97);
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.36);
+}
+
+.asset-save-head,
+.asset-save-title,
+.asset-save-actions {
+  display: flex;
+  align-items: center;
+}
+
+.asset-save-head {
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.asset-save-title {
+  gap: 10px;
+  min-width: 0;
+  font-size: 20px;
+}
+
+.asset-save-folder-icon,
+.asset-save-folder {
+  position: relative;
+  display: inline-block;
+  flex: 0 0 auto;
+  width: 20px;
+  height: 15px;
+  border: 2px solid currentColor;
+  border-radius: 3px;
+}
+
+.asset-save-folder-icon::before,
+.asset-save-folder::before {
+  position: absolute;
+  left: 1px;
+  top: -6px;
+  width: 9px;
+  height: 5px;
+  border: 2px solid currentColor;
+  border-bottom: 0;
+  border-radius: 3px 3px 0 0;
+  content: "";
+}
+
+.asset-save-new {
+  border: 0;
+  color: rgba(255, 255, 255, 0.62);
+  background: transparent;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.asset-save-new:hover {
+  color: #fff;
+}
+
+.asset-save-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  margin: 22px 0 18px;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.asset-save-tabs button {
+  min-height: 34px;
+  border: 0;
+  border-radius: 14px;
+  color: rgba(255, 255, 255, 0.62);
+  background: transparent;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.asset-save-tabs button.active {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.asset-save-tabs button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.asset-save-folders {
+  display: grid;
+  gap: 6px;
+  max-height: 330px;
+  overflow: auto;
+}
+
+.asset-save-folders button {
+  display: grid;
+  grid-template-columns: 18px 28px 1fr;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  color: #f2f2f2;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.asset-save-folders button.selected,
+.asset-save-folders button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.asset-save-chevron {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 24px;
+  line-height: 1;
+}
+
+.asset-save-folder {
+  color: rgba(255, 255, 255, 0.72);
+  background: linear-gradient(180deg, #d8d8d8, #8f8f8f);
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.28);
+}
+
+.asset-save-folders strong {
+  overflow: hidden;
+  font-size: 18px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asset-save-actions {
+  position: absolute;
+  right: 20px;
+  bottom: 20px;
+  gap: 10px;
+}
+
+.asset-save-actions button {
+  min-width: 66px;
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.asset-save-cancel {
+  color: rgba(255, 255, 255, 0.68);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.asset-save-submit {
+  color: #111;
+  background: #fff;
+}
+
+.asset-save-submit:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
+.canvas-asset-board-popover {
+  width: min(340px, calc(100vw - 20px));
+  min-height: 0;
+  max-height: min(500px, calc(100vh - 20px));
+  padding: 14px 12px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.42);
+  border-radius: 22px;
+  color: #111827;
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 24px 64px rgba(15, 23, 42, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.66);
+  backdrop-filter: blur(26px) saturate(1.35);
+  -webkit-backdrop-filter: blur(26px) saturate(1.35);
+  overflow: hidden;
+}
+
+.asset-save-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid rgba(70, 102, 255, 0.48);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.44);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.52);
+}
+
+.asset-save-search svg {
+  flex: 0 0 auto;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: #111;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.asset-save-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: #111827;
+  background: transparent;
+  font-size: 14px;
+}
+
+.asset-save-search input::placeholder {
+  color: #9ca3af;
+}
+
+.canvas-asset-board-popover .asset-save-list {
+  max-height: min(300px, calc(100vh - 178px));
+  margin: 16px -3px 10px 0;
+  overflow: auto;
+  padding-right: 3px;
+}
+
+.asset-save-section {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.asset-save-section > span {
+  margin-bottom: 3px;
+  color: #111;
+  font-size: 12px;
+}
+
+.asset-save-section button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 14px;
+  color: #111827;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.asset-save-section button:hover,
+.asset-save-section button.selected {
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.asset-save-board-thumb {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  color: #fff;
+  background: linear-gradient(135deg, #8b5cf6, #38a3db);
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.asset-save-section strong {
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asset-save-new-board {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(100% + 24px);
+  min-height: 58px;
+  margin: 6px -12px -12px;
+  padding: 0 18px;
+  border: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.36);
+  color: #111827;
+  background: rgba(255, 255, 255, 0.34);
+  font-size: 16px;
+  font-weight: 850;
+  cursor: pointer;
+  text-align: left;
+}
+
+.asset-save-new-board span {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  color: #111;
+  background: rgba(232, 232, 227, 0.72);
+  font-size: 28px;
+  font-weight: 300;
+}
+
 /* Asset library page: Pinterest-style channel rail and preview */
 body[data-view="assetsPage"] .asset-pinterest-shell {
   width: 100%;
