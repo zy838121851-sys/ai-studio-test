@@ -24,6 +24,13 @@ export function shouldRenderAssistantDelta({
   return !(shouldGenerate || isGenerationIntent(intent));
 }
 
+export function shouldIgnoreStaleConversationEvent({
+  runId = "",
+  activeRunId = ""
+} = {}) {
+  return Boolean(runId && activeRunId !== runId);
+}
+
 export function buildGenerationToolState(generationTool = "", current = {}) {
   return {
     shouldGenerate: Boolean(generationTool) || Boolean(current.shouldGenerate),

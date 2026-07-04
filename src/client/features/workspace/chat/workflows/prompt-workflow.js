@@ -122,6 +122,7 @@ import {
   buildConversationRunPayload,
   createConversationAgentState,
   getGenerationToolNameFromEvent,
+  shouldIgnoreStaleConversationEvent,
   shouldRenderAssistantDelta
 } from "./prompt-conversation-event-utils.js";
 import {
@@ -1300,7 +1301,7 @@ async function runConversationAgent({
 
   try {
     await conversationStreamRunner.run(conversation.id, conversationPayload, (event) => {
-    if (runId && activeChatAgentRunId !== runId) {
+    if (shouldIgnoreStaleConversationEvent({ runId, activeRunId: activeChatAgentRunId })) {
       if (debugRecord) {
         markAgentGuardSkip(debugRecord, "skipped because runId mismatch");
         debugRecord.streamAbortReason = `stale event ignored: ${event.type || ""}`;

@@ -24,6 +24,7 @@ import {
   getGenerationToolNameFromEvent,
   isGenerationIntent,
   isGenerationTool,
+  shouldIgnoreStaleConversationEvent,
   shouldRenderAssistantDelta,
   shouldEnterMessageDoneExecution
 } from "../src/client/features/workspace/chat/workflows/prompt-conversation-event-utils.js";
@@ -58,6 +59,23 @@ assert(
 assert(
   shouldRenderAssistantDelta({ shouldGenerate: false, intent: " generate_video " }) === false,
   "Assistant delta rendering should trim and skip video generation intents"
+);
+
+assert(
+  shouldIgnoreStaleConversationEvent({ runId: "", activeRunId: "run-1" }) === false,
+  "Stale event checks should allow empty run ids"
+);
+assert(
+  shouldIgnoreStaleConversationEvent({ runId: "run-1", activeRunId: "run-1" }) === false,
+  "Stale event checks should allow the active run"
+);
+assert(
+  shouldIgnoreStaleConversationEvent({ runId: "run-1", activeRunId: "run-2" }) === true,
+  "Stale event checks should ignore mismatched runs"
+);
+assert(
+  shouldIgnoreStaleConversationEvent({ runId: "run-1", activeRunId: "" }) === true,
+  "Stale event checks should ignore events when the active run has cleared"
 );
 
 assert(
