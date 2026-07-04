@@ -14,7 +14,25 @@ export function normalizeProjectThumbnail(value) {
   if (!clean) return "";
   const match = clean.match(/^https?:\/\/(?:localhost|127\.0\.0\.1)(?::\d+)?(\/uploads\/[^?#]+)(?:[?#].*)?$/i);
   if (match) return match[1];
+  try {
+    const parsed = new URL(clean);
+    if (/^https?:$/i.test(parsed.protocol) && parsed.pathname.startsWith("/uploads/") && isAppBaseUrlHost(parsed)) {
+      return `${parsed.pathname}${parsed.search}${parsed.hash}`;
+    }
+  } catch {
+    // Non-URL thumbnails are handled by the existing fallback.
+  }
   return clean;
+}
+
+function isAppBaseUrlHost(url) {
+  const baseUrl = String(process.env.APP_BASE_URL || "").trim();
+  if (!baseUrl) return false;
+  try {
+    return new URL(baseUrl).hostname === url.hostname;
+  } catch {
+    return false;
+  }
 }
 
 function normalizeItemCount(value) {

@@ -39,6 +39,9 @@ Existing gate:
 - `scripts/check-csp-production-policy.js` verifies production CSP does not
   include `unsafe-eval` or `connect-src http:`, that the browser startup reaches
   `app-ready`, and that same-origin API requests still work.
+- `scripts/check-production-media-restore.js` verifies production project
+  thumbnail, snapshot image, and video poster media restore through stable
+  `/uploads/...` URLs.
 
 Strict evidence command:
 
@@ -168,8 +171,8 @@ Likely mitigation path:
 2. Normalize persisted same-origin media to relative `/uploads/...`. Current
    project snapshot checks cover localhost, loopback, same-origin HTTPS, and
    same-host HTTP `/uploads/...` URLs.
-3. Add broader restore checks for thumbnails, legacy snapshots, and generated
-   assets before changing the media CSP.
+3. Add broader restore checks for generated assets and any remaining legacy
+   external media cases before changing the media CSP.
 4. Remove `http:` from `img-src` and `media-src` in production CSP after
    existing restore and upload flows pass.
 
@@ -233,6 +236,8 @@ Before changing `src/server/index.js` CSP:
 The first two safe implementation stages have been completed: production CSP
 removes `unsafe-eval` and `connect-src http:`, while development/test CSP keeps
 broader allowances. Media URL normalization now covers same-host HTTP
-`/uploads/...` URLs in project snapshots. The next safe implementation stage is
-to broaden browser/API restore checks before removing production `http:` from
-`img-src` and `media-src`.
+`/uploads/...` URLs in project thumbnails and snapshots, and the production
+media restore smoke covers thumbnail, snapshot image, and video poster loading.
+The next safe implementation stage is to decide whether remaining external
+HTTP media compatibility is still required before removing production `http:`
+from `img-src` and `media-src`.
