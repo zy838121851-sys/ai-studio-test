@@ -88,6 +88,8 @@ import {
   updatePromptPreviewStatus
 } from "./prompt-preview-utils.js";
 import {
+  buildAIJobProgressMessage,
+  isAIJobRunningStatus,
   shouldUseImmediateAIResult,
   waitForAIJob,
   waitForTripo3DTask
@@ -954,13 +956,15 @@ export function bindPromptSubmit({
               progress: payload?.progress || 0
             });
             const status = payload?.status || "running";
-            const progressValue = Number(payload?.progress || 0);
-            const suffix = progressValue > 0 ? ` (${Math.min(99, progressValue)}%)` : "";
-            updateChat(progress, `${videoModel ? "Video" : "Image"} generation is still running${suffix}.\n${formatModelUsage(result, model)}`);
+            updateChat(progress, buildAIJobProgressMessage({
+              generationType,
+              progress: payload?.progress,
+              modelUsage: formatModelUsage(result, model)
+            }));
             previewNodes.forEach((node, index) => updatePromptPreviewStatus(node, previewCount > 1
               ? `Waiting for result ${index + 1}/${previewCount}...`
               : (videoModel ? "Waiting for video result..." : "Waiting for generation result...")));
-            if (status === "queued" || status === "running") {
+            if (isAIJobRunningStatus(status)) {
               updateThinking(thinking, 4);
             }
           }

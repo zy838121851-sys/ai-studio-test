@@ -1,5 +1,7 @@
 import {
+  buildAIJobProgressMessage,
   delay,
+  isAIJobRunningStatus,
   shouldUseImmediateAIResult,
   waitForAIJob,
   waitForTripo3DTask
@@ -26,6 +28,32 @@ try {
     immediateNullError = error;
   }
   assert(immediateNullError instanceof TypeError, "AI job helper should preserve null result errors");
+
+  assert(isAIJobRunningStatus("queued"), "AI job running status helper should treat queued as running");
+  assert(isAIJobRunningStatus("running"), "AI job running status helper should treat running as running");
+  assert(!isAIJobRunningStatus("succeeded"), "AI job running status helper should reject succeeded");
+  assert(!isAIJobRunningStatus("RUNNING"), "AI job running status helper should preserve case-sensitive behavior");
+
+  assert(
+    buildAIJobProgressMessage({ generationType: "video", progress: 25, modelUsage: "model usage" })
+      === "Video generation is still running (25%).\nmodel usage",
+    "AI job progress messages should preserve video labels and progress suffixes"
+  );
+  assert(
+    buildAIJobProgressMessage({ generationType: "image", progress: 0, modelUsage: "model usage" })
+      === "Image generation is still running.\nmodel usage",
+    "AI job progress messages should omit zero progress suffixes"
+  );
+  assert(
+    buildAIJobProgressMessage({ generationType: "image", progress: 120, modelUsage: "model usage" })
+      === "Image generation is still running (99%).\nmodel usage",
+    "AI job progress messages should cap progress at 99"
+  );
+  assert(
+    buildAIJobProgressMessage({ generationType: "image", progress: "abc", modelUsage: "model usage" })
+      === "Image generation is still running.\nmodel usage",
+    "AI job progress messages should preserve non-numeric progress behavior"
+  );
 
   const runningProgress = [];
   const aiSuccessCalls = mockFetchSequence([

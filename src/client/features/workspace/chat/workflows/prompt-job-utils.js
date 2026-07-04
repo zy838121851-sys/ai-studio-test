@@ -4,6 +4,21 @@ export function shouldUseImmediateAIResult(result) {
   return Boolean(result.imageUrl || result.videoUrl || !result.jobId);
 }
 
+export function isAIJobRunningStatus(status = "") {
+  return status === "queued" || status === "running";
+}
+
+export function buildAIJobProgressMessage({
+  generationType = "image",
+  progress = 0,
+  modelUsage = ""
+} = {}) {
+  const label = generationType === "video" ? "Video" : "Image";
+  const progressValue = Number(progress || 0);
+  const suffix = progressValue > 0 ? ` (${Math.min(99, progressValue)}%)` : "";
+  return `${label} generation is still running${suffix}.\n${modelUsage}`;
+}
+
 export async function waitForAIJob(jobId, { attempts = 180, delayMs = 2000, onProgress = null } = {}) {
   let lastPayload = { jobId };
   for (let index = 0; index < attempts; index += 1) {
