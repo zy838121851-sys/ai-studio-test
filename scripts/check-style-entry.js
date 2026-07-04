@@ -118,6 +118,10 @@ const EXPECTED_LEGACY_NODE_SELECTORS = [
   ".node-loading-image"
 ];
 const EXPECTED_NODE_SELECTORS = [
+  ".node-card.selected",
+  ".source-badge",
+  ".node-label",
+  "@keyframes sourcePulse",
   ".image-node-toolbar",
   ".image-toolbar-upscale-controls",
   ".canvas-asset-savebar",
