@@ -123,6 +123,8 @@ const EXPECTED_LEGACY_NODE_SELECTORS = [
   ".image-generator-frame"
 ];
 const EXPECTED_NODE_SELECTORS = [
+  ".image-generator-panel.image-edit-popover-inline",
+  ".image-generator-bottom.edit-actions",
   ".media-preview",
   ".model-preview",
   ".model-viewer",
