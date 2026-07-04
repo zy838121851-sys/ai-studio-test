@@ -113,12 +113,14 @@ const EXPECTED_LEGACY_CANVAS_SELECTORS = [
   ".video-generator-popover"
 ];
 const EXPECTED_LEGACY_NODE_SELECTORS = [];
-const EXPECTED_NODE_SELECTORS = [
+const EXPECTED_NODE_BASE_SELECTORS = [
   ".node-card",
   ".resize-handle",
   ".node-card.node-group",
   ".node-expand",
-  ".node-download",
+  ".node-download"
+];
+const EXPECTED_NODE_SELECTORS = [
   ".node-card.node-zoomed",
   ".node-loading-image.node-zoomed",
   ".node-image.cropping",
@@ -328,6 +330,7 @@ checkFileContains("styles/features/auth.css", EXPECTED_AUTH_SELECTORS);
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
+checkFileContains("styles/features/node-base.css", EXPECTED_NODE_BASE_SELECTORS);
 checkFileContains("styles/features/node.css", EXPECTED_NODE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
 checkFileContains("styles/legacy-canvas.css", EXPECTED_LEGACY_CANVAS_SELECTORS);
