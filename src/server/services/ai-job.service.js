@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { Buffer } from "node:buffer";
 import { prepare, transaction } from "../db/sqlite.js";
+import { normalizePaginationLimit, normalizePaginationOffset } from "../lib/api-pagination.js";
 import { chargeReservedCredits, releaseReservedCredits } from "./credits/credit.service.js";
 import { createGeneratedAsset, createGeneratedAssetFromBuffer, getAsset } from "./asset.service.js";
 import { scheduleUniqueJob } from "./job-queue.service.js";
@@ -94,8 +95,8 @@ export function getAIJobByRemoteTaskId(userId, remoteTaskId) {
 }
 
 export function listAIJobs(userId, filters = {}) {
-  const limit = normalizeLimit(filters.limit, 10, 50);
-  const offset = Math.max(0, Math.ceil(Number(filters.offset || 0)));
+  const limit = normalizePaginationLimit(filters.limit, { fallback: 10, max: 50 });
+  const offset = normalizePaginationOffset(filters.offset);
   const { whereSql, params } = buildJobListWhere(userId, filters);
   const total = Number(prepare(`
     SELECT count(*) AS count
@@ -727,12 +728,6 @@ function parseDateFilter(value, { endOfDay = false } = {}) {
 
 function escapeLike(value = "") {
   return String(value).replace(/[\\%_]/g, (match) => `\\${match}`);
-}
-
-function normalizeLimit(value, fallback = 10, max = 50) {
-  const limit = Math.ceil(Number(value || fallback));
-  if (!Number.isFinite(limit)) return fallback;
-  return Math.min(max, Math.max(1, limit));
 }
 
 function nullableDuration(value) {

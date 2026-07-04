@@ -118,6 +118,7 @@ try {
   assert(otherList.status === 200, "Other user AI job list should succeed");
   assert(Array.isArray(otherList.body.jobs), "AI job list should return jobs");
   assert(otherList.body.jobs.every((job) => job.id !== successJob.id), "Other user AI job list should not include owner jobs");
+  assert(otherList.body.limit === 50, "AI job list should preserve max allowed explicit limit");
 
   const otherRemoteTask = await request(baseUrl, `/api/ai/3d/tasks/${successJob.remoteTaskId}`, { cookie: userB.cookie });
   assert(otherRemoteTask.status === 404, "Other users should not read owner AI jobs by remote task id");
@@ -166,6 +167,17 @@ try {
     !crossInputDetail.inputAssetIds.includes(inputAssetB.id),
     "AI jobs should not link input assets owned by another user"
   );
+
+  const invalidPaginationList = await request(baseUrl, "/api/ai/jobs?limit=bad&offset=bad", { cookie: userA.cookie });
+  assert(invalidPaginationList.status === 200, "AI job list should tolerate invalid pagination query values");
+  assert(invalidPaginationList.body.limit === 10, "AI job list should use the default limit for invalid query values");
+  assert(invalidPaginationList.body.offset === 0, "AI job list should use the default offset for invalid query values");
+  assert(invalidPaginationList.body.jobs.length >= 3, "AI job list should still return owner jobs after pagination normalization");
+
+  const clampedPaginationList = await request(baseUrl, "/api/ai/jobs?limit=500&offset=-10", { cookie: userA.cookie });
+  assert(clampedPaginationList.status === 200, "AI job list should tolerate out-of-range pagination query values");
+  assert(clampedPaginationList.body.limit === 50, "AI job list should clamp large limits");
+  assert(clampedPaginationList.body.offset === 0, "AI job list should clamp negative offsets");
 
   console.log("API AI job gate checks passed.");
 } finally {
