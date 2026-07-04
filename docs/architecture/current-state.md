@@ -85,6 +85,9 @@ Post-baseline CSS governance note:
 - `scripts/check-style-entry.js` now guards key selectors in
   `legacy-canvas.css`, `legacy-node.css`, and `legacy-chat.css` so later
   feature CSS migrations have a static safety net before visual smoke checks.
+- `styles/features/chat.css` now owns the conversation history popover styles
+  that were moved out of `styles/legacy-chat.css`; the selector guard tracks
+  the migrated chat rules in their feature file.
 
 ## Static Reachability Snapshot
 

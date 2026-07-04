@@ -24,6 +24,7 @@ const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./features/assets.css",
   "./legacy-canvas.css",
   "./legacy-canvas-visual.css",
+  "./features/chat.css",
   "./legacy-chat.css",
   "./legacy-node.css",
   "./legacy-overrides.css",
@@ -112,6 +113,13 @@ const EXPECTED_ASSET_SELECTORS = [
   ".asset-preview-overlay",
   ".asset-canvas-picker"
 ];
+const EXPECTED_CHAT_SELECTORS = [
+  ".conversation-history-popover",
+  ".conversation-history-popover[hidden]",
+  ".conversation-history-list",
+  ".conversation-history-item",
+  ".conversation-history-empty"
+];
 const EXPECTED_LEGACY_CANVAS_SELECTORS = [
   ".canvas-area",
   ".tool-rail",
@@ -136,7 +144,6 @@ const EXPECTED_LEGACY_NODE_SELECTORS = [
 const EXPECTED_LEGACY_CHAT_SELECTORS = [
   ".chat-panel",
   ".chat-float",
-  ".conversation-history-popover",
   ".chat-log",
   ".message",
   ".image-message",
@@ -295,6 +302,7 @@ checkImportedFilesExist(legacySplitImports, "styles");
 checkCssReachability();
 checkFileContains("styles/features/auth.css", EXPECTED_AUTH_SELECTORS);
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
+checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/ai-core.css", EXPECTED_AI_CORE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);

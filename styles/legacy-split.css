@@ -2,6 +2,7 @@
 @import url("./features/assets.css");
 @import url("./legacy-canvas.css?v=20260625-generator-convert-1");
 @import url("./legacy-canvas-visual.css?v=20260625-generator-convert-1");
+@import url("./features/chat.css");
 @import url("./legacy-chat.css?v=20260617-ordered-reference-images-1");
 @import url("./legacy-node.css?v=20260625-generator-convert-1");
 @import url("./legacy-overrides.css");

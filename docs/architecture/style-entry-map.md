@@ -64,6 +64,7 @@ styles/legacy-base.css
 styles/features/assets.css
 styles/legacy-canvas.css
 styles/legacy-canvas-visual.css
+styles/features/chat.css
 styles/legacy-chat.css
 styles/legacy-node.css
 styles/legacy-overrides.css
@@ -188,6 +189,8 @@ Notes:
   canvas, chat, and node legacy modules are imported directly by
   `legacy-split.css`, and `scripts/check-style-entry.js` guards against
   reintroducing duplicate imports there.
+- `features/chat.css` owns the conversation history popover styles that were
+  moved out of `legacy-chat.css`.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.
@@ -208,6 +211,7 @@ styles/workspace.css
 styles/workspace-layout.css
 styles/features/auth.css
 styles/features/assets.css
+styles/features/chat.css
 styles/features/home.css
 styles/features/ai-core.css
 styles/features/project-library.css
