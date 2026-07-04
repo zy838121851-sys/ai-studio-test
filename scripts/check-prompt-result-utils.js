@@ -10,7 +10,8 @@ import {
   getResultImageUrls,
   getResultUrls,
   getResultVideoUrls,
-  isMidjourneyModel
+  isMidjourneyModel,
+  resolvePromptPreviewCount
 } from "../src/client/features/workspace/chat/workflows/prompt-result-utils.js";
 
 function assert(condition, message) {
@@ -67,6 +68,9 @@ assert(
 
 assert(isMidjourneyModel(" midjourney "), "Midjourney model detection should trim whitespace");
 assert(!isMidjourneyModel("seedream-5-lite"), "Non-Midjourney models should not match");
+assert(resolvePromptPreviewCount({ model: "midjourney", videoModel: false, midjourneyCount: 4 }) === 4, "Prompt preview count should use Midjourney image batches");
+assert(resolvePromptPreviewCount({ model: "seedream-5-lite", videoModel: false, midjourneyCount: 4 }) === 1, "Prompt preview count should use single image previews for non-Midjourney image models");
+assert(resolvePromptPreviewCount({ model: "midjourney", videoModel: true, midjourneyCount: 4 }) === 1, "Prompt preview count should keep video previews single");
 
 const existingProjectPatch = buildGeneratedProjectPatch({
   project: { title: "Existing title", itemCount: 2 },

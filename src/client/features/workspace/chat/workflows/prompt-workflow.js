@@ -13,7 +13,7 @@ import {
   getResultImageUrls,
   getResultUrls,
   getResultVideoUrls,
-  isMidjourneyModel
+  resolvePromptPreviewCount
 } from "./prompt-result-utils.js";
 import {
   buildImageTo3DFailureMessage,
@@ -548,7 +548,7 @@ export function bindPromptSubmit({
           resolvedCanvasViewport.getBoundingClientRect().top + resolvedCanvasViewport.clientHeight / 2
         );
         const placement = getGenerationPlacement(generationMetrics, target);
-        previewCount = videoModel ? 1 : (isMidjourneyModel(model) ? MIDJOURNEY_IMAGE_COUNT : 1);
+        previewCount = resolvePromptPreviewCount({ model, videoModel, midjourneyCount: MIDJOURNEY_IMAGE_COUNT });
         previewNodes = createPromptPreviewBatch({
           addGenerationPreview,
           placement,
@@ -886,7 +886,7 @@ export function bindPromptSubmit({
       refreshAgentBlocks();
       updateChat(progress, `${conversationResult.text || "Generating result..."}\nCalling ${generationType} generation model...`);
 
-      previewCount = videoModel ? 1 : (isMidjourneyModel(model) ? MIDJOURNEY_IMAGE_COUNT : 1);
+      previewCount = resolvePromptPreviewCount({ model, videoModel, midjourneyCount: MIDJOURNEY_IMAGE_COUNT });
       agentDebug.previewCreationAttempted = true;
       updateAgentDebugPanel(agentDebug);
       if (!previewNodes.length) {

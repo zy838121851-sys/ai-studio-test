@@ -37,6 +37,10 @@ export function isMidjourneyModel(model = "") {
   return String(model || "").trim().toLowerCase() === "midjourney";
 }
 
+export function resolvePromptPreviewCount({ model = "", videoModel = false, midjourneyCount = 4 } = {}) {
+  return videoModel ? 1 : (isMidjourneyModel(model) ? midjourneyCount : 1);
+}
+
 export function buildGeneratedProjectPatch({
   project = null,
   prompt = "",
