@@ -2,7 +2,7 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { createLocalStorageProvider } from "../src/server/providers/storage/local-storage.provider.js";
-import { resolveStoredFilePath, storedFileExists } from "../src/server/services/storage.service.js";
+import { getDefaultStorageProvider, resolveStoredFilePath, storedFileExists } from "../src/server/services/storage.service.js";
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -22,6 +22,11 @@ const uploadDir = join(tempRoot, "uploads");
 const outsideFile = resolve(tempRoot, "escape.txt");
 
 try {
+  const defaultProvider = getDefaultStorageProvider();
+  assert(defaultProvider?.saveBuffer, "Storage service should expose a default provider with saveBuffer");
+  assert(defaultProvider?.resolveStoredPath, "Storage service should expose a default provider with resolveStoredPath");
+  assert(defaultProvider?.storedPathExists, "Storage service should expose a default provider with storedPathExists");
+
   const storage = createLocalStorageProvider({
     uploadDir,
     publicBasePath: "assets"
