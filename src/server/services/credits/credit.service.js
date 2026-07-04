@@ -141,7 +141,7 @@ export function reserveCredits({
     const balance = Number(account.balance_credits || 0);
     const reserved = Number(account.reserved_credits || 0);
     if (balance - reserved < credits) {
-      const error = createHttpError("绉垎涓嶈冻", 402);
+      const error = createHttpError("积分不足", 402);
       error.code = "INSUFFICIENT_CREDITS";
       throw error;
     }

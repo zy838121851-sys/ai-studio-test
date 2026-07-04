@@ -125,6 +125,7 @@ try {
     throw new Error("Expected insufficient credits");
   } catch (error) {
     assert(error.code === "INSUFFICIENT_CREDITS", "Insufficient credits should block billing");
+    assert(error.message === "积分不足", "Insufficient credits should keep the restored error message");
   }
   assert(insufficientCalls === 0, "Provider must not be called when credits are insufficient");
 
