@@ -23,6 +23,9 @@ import {
   getLayoutUnionBounds,
   getNodeLayoutBounds,
   getNodeSortIndex,
+  layoutNodesByColumns,
+  layoutNodesByRows,
+  layoutNodesInCompactGallery,
   normalizeLayerZIndex,
   recordLayoutMutation,
   getRectUnionBounds,
@@ -110,6 +113,9 @@ assertIncludes(menuLayoutUtils, "export function getLayerOrderedNodes", "canvas 
 assertIncludes(menuLayoutUtils, "export function getLayoutUnionBounds", "canvas layout union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getNodeLayoutBounds", "canvas node layout bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getNodeSortIndex", "canvas node sort index must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function layoutNodesInCompactGallery", "canvas compact gallery layout must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function layoutNodesByRows", "canvas row layout must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function layoutNodesByColumns", "canvas column layout must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function normalizeLayerZIndex", "canvas layer z-index normalization must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getRectUnionBounds", "canvas rect union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getViewportCenterWorldPoint", "canvas viewport center world point must live in layout utils");
@@ -386,6 +392,109 @@ try {
     sortNodesByCanvasPosition([sameSpotLateNode, sameSpotEarlyNode])[0] === sameSpotEarlyNode,
     "canvas position sort should preserve node id fallback for identical bounds"
   );
+
+  function createCompactLayoutNode({ left = 0, top = 0, width = 40, height = 20, locked = false } = {}) {
+    return {
+      isConnected: true,
+      dataset: { locked: locked ? "true" : "false" },
+      offsetWidth: width,
+      offsetHeight: height,
+      style: {
+        left: `${left}px`,
+        top: `${top}px`,
+        width: `${width}px`,
+        minHeight: `${height}px`,
+        zIndex: ""
+      },
+      classList: { contains: () => false },
+      querySelector: () => null
+    };
+  }
+
+  const rowNodeA = createCompactLayoutNode();
+  const rowNodeB = createCompactLayoutNode();
+  const rowNodeC = createCompactLayoutNode();
+  layoutNodesByRows(
+    [rowNodeA, rowNodeB, rowNodeC],
+    [
+      { width: 50, height: 20 },
+      { width: 60, height: 30 },
+      { width: 70, height: 40 }
+    ],
+    {
+      gap: 10,
+      left: 0,
+      right: 200,
+      bottom: 100,
+      top: 0,
+      targetWidth: 130,
+      anchorX: "right",
+      anchorY: "bottom"
+    }
+  );
+  assert(
+    rowNodeA.style.left === "80px"
+      && rowNodeB.style.left === "140px"
+      && rowNodeC.style.left === "130px",
+    "row layout should preserve right anchoring across wrapped rows"
+  );
+  assert(
+    rowNodeA.style.top === "20px"
+      && rowNodeB.style.top === "20px"
+      && rowNodeC.style.top === "60px"
+      && rowNodeC.style.zIndex === "22",
+    "row layout should preserve bottom anchoring and original index z order"
+  );
+
+  const columnNodeA = createCompactLayoutNode();
+  const columnNodeB = createCompactLayoutNode();
+  const columnNodeC = createCompactLayoutNode();
+  layoutNodesByColumns(
+    [columnNodeA, columnNodeB, columnNodeC],
+    [
+      { width: 50, height: 20 },
+      { width: 60, height: 30 },
+      { width: 70, height: 40 }
+    ],
+    {
+      gap: 10,
+      left: 0,
+      top: 0,
+      bottom: 100,
+      targetHeight: 60,
+      anchorY: "bottom"
+    }
+  );
+  assert(
+    columnNodeA.style.left === "0px"
+      && columnNodeB.style.left === "0px"
+      && columnNodeC.style.left === "70px",
+    "column layout should preserve column width spacing"
+  );
+  assert(
+    columnNodeA.style.top === "40px"
+      && columnNodeB.style.top === "70px"
+      && columnNodeC.style.top === "60px"
+      && columnNodeC.style.zIndex === "22",
+    "column layout should preserve bottom anchoring and original index z order"
+  );
+
+  const galleryNodeA = createCompactLayoutNode({ left: 0, top: 0, width: 40, height: 20 });
+  const galleryNodeB = createCompactLayoutNode({ left: 120, top: 0, width: 40, height: 20, locked: true });
+  const galleryNodeC = createCompactLayoutNode({ left: 240, top: 0, width: 40, height: 20 });
+  let galleryMutation = null;
+  assert(
+    layoutNodesInCompactGallery([galleryNodeA, galleryNodeB, galleryNodeC], {
+      gap: 8,
+      recordUndoAction: (entry) => {
+        galleryMutation = entry;
+      },
+      type: "test-gallery"
+    }) === true,
+    "compact gallery layout should record changed unlocked nodes"
+  );
+  assert(galleryMutation?.type === "test-gallery", "compact gallery layout should preserve mutation type");
+  assert(galleryNodeB.style.left === "120px", "compact gallery layout should skip locked nodes");
 
   function createLayoutWriterNode(classes = [], options = {}) {
     const frame = options.frame || { style: { aspectRatio: options.aspectRatio || "" } };

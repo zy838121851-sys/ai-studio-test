@@ -1,3 +1,5 @@
+import { isNodeLocked } from "./canvas-menu-node-utils.js";
+
 export function areLayoutSnapshotsEqual(a, b) {
   if (!a || !b) return false;
   return a.left === b.left
@@ -199,6 +201,143 @@ export function getViewportCenterWorldPoint(canvasViewport, viewportPointToWorld
     rect.left + canvasViewport.clientWidth / 2,
     rect.top + canvasViewport.clientHeight / 2
   );
+}
+
+export function layoutNodesInCompactGallery(nodes, {
+  gap = 8,
+  recordUndoAction = null,
+  type = "arrange-images",
+  axis = "rows",
+  anchorX = "left",
+  anchorY = "top"
+} = {}) {
+  const layoutNodes = nodes.filter((node) => node?.isConnected && !isNodeLocked(node));
+  if (layoutNodes.length <= 1) return false;
+
+  const before = snapshotLayoutNodes(layoutNodes);
+  const bounds = layoutNodes.map(getNodeLayoutBounds);
+  const union = getLayoutUnionBounds(bounds);
+  const originalRight = union.x + union.width;
+  const originalBottom = union.y + union.height;
+  const maxWidth = Math.max(...bounds.map((item) => item.width));
+  const maxHeight = Math.max(...bounds.map((item) => item.height));
+  const totalArea = bounds.reduce((sum, item) => sum + item.width * item.height, 0);
+  const compactWidth = Math.sqrt(totalArea * 3.2);
+  const compactHeight = Math.sqrt(totalArea / 3.2);
+  const targetWidth = Math.max(
+    maxWidth,
+    Math.min(Math.max(union.width, maxWidth), compactWidth)
+  );
+  const targetHeight = Math.max(
+    maxHeight,
+    Math.min(Math.max(union.height, maxHeight), compactHeight)
+  );
+
+  if (axis === "columns") {
+    layoutNodesByColumns(layoutNodes, bounds, {
+      gap,
+      left: union.x,
+      top: union.y,
+      bottom: originalBottom,
+      targetHeight,
+      anchorY
+    });
+    return recordLayoutMutation(layoutNodes, before, type, recordUndoAction);
+  }
+
+  layoutNodesByRows(layoutNodes, bounds, {
+    gap,
+    left: union.x,
+    right: originalRight,
+    bottom: originalBottom,
+    top: union.y,
+    targetWidth,
+    anchorX,
+    anchorY
+  });
+
+  return recordLayoutMutation(layoutNodes, before, type, recordUndoAction);
+}
+
+export function layoutNodesByRows(nodes, bounds, {
+  gap,
+  left,
+  right,
+  bottom,
+  top,
+  targetWidth,
+  anchorX,
+  anchorY
+}) {
+  const rows = [];
+  let current = [];
+  let rowWidth = 0;
+  let rowHeight = 0;
+  bounds.forEach((size, index) => {
+    const nextWidth = current.length ? rowWidth + gap + size.width : size.width;
+    if (current.length && nextWidth > targetWidth) {
+      rows.push({ items: current, width: rowWidth, height: rowHeight });
+      current = [];
+      rowWidth = 0;
+      rowHeight = 0;
+    }
+    current.push({ node: nodes[index], size, index });
+    rowWidth = current.length === 1 ? size.width : rowWidth + gap + size.width;
+    rowHeight = Math.max(rowHeight, size.height);
+  });
+  if (current.length) rows.push({ items: current, width: rowWidth, height: rowHeight });
+
+  const totalHeight = rows.reduce((sum, row, index) => sum + row.height + (index ? gap : 0), 0);
+  let cursorY = anchorY === "bottom" ? bottom - totalHeight : top;
+  rows.forEach((row) => {
+    let cursorX = anchorX === "right" ? right - row.width : left;
+    row.items.forEach(({ node, size, index }) => {
+      node.style.left = `${Math.round(cursorX)}px`;
+      node.style.top = `${Math.round(cursorY)}px`;
+      node.style.zIndex = String(20 + index);
+      cursorX += size.width + gap;
+    });
+    cursorY += row.height + gap;
+  });
+}
+
+export function layoutNodesByColumns(nodes, bounds, {
+  gap,
+  left,
+  top,
+  bottom,
+  targetHeight,
+  anchorY
+}) {
+  const columns = [];
+  let current = [];
+  let columnWidth = 0;
+  let columnHeight = 0;
+  bounds.forEach((size, index) => {
+    const nextHeight = current.length ? columnHeight + gap + size.height : size.height;
+    if (current.length && nextHeight > targetHeight) {
+      columns.push({ items: current, width: columnWidth, height: columnHeight });
+      current = [];
+      columnWidth = 0;
+      columnHeight = 0;
+    }
+    current.push({ node: nodes[index], size, index });
+    columnWidth = Math.max(columnWidth, size.width);
+    columnHeight = current.length === 1 ? size.height : columnHeight + gap + size.height;
+  });
+  if (current.length) columns.push({ items: current, width: columnWidth, height: columnHeight });
+
+  let cursorX = left;
+  columns.forEach((column) => {
+    let cursorY = anchorY === "bottom" ? bottom - column.height : top;
+    column.items.forEach(({ node, size, index }) => {
+      node.style.left = `${Math.round(cursorX)}px`;
+      node.style.top = `${Math.round(cursorY)}px`;
+      node.style.zIndex = String(20 + index);
+      cursorY += size.height + gap;
+    });
+    cursorX += column.width + gap;
+  });
 }
 
 export function parseAspectRatio(value = "") {
