@@ -74,6 +74,12 @@ Largest files at baseline:
 | 1,411 | `styles/legacy-canvas.css` |
 | 1,255 | `src/server/services/conversation-orchestrator.service.js` |
 
+Post-baseline CSS governance note:
+
+- `styles/legacy-assets.css` was later split into `styles/features/assets.css`,
+  removed from the active CSS import graph, and deleted after static and
+  check-script verification.
+
 ## Static Reachability Snapshot
 
 Static ESM import graph from `app.js` and `server.js`:

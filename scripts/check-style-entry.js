@@ -38,9 +38,7 @@ const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./legacy-ai-core-ambient.css",
   "./menu-select-overrides.css"
 ];
-const ALLOWED_UNREACHABLE_CSS = [
-  "styles/legacy-assets.css"
-];
+const ALLOWED_UNREACHABLE_CSS = [];
 const EXPECTED_PROJECT_LIBRARY_SELECTORS = [
   ".library-shell",
   ".library-title",

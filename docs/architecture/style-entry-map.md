@@ -165,7 +165,6 @@ styles/legacy-ai-core.css
 styles/legacy-ai-core-ambient.css
 styles/legacy-ai-core-analysis.css
 styles/legacy-ai-core-workspace.css
-styles/legacy-assets.css
 styles/legacy-base.css
 styles/legacy-canvas.css
 styles/legacy-canvas-visual.css
@@ -185,9 +184,9 @@ Notes:
 
 - `legacy-split.css` is the active legacy bundle entry imported by `styles.css`.
 - Most `legacy-*.css` files are still reachable through `legacy-split.css`.
-- `legacy-assets.css` is currently an empty compatibility shim; asset library
-  styles now live in `styles/features/assets.css` and the empty shim is outside
-  the active entry graph.
+- `legacy-assets.css` was emptied after asset library styles moved to
+  `styles/features/assets.css`, then removed from the active entry graph and
+  deleted after static and check-script verification.
 - `legacy.css` was previously identified as a low-risk unused compatibility shim,
   but must not be deleted without separate static evidence, runtime verification,
   and a rollback point.
