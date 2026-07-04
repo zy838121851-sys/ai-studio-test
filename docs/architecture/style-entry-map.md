@@ -23,7 +23,7 @@ asset:
 Current observed build output includes:
 
 ```text
-dist/assets/index-Ca4_DQ85.css
+dist/assets/index-D3Qz9b5K.css
 ```
 
 The hash can change after any CSS or imported asset change.
@@ -51,6 +51,7 @@ styles/legacy-split.css
 
 ```text
 styles/workspace-layout.css
+styles/features/project-library.css
 ```
 
 `styles/legacy-split.css` currently imports:
@@ -196,6 +197,7 @@ styles.css
 styles/globals.css
 styles/workspace.css
 styles/workspace-layout.css
+styles/features/project-library.css
 styles/components.css
 styles/image-compare.css
 styles/task-log.css
