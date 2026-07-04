@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,349 |
-| `styles` | 48 | 15,216 |
-| `scripts` | 90 | 20,701 |
+| `styles` | 49 | 15,216 |
+| `scripts` | 90 | 20,715 |
 
 Largest files in the current source tree:
 
@@ -127,9 +127,11 @@ Post-baseline CSS governance note:
 - `styles/features/home-community.css` owns home community channels, masonry
   feed, back-to-top control, inspiration grid, and placeholder sweep animation
   styles; it is imported by `styles/features/home.css`.
-- `styles/features/home.css` now imports the home history submodule while
-  retaining the main home shell, prompt, model picker, transition animations,
-  and responsive rules.
+- `styles/features/home-shell.css` owns home boot skeleton, shell, prompt,
+  upload preview, model picker, send control, and home/canvas transition
+  animation styles; it is imported by `styles/features/home.css`.
+- `styles/features/home.css` is now a home feature CSS aggregation entry plus
+  responsive overrides for home submodules.
 - `styles/features/node-base.css` owns base node/card/resize/action styles that
   were moved out of `styles/legacy-node.css`; it is imported at the top of
   `styles/features/node.css` to preserve cascade order.

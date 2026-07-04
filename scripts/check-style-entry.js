@@ -59,7 +59,8 @@ const EXPECTED_ASSET_IMPORTS = [
 ];
 const EXPECTED_HOME_IMPORTS = [
   "./home-history.css",
-  "./home-community.css"
+  "./home-community.css",
+  "./home-shell.css"
 ];
 const ALLOWED_UNREACHABLE_CSS = [
   "styles/legacy-node.css"
@@ -74,11 +75,23 @@ const EXPECTED_PROJECT_LIBRARY_SELECTORS = [
   "body[data-view=\"library\"] .project-card-board"
 ];
 const EXPECTED_HOME_SELECTORS = [
+  "@media (max-width: 1100px)",
+  "@media (max-width: 760px)",
+  ".home-prompt",
+  ".home-model-picker"
+];
+const EXPECTED_HOME_SHELL_SELECTORS = [
   "body.app-booting",
   ".home-stage",
   ".home-prompt",
   ".home-model-picker",
-  "@keyframes homeBootSkeleton"
+  ".home-file-preview",
+  ".home-model-menu",
+  ".home-send",
+  "@keyframes homeBootSkeleton",
+  "@keyframes homeSendOut",
+  "@keyframes canvasEnterSoft",
+  "@keyframes chatEnterSoft"
 ];
 const EXPECTED_HOME_HISTORY_SELECTORS = [
   ".home-history",
@@ -459,6 +472,7 @@ checkFileContains("styles/features/assets-pinterest.css", EXPECTED_ASSET_PINTERE
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
+checkFileContains("styles/features/home-shell.css", EXPECTED_HOME_SHELL_SELECTORS);
 checkFileContains("styles/features/home-history.css", EXPECTED_HOME_HISTORY_SELECTORS);
 checkFileContains("styles/features/home-community.css", EXPECTED_HOME_COMMUNITY_SELECTORS);
 checkFileContains("styles/features/node-base.css", EXPECTED_NODE_BASE_SELECTORS);
