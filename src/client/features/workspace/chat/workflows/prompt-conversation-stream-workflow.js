@@ -105,3 +105,37 @@ export async function runConversationStream({
     if (getCurrentAbort() === controller) setCurrentAbort(null);
   }
 }
+
+export function createConversationStreamRunner({
+  timeoutMs = 0,
+  runStreamFn = runConversationStream,
+  logAgentDebug = () => {},
+  updateAgentDebugPanel = () => {}
+} = {}) {
+  let currentAbort = null;
+
+  return {
+    abortCurrentConversation() {
+      currentAbort?.abort?.();
+      currentAbort = null;
+    },
+    run(conversationId, payload, onEvent, {
+      timeoutMs: runTimeoutMs = timeoutMs,
+      debugRecord = null
+    } = {}) {
+      return runStreamFn({
+        conversationId,
+        payload,
+        onEvent,
+        timeoutMs: runTimeoutMs,
+        debugRecord,
+        getCurrentAbort: () => currentAbort,
+        setCurrentAbort: (controller) => {
+          currentAbort = controller;
+        },
+        logAgentDebug,
+        updateAgentDebugPanel
+      });
+    }
+  };
+}

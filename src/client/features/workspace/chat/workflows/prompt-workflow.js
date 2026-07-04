@@ -138,7 +138,7 @@ import {
   applyStreamFinishedDebugState
 } from "./prompt-stream-debug-utils.js";
 import {
-  runConversationStream
+  createConversationStreamRunner
 } from "./prompt-conversation-stream-workflow.js";
 
 const MIDJOURNEY_IMAGE_COUNT = 4;
@@ -151,11 +151,15 @@ const CONVERSATION_THINKING_STEPS = [
 ];
 const conversationIdsByProject = new Map();
 let restoredConversationProjects = new Set();
-let currentConversationAbort = null;
 let activeChatAgentRunId = "";
 let lastConversationPrompt = "";
 const CONVERSATION_STREAM_TIMEOUT_MS = 0;
 const CHAT_AGENT_WORKFLOW_VERSION = "20260628-boot-inline-1";
+const conversationStreamRunner = createConversationStreamRunner({
+  timeoutMs: CONVERSATION_STREAM_TIMEOUT_MS,
+  logAgentDebug,
+  updateAgentDebugPanel
+});
 
 if (globalThis.window) {
   globalThis.__chatAgentWorkflowVersion = CHAT_AGENT_WORKFLOW_VERSION;
@@ -336,10 +340,7 @@ export function bindPromptSubmit({
     ensureConversation,
     conversationIdsByProject,
     restoredConversationProjects,
-    abortCurrentConversation: () => {
-      currentConversationAbort?.abort?.();
-      currentConversationAbort = null;
-    }
+    abortCurrentConversation: conversationStreamRunner.abortCurrentConversation
   });
   bindImageTo3DRequests({
     root: resolvedPromptForm.ownerDocument || document,
@@ -1295,7 +1296,7 @@ async function runConversationAgent({
   updateAgentDebugPanel(debugRecord);
 
   try {
-    await streamConversationRun(conversation.id, conversationPayload, (event) => {
+    await conversationStreamRunner.run(conversation.id, conversationPayload, (event) => {
     if (runId && activeChatAgentRunId !== runId) {
       if (debugRecord) {
         markAgentGuardSkip(debugRecord, "skipped because runId mismatch");
@@ -1588,22 +1589,6 @@ async function runConversationAgent({
 
 async function ensureConversation(projectId, { reset = false } = {}) {
   return ensureProjectConversation(projectId, { conversationIdsByProject, reset });
-}
-
-async function streamConversationRun(conversationId, payload, onEvent, { timeoutMs = CONVERSATION_STREAM_TIMEOUT_MS, debugRecord = null } = {}) {
-  return runConversationStream({
-    conversationId,
-    payload,
-    onEvent,
-    timeoutMs,
-    debugRecord,
-    getCurrentAbort: () => currentConversationAbort,
-    setCurrentAbort: (controller) => {
-      currentConversationAbort = controller;
-    },
-    logAgentDebug,
-    updateAgentDebugPanel
-  });
 }
 
 export function bindPromptShortcuts({
