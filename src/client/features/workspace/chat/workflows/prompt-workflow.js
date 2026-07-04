@@ -74,6 +74,7 @@ import {
 import {
   buildPromptGenerationPayload,
   isPromptGenerationPayloadMissing,
+  resolvePromptAgentGenerationType,
   resolvePromptGenerationType
 } from "./prompt-generation-payload-utils.js";
 import {
@@ -463,7 +464,7 @@ export function bindPromptSubmit({
     const agentBlocksState = createAgentProgressState({
       prompt,
       model,
-      generationType: getModelType(model) === "3d" ? "3d" : (getModelType(model) === "video" ? "video" : "image")
+      generationType: resolvePromptAgentGenerationType(getModelType(model))
     });
     const refreshAgentBlocks = () => {
       if (typeof addChatBlocks !== "function") return;

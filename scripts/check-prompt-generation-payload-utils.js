@@ -1,6 +1,7 @@
 import {
   buildPromptGenerationPayload,
   isPromptGenerationPayloadMissing,
+  resolvePromptAgentGenerationType,
   resolvePromptGenerationType
 } from "../src/client/features/workspace/chat/workflows/prompt-generation-payload-utils.js";
 
@@ -12,6 +13,10 @@ assert(resolvePromptGenerationType(true) === "video", "Prompt generation type sh
 assert(resolvePromptGenerationType(false) === "image", "Prompt generation type should resolve non-video models to image");
 assert(resolvePromptGenerationType("truthy") === "video", "Prompt generation type should preserve truthy behavior");
 assert(resolvePromptGenerationType("") === "image", "Prompt generation type should preserve falsy behavior");
+assert(resolvePromptAgentGenerationType("3d") === "3d", "Prompt agent generation type should preserve 3D model types");
+assert(resolvePromptAgentGenerationType("video") === "video", "Prompt agent generation type should preserve video model types");
+assert(resolvePromptAgentGenerationType("image") === "image", "Prompt agent generation type should preserve image model types");
+assert(resolvePromptAgentGenerationType("unknown") === "image", "Prompt agent generation type should fall back to image for unknown model types");
 
 const calls = [];
 const payload = buildPromptGenerationPayload({
