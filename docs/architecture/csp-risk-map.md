@@ -142,6 +142,8 @@ Known dependencies:
   classes, but runtime templates still contain inline style attributes.
 - Project history card order metadata now uses `data-history-index` instead of
   inline `--history-index` style attributes.
+- Shape toolbar color swatches now map fixed palette values through
+  `shape-color-token-*` classes instead of inline `--color` style attributes.
 - Runtime generated `style=` attributes for swatches, snapshot/export markup,
   project cards, and generated canvas/export HTML.
 - Runtime `.style` and `cssText` writes are still used for canvas geometry,

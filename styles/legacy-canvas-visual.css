@@ -235,6 +235,38 @@ body[data-view="canvas"] .shape-text-editor {
   background: var(--color);
 }
 
+.shape-color-token-white {
+  --color: #ffffff;
+}
+
+.shape-color-token-ink {
+  --color: #1f2933;
+}
+
+.shape-color-token-rose {
+  --color: #b98f8f;
+}
+
+.shape-color-token-blue {
+  --color: #4f6f9f;
+}
+
+.shape-color-token-green {
+  --color: #4f7d5a;
+}
+
+.shape-color-token-gold {
+  --color: #d89a3d;
+}
+
+.shape-color-token-purple {
+  --color: #8b5cf6;
+}
+
+.shape-color-token-red {
+  --color: #ef4444;
+}
+
 .shape-color-popover .color-none {
   overflow: hidden;
   color: transparent;

@@ -141,14 +141,14 @@ export function createShapeFormatToolbarElement({
     <div class="shape-color-popover">
       <div class="shape-color-spectrum" data-shape-spectrum><i></i></div>
       <button type="button" data-shape-color="transparent" class="color-none">清除颜色</button>
-      <button type="button" data-shape-color="#ffffff" style="--color:#ffffff"></button>
-      <button type="button" data-shape-color="#1f2933" style="--color:#1f2933"></button>
-      <button type="button" data-shape-color="#b98f8f" style="--color:#b98f8f"></button>
-      <button type="button" data-shape-color="#4f6f9f" style="--color:#4f6f9f"></button>
-      <button type="button" data-shape-color="#4f7d5a" style="--color:#4f7d5a"></button>
-      <button type="button" data-shape-color="#d89a3d" style="--color:#d89a3d"></button>
-      <button type="button" data-shape-color="#8b5cf6" style="--color:#8b5cf6"></button>
-      <button type="button" data-shape-color="#ef4444" style="--color:#ef4444"></button>
+      <button type="button" data-shape-color="#ffffff" class="shape-color-token-white"></button>
+      <button type="button" data-shape-color="#1f2933" class="shape-color-token-ink"></button>
+      <button type="button" data-shape-color="#b98f8f" class="shape-color-token-rose"></button>
+      <button type="button" data-shape-color="#4f6f9f" class="shape-color-token-blue"></button>
+      <button type="button" data-shape-color="#4f7d5a" class="shape-color-token-green"></button>
+      <button type="button" data-shape-color="#d89a3d" class="shape-color-token-gold"></button>
+      <button type="button" data-shape-color="#8b5cf6" class="shape-color-token-purple"></button>
+      <button type="button" data-shape-color="#ef4444" class="shape-color-token-red"></button>
     </div>
   `;
   toolbar.dataset.colorTarget = "fill";
