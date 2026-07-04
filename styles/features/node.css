@@ -1,5 +1,16 @@
 
 
+.node-card.node-zoomed {
+  z-index: 14;
+  width: min(680px, 72vw) !important;
+}
+
+.node-image.node-zoomed,
+.node-model.node-zoomed,
+.node-loading-image.node-zoomed {
+  width: min(720px, 72vw) !important;
+}
+
 .node-card.selected {
   border-color: rgba(127, 200, 255, 0.95);
   box-shadow:

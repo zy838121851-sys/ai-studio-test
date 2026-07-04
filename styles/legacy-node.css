@@ -204,17 +204,6 @@
   stroke-linejoin: round;
 }
 
-.node-card.node-zoomed {
-  z-index: 14;
-  width: min(680px, 72vw) !important;
-}
-
-.node-image.node-zoomed,
-.node-model.node-zoomed,
-.node-loading-image.node-zoomed {
-  width: min(720px, 72vw) !important;
-}
-
 .node-image.cropping {
   z-index: 80;
 }

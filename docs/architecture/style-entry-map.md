@@ -183,14 +183,14 @@ Notes:
   reintroducing duplicate imports there.
 - `features/chat.css` owns the conversation history popover styles that were
   moved out of `legacy-chat.css`.
-- `features/node.css` owns generic node selected/source/label state styles,
-  image node toolbar and canvas asset savebar styles, image text panel styles,
-  image lightbox styles, stack/folded node styles, director node styles,
-  image/video/model media node preview styles, generation preview frame styles,
-  image generator node frame/panel styles, tail-end node generator inline edit
-  controls, and media/model/video preview helpers that were moved out of
-  `legacy-node.css`; it is imported immediately after `legacy-node.css` so the
-  moved blocks keep the same cascade position before later overrides.
+- `features/node.css` owns generic node zoom/selected/source/label state
+  styles, image node toolbar and canvas asset savebar styles, image text panel
+  styles, image lightbox styles, stack/folded node styles, director node
+  styles, image/video/model media node preview styles, generation preview frame
+  styles, image generator node frame/panel styles, tail-end node generator
+  inline edit controls, and media/model/video preview helpers that were moved
+  out of `legacy-node.css`; it is imported immediately after `legacy-node.css`
+  so the moved blocks keep the same cascade position before later overrides.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.

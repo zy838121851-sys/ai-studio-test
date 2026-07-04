@@ -114,10 +114,11 @@ const EXPECTED_LEGACY_CANVAS_SELECTORS = [
 const EXPECTED_LEGACY_NODE_SELECTORS = [
   ".node-card",
   ".resize-handle",
-  ".node-card.node-group",
-  ".node-loading-image"
+  ".node-card.node-group"
 ];
 const EXPECTED_NODE_SELECTORS = [
+  ".node-card.node-zoomed",
+  ".node-loading-image.node-zoomed",
   ".node-card.selected",
   ".source-badge",
   ".node-label",

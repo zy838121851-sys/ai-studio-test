@@ -73,7 +73,7 @@ Largest files in the current source tree:
 | 1,214 | `scripts/check-canvas-menu-actions.js` |
 | 1,203 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,065 | `scripts/check-library-bulk-select.js` |
-| 533 | `styles/legacy-node.css` |
+| 524 | `styles/legacy-node.css` |
 
 Post-baseline CSS governance note:
 
@@ -89,9 +89,9 @@ Post-baseline CSS governance note:
 - `styles/features/chat.css` now owns the conversation history popover styles
   that were moved out of `styles/legacy-chat.css`; the selector guard tracks
   the migrated chat rules in their feature file.
-- `styles/features/node.css` now owns generic node selected/source/label state
-  styles, image node toolbar and canvas asset savebar styles, image text panel
-  styles, image lightbox styles, stack/folded node styles, director node
+- `styles/features/node.css` now owns generic node zoom/selected/source/label
+  state styles, image node toolbar and canvas asset savebar styles, image text
+  panel styles, image lightbox styles, stack/folded node styles, director node
   styles, image/video/model media node preview styles, generation preview frame
   styles, image generator node frame/panel styles, tail-end node generator
   inline edit controls, and media/model/video preview helpers that were moved
