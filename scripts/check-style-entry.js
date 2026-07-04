@@ -14,6 +14,7 @@ const EXPECTED_STYLES_IMPORTS = [
 ];
 const EXPECTED_WORKSPACE_IMPORTS = [
   "./workspace-layout.css",
+  "./features/home.css",
   "./features/ai-core.css",
   "./features/project-library.css"
 ];
@@ -54,6 +55,15 @@ const EXPECTED_AI_CORE_SELECTORS = [
   ".ai-suggestion-panel",
   ".ai-core-stage",
   "@keyframes aiCoreSenseWave"
+];
+const EXPECTED_HOME_SELECTORS = [
+  "body.app-booting",
+  ".home-stage",
+  ".home-prompt",
+  ".home-model-picker",
+  ".home-history",
+  ".home-masonry-feed",
+  "@keyframes homeBootSkeleton"
 ];
 
 const errors = [];
@@ -202,6 +212,7 @@ checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(legacySplitImports, "styles");
 checkCssReachability();
+checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/ai-core.css", EXPECTED_AI_CORE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
 
