@@ -25,7 +25,6 @@ const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./legacy-canvas-visual.css",
   "./features/chat.css",
   "./legacy-chat.css",
-  "./legacy-node.css",
   "./features/node.css",
   "./legacy-overrides.css",
   "./legacy-compact-controls.css",
@@ -36,7 +35,9 @@ const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./menu-select-overrides.css"
 ];
 const EXPECTED_LEGACY_BASE_IMPORTS = [];
-const ALLOWED_UNREACHABLE_CSS = [];
+const ALLOWED_UNREACHABLE_CSS = [
+  "styles/legacy-node.css"
+];
 const EXPECTED_PROJECT_LIBRARY_SELECTORS = [
   ".library-shell",
   ".library-title",

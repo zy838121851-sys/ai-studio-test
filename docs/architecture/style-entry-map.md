@@ -65,7 +65,6 @@ styles/legacy-canvas.css
 styles/legacy-canvas-visual.css
 styles/features/chat.css
 styles/legacy-chat.css
-styles/legacy-node.css
 styles/features/node.css
 styles/legacy-overrides.css
 styles/legacy-compact-controls.css
@@ -178,13 +177,13 @@ Notes:
 - `legacy-split.css` is the active legacy bundle entry imported by `styles.css`.
 - Most `legacy-*.css` files are still reachable through `legacy-split.css`.
 - `legacy-base.css` is currently an import-free compatibility shim. The concrete
-  canvas, chat, and node legacy modules are imported directly by
-  `legacy-split.css`, and `scripts/check-style-entry.js` guards against
-  reintroducing duplicate imports there.
+  canvas and chat legacy modules are imported directly by `legacy-split.css`,
+  and `scripts/check-style-entry.js` guards against reintroducing duplicate
+  imports there.
 - `features/chat.css` owns the conversation history popover styles that were
   moved out of `legacy-chat.css`.
 - `legacy-node.css` is currently a compatibility shim with no active selector
-  ownership.
+  ownership and is intentionally outside the active CSS import graph.
 - `features/node.css` owns base node/card/resize/action styles, generic node
   zoom/selected/source/label state styles, image node toolbar and canvas asset
   savebar styles, image text panel styles, image lightbox styles, stack/folded
@@ -193,8 +192,8 @@ Notes:
   preview styles, generation preview frame styles, image generator node
   frame/panel styles, tail-end node generator inline edit controls, and
   media/model/video preview helpers that were moved out of `legacy-node.css`;
-  it is imported immediately after `legacy-node.css` so the moved blocks keep
-  the same cascade position before later overrides.
+  it is imported where the old node import used to sit in `legacy-split.css` so
+  the moved blocks keep the same cascade position before later overrides.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.
@@ -262,10 +261,10 @@ Additional caution:
   dynamic runtime, serialization/export/snapshot, and workspace floating UI
   runtime. Treat serialization/export/snapshot as the highest-risk category.
 - Keep `scripts/check-style-entry.js` as the static CSS entry and selector guard.
-  It now checks key selectors for feature CSS plus the legacy canvas, node, and
-  chat modules, including migrated node selectors in `features/node.css`, which
-  gives future CSS migrations an automated way to catch dropped runtime hooks
-  before browser smoke checks.
+  It now checks key selectors for feature CSS plus the legacy canvas and chat
+  modules, including migrated node selectors in `features/node.css`; it also
+  keeps compatibility shims such as `legacy-node.css` outside the active import
+  graph.
 - Move one feature area at a time from legacy files into a clearer structure.
 - Start with documentation and smoke checks before moving selectors.
 - Prefer feature grouping such as:

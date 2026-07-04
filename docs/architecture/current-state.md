@@ -85,11 +85,12 @@ Post-baseline CSS governance note:
   imports of `legacy-canvas.css`, `legacy-node.css`, and `legacy-chat.css` were
   removed; `scripts/check-style-entry.js` now guards that it stays import-free.
 - `scripts/check-style-entry.js` now guards key selectors in
-  `legacy-canvas.css`, `legacy-node.css`, and `legacy-chat.css`; the
-  node selector guards now track migrated node selectors in
+  `legacy-canvas.css`, `legacy-chat.css`, and feature CSS modules; the node
+  selector guards now track migrated node selectors in
   `styles/features/node.css` so later feature CSS migrations have a static
   safety net before visual smoke checks. `legacy-node.css` is currently a
-  compatibility shim with no active selector ownership.
+  compatibility shim with no active selector ownership and is intentionally
+  outside the active `legacy-split.css` import graph.
 - `styles/features/chat.css` now owns the conversation history popover styles
   that were moved out of `styles/legacy-chat.css`; the selector guard tracks
   the migrated chat rules in their feature file.
@@ -101,8 +102,8 @@ Post-baseline CSS governance note:
   media node preview styles, generation preview frame styles, image generator
   node frame/panel styles, tail-end node generator inline edit controls, and
   media/model/video preview helpers that were moved out of
-  `styles/legacy-node.css`; it is imported immediately after `legacy-node.css`
-  to preserve cascade order.
+  `styles/legacy-node.css`; it is imported where the old node import used to
+  sit in `legacy-split.css` to preserve cascade order.
 - The inactive AI Core runtime and its legacy style modules were removed after
   dead-code audit evidence and check/build verification; `legacy-split.css` no
   longer imports `legacy-ai-core*.css`.
