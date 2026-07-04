@@ -6,6 +6,10 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
+function assertDeepEqual(actual, expected, message) {
+  assert(JSON.stringify(actual) === JSON.stringify(expected), `${message}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`);
+}
+
 const tempRoot = mkdtempSync(join(tmpdir(), "ai-studio-api-upload-security-"));
 process.env.DB_PATH = join(tempRoot, "api-upload-security.sqlite");
 process.env.UPLOAD_DIR = join(tempRoot, "uploads");
@@ -33,6 +37,33 @@ try {
   const owner = await register(baseUrl, "api-upload-security-owner@example.com", "API Upload Security Owner");
   const other = await register(baseUrl, "api-upload-security-other@example.com", "API Upload Security Other");
   const { cookie } = owner;
+
+  const metadata = await request(baseUrl, "/api/upload/metadata", {
+    method: "POST",
+    cookie,
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ file: { name: "pixel.png", type: "image/png", size: "12" } })
+  });
+  assert(metadata.status === 200, "Upload metadata should succeed for authenticated users");
+  assert(metadata.body.message === "Upload metadata normalized", "Upload metadata should keep the success message contract");
+  assertDeepEqual(
+    metadata.body.file,
+    { name: "pixel.png", type: "image/png", size: 12 },
+    "Upload metadata should normalize file metadata"
+  );
+
+  const emptyMetadata = await request(baseUrl, "/api/upload/metadata", {
+    method: "POST",
+    cookie,
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({})
+  });
+  assert(emptyMetadata.status === 200, "Empty upload metadata should keep the current tolerant contract");
+  assertDeepEqual(
+    emptyMetadata.body.file,
+    { name: "", type: "", size: 0 },
+    "Empty upload metadata should return default file metadata"
+  );
 
   const missingMultipart = await request(baseUrl, "/api/assets/upload", {
     method: "POST",
