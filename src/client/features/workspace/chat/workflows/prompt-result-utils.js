@@ -54,6 +54,24 @@ export function buildGeneratedProjectPatch({
   };
 }
 
+export function buildGeneratedMediaProjectPatch({
+  project = null,
+  prompt = "",
+  generationPrompt = "",
+  urls = [],
+  makeProjectTitle = null
+} = {}) {
+  const resultUrls = Array.isArray(urls) ? urls : [];
+  return buildGeneratedProjectPatch({
+    project,
+    prompt,
+    generationPrompt,
+    thumbnail: resultUrls[0],
+    itemCountIncrement: resultUrls.length,
+    makeProjectTitle
+  });
+}
+
 export function buildGeneratedModelProjectPatch({
   project = null,
   titlePrompt = "",

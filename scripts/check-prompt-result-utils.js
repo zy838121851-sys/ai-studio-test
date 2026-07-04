@@ -1,5 +1,6 @@
 import {
   buildGeneratedImageNodeOptions,
+  buildGeneratedMediaProjectPatch,
   buildGeneratedModelNodeOptions,
   buildGeneratedModelProjectPatch,
   buildGeneratedProjectPatch,
@@ -89,6 +90,29 @@ const newProjectPatch = buildGeneratedProjectPatch({
 });
 assert(newProjectPatch.title === "Title: Optimized prompt", "Generated project patches should title new projects from generation prompts");
 assert(newProjectPatch.itemCount === 1, "Generated project patches should handle missing item counts");
+
+const mediaProjectPatch = buildGeneratedMediaProjectPatch({
+  project: { itemCount: 4 },
+  prompt: "Original prompt",
+  generationPrompt: "Generated media prompt",
+  urls: ["/uploads/media-a.png", "/uploads/media-b.png"],
+  makeProjectTitle: (value) => `Title: ${value}`
+});
+assert(mediaProjectPatch.title === "Title: Original prompt", "Generated media project patches should preserve title prompt behavior");
+assert(mediaProjectPatch.prompt === "Generated media prompt", "Generated media project patches should store generation prompts");
+assert(mediaProjectPatch.thumbnail === "/uploads/media-a.png", "Generated media project patches should use first media URL as thumbnail");
+assert(mediaProjectPatch.itemCount === 6, "Generated media project patches should increment by media URL count");
+
+const emptyMediaProjectPatch = buildGeneratedMediaProjectPatch({
+  project: { title: "Existing title", itemCount: 2 },
+  prompt: "Original prompt",
+  generationPrompt: "Generated media prompt",
+  urls: null,
+  makeProjectTitle: (value) => `Title: ${value}`
+});
+assert(emptyMediaProjectPatch.title === "Existing title", "Generated media project patches should preserve existing titles");
+assert(emptyMediaProjectPatch.thumbnail === "", "Generated media project patches should preserve empty thumbnails for empty URL lists");
+assert(emptyMediaProjectPatch.itemCount === 2, "Generated media project patches should preserve item counts for empty URL lists");
 
 const modelProjectPatch = buildGeneratedModelProjectPatch({
   project: { title: "3D title", itemCount: 1 },

@@ -7,7 +7,7 @@ import {
 import {
   buildGeneratedModelNodeOptions,
   buildGeneratedModelProjectPatch,
-  buildGeneratedProjectPatch,
+  buildGeneratedMediaProjectPatch,
   createPromptGeneratedImageNodes,
   createPromptGeneratedVideoNode,
   getResultImageUrls,
@@ -992,12 +992,11 @@ export function bindPromptSubmit({
           resultModel
         });
         centerPendingHomeGenerationNode(videoNode);
-        await commitGeneratedProjectPatch(buildGeneratedProjectPatch({
+        await commitGeneratedProjectPatch(buildGeneratedMediaProjectPatch({
           project: getActiveProject(),
           prompt,
           generationPrompt,
-          thumbnail: videoUrls[0],
-          itemCountIncrement: 1,
+          urls: videoUrls,
           makeProjectTitle
         }));
         videoUrls.length = 0;
@@ -1033,12 +1032,11 @@ export function bindPromptSubmit({
         });
         const imageNode = imageNodes[0] || null;
         centerPendingHomeGenerationNode(imageNode);
-        await commitGeneratedProjectPatch(buildGeneratedProjectPatch({
+        await commitGeneratedProjectPatch(buildGeneratedMediaProjectPatch({
           project: getActiveProject(),
           prompt,
           generationPrompt,
-          thumbnail: imageUrls[0],
-          itemCountIncrement: imageUrls.length,
+          urls: imageUrls,
           makeProjectTitle
         }));
         if (typeof addChatBlocks === "function") {
