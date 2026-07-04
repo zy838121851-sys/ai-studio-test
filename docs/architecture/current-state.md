@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,349 |
-| `styles` | 46 | 15,216 |
-| `scripts` | 90 | 20,674 |
+| `styles` | 47 | 15,217 |
+| `scripts` | 90 | 20,688 |
 
 Largest files in the current source tree:
 
@@ -66,7 +66,6 @@ Largest files in the current source tree:
 | 1,723 | `styles/legacy-canvas.css` |
 | 1,709 | `scripts/check-api-error-contract.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
-| 1,487 | `styles/features/home.css` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
@@ -74,6 +73,7 @@ Largest files in the current source tree:
 | 1,124 | `styles/features/assets-pinterest.css` |
 | 1,120 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,112 | `scripts/check-library-bulk-select.js` |
+| 1,086 | `styles/features/home.css` |
 | 948 | `scripts/check-prompt-conversation-event-utils.js` |
 | 823 | `styles/features/auth.css` |
 | 819 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
@@ -121,6 +121,12 @@ Post-baseline CSS governance note:
   styles; it is imported by `styles/features/assets.css`.
 - `styles/features/assets.css` is now an asset feature CSS aggregation entry for
   asset submodules.
+- `styles/features/home-history.css` owns home recent project/history stack,
+  grid, card, thumbnail, and delete-control styles; it is imported by
+  `styles/features/home.css`.
+- `styles/features/home.css` now imports the home history submodule while
+  retaining the main home shell, prompt, model picker, community feed, masonry,
+  and responsive rules.
 - `styles/features/node-base.css` owns base node/card/resize/action styles that
   were moved out of `styles/legacy-node.css`; it is imported at the top of
   `styles/features/node.css` to preserve cascade order.

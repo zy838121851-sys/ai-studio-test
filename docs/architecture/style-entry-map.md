@@ -103,6 +103,12 @@ styles/features/assets-context-menu.css
 styles/features/assets-pinterest.css
 ```
 
+`styles/features/home.css` currently imports:
+
+```text
+styles/features/home-history.css
+```
+
 ## `/styles` and `/assets/styles`
 
 Current server behavior in `src/server/index.js`:
@@ -256,6 +262,11 @@ Notes:
   preview, and bottom control styles.
 - `features/node.css` is now a feature CSS aggregation entry for node
   submodules.
+- `features/home-history.css` owns home recent project/history stack, grid,
+  card, thumbnail, preview fallback, and delete-control styles.
+- `features/home.css` imports `features/home-history.css` and keeps the main
+  home shell, prompt, model picker, community feed, masonry, and responsive
+  rules.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.
@@ -285,6 +296,7 @@ styles/features/assets-pinterest.css
 styles/features/assets.css
 styles/features/chat.css
 styles/features/home.css
+styles/features/home-history.css
 styles/features/node-base.css
 styles/features/node-image-edit.css
 styles/features/node-state.css

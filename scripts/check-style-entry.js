@@ -57,6 +57,9 @@ const EXPECTED_ASSET_IMPORTS = [
   "./assets-context-menu.css",
   "./assets-pinterest.css"
 ];
+const EXPECTED_HOME_IMPORTS = [
+  "./home-history.css"
+];
 const ALLOWED_UNREACHABLE_CSS = [
   "styles/legacy-node.css"
 ];
@@ -74,9 +77,16 @@ const EXPECTED_HOME_SELECTORS = [
   ".home-stage",
   ".home-prompt",
   ".home-model-picker",
-  ".home-history",
   ".home-masonry-feed",
   "@keyframes homeBootSkeleton"
+];
+const EXPECTED_HOME_HISTORY_SELECTORS = [
+  ".home-history",
+  ".home-history-trigger",
+  ".home-history-grid",
+  ".home-history-card",
+  ".home-history-delete",
+  ".project-preview-fallback"
 ];
 const EXPECTED_AUTH_SELECTORS = [
   ".auth-entry",
@@ -409,6 +419,7 @@ const legacySplitImports = parseCssImports("styles/legacy-split.css");
 const legacyBaseImports = parseCssImports("styles/legacy-base.css");
 const nodeImports = parseCssImports("styles/features/node.css");
 const assetImports = parseCssImports("styles/features/assets.css");
+const homeImports = parseCssImports("styles/features/home.css");
 
 checkIndexStylesheet();
 assertListEqual("styles.css", stylesImports, EXPECTED_STYLES_IMPORTS);
@@ -417,11 +428,13 @@ assertListEqual("styles/legacy-split.css", legacySplitImports, EXPECTED_LEGACY_S
 assertListEqual("styles/legacy-base.css", legacyBaseImports, EXPECTED_LEGACY_BASE_IMPORTS);
 assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
 assertListEqual("styles/features/assets.css", assetImports, EXPECTED_ASSET_IMPORTS);
+assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
 checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(legacySplitImports, "styles");
 checkImportedFilesExist(nodeImports, "styles/features");
 checkImportedFilesExist(assetImports, "styles/features");
+checkImportedFilesExist(homeImports, "styles/features");
 checkCssReachability();
 checkFileContains("styles/features/auth.css", EXPECTED_AUTH_SELECTORS);
 checkFileContains("styles/features/assets-page.css", EXPECTED_ASSET_PAGE_SELECTORS);
@@ -434,6 +447,7 @@ checkFileContains("styles/features/assets-pinterest.css", EXPECTED_ASSET_PINTERE
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
+checkFileContains("styles/features/home-history.css", EXPECTED_HOME_HISTORY_SELECTORS);
 checkFileContains("styles/features/node-base.css", EXPECTED_NODE_BASE_SELECTORS);
 checkFileContains("styles/features/node-image-edit.css", EXPECTED_NODE_IMAGE_EDIT_SELECTORS);
 checkFileContains("styles/features/node-state.css", EXPECTED_NODE_STATE_SELECTORS);
