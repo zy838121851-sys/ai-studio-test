@@ -45,6 +45,7 @@ import {
   stackNodesByOffset
 } from "../src/client/features/canvas/workflows/canvas-menu-layout-utils.js";
 import {
+  assignNodesToGroup,
   getCommandNodesFromSelection,
   getEarliestDomNode,
   getGroupableSelection,
@@ -137,6 +138,7 @@ assertIncludes(menuLayoutUtils, "export function setNodeLayoutHeight", "canvas l
 assertIncludes(menuLayoutUtils, "export function setNodeLayoutSize", "canvas layout size writer must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function setNodeLayoutWidth", "canvas layout width writer must live in layout utils");
 assertIncludes(menuNodeUtils, "export function isNodeLocked", "canvas node lock check must live in node utils");
+assertIncludes(menuNodeUtils, "export function assignNodesToGroup", "canvas group member assignment must live in node utils");
 assertIncludes(menuNodeUtils, "export function getNodeKind", "canvas node kind check must live in node utils");
 assertIncludes(menuNodeUtils, "export function getVisibleUniqueCanvasNodes", "canvas visible unique node filtering must live in node utils");
 assertIncludes(menuNodeUtils, "export function getGroupableSelection", "canvas groupable selection check must live in node utils");
@@ -818,6 +820,21 @@ const memberB = fakeNode({ dataset: { groupId: "group-b" } });
 const groupCard = fakeNode({ classes: ["node-group"], dataset: { groupId: "group-a" } });
 assert(getGroupMembers("group-a", [memberA, memberB, groupCard]).length === 1, "group members should include only matching non-group nodes");
 assert(getGroupMembers("", [memberA]).length === 0, "group members should reject empty group id");
+const assignedGroupMemberA = { dataset: {}, style: { zIndex: "0" } };
+const assignedGroupMemberB = { dataset: {}, style: { zIndex: "5" } };
+assignNodesToGroup([assignedGroupMemberA, assignedGroupMemberB], "group-z", {
+  normalizeZIndex: normalizeLayerZIndex
+});
+assert(
+  assignedGroupMemberA.dataset.groupId === "group-z"
+    && assignedGroupMemberB.dataset.groupId === "group-z",
+  "group assignment should write group ids to members"
+);
+assert(
+  assignedGroupMemberA.style.zIndex === "2"
+    && assignedGroupMemberB.style.zIndex === "5",
+  "group assignment should preserve minimum z-index behavior"
+);
 
 const directGroup = fakeNode({ classes: ["node-group"], dataset: { groupId: "group-a" } });
 directGroup.isConnected = true;

@@ -32,6 +32,7 @@ import {
   rasterizeSvg
 } from "./canvas-menu-export-utils.js";
 import {
+  assignNodesToGroup,
   getCommandNodesFromSelection,
   getEarliestDomNode,
   getGroupableSelection,
@@ -819,10 +820,7 @@ function groupSelectedNodes({
   if (firstDomMember?.parentElement && groupNode.parentElement === firstDomMember.parentElement) {
     firstDomMember.parentElement.insertBefore(groupNode, firstDomMember);
   }
-  members.forEach((node) => {
-    node.dataset.groupId = groupId;
-    node.style.zIndex = String(Math.max(2, normalizeLayerZIndex(node.style.zIndex, 2)));
-  });
+  assignNodesToGroup(members, groupId, { normalizeZIndex: normalizeLayerZIndex });
   selectCanvasNodes([groupNode, ...members], selectNode);
   return groupNode;
 }

@@ -39,6 +39,15 @@ export function getGroupMembers(groupId, nodes = []) {
   return nodes.filter((node) => node.dataset.groupId === groupId && !node.classList.contains("node-group"));
 }
 
+export function assignNodesToGroup(nodes = [], groupId = "", {
+  normalizeZIndex = (value, fallback) => fallback
+} = {}) {
+  nodes.forEach((node) => {
+    node.dataset.groupId = groupId;
+    node.style.zIndex = String(Math.max(2, normalizeZIndex(node.style.zIndex, 2)));
+  });
+}
+
 export function getGroupNodeForTarget(targetNode = null, {
   querySelector = (selector) => document.querySelector(selector)
 } = {}) {
