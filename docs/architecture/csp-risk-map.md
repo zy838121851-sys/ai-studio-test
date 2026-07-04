@@ -44,6 +44,8 @@ Existing gate:
 - `scripts/check-production-media-restore.js` verifies production project
   thumbnail, snapshot image, and video poster media restore through stable
   `/uploads/...` URLs.
+- `scripts/check-inline-style-surface.js` records the current inline style
+  dependency surface and fails if new files or higher counts are added.
 
 Strict evidence command:
 
@@ -139,6 +141,8 @@ Known dependencies:
 - Static inline `style=` attributes in `index.html`.
 - Runtime generated `style=` attributes for swatches, snapshot/export markup,
   project cards, and generated canvas/export HTML.
+- Runtime `.style` and `cssText` writes are still used for canvas geometry,
+  popover placement, export serialization, and dynamic CSS variables.
 
 Risk:
 
@@ -153,6 +157,11 @@ Likely mitigation path:
 3. Add selector/visual smoke for the edited feature before removing inline style.
 4. Remove `unsafe-inline` from `style-src` only after runtime templates no
    longer depend on inline style attributes.
+
+Current gate:
+
+- `scripts/check-inline-style-surface.js` allows the existing surface but blocks
+  new inline style dependency files or count growth.
 
 ### 4. `img-src http:` and `media-src http:`
 

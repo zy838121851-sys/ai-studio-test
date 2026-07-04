@@ -230,6 +230,11 @@ Additional caution:
 
 - Keep `styles.css` as the documented source entry until a deliberate style
   entry migration is planned.
+- Keep `scripts/check-inline-style-surface.js` in `npm run check` while
+  reducing `style-src 'unsafe-inline'` dependencies. The current baseline is 54
+  files with inline style dependencies, including 32 `style=` attributes, 7
+  `setAttribute("style")` calls, 299 `.style` operations, and 2 `cssText`
+  writes.
 - Move one feature area at a time from legacy files into a clearer structure.
 - Start with documentation and smoke checks before moving selectors.
 - Prefer feature grouping such as:
