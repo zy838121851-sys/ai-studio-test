@@ -21,7 +21,12 @@ const restoreConsole = suppressRuntimeLogs();
 try {
   const { createServer } = await import("../src/server/index.js");
   const { closeDatabase } = await import("../src/server/db/sqlite.js");
-  const { appendConversationMessage } = await import("../src/server/services/conversation.service.js");
+  const {
+    appendConversationMessage,
+    listConversationMessages,
+    listProjectConversations,
+    listRecentConversationMessages
+  } = await import("../src/server/services/conversation.service.js");
   closeDatabaseRef = closeDatabase;
 
   const app = createServer();
@@ -85,11 +90,30 @@ try {
     attachments: [{ type: "image", assetId: "asset-a" }],
     toolCalls: [{ name: "noop" }]
   });
+  appendConversationMessage({
+    conversationId,
+    userId: userA.user.id,
+    projectId: projectA.id,
+    role: "assistant",
+    content: { text: "hello from assistant" }
+  });
+
+  const defaultLimitedConversations = listProjectConversations(userA.user.id, projectA.id, { limit: "bad" });
+  assert(defaultLimitedConversations.length === 1, "Conversation list should tolerate invalid limit values");
+  const clampedConversations = listProjectConversations(userA.user.id, projectA.id, { limit: "500" });
+  assert(clampedConversations.length === 1, "Conversation list should tolerate large limit values");
+
+  const invalidLimitMessages = listConversationMessages(userA.user.id, conversationId, { limit: "bad" });
+  assert(invalidLimitMessages.length === 2, "Conversation messages should tolerate invalid limit values");
+  const clampedMessages = listConversationMessages(userA.user.id, conversationId, { limit: "500" });
+  assert(clampedMessages.length === 2, "Conversation messages should tolerate large limit values");
+  const recentMessages = listRecentConversationMessages(userA.user.id, conversationId, { limit: "bad" });
+  assert(recentMessages.length === 2, "Recent conversation messages should tolerate invalid limit values");
 
   const ownerMessages = await request(baseUrl, `/api/conversations/${conversationId}/messages`, { cookie: userA.cookie });
   assert(ownerMessages.status === 200, "Owner should be able to read own conversation messages");
   assert(Array.isArray(ownerMessages.body.messages), "Conversation messages should return an array");
-  assert(ownerMessages.body.messages.length === 1, "Owner messages should include the appended message");
+  assert(ownerMessages.body.messages.length === 2, "Owner messages should include the appended messages");
   assert(ownerMessages.body.messages[0].content.text === "hello from owner", "Message content should round trip through the API");
   assert(ownerMessages.body.messages[0].conversationId === conversationId, "Message should stay scoped to the conversation");
 

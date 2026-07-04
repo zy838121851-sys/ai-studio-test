@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { prepare, transaction } from "../db/sqlite.js";
+import { normalizePaginationLimit } from "../lib/api-pagination.js";
 import { createHttpError, normalizeBoundedText } from "../lib/input-validation.js";
 import { ensureUserWorkspace, ensureUserWorkspaceWithDb } from "./workspace.service.js";
 
@@ -163,7 +164,7 @@ export function listProjectConversations(principal, projectId, { limit = 40 } = 
   if (!project) {
     throw createHttpError("Project not found", 404);
   }
-  const safeLimit = Math.max(1, Math.min(Number(limit) || 40, 80));
+  const safeLimit = normalizePaginationLimit(limit, { fallback: 40, max: 80 });
   return prepare(`
     SELECT *
     FROM chat_conversations
@@ -276,7 +277,7 @@ export function listConversationMessages(principal, conversationId, { limit = 12
   const userId = userIdFromPrincipal(principal);
   const conversation = getConversationForUser(userId, conversationId);
   if (!conversation) return null;
-  const safeLimit = Math.max(1, Math.min(Number(limit) || 120, 200));
+  const safeLimit = normalizePaginationLimit(limit, { fallback: 120, max: 200 });
   return prepare(`
     SELECT *
     FROM chat_messages
@@ -288,7 +289,7 @@ export function listConversationMessages(principal, conversationId, { limit = 12
 }
 
 export function listRecentConversationMessages(userId, conversationId, { limit = 12 } = {}) {
-  const safeLimit = Math.max(1, Math.min(Number(limit) || 12, 40));
+  const safeLimit = normalizePaginationLimit(limit, { fallback: 12, max: 40 });
   const rows = prepare(`
     SELECT *
     FROM chat_messages
