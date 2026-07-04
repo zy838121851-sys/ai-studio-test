@@ -3,6 +3,7 @@ import {
   copyReferenceFiles,
   getChatPreviewDomSummaries,
   inferSubmitTriggerSource,
+  resolvePromptSubmitAttachmentState,
   restoreComposerAttachmentsForPromptFailure,
   restoreComposerAttachmentsOnFailure
 } from "../src/client/features/workspace/chat/workflows/prompt-input-utils.js";
@@ -55,6 +56,42 @@ const blob = new Blob(["image"], { type: "image/png" });
 const copied = copyReferenceFiles([blob, { name: "not-a-blob" }, null]);
 assert(copied.length === 1 && copied[0] === blob, "Reference file copy should keep only Blob instances");
 assert(copyReferenceFiles(null).length === 0, "Reference file copy should handle null input");
+
+const composerFiles = [blob];
+const pendingFiles = [new Blob(["home"], { type: "image/jpeg" })];
+const composerSubmitState = resolvePromptSubmitAttachmentState({
+  form: {
+    __pendingHomeGenerationFiles: pendingFiles,
+    __pendingHomeGenerationModel: " gpt-image "
+  },
+  chatImageFiles: composerFiles,
+  domPreviewAttachments: [{ id: "dom" }]
+});
+assert(composerSubmitState.pendingHomeFiles === pendingFiles, "Submit state should preserve pending home file references");
+assert(composerSubmitState.pendingHomeModel === "gpt-image", "Submit state should trim pending home model");
+assert(composerSubmitState.currentFiles === composerFiles, "Submit state should preserve composer file references");
+assert(composerSubmitState.referenceFiles === composerFiles, "Submit state should prefer composer files over pending home files");
+assert(composerSubmitState.selectedSource === "composer", "Submit state should classify composer attachments first");
+
+const pendingHomeSubmitState = resolvePromptSubmitAttachmentState({
+  form: {
+    __pendingHomeGenerationFiles: pendingFiles
+  },
+  chatImageFiles: null,
+  domPreviewAttachments: [{ id: "dom" }]
+});
+assert(pendingHomeSubmitState.currentFiles.length === 0, "Submit state should tolerate non-array composer files");
+assert(pendingHomeSubmitState.referenceFiles === pendingFiles, "Submit state should fall back to pending home files");
+assert(pendingHomeSubmitState.selectedSource === "pending-home", "Submit state should classify pending home attachments second");
+
+assert(
+  resolvePromptSubmitAttachmentState({ domPreviewAttachments: [{ id: "dom" }] }).selectedSource === "dom-preview",
+  "Submit state should classify DOM preview attachments when no file arrays exist"
+);
+assert(
+  resolvePromptSubmitAttachmentState().selectedSource === "none",
+  "Submit state should classify empty attachment state"
+);
 
 const calls = [];
 clearComposerAttachments({

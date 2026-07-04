@@ -65,6 +65,7 @@ import {
   copyReferenceFiles,
   getChatPreviewDomSummaries,
   inferSubmitTriggerSource,
+  resolvePromptSubmitAttachmentState,
   restoreComposerAttachmentsForPromptFailure
 } from "./prompt-input-utils.js";
 import {
@@ -380,14 +381,18 @@ export function bindPromptSubmit({
     event.preventDefault();
     const prompt = resolvedPromptInput.value.trim();
     const triggerSource = inferSubmitTriggerSource(event, resolvedPromptForm);
-    const pendingHomeFiles = Array.isArray(resolvedPromptForm.__pendingHomeGenerationFiles)
-      ? resolvedPromptForm.__pendingHomeGenerationFiles
-      : [];
-    const pendingHomeModel = String(resolvedPromptForm.__pendingHomeGenerationModel || "").trim();
-    const rawCurrentFiles = chatImageFilesRef();
-    const currentFiles = Array.isArray(rawCurrentFiles) ? rawCurrentFiles : [];
     const domPreviewAttachments = getChatPreviewDomSummaries();
-    const referenceFiles = currentFiles.length ? currentFiles : pendingHomeFiles;
+    const {
+      pendingHomeFiles,
+      pendingHomeModel,
+      currentFiles,
+      referenceFiles,
+      selectedSource
+    } = resolvePromptSubmitAttachmentState({
+      form: resolvedPromptForm,
+      chatImageFiles: chatImageFilesRef(),
+      domPreviewAttachments
+    });
     console.debug("[chat-submit] trigger source", {
       source: triggerSource,
       composerAttachmentCount: currentFiles.length,
@@ -412,7 +417,7 @@ export function bindPromptSubmit({
       composerAttachmentCount: currentFiles.length,
       pendingHomeAttachmentCount: pendingHomeFiles.length,
       domPreviewAttachmentCount: domPreviewAttachments.length,
-      selectedSource: currentFiles.length ? "composer" : (pendingHomeFiles.length ? "pending-home" : (domPreviewAttachments.length ? "dom-preview" : "none")),
+      selectedSource,
       composerAttachments: summarizeFiles(currentFiles),
       domPreviewAttachments
     });

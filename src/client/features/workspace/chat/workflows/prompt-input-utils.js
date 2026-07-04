@@ -16,6 +16,30 @@ export function copyReferenceFiles(files = []) {
   return Array.from(files || []).filter((file) => file instanceof Blob);
 }
 
+export function resolvePromptSubmitAttachmentState({
+  form = null,
+  chatImageFiles = [],
+  domPreviewAttachments = []
+} = {}) {
+  const pendingHomeFiles = Array.isArray(form?.__pendingHomeGenerationFiles)
+    ? form.__pendingHomeGenerationFiles
+    : [];
+  const pendingHomeModel = String(form?.__pendingHomeGenerationModel || "").trim();
+  const currentFiles = Array.isArray(chatImageFiles) ? chatImageFiles : [];
+  const referenceFiles = currentFiles.length ? currentFiles : pendingHomeFiles;
+  const selectedSource = currentFiles.length
+    ? "composer"
+    : (pendingHomeFiles.length ? "pending-home" : (domPreviewAttachments.length ? "dom-preview" : "none"));
+
+  return {
+    pendingHomeFiles,
+    pendingHomeModel,
+    currentFiles,
+    referenceFiles,
+    selectedSource
+  };
+}
+
 export function clearComposerAttachments({ setChatImageFiles, renderChatImagePreview } = {}) {
   setChatImageFiles([]);
   renderChatImagePreview();
