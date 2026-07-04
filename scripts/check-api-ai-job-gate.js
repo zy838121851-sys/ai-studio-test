@@ -111,8 +111,19 @@ try {
   assert(!requestLog.includes("base64,AAAA"), "AI job request log should redact data URLs");
   assert(!responseLog.includes("super-hidden-provider-token"), "AI job response log should redact provider tokens");
 
+  const missingDetail = await request(baseUrl, "/api/ai/jobs/missing-job-id", { cookie: userA.cookie });
+  assertErrorContract(missingDetail, {
+    label: "missing AI job detail",
+    status: 404,
+    message: "Job not found"
+  });
+
   const otherDetail = await request(baseUrl, `/api/ai/jobs/${successJob.id}`, { cookie: userB.cookie });
-  assert(otherDetail.status === 404, "Other users should not read owner AI jobs");
+  assertErrorContract(otherDetail, {
+    label: "cross-user AI job detail",
+    status: 404,
+    message: "Job not found"
+  });
 
   const otherList = await request(baseUrl, "/api/ai/jobs?limit=50", { cookie: userB.cookie });
   assert(otherList.status === 200, "Other user AI job list should succeed");
@@ -121,7 +132,11 @@ try {
   assert(otherList.body.limit === 50, "AI job list should preserve max allowed explicit limit");
 
   const otherRemoteTask = await request(baseUrl, `/api/ai/3d/tasks/${successJob.remoteTaskId}`, { cookie: userB.cookie });
-  assert(otherRemoteTask.status === 404, "Other users should not read owner AI jobs by remote task id");
+  assertErrorContract(otherRemoteTask, {
+    label: "cross-user remote AI task",
+    status: 404,
+    message: "3D task not found"
+  });
 
   const failedJob = createAIJob({
     id: "api-ai-job-gate-failed",
@@ -221,8 +236,19 @@ function listen(app) {
 
 async function assertProtected(baseUrl, path) {
   const response = await request(baseUrl, path);
-  assert(response.status === 401, `${path} should require authentication`);
-  assert(response.body.message === "Authentication required", `${path} should return the auth error contract`);
+  assertErrorContract(response, {
+    label: path,
+    status: 401,
+    message: "Authentication required"
+  });
+}
+
+function assertErrorContract(response, { label, status, message }) {
+  assert(response.status === status, `${label} should return ${status}`);
+  assert(response.contentType.includes("application/json"), `${label} should return JSON`);
+  assert(response.body.message === message, `${label} should return "${message}"`);
+  assert(!("stack" in response.body), `${label} should not expose stack`);
+  assert(!("trace" in response.body), `${label} should not expose trace`);
 }
 
 async function register(baseUrl, email, name) {
@@ -261,6 +287,7 @@ async function request(baseUrl, path, {
   const setCookie = setCookies[0] || response.headers.get("set-cookie") || "";
   return {
     status: response.status,
+    contentType: response.headers.get("content-type") || "",
     cookie: setCookie.split(";")[0],
     body: text ? JSON.parse(text) : null
   };
