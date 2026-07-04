@@ -56,6 +56,7 @@ import {
 import {
   getGeneratorReferences,
   mergeGeneratorReferences,
+  readGeneratorReferenceFromImageNode,
   readGeneratorReferenceFiles
 } from "./image-generator-reference-utils.js";
 import {
@@ -857,20 +858,11 @@ export function createImageGeneratorWorkflow({
   }
 
   async function addReferenceNodeToGenerator(generatorNode, sourceNode) {
-    if (!generatorNode || !sourceNode?.classList?.contains("node-image")) return;
-    const image = sourceNode.querySelector(".image-frame img");
-    const src = image?.src || sourceNode.dataset.objectUrl || "";
-    if (!src) return;
+    if (!generatorNode) return;
     try {
-      const dataUrl = typeof readImageSourceAsDataUrl === "function"
-        ? await readImageSourceAsDataUrl(src)
-        : src;
-      setGeneratorReferences(generatorNode, mergeGeneratorReferences(generatorNode, [{
-        name: image?.alt || sourceNode.dataset.title || "canvas image",
-        dataUrl,
-        width: image?.naturalWidth || Number(sourceNode.dataset.imageNaturalWidth || 0) || 0,
-        height: image?.naturalHeight || Number(sourceNode.dataset.imageNaturalHeight || 0) || 0
-      }]));
+      const reference = await readGeneratorReferenceFromImageNode(sourceNode, { readImageSourceAsDataUrl });
+      if (!reference) return;
+      setGeneratorReferences(generatorNode, mergeGeneratorReferences(generatorNode, [reference]));
       syncGeneratorFrameToRatio(generatorNode, getGeneratorRatioValue(generatorNode));
       selectNode(generatorNode);
       refreshGeneratorPopoverIfOpen(generatorNode);

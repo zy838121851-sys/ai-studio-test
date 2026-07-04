@@ -44,6 +44,7 @@ import {
   mergeGeneratorJobPayload
 } from "../src/client/features/canvas/workflows/image-generator-job-polling-utils.js";
 import {
+  readGeneratorReferenceFromImageNode,
   readGeneratorReferenceFiles
 } from "../src/client/features/canvas/workflows/image-generator-reference-utils.js";
 import {
@@ -103,6 +104,7 @@ assert(
     && generatorWorkflow.includes("getGeneratorReplacementPlacement")
     && generatorWorkflow.includes("buildRecoveredGeneratorPreviewItems")
     && generatorControlStateUtils.includes("export function getGeneratorBatchCount")
+    && generatorWorkflow.includes("readGeneratorReferenceFromImageNode")
     && generatorWorkflow.includes("readGeneratorReferenceFiles")
     && generatorWorkflow.includes("markGeneratorPreviewFailed")
     && generatorWorkflow.includes("updateGeneratorPreviewStatus as updatePreviewStatus")
@@ -1109,6 +1111,55 @@ assert(fileReferences.length === 3, "generator reference file helper should keep
 assert(referenceReads.join(",") === "one.png,fallback,three.webp", "generator reference file helper should skip non-images before limiting");
 assert(fileReferences[1].name === "reference image", "generator reference file helper should preserve fallback names");
 assert(fileReferences[0].width > 0 && fileReferences[0].height === fileReferences[0].width + 1, "generator reference file helper should include image metrics");
+const sourceImageNode = {
+  dataset: {
+    objectUrl: "/uploads/fallback.png",
+    title: "Canvas image",
+    imageNaturalWidth: "640",
+    imageNaturalHeight: "480"
+  },
+  classList: {
+    contains(name) {
+      return name === "node-image";
+    }
+  },
+  querySelector(selector) {
+    return selector === ".image-frame img"
+      ? {
+          src: "/uploads/source.png",
+          alt: "Source image",
+          naturalWidth: 320,
+          naturalHeight: 240
+        }
+      : null;
+  }
+};
+const sourceReference = await readGeneratorReferenceFromImageNode(sourceImageNode, {
+  readImageSourceAsDataUrl: async (src) => `data:${src}`
+});
+assert(sourceReference.name === "Source image", "generator source-node reference helper should prefer image alt text");
+assert(sourceReference.dataUrl === "data:/uploads/source.png", "generator source-node reference helper should read source URLs as data URLs");
+assert(sourceReference.width === 320 && sourceReference.height === 240, "generator source-node reference helper should prefer natural image dimensions");
+const fallbackSourceReference = await readGeneratorReferenceFromImageNode({
+  dataset: {
+    objectUrl: "/uploads/fallback.png",
+    title: "Fallback title",
+    imageNaturalWidth: "1024",
+    imageNaturalHeight: "768"
+  },
+  classList: {
+    contains(name) {
+      return name === "node-image";
+    }
+  },
+  querySelector() {
+    return null;
+  }
+});
+assert(fallbackSourceReference.name === "Fallback title", "generator source-node reference helper should fall back to node titles");
+assert(fallbackSourceReference.dataUrl === "/uploads/fallback.png", "generator source-node reference helper should fall back to object URLs");
+assert(fallbackSourceReference.width === 1024 && fallbackSourceReference.height === 768, "generator source-node reference helper should fall back to dataset dimensions");
+assert(await readGeneratorReferenceFromImageNode({ classList: { contains: () => false }, dataset: {} }) === null, "generator source-node reference helper should skip non-image nodes");
 
 const appInit = read("src/client/core/app-init.js");
 assert(

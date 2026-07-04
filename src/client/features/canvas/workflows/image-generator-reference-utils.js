@@ -27,6 +27,24 @@ export async function readGeneratorReferenceFiles(files = [], {
   }));
 }
 
+export async function readGeneratorReferenceFromImageNode(sourceNode, {
+  readImageSourceAsDataUrl
+} = {}) {
+  if (!sourceNode?.classList?.contains("node-image")) return null;
+  const image = sourceNode.querySelector(".image-frame img");
+  const src = image?.src || sourceNode.dataset.objectUrl || "";
+  if (!src) return null;
+  const dataUrl = typeof readImageSourceAsDataUrl === "function"
+    ? await readImageSourceAsDataUrl(src)
+    : src;
+  return {
+    name: image?.alt || sourceNode.dataset.title || "canvas image",
+    dataUrl,
+    width: image?.naturalWidth || Number(sourceNode.dataset.imageNaturalWidth || 0) || 0,
+    height: image?.naturalHeight || Number(sourceNode.dataset.imageNaturalHeight || 0) || 0
+  };
+}
+
 export function removeGeneratorReferenceAtIndex(node, index) {
   const references = getGeneratorReferences(node);
   if (!Number.isInteger(index) || index < 0 || index >= references.length) return references;
