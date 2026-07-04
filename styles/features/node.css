@@ -6,70 +6,7 @@
 @import url("./node-stack.css");
 @import url("./node-director.css");
 @import url("./node-media.css");
-
-.generation-frame {
-  position: relative;
-  display: block;
-  color: #e8eef5;
-  background:
-    radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.12), transparent 34%),
-    linear-gradient(135deg, #20262c, #12171c);
-}
-
-.generation-frame::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(110deg, transparent 0 35%, rgba(255, 255, 255, 0.08) 48%, transparent 62%),
-    radial-gradient(circle at 22% 20%, rgba(127, 200, 255, 0.12), transparent 24%);
-  animation: shimmerPreview 1.6s ease-in-out infinite;
-}
-
-.generation-content {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 10px;
-  padding: 18px;
-  text-align: center;
-}
-
-.generation-spinner {
-  width: 30px;
-  height: 30px;
-  border: 3px solid rgba(255, 255, 255, 0.18);
-  border-top-color: #dfefff;
-  border-radius: 50%;
-  animation: spinLoading 0.8s linear infinite;
-}
-
-.generation-frame strong {
-  color: #edf4fb;
-  font-size: 14px;
-}
-
-.generation-frame span {
-  max-width: 78%;
-  color: #aeb7c2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: 11px;
-}
-
-.generation-failed .generation-frame {
-  background:
-    radial-gradient(circle at 50% 42%, rgba(255, 120, 120, 0.12), transparent 34%),
-    linear-gradient(135deg, #2a1d1d, #151111);
-}
-
-.generation-failed .generation-spinner {
-  animation: none;
-  border-color: rgba(255, 120, 120, 0.45);
-}
+@import url("./node-generation.css");
 
 .node-image-generator {
   width: 560px;
@@ -697,20 +634,6 @@
   .image-generator-bottom.edit-actions .image-generator-cancel,
   .image-generator-bottom.edit-actions .image-generator-submit {
     grid-row: 2;
-  }
-}
-
-@keyframes shimmerPreview {
-
-  0%,
-  100% {
-    opacity: 0.55;
-    transform: translateX(-18%);
-  }
-
-  50% {
-    opacity: 1;
-    transform: translateX(18%);
   }
 }
 

@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 36 | 13,300 |
-| `scripts` | 90 | 18,911 |
+| `styles` | 37 | 13,301 |
+| `scripts` | 90 | 18,932 |
 
 Largest files in the current source tree:
 
@@ -75,7 +75,7 @@ Largest files in the current source tree:
 | 1,065 | `scripts/check-library-bulk-select.js` |
 | 1,030 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 898 | `scripts/check-prompt-conversation-event-utils.js` |
-| 839 | `styles/features/node.css` |
+| 773 | `styles/features/node.css` |
 | 765 | `src/server/services/ai-job.service.js` |
 
 Post-baseline CSS governance note:
@@ -92,9 +92,10 @@ Post-baseline CSS governance note:
   `styles/features/node-base.css`, `styles/features/node-image-edit.css`,
   `styles/features/node-state.css`, `styles/features/node-image-toolbar.css`,
   `styles/features/node-image-panels.css`, `styles/features/node-stack.css`,
-  `styles/features/node-director.css`, `styles/features/node-media.css`, and
-  `styles/features/node.css` so later feature CSS migrations have a static
-  safety net before visual smoke checks.
+  `styles/features/node-director.css`, `styles/features/node-media.css`,
+  `styles/features/node-generation.css`, and `styles/features/node.css` so
+  later feature CSS migrations have a static safety net before visual smoke
+  checks.
   `legacy-node.css` is currently a compatibility shim with no active selector
   ownership and is intentionally outside the active `legacy-split.css` import
   graph.
@@ -119,9 +120,11 @@ Post-baseline CSS governance note:
 - `styles/features/node-director.css` owns director node styles.
 - `styles/features/node-media.css` owns image/video/model node shell, image
   frame, and video file preview styles.
-- `styles/features/node.css` now owns generation preview frame styles, image
-  generator node frame/panel styles, tail-end node generator inline edit
-  controls, and media/model/video preview helpers.
+- `styles/features/node-generation.css` owns temporary generation preview frame
+  and shimmer animation styles.
+- `styles/features/node.css` now owns image generator node frame/panel styles,
+  tail-end node generator inline edit controls, and media/model/video preview
+  helpers.
 - The inactive AI Core runtime and its legacy style modules were removed after
   dead-code audit evidence and check/build verification; `legacy-split.css` no
   longer imports `legacy-ai-core*.css`.

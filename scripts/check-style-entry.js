@@ -35,6 +35,17 @@ const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./menu-select-overrides.css"
 ];
 const EXPECTED_LEGACY_BASE_IMPORTS = [];
+const EXPECTED_NODE_IMPORTS = [
+  "./node-base.css",
+  "./node-image-edit.css",
+  "./node-state.css",
+  "./node-image-toolbar.css",
+  "./node-image-panels.css",
+  "./node-stack.css",
+  "./node-director.css",
+  "./node-media.css",
+  "./node-generation.css"
+];
 const ALLOWED_UNREACHABLE_CSS = [
   "styles/legacy-node.css"
 ];
@@ -184,8 +195,14 @@ const EXPECTED_NODE_MEDIA_SELECTORS = [
   ".image-frame",
   ".image-frame img"
 ];
-const EXPECTED_NODE_SELECTORS = [
+const EXPECTED_NODE_GENERATION_SELECTORS = [
   ".generation-frame",
+  ".generation-content",
+  ".generation-spinner",
+  ".generation-failed .generation-frame",
+  "@keyframes shimmerPreview"
+];
+const EXPECTED_NODE_SELECTORS = [
   ".node-image-generator",
   ".image-generator-frame",
   ".image-generator-panel",
@@ -349,15 +366,18 @@ const stylesImports = parseCssImports("styles.css");
 const workspaceImports = parseCssImports("styles/workspace.css");
 const legacySplitImports = parseCssImports("styles/legacy-split.css");
 const legacyBaseImports = parseCssImports("styles/legacy-base.css");
+const nodeImports = parseCssImports("styles/features/node.css");
 
 checkIndexStylesheet();
 assertListEqual("styles.css", stylesImports, EXPECTED_STYLES_IMPORTS);
 assertListEqual("styles/workspace.css", workspaceImports, EXPECTED_WORKSPACE_IMPORTS);
 assertListEqual("styles/legacy-split.css", legacySplitImports, EXPECTED_LEGACY_SPLIT_IMPORTS);
 assertListEqual("styles/legacy-base.css", legacyBaseImports, EXPECTED_LEGACY_BASE_IMPORTS);
+assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
 checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(legacySplitImports, "styles");
+checkImportedFilesExist(nodeImports, "styles/features");
 checkCssReachability();
 checkFileContains("styles/features/auth.css", EXPECTED_AUTH_SELECTORS);
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
@@ -371,6 +391,7 @@ checkFileContains("styles/features/node-image-panels.css", EXPECTED_NODE_IMAGE_P
 checkFileContains("styles/features/node-stack.css", EXPECTED_NODE_STACK_SELECTORS);
 checkFileContains("styles/features/node-director.css", EXPECTED_NODE_DIRECTOR_SELECTORS);
 checkFileContains("styles/features/node-media.css", EXPECTED_NODE_MEDIA_SELECTORS);
+checkFileContains("styles/features/node-generation.css", EXPECTED_NODE_GENERATION_SELECTORS);
 checkFileContains("styles/features/node.css", EXPECTED_NODE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
 checkFileContains("styles/legacy-canvas.css", EXPECTED_LEGACY_CANVAS_SELECTORS);
