@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,349 |
-| `styles` | 47 | 15,217 |
-| `scripts` | 90 | 20,688 |
+| `styles` | 48 | 15,216 |
+| `scripts` | 90 | 20,701 |
 
 Largest files in the current source tree:
 
@@ -73,10 +73,10 @@ Largest files in the current source tree:
 | 1,124 | `styles/features/assets-pinterest.css` |
 | 1,120 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,112 | `scripts/check-library-bulk-select.js` |
-| 1,086 | `styles/features/home.css` |
 | 948 | `scripts/check-prompt-conversation-event-utils.js` |
 | 823 | `styles/features/auth.css` |
 | 819 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
+| 810 | `src/server/services/ai-job.service.js` |
 
 Post-baseline CSS governance note:
 
@@ -124,8 +124,11 @@ Post-baseline CSS governance note:
 - `styles/features/home-history.css` owns home recent project/history stack,
   grid, card, thumbnail, and delete-control styles; it is imported by
   `styles/features/home.css`.
+- `styles/features/home-community.css` owns home community channels, masonry
+  feed, back-to-top control, inspiration grid, and placeholder sweep animation
+  styles; it is imported by `styles/features/home.css`.
 - `styles/features/home.css` now imports the home history submodule while
-  retaining the main home shell, prompt, model picker, community feed, masonry,
+  retaining the main home shell, prompt, model picker, transition animations,
   and responsive rules.
 - `styles/features/node-base.css` owns base node/card/resize/action styles that
   were moved out of `styles/legacy-node.css`; it is imported at the top of

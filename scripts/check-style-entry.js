@@ -58,7 +58,8 @@ const EXPECTED_ASSET_IMPORTS = [
   "./assets-pinterest.css"
 ];
 const EXPECTED_HOME_IMPORTS = [
-  "./home-history.css"
+  "./home-history.css",
+  "./home-community.css"
 ];
 const ALLOWED_UNREACHABLE_CSS = [
   "styles/legacy-node.css"
@@ -77,7 +78,6 @@ const EXPECTED_HOME_SELECTORS = [
   ".home-stage",
   ".home-prompt",
   ".home-model-picker",
-  ".home-masonry-feed",
   "@keyframes homeBootSkeleton"
 ];
 const EXPECTED_HOME_HISTORY_SELECTORS = [
@@ -87,6 +87,18 @@ const EXPECTED_HOME_HISTORY_SELECTORS = [
   ".home-history-card",
   ".home-history-delete",
   ".project-preview-fallback"
+];
+const EXPECTED_HOME_COMMUNITY_SELECTORS = [
+  ".home-community-section",
+  ".home-channel-shell",
+  ".home-channel-strip",
+  ".home-channel-scroll",
+  ".home-masonry-feed",
+  ".home-masonry-card",
+  "@keyframes masonryPlaceholderSweep",
+  ".home-back-top",
+  ".home-inspiration-grid",
+  ".inspiration-card"
 ];
 const EXPECTED_AUTH_SELECTORS = [
   ".auth-entry",
@@ -448,6 +460,7 @@ checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/home-history.css", EXPECTED_HOME_HISTORY_SELECTORS);
+checkFileContains("styles/features/home-community.css", EXPECTED_HOME_COMMUNITY_SELECTORS);
 checkFileContains("styles/features/node-base.css", EXPECTED_NODE_BASE_SELECTORS);
 checkFileContains("styles/features/node-image-edit.css", EXPECTED_NODE_IMAGE_EDIT_SELECTORS);
 checkFileContains("styles/features/node-state.css", EXPECTED_NODE_STATE_SELECTORS);

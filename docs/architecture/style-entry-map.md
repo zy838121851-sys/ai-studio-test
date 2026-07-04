@@ -107,6 +107,7 @@ styles/features/assets-pinterest.css
 
 ```text
 styles/features/home-history.css
+styles/features/home-community.css
 ```
 
 ## `/styles` and `/assets/styles`
@@ -264,9 +265,12 @@ Notes:
   submodules.
 - `features/home-history.css` owns home recent project/history stack, grid,
   card, thumbnail, preview fallback, and delete-control styles.
-- `features/home.css` imports `features/home-history.css` and keeps the main
-  home shell, prompt, model picker, community feed, masonry, and responsive
-  rules.
+- `features/home-community.css` owns home community channels, masonry feed,
+  back-to-top control, inspiration grid, and placeholder sweep animation
+  styles.
+- `features/home.css` imports `features/home-history.css` and
+  `features/home-community.css`, then keeps the main home shell, prompt, model
+  picker, transition animations, and responsive rules.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.
@@ -297,6 +301,7 @@ styles/features/assets.css
 styles/features/chat.css
 styles/features/home.css
 styles/features/home-history.css
+styles/features/home-community.css
 styles/features/node-base.css
 styles/features/node-image-edit.css
 styles/features/node-state.css
