@@ -30,7 +30,9 @@ try {
 
   await assertProtectedUploadRoutes(baseUrl);
 
-  const { cookie } = await register(baseUrl);
+  const owner = await register(baseUrl, "api-upload-security-owner@example.com", "API Upload Security Owner");
+  const other = await register(baseUrl, "api-upload-security-other@example.com", "API Upload Security Other");
+  const { cookie } = owner;
 
   const missingMultipart = await request(baseUrl, "/api/assets/upload", {
     method: "POST",
@@ -82,6 +84,22 @@ try {
   assert(imageUpload.body.asset.mimeType === "image/png", "Allowed image upload should keep MIME type");
   assert(imageUpload.body.asset.sizeBytes === createPngBuffer().length, "Allowed image upload should keep file size");
   assert(imageUpload.body.asset.url.startsWith("/uploads/"), "Allowed image upload should return an upload URL");
+
+  const unauthProtectedUpload = await rawRequest(baseUrl, imageUpload.body.asset.url);
+  assert(unauthProtectedUpload.status === 401, "Protected upload URLs should require authentication");
+  assert(unauthProtectedUpload.body.message === "Authentication required", "Unauthenticated protected upload should keep the auth error contract");
+
+  const ownerProtectedUpload = await rawRequest(baseUrl, imageUpload.body.asset.url, { cookie });
+  assert(ownerProtectedUpload.status === 200, "Owners should be able to read their protected upload");
+  assert(ownerProtectedUpload.contentType.includes("image/png"), "Protected upload should preserve MIME type");
+  assert(
+    ownerProtectedUpload.cacheControl.includes("private"),
+    "Protected upload should use private cache control"
+  );
+
+  const otherProtectedUpload = await rawRequest(baseUrl, imageUpload.body.asset.url, { cookie: other.cookie });
+  assert(otherProtectedUpload.status === 404, "Other users should not read owner protected uploads");
+  assert(otherProtectedUpload.body.message === "Upload not found", "Cross-user protected upload should keep the not-found contract");
 
   const modelUpload = await uploadMultipart(baseUrl, cookie, {
     filename: "scene.glb",
@@ -161,14 +179,14 @@ async function assertProtectedUploadRoutes(baseUrl) {
   assert(metadata.body.message === "Authentication required", "Unauthenticated upload metadata should keep the auth error contract");
 }
 
-async function register(baseUrl) {
+async function register(baseUrl, email = "api-upload-security@example.com", name = "API Upload Security") {
   const response = await request(baseUrl, "/api/auth/register", {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
-      email: "api-upload-security@example.com",
+      email,
       password: "password123",
-      name: "API Upload Security"
+      name
     })
   });
   assert(response.status === 201, "Registration should succeed for upload security checks");
@@ -262,5 +280,35 @@ async function request(baseUrl, path, {
     status: response.status,
     cookie: setCookie.split(";")[0],
     body: text ? JSON.parse(text) : null
+  };
+}
+
+async function rawRequest(baseUrl, path, {
+  method = "GET",
+  cookie = "",
+  headers = {},
+  body
+} = {}) {
+  const requestHeaders = { ...headers };
+  if (cookie) requestHeaders.cookie = cookie;
+
+  const response = await fetch(`${baseUrl}${path}`, {
+    method,
+    headers: requestHeaders,
+    body
+  });
+  const contentType = response.headers.get("content-type") || "";
+  const cacheControl = response.headers.get("cache-control") || "";
+  const buffer = Buffer.from(await response.arrayBuffer());
+  let parsed = null;
+  if (contentType.includes("application/json")) {
+    parsed = JSON.parse(buffer.toString("utf8"));
+  }
+  return {
+    status: response.status,
+    contentType,
+    cacheControl,
+    body: parsed,
+    buffer
   };
 }
