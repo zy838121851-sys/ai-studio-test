@@ -83,6 +83,7 @@ styles/features/node-image-edit.css
 styles/features/node-state.css
 styles/features/node-image-toolbar.css
 styles/features/node-image-panels.css
+styles/features/node-stack.css
 ```
 
 ## `/styles` and `/assets/styles`
@@ -208,10 +209,11 @@ Notes:
   upscale controls, and canvas asset savebar styles.
 - `features/node-image-panels.css` owns image text panel and image lightbox
   styles.
-- `features/node.css` owns stack/folded node styles, director node styles,
-  image/video/model media node preview styles, generation preview frame styles,
-  image generator node frame/panel styles, tail-end node generator inline edit
-  controls, and media/model/video preview helpers.
+- `features/node-stack.css` owns stack/folded node styles.
+- `features/node.css` owns director node styles, image/video/model media node
+  preview styles, generation preview frame styles, image generator node
+  frame/panel styles, tail-end node generator inline edit controls, and
+  media/model/video preview helpers.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.
@@ -239,6 +241,7 @@ styles/features/node-image-edit.css
 styles/features/node-state.css
 styles/features/node-image-toolbar.css
 styles/features/node-image-panels.css
+styles/features/node-stack.css
 styles/features/node.css
 styles/features/project-library.css
 styles/components.css
@@ -289,9 +292,10 @@ Additional caution:
   migrated image edit selectors in `features/node-image-edit.css`, migrated node
   state selectors in `features/node-state.css`, migrated image toolbar selectors
   in `features/node-image-toolbar.css`, migrated image panel selectors in
-  `features/node-image-panels.css`, and migrated node selectors in
-  `features/node.css`; it also keeps compatibility shims such as
-  `legacy-node.css` outside the active import graph.
+  `features/node-image-panels.css`, migrated stack selectors in
+  `features/node-stack.css`, and migrated node selectors in `features/node.css`;
+  it also keeps compatibility shims such as `legacy-node.css` outside the active
+  import graph.
 - Move one feature area at a time from legacy files into a clearer structure.
 - Start with documentation and smoke checks before moving selectors.
 - Prefer feature grouping such as:

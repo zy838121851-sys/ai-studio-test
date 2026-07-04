@@ -157,10 +157,16 @@ const EXPECTED_NODE_IMAGE_PANELS_SELECTORS = [
   ".image-lightbox",
   ".image-lightbox-close"
 ];
-const EXPECTED_NODE_SELECTORS = [
+const EXPECTED_NODE_STACK_SELECTORS = [
+  ".node-card.stack-member-hidden",
   ".node-card.has-stack::after",
+  ".node-card.stack-drop-target",
   ".stack-toggle",
   ".stack-tray",
+  ".stack-row",
+  ".stack-thumb"
+];
+const EXPECTED_NODE_SELECTORS = [
   ".node-director",
   ".director-tile",
   ".node-video",
@@ -348,6 +354,7 @@ checkFileContains("styles/features/node-image-edit.css", EXPECTED_NODE_IMAGE_EDI
 checkFileContains("styles/features/node-state.css", EXPECTED_NODE_STATE_SELECTORS);
 checkFileContains("styles/features/node-image-toolbar.css", EXPECTED_NODE_IMAGE_TOOLBAR_SELECTORS);
 checkFileContains("styles/features/node-image-panels.css", EXPECTED_NODE_IMAGE_PANELS_SELECTORS);
+checkFileContains("styles/features/node-stack.css", EXPECTED_NODE_STACK_SELECTORS);
 checkFileContains("styles/features/node.css", EXPECTED_NODE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
 checkFileContains("styles/legacy-canvas.css", EXPECTED_LEGACY_CANVAS_SELECTORS);

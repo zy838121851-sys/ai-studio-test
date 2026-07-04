@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 33 | 13,297 |
-| `scripts` | 90 | 18,888 |
+| `styles` | 34 | 13,298 |
+| `scripts` | 90 | 18,895 |
 
 Largest files in the current source tree:
 
@@ -72,8 +72,8 @@ Largest files in the current source tree:
 | 1,252 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,214 | `scripts/check-canvas-menu-actions.js` |
 | 1,203 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
-| 1,193 | `styles/features/node.css` |
 | 1,065 | `scripts/check-library-bulk-select.js` |
+| 1,062 | `styles/features/node.css` |
 | 1,030 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 
 Post-baseline CSS governance note:
@@ -89,9 +89,9 @@ Post-baseline CSS governance note:
   selector guards now track migrated node selectors in
   `styles/features/node-base.css`, `styles/features/node-image-edit.css`,
   `styles/features/node-state.css`, `styles/features/node-image-toolbar.css`,
-  `styles/features/node-image-panels.css`, and `styles/features/node.css` so
-  later feature CSS migrations have a static safety net before visual smoke
-  checks.
+  `styles/features/node-image-panels.css`, `styles/features/node-stack.css`, and
+  `styles/features/node.css` so later feature CSS migrations have a static
+  safety net before visual smoke checks.
   `legacy-node.css` is currently a compatibility shim with no active selector
   ownership and is intentionally outside the active `legacy-split.css` import
   graph.
@@ -112,10 +112,11 @@ Post-baseline CSS governance note:
   upscale controls, and canvas asset savebar styles.
 - `styles/features/node-image-panels.css` owns image text panel and image
   lightbox styles.
-- `styles/features/node.css` now owns stack/folded node styles, director node
-  styles, image/video/model media node preview styles, generation preview frame
-  styles, image generator node frame/panel styles, tail-end node generator
-  inline edit controls, and media/model/video preview helpers.
+- `styles/features/node-stack.css` owns stack/folded node styles.
+- `styles/features/node.css` now owns director node styles, image/video/model
+  media node preview styles, generation preview frame styles, image generator
+  node frame/panel styles, tail-end node generator inline edit controls, and
+  media/model/video preview helpers.
 - The inactive AI Core runtime and its legacy style modules were removed after
   dead-code audit evidence and check/build verification; `legacy-split.css` no
   longer imports `legacy-ai-core*.css`.
