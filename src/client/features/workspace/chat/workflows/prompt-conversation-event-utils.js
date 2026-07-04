@@ -62,6 +62,43 @@ export function buildConversationRunPayload({
   };
 }
 
+export function createConversationAgentState({
+  outputType = ""
+} = {}) {
+  return {
+    assistantMessage: null,
+    assistantText: "",
+    shouldGenerate: false,
+    optimizedPrompt: "",
+    qwenVlMode: "",
+    promptOptimizerMode: "",
+    skippedOptimizer: false,
+    optimizerError: "",
+    usedFallbackPrompt: false,
+    totalBudgetExceeded: false,
+    intent: "",
+    taskType: "",
+    promptStrategy: "",
+    outputType,
+    imageAnalysis: null,
+    imageAnalysisError: "",
+    sawMessageDone: false
+  };
+}
+
+export function buildMissingProjectConversationResult({
+  prompt = "",
+  outputType = ""
+} = {}) {
+  return {
+    shouldGenerate: true,
+    message: null,
+    text: "Generating result...",
+    optimizedPrompt: prompt,
+    outputType
+  };
+}
+
 export function shouldEnterMessageDoneExecution({
   shouldGenerate = false,
   autoExecute = false,

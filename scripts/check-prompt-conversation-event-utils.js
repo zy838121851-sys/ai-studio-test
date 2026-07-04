@@ -10,6 +10,7 @@ import {
   buildConversationAgentResult,
   buildConversationIntentState,
   buildConversationDoneDebugPayload,
+  buildMissingProjectConversationResult,
   buildGenerationToolState,
   buildImageAnalysisErrorState,
   buildImageAnalysisState,
@@ -18,6 +19,7 @@ import {
   buildPromptOptimizedState,
   buildPromptOptimizerStartState,
   buildConversationRunPayload,
+  createConversationAgentState,
   getMessageDoneSkipReason,
   getGenerationToolNameFromEvent,
   isGenerationIntent,
@@ -178,6 +180,37 @@ assert(
     && uploadPayload.attachments[1].name === "Reference 2",
   "Conversation payloads should preserve fallback upload metadata"
 );
+
+const initialAgentState = createConversationAgentState({
+  outputType: "video"
+});
+assert(initialAgentState.assistantMessage === null, "Initial conversation agent state should start without assistant messages");
+assert(initialAgentState.assistantText === "", "Initial conversation agent state should start with empty assistant text");
+assert(initialAgentState.shouldGenerate === false, "Initial conversation agent state should not generate by default");
+assert(initialAgentState.optimizedPrompt === "", "Initial conversation agent state should start with empty optimized prompts");
+assert(initialAgentState.qwenVlMode === "", "Initial conversation agent state should start with empty VL modes");
+assert(initialAgentState.promptOptimizerMode === "", "Initial conversation agent state should start with empty optimizer modes");
+assert(initialAgentState.skippedOptimizer === false, "Initial conversation agent state should not skip optimizers by default");
+assert(initialAgentState.optimizerError === "", "Initial conversation agent state should start without optimizer errors");
+assert(initialAgentState.usedFallbackPrompt === false, "Initial conversation agent state should not use fallback prompts by default");
+assert(initialAgentState.totalBudgetExceeded === false, "Initial conversation agent state should not exceed budgets by default");
+assert(initialAgentState.intent === "", "Initial conversation agent state should start with empty intents");
+assert(initialAgentState.taskType === "", "Initial conversation agent state should start with empty task types");
+assert(initialAgentState.promptStrategy === "", "Initial conversation agent state should start with empty prompt strategies");
+assert(initialAgentState.outputType === "video", "Initial conversation agent state should preserve output types");
+assert(initialAgentState.imageAnalysis === null, "Initial conversation agent state should start without image analysis");
+assert(initialAgentState.imageAnalysisError === "", "Initial conversation agent state should start without image analysis errors");
+assert(initialAgentState.sawMessageDone === false, "Initial conversation agent state should not mark message.done by default");
+
+const missingProjectResult = buildMissingProjectConversationResult({
+  prompt: "Fallback prompt",
+  outputType: "image"
+});
+assert(missingProjectResult.shouldGenerate === true, "Missing project fallback should enter generation mode");
+assert(missingProjectResult.message === null, "Missing project fallback should not include assistant message nodes");
+assert(missingProjectResult.text === "Generating result...", "Missing project fallback should preserve status text");
+assert(missingProjectResult.optimizedPrompt === "Fallback prompt", "Missing project fallback should preserve prompts");
+assert(missingProjectResult.outputType === "image", "Missing project fallback should preserve output types");
 
 assert(
   shouldEnterMessageDoneExecution({

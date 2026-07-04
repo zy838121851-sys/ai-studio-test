@@ -111,6 +111,7 @@ import {
   buildConversationAgentResult,
   buildConversationIntentState,
   buildConversationDoneDebugPayload,
+  buildMissingProjectConversationResult,
   buildGenerationToolState,
   buildImageAnalysisErrorState,
   buildImageAnalysisState,
@@ -119,6 +120,7 @@ import {
   buildPromptOptimizedState,
   buildPromptOptimizerStartState,
   buildConversationRunPayload,
+  createConversationAgentState,
   getGenerationToolNameFromEvent,
   shouldRenderAssistantDelta
 } from "./prompt-conversation-event-utils.js";
@@ -1254,33 +1256,34 @@ async function runConversationAgent({
   onShouldGenerateIntent = null
 } = {}) {
   if (!projectId) {
-    return {
-      shouldGenerate: true,
-      message: null,
-      text: "Generating result...",
-      optimizedPrompt: prompt,
+    return buildMissingProjectConversationResult({
+      prompt,
       outputType: getModelType(model)
-    };
+    });
   }
 
   const conversation = await ensureConversation(projectId);
-  let assistantMessage = null;
-  let assistantText = "";
-  let shouldGenerate = false;
-  let optimizedPrompt = "";
-  let qwenVlMode = "";
-  let promptOptimizerMode = "";
-  let skippedOptimizer = false;
-  let optimizerError = "";
-  let usedFallbackPrompt = false;
-  let totalBudgetExceeded = false;
-  let intent = "";
-  let taskType = "";
-  let promptStrategy = "";
-  let outputType = getModelType(model);
-  let imageAnalysis = null;
-  let imageAnalysisError = "";
-  let sawMessageDone = false;
+  let {
+    assistantMessage,
+    assistantText,
+    shouldGenerate,
+    optimizedPrompt,
+    qwenVlMode,
+    promptOptimizerMode,
+    skippedOptimizer,
+    optimizerError,
+    usedFallbackPrompt,
+    totalBudgetExceeded,
+    intent,
+    taskType,
+    promptStrategy,
+    outputType,
+    imageAnalysis,
+    imageAnalysisError,
+    sawMessageDone
+  } = createConversationAgentState({
+    outputType: getModelType(model)
+  });
   const runId = debugRecord?.runId || "";
 
   const conversationPayload = buildConversationRunPayload({
