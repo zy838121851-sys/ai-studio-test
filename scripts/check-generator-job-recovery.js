@@ -26,7 +26,8 @@ import {
 import {
   applyGeneratedImageNodeResult,
   applyGeneratedImageNodeSize,
-  getGeneratorResultTitle
+  getGeneratorResultTitle,
+  shouldUseImmediateGeneratorResult
 } from "../src/client/features/canvas/workflows/image-generator-result-utils.js";
 import {
   buildInitialGeneratorJobPayload,
@@ -660,6 +661,11 @@ assert(fallbackRecoveredMeta.model === "result-model", "recovered generator prev
 assert(getGeneratorResultTitle(0, 1) === "Image Generator Result.png", "single image generator result title should stay stable");
 assert(getGeneratorResultTitle(1, 3) === "Image Generator Result 2.png", "multi image generator result title should include one-based index");
 assert(getGeneratorResultTitle(0, 4) === "Image Generator Result 1.png", "generator replacement title should preserve first numbered result");
+assert(shouldUseImmediateGeneratorResult(null) === true, "generator should keep immediate fallback behavior for missing results");
+assert(shouldUseImmediateGeneratorResult({}) === true, "generator should keep immediate fallback behavior when no job id exists");
+assert(shouldUseImmediateGeneratorResult({ jobId: "job-1" }) === false, "generator should poll async jobs that have no result URL yet");
+assert(shouldUseImmediateGeneratorResult({ jobId: "job-1", imageUrl: "/uploads/image.png" }) === true, "generator should return immediate image results");
+assert(shouldUseImmediateGeneratorResult({ jobId: "job-1", videoUrl: "/uploads/video.mp4" }) === true, "generator should return immediate video results");
 assert(getGeneratorPreviewDescription("", 0, 1) === "正在生成图片", "promptless generator preview description should stay stable");
 assert(getGeneratorPreviewDescription("A prompt", 0, 1) === "正在根据当前提示生成结果", "prompt generator preview description should stay stable");
 assert(getGeneratorPreviewDescription("A prompt", 1, 3) === "正在生成第 2/3 张", "multi preview description should include one-based progress");

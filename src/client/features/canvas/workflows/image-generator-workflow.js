@@ -11,7 +11,8 @@ import {
   getMissingGeneratorResultMessage,
   getGeneratorResultTitle,
   getResultImageUrls,
-  parseGeneratorResult
+  parseGeneratorResult,
+  shouldUseImmediateGeneratorResult
 } from "./image-generator-result-utils.js";
 import {
   logGeneratorJobPoll,
@@ -975,7 +976,7 @@ export function createImageGeneratorWorkflow({
       size
     }));
     if (result?.jobId) onJobCreated?.(result);
-    if (result?.imageUrl || result?.videoUrl || !result?.jobId) return result;
+    if (shouldUseImmediateGeneratorResult(result)) return result;
     return waitForImageGenerationJob(result.jobId, { onProgress, fallback: result, expectedType });
   }
 

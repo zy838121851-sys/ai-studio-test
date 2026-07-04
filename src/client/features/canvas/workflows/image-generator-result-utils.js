@@ -55,6 +55,10 @@ export function parseGeneratorResult(result = {}, selectedModel = "", expectedTy
   };
 }
 
+export function shouldUseImmediateGeneratorResult(result = {}) {
+  return Boolean(result?.imageUrl || result?.videoUrl || !result?.jobId);
+}
+
 export function getResultImageUrls(result = {}) {
   const urls = [];
   if (Array.isArray(result?.imageUrls)) urls.push(...result.imageUrls);
