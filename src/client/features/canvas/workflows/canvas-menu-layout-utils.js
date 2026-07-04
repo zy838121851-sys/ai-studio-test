@@ -60,6 +60,33 @@ export function getLayerOrderedNodes(nodes = []) {
     .map(({ node }) => node);
 }
 
+export function reorderLayerNodesByMode(orderedNodes = [], selectedNodes = [], mode = "") {
+  const selectedSet = new Set(selectedNodes);
+  const selected = orderedNodes.filter((node) => selectedSet.has(node));
+  const unselected = orderedNodes.filter((node) => !selectedSet.has(node));
+  if (!selected.length) return orderedNodes.slice();
+
+  let nextOrder = orderedNodes.slice();
+  if (mode === "front") {
+    nextOrder = [...unselected, ...selected];
+  } else if (mode === "back") {
+    nextOrder = [...selected, ...unselected];
+  } else if (mode === "up") {
+    for (let index = nextOrder.length - 2; index >= 0; index -= 1) {
+      if (selectedSet.has(nextOrder[index]) && !selectedSet.has(nextOrder[index + 1])) {
+        [nextOrder[index], nextOrder[index + 1]] = [nextOrder[index + 1], nextOrder[index]];
+      }
+    }
+  } else if (mode === "down") {
+    for (let index = 1; index < nextOrder.length; index += 1) {
+      if (selectedSet.has(nextOrder[index]) && !selectedSet.has(nextOrder[index - 1])) {
+        [nextOrder[index - 1], nextOrder[index]] = [nextOrder[index], nextOrder[index - 1]];
+      }
+    }
+  }
+  return nextOrder;
+}
+
 export function getNodeLayoutBounds(node) {
   if (node?.classList?.contains("node-image")) {
     const frame = node.querySelector(".image-frame");

@@ -6,6 +6,7 @@ import {
   normalizeLayerZIndex,
   layoutNodesInCompactGallery,
   normalizeNodesByMode,
+  reorderLayerNodesByMode,
   getRectUnionBounds,
   getViewportUnionRect,
   getViewportCenterWorldPoint,
@@ -695,28 +696,9 @@ function reorderNodeLayers(nodes, mode, selectNode) {
   const selectedSet = new Set(nodes);
   const ordered = getLayerOrderedNodes(getMenuCanvasNodes());
   const selected = ordered.filter((node) => selectedSet.has(node));
-  const unselected = ordered.filter((node) => !selectedSet.has(node));
   if (!selected.length) return;
 
-  let nextOrder = ordered.slice();
-  if (mode === "front") {
-    nextOrder = [...unselected, ...selected];
-  } else if (mode === "back") {
-    nextOrder = [...selected, ...unselected];
-  } else if (mode === "up") {
-    for (let index = nextOrder.length - 2; index >= 0; index -= 1) {
-      if (selectedSet.has(nextOrder[index]) && !selectedSet.has(nextOrder[index + 1])) {
-        [nextOrder[index], nextOrder[index + 1]] = [nextOrder[index + 1], nextOrder[index]];
-      }
-    }
-  } else if (mode === "down") {
-    for (let index = 1; index < nextOrder.length; index += 1) {
-      if (selectedSet.has(nextOrder[index]) && !selectedSet.has(nextOrder[index - 1])) {
-        [nextOrder[index - 1], nextOrder[index]] = [nextOrder[index], nextOrder[index - 1]];
-      }
-    }
-  }
-
+  const nextOrder = reorderLayerNodesByMode(ordered, selected, mode);
   if (nextOrder.every((node, index) => node === ordered[index])) return;
   nextOrder.forEach((node, index) => {
     node.style.zIndex = String(10 + index);

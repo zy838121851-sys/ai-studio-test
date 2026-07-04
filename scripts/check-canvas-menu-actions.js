@@ -29,6 +29,7 @@ import {
   normalizeLayerZIndex,
   normalizeNodesByMode,
   recordLayoutMutation,
+  reorderLayerNodesByMode,
   getRectUnionBounds,
   getViewportCenterWorldPoint,
   getViewportUnionRect,
@@ -120,6 +121,7 @@ assertIncludes(menuLayoutUtils, "export function layoutNodesByRows", "canvas row
 assertIncludes(menuLayoutUtils, "export function layoutNodesByColumns", "canvas column layout must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function normalizeLayerZIndex", "canvas layer z-index normalization must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function normalizeNodesByMode", "canvas normalize layout command must live in layout utils");
+assertIncludes(menuLayoutUtils, "export function reorderLayerNodesByMode", "canvas layer reorder calculation must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getRectUnionBounds", "canvas rect union bounds must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getViewportCenterWorldPoint", "canvas viewport center world point must live in layout utils");
 assertIncludes(menuLayoutUtils, "export function getViewportUnionRect", "canvas viewport union rect must live in layout utils");
@@ -257,6 +259,36 @@ assert(
     && orderedLayerNodes[2] === layerNodeA
     && orderedLayerNodes[3] === layerNodeD,
   "layer ordering should preserve z-index sort with original index fallback"
+);
+const layerA = { id: "a" };
+const layerB = { id: "b" };
+const layerC = { id: "c" };
+const layerD = { id: "d" };
+const layerOrder = [layerA, layerB, layerC, layerD];
+const layerIds = (nodes) => nodes.map((node) => node.id).join("|");
+assert(
+  layerIds(reorderLayerNodesByMode(layerOrder, [layerB, layerD], "front")) === "a|c|b|d",
+  "layer reorder should preserve front behavior"
+);
+assert(
+  layerIds(reorderLayerNodesByMode(layerOrder, [layerB, layerD], "back")) === "b|d|a|c",
+  "layer reorder should preserve back behavior"
+);
+assert(
+  layerIds(reorderLayerNodesByMode(layerOrder, [layerB, layerC], "up")) === "a|d|b|c",
+  "layer reorder should preserve one-step up behavior for grouped selection"
+);
+assert(
+  layerIds(reorderLayerNodesByMode(layerOrder, [layerB, layerC], "down")) === "b|c|a|d",
+  "layer reorder should preserve one-step down behavior for grouped selection"
+);
+assert(
+  reorderLayerNodesByMode(layerOrder, [layerB], "unknown").every((node, index) => node === layerOrder[index]),
+  "layer reorder should preserve unknown mode no-op behavior"
+);
+assert(
+  reorderLayerNodesByMode(layerOrder, [], "front").every((node, index) => node === layerOrder[index]),
+  "layer reorder should preserve empty selection no-op behavior"
 );
 
 const viewportRect = getViewportUnionRect([
