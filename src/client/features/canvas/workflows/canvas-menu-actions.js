@@ -128,12 +128,12 @@ const SAFE_EXPORT_STYLE_PROPERTIES = [
 ];
 
 const GROUP_COLOR_SWATCHES = [
-  { label: "玻璃白", color: "rgba(255,255,255,0.52)", swatch: "rgba(255,255,255,0.72)" },
-  { label: "浅蓝", color: "rgba(219,234,254,0.56)", swatch: "#bfdbfe" },
-  { label: "浅绿", color: "rgba(220,252,231,0.56)", swatch: "#bbf7d0" },
-  { label: "暖黄", color: "rgba(254,243,199,0.58)", swatch: "#fde68a" },
-  { label: "浅粉", color: "rgba(252,231,243,0.58)", swatch: "#fbcfe8" },
-  { label: "浅灰", color: "rgba(229,231,235,0.62)", swatch: "#d1d5db" }
+  { label: "玻璃白", color: "rgba(255,255,255,0.52)", swatchClass: "selection-swatch-glass" },
+  { label: "浅蓝", color: "rgba(219,234,254,0.56)", swatchClass: "selection-swatch-blue" },
+  { label: "浅绿", color: "rgba(220,252,231,0.56)", swatchClass: "selection-swatch-green" },
+  { label: "暖黄", color: "rgba(254,243,199,0.58)", swatchClass: "selection-swatch-yellow" },
+  { label: "浅粉", color: "rgba(252,231,243,0.58)", swatchClass: "selection-swatch-pink" },
+  { label: "浅灰", color: "rgba(229,231,235,0.62)", swatchClass: "selection-swatch-gray" }
 ];
 
 const CANVAS_NODE_SELECTOR = ".node-card, .canvas-object";
@@ -381,7 +381,7 @@ function createSelectionActionBar({
     <div class="selection-color-group" aria-label="&#32972;&#26223;&#33394;">
       <span>&#32972;&#26223;&#33394;</span>
       ${GROUP_COLOR_SWATCHES.map((item) => `
-        <button class="selection-color-swatch" type="button" data-selection-action="group-color" data-group-color="${item.color}" title="${item.label}" aria-label="${item.label}" style="--swatch: ${item.swatch}"></button>
+        <button class="selection-color-swatch ${item.swatchClass}" type="button" data-selection-action="group-color" data-group-color="${item.color}" title="${item.label}" aria-label="${item.label}"></button>
       `).join("")}
     </div>
   `;

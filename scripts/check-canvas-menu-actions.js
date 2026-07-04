@@ -214,6 +214,8 @@ assertIncludes(menuClipboardUtils, 'pasted.dataset.locked = "false"', "clipboard
 assertIncludes(menuActions, 'data-selection-action="group-toggle"', "selection action bar must keep group toggle action");
 assertIncludes(menuActions, 'data-selection-action="compare"', "selection action bar must keep compare action");
 assertIncludes(menuActions, 'data-selection-action="group-color"', "selection action bar must keep group color action");
+assertIncludes(menuActions, "swatchClass", "selection group color swatches must use CSS token classes");
+assertNotIncludes(menuActions, 'style="--swatch:', "selection group color swatches must not reintroduce inline swatch styles");
 assertIncludes(menuActions, "getSelectionToolbarState", "selection action bar must keep selection state calculation");
 
 const layoutSnapshot = {

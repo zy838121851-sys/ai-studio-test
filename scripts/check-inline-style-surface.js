@@ -6,7 +6,7 @@ const SCAN_ROOTS = ["index.html", "app.js", "src/client", "src/server"];
 const SOURCE_EXTENSIONS = new Set([".html", ".js"]);
 
 const BASELINE_MAX = {
-  inlineAttribute: 9,
+  inlineAttribute: 8,
   styleSetAttribute: 7,
   styleProperty: 298,
   cssText: 1

@@ -432,6 +432,30 @@
     0 3px 8px rgba(15, 23, 42, 0.12);
 }
 
+.selection-swatch-glass {
+  --swatch: rgba(255, 255, 255, 0.72);
+}
+
+.selection-swatch-blue {
+  --swatch: #bfdbfe;
+}
+
+.selection-swatch-green {
+  --swatch: #bbf7d0;
+}
+
+.selection-swatch-yellow {
+  --swatch: #fde68a;
+}
+
+.selection-swatch-pink {
+  --swatch: #fbcfe8;
+}
+
+.selection-swatch-gray {
+  --swatch: #d1d5db;
+}
+
 @media (max-width: 640px) {
   .selection-action-bar {
     gap: 5px;
