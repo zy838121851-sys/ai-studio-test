@@ -73,6 +73,7 @@ import {
 } from "./prompt-generation-metrics-utils.js";
 import {
   buildPromptGenerationPayload,
+  isPrompt3DGeneration,
   isPromptVideoGeneration,
   isPromptGenerationPayloadMissing,
   resolvePromptAgentGenerationType,
@@ -634,7 +635,7 @@ export function bindPromptSubmit({
         updateAgentDebugPanel(agentDebug);
         throw new Error(projectReady.message);
       }
-      if (getModelType(model) === "3d") {
+      if (isPrompt3DGeneration({ modelType: getModelType(model) })) {
         if (typeof addGenerationPreview !== "function" || typeof replacePreviewWithModel !== "function") {
           throw new Error("3D canvas generation workflow is unavailable.");
         }
@@ -1165,7 +1166,7 @@ function bindImageTo3DRequests({
       notify("3D 生成工作流暂不可用。");
       return;
     }
-    const modelId = getModelType(chatModelSelect?.dataset?.selectedModelId || chatModelSelect?.value) === "3d"
+    const modelId = isPrompt3DGeneration({ modelType: getModelType(chatModelSelect?.dataset?.selectedModelId || chatModelSelect?.value) })
       ? (chatModelSelect.dataset.selectedModelId || chatModelSelect.value)
       : DEFAULT_3D_MODEL;
     let progress = null;

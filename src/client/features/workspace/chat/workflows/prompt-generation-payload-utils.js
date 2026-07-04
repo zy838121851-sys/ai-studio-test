@@ -3,9 +3,13 @@ export function resolvePromptGenerationType(videoModel = false) {
 }
 
 export function resolvePromptAgentGenerationType(modelType = "") {
-  if (modelType === "3d") return "3d";
+  if (isPrompt3DGeneration({ modelType })) return "3d";
   if (modelType === "video") return "video";
   return "image";
+}
+
+export function isPrompt3DGeneration({ modelType = "" } = {}) {
+  return modelType === "3d";
 }
 
 export function isPromptVideoGeneration({ modelType = "", outputType = "" } = {}) {
