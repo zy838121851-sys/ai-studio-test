@@ -17,14 +17,15 @@ object-src 'none'
 frame-ancestors 'self'
 script-src 'self' 'unsafe-inline'
 style-src 'self' 'unsafe-inline'
-img-src 'self' data: blob: https: http:
-media-src 'self' data: blob: https: http:
+img-src 'self' data: blob: https:
+media-src 'self' data: blob: https:
 connect-src 'self' https:
 ```
 
 Development/test CSP may still include `script-src 'unsafe-eval'` for tooling
 compatibility and `connect-src http:` for local tooling. Production CSP must not
-include `unsafe-eval` or `connect-src http:`.
+include `unsafe-eval`, `connect-src http:`, `img-src http:`, or
+`media-src http:`.
 
 Existing gate:
 
@@ -37,8 +38,9 @@ Existing gate:
   - `http:` in `media-src`
   - `http:` in `connect-src`
 - `scripts/check-csp-production-policy.js` verifies production CSP does not
-  include `unsafe-eval` or `connect-src http:`, that the browser startup reaches
-  `app-ready`, and that same-origin API requests still work.
+  include `unsafe-eval`, `connect-src http:`, `img-src http:`, or
+  `media-src http:`, that the browser startup reaches `app-ready`, and that
+  same-origin API requests still work.
 - `scripts/check-production-media-restore.js` verifies production project
   thumbnail, snapshot image, and video poster media restore through stable
   `/uploads/...` URLs.
@@ -173,8 +175,7 @@ Likely mitigation path:
    same-host HTTP `/uploads/...` URLs.
 3. Add broader restore checks for generated assets and any remaining legacy
    external media cases before changing the media CSP.
-4. Remove `http:` from `img-src` and `media-src` in production CSP after
-   existing restore and upload flows pass.
+4. Production CSP now removes `http:` from `img-src` and `media-src`.
 
 ### 5. `connect-src http:`
 
@@ -205,13 +206,11 @@ Remaining mitigation path:
 
 ## Recommended Tightening Order
 
-1. Remove `http:` from `img-src` and `media-src` after media URL normalization
-   and legacy snapshot restore checks.
-2. Replace static inline style attributes in `index.html`.
-3. Gradually reduce runtime generated inline style dependencies by feature.
-4. Replace or hash/nonce the inline import map.
-5. Remove `script-src 'unsafe-inline'`.
-6. Remove `style-src 'unsafe-inline'`.
+1. Replace static inline style attributes in `index.html`.
+2. Gradually reduce runtime generated inline style dependencies by feature.
+3. Replace or hash/nonce the inline import map.
+4. Remove `script-src 'unsafe-inline'`.
+5. Remove `style-src 'unsafe-inline'`.
 
 ## Gates Before Any CSP Change
 
@@ -233,11 +232,10 @@ Before changing `src/server/index.js` CSP:
 
 ## Current Decision
 
-The first two safe implementation stages have been completed: production CSP
-removes `unsafe-eval` and `connect-src http:`, while development/test CSP keeps
-broader allowances. Media URL normalization now covers same-host HTTP
-`/uploads/...` URLs in project thumbnails and snapshots, and the production
-media restore smoke covers thumbnail, snapshot image, and video poster loading.
-The next safe implementation stage is to decide whether remaining external
-HTTP media compatibility is still required before removing production `http:`
-from `img-src` and `media-src`.
+The first three safe implementation stages have been completed: production CSP
+removes `unsafe-eval`, `connect-src http:`, and media `http:` sources, while
+development/test CSP keeps broader allowances. Media URL normalization covers
+same-host HTTP `/uploads/...` URLs in project thumbnails and snapshots, and the
+production media restore smoke covers thumbnail, snapshot image, and video
+poster loading. The next safe implementation stage is to reduce inline style
+dependencies before tightening `style-src`.

@@ -140,9 +140,11 @@ function securityHeaders(_req, res, next) {
 function buildContentSecurityPolicy() {
   const scriptSources = ["'self'", "'unsafe-inline'"];
   const connectSources = ["'self'", "https:"];
+  const mediaSources = ["'self'", "data:", "blob:", "https:"];
   if (env.nodeEnv !== "production") {
     scriptSources.push("'unsafe-eval'");
     connectSources.push("http:");
+    mediaSources.push("http:");
   }
   return [
     "default-src 'self'",
@@ -151,8 +153,8 @@ function buildContentSecurityPolicy() {
     "frame-ancestors 'self'",
     `script-src ${scriptSources.join(" ")}`,
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob: https: http:",
-    "media-src 'self' data: blob: https: http:",
+    `img-src ${mediaSources.join(" ")}`,
+    `media-src ${mediaSources.join(" ")}`,
     `connect-src ${connectSources.join(" ")}`
   ].join("; ");
 }
