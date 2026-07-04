@@ -77,6 +77,9 @@ const EXPECTED_AUTH_SELECTORS = [
   ".auth-submit"
 ];
 const EXPECTED_ASSET_SELECTORS = [
+  ".floating-library",
+  ".upload-asset",
+  ".asset-list",
   ".assets-page-toolbar",
   ".assets-page-list",
   "body[data-view=\"assetsPage\"] .assets-page-view",
