@@ -123,7 +123,7 @@ export function renderHomeHistoryContent({
     const title = project.title || "未命名";
     const updated = formatProjectDate(project.updatedAt);
     return `
-      <article class="home-history-card" style="--history-index:${index}">
+      <article class="home-history-card" data-history-index="${index}">
         <button type="button" data-open-project="${escapeHtml(project.id)}">
           <div class="home-history-thumb">
             ${renderProjectPreviewImage({ preview, title })}
@@ -172,7 +172,7 @@ function renderHomeHistoryContentLegacy({ projects = [], getProjectPreview } = {
     const title = project.title || "Fresh Ideas";
     const prompt = project.prompt || project.desc || "继续上次创作";
     return `
-      <article class="home-history-card" style="--history-index:${index}">
+      <article class="home-history-card" data-history-index="${index}">
         <button type="button" ${project.id ? `data-open-project="${escapeHtml(project.id)}"` : "data-nav-view=\"library\""}>
           <div class="home-history-thumb">
             ${renderProjectPreviewImage({ preview, title })}

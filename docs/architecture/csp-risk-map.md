@@ -140,6 +140,8 @@ Known dependencies:
 
 - Static `index.html` channel token inline styles have been replaced with
   classes, but runtime templates still contain inline style attributes.
+- Project history card order metadata now uses `data-history-index` instead of
+  inline `--history-index` style attributes.
 - Runtime generated `style=` attributes for swatches, snapshot/export markup,
   project cards, and generated canvas/export HTML.
 - Runtime `.style` and `cssText` writes are still used for canvas geometry,

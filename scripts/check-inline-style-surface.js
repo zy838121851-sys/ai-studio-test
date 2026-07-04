@@ -6,12 +6,12 @@ const SCAN_ROOTS = ["index.html", "app.js", "src/client", "src/server"];
 const SOURCE_EXTENSIONS = new Set([".html", ".js"]);
 
 const BASELINE_MAX = {
-  inlineAttribute: 21,
+  inlineAttribute: 19,
   styleSetAttribute: 7,
   styleProperty: 299,
   cssText: 2
 };
-const BASELINE_FILE_MAX = 53;
+const BASELINE_FILE_MAX = 52;
 
 const ALLOWED_FILES = new Set([
   "src/client/features/agent/agent-actions.js",
@@ -55,7 +55,6 @@ const ALLOWED_FILES = new Set([
   "src/client/features/canvas/workflows/text-edit-workflow.js",
   "src/client/features/canvas/workflows/video-generator-position-utils.js",
   "src/client/features/canvas/workflows/viewport-workflow.js",
-  "src/client/features/projects/components/project-library.js",
   "src/client/features/projects/snapshot.js",
   "src/client/features/workspace/asset-library/asset-library-context-menu.js",
   "src/client/features/workspace/chat/workflows/prompt-conversation-dom-utils.js",
