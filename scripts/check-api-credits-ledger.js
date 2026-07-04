@@ -21,8 +21,15 @@ const restoreConsole = suppressAuditLogs();
 try {
   const { createServer } = await import("../src/server/index.js");
   const { closeDatabase } = await import("../src/server/db/sqlite.js");
+  const { normalizePaginationLimit, normalizePaginationOffset } = await import("../src/server/lib/api-pagination.js");
   const { completeAIJob, createAIJob, failAIJob } = await import("../src/server/services/ai-job.service.js");
   const { getCreditBalance, reserveCredits } = await import("../src/server/services/credits/credit.service.js");
+
+  assert(normalizePaginationLimit("2.2", { fallback: 50, max: 100 }) === 3, "Pagination limit should round up numeric input");
+  assert(normalizePaginationLimit("bad", { fallback: 50, max: 100 }) === 50, "Pagination limit should fall back for invalid input");
+  assert(normalizePaginationLimit("1000", { fallback: 50, max: 100 }) === 100, "Pagination limit should clamp max");
+  assert(normalizePaginationOffset("-5") === 0, "Pagination offset should clamp negative values");
+  assert(normalizePaginationOffset("bad") === 0, "Pagination offset should fall back for invalid input");
 
   closeDatabaseRef = closeDatabase;
 
@@ -153,6 +160,9 @@ try {
   assert(typeof limited[0].balanceAfter === "number", "Credit transactions should expose balanceAfter");
   assert(typeof limited[0].reservedAfter === "number", "Credit transactions should expose reservedAfter");
 
+  const invalidPagination = await getTransactionsByPath(baseUrl, userA.cookie, "/api/credits/transactions?limit=bad&offset=bad");
+  assert(invalidPagination.length >= 4, "Credit transaction API should use stable pagination defaults for invalid query values");
+
   console.log("API credits ledger checks passed.");
 } finally {
   restoreConsole();
@@ -224,7 +234,11 @@ async function getBalance(baseUrl, cookie) {
 }
 
 async function getTransactions(baseUrl, cookie, limit) {
-  const response = await request(baseUrl, `/api/credits/transactions?limit=${limit}`, { cookie });
+  return getTransactionsByPath(baseUrl, cookie, `/api/credits/transactions?limit=${limit}`);
+}
+
+async function getTransactionsByPath(baseUrl, cookie, path) {
+  const response = await request(baseUrl, path, { cookie });
   assert(response.status === 200, "Credit transactions API should succeed for authenticated users");
   assert(Array.isArray(response.body.transactions), "Credit transactions API should return a transactions array");
   return response.body.transactions;

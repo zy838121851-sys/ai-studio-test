@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { prepare, transaction } from "../../db/sqlite.js";
 import { DEFAULT_SIGNUP_CREDITS } from "../../db/credits-migration.js";
+import { normalizePaginationLimit, normalizePaginationOffset } from "../../lib/api-pagination.js";
 import { createHttpError } from "../../lib/input-validation.js";
 import {
   calculateCreditReservation,
@@ -37,7 +38,11 @@ export function listCreditTransactions(principal, { limit = 50, offset = 0 } = {
     ORDER BY created_at DESC
     LIMIT ?
     OFFSET ?;
-  `).all(userId, normalizeLimit(limit), Math.max(0, Number(offset || 0))).map(toPublicTransaction);
+  `).all(
+    userId,
+    normalizePaginationLimit(limit, { fallback: 50, max: 100 }),
+    normalizePaginationOffset(offset)
+  ).map(toPublicTransaction);
 }
 
 export function ensureCreditAccount(principal, {
@@ -385,10 +390,6 @@ function toPublicTransaction(row) {
     status: row.status,
     createdAt: row.created_at
   };
-}
-
-function normalizeLimit(limit) {
-  return Math.min(100, Math.max(1, Math.ceil(Number(limit || 50))));
 }
 
 function toCredits(value) {
