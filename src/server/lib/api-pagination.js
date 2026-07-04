@@ -1,17 +1,20 @@
+export function normalizePaginationNumber(value, fallback = 0) {
+  const number = Math.ceil(Number(value || fallback));
+  return Number.isFinite(number) ? number : fallback;
+}
+
 export function normalizePaginationLimit(value, {
   fallback = 50,
   min = 1,
   max = 100
 } = {}) {
-  const limit = Math.ceil(Number(value || fallback));
-  if (!Number.isFinite(limit)) return fallback;
+  const limit = normalizePaginationNumber(value, fallback);
   return Math.min(max, Math.max(min, limit));
 }
 
 export function normalizePaginationOffset(value, {
   fallback = 0
 } = {}) {
-  const offset = Math.ceil(Number(value || fallback));
-  if (!Number.isFinite(offset)) return fallback;
+  const offset = normalizePaginationNumber(value, fallback);
   return Math.max(0, offset);
 }

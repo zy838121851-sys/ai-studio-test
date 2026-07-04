@@ -21,10 +21,17 @@ const restoreConsole = suppressAuditLogs();
 try {
   const { createServer } = await import("../src/server/index.js");
   const { closeDatabase } = await import("../src/server/db/sqlite.js");
-  const { normalizePaginationLimit, normalizePaginationOffset } = await import("../src/server/lib/api-pagination.js");
+  const {
+    normalizePaginationLimit,
+    normalizePaginationNumber,
+    normalizePaginationOffset
+  } = await import("../src/server/lib/api-pagination.js");
   const { completeAIJob, createAIJob, failAIJob } = await import("../src/server/services/ai-job.service.js");
   const { getCreditBalance, reserveCredits } = await import("../src/server/services/credits/credit.service.js");
 
+  assert(normalizePaginationNumber("2.2", 50) === 3, "Pagination number should round up numeric input");
+  assert(normalizePaginationNumber("bad", 50) === 50, "Pagination number should fall back for invalid input");
+  assert(normalizePaginationNumber("", 50) === 50, "Pagination number should use fallback for empty input");
   assert(normalizePaginationLimit("2.2", { fallback: 50, max: 100 }) === 3, "Pagination limit should round up numeric input");
   assert(normalizePaginationLimit("bad", { fallback: 50, max: 100 }) === 50, "Pagination limit should fall back for invalid input");
   assert(normalizePaginationLimit("1000", { fallback: 50, max: 100 }) === 100, "Pagination limit should clamp max");
