@@ -73,7 +73,7 @@ Largest files in the current source tree:
 | 1,214 | `scripts/check-canvas-menu-actions.js` |
 | 1,203 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,065 | `scripts/check-library-bulk-select.js` |
-| 524 | `styles/legacy-node.css` |
+| 393 | `styles/legacy-node.css` |
 
 Post-baseline CSS governance note:
 
@@ -85,18 +85,19 @@ Post-baseline CSS governance note:
   removed; `scripts/check-style-entry.js` now guards that it stays import-free.
 - `scripts/check-style-entry.js` now guards key selectors in
   `legacy-canvas.css`, `legacy-node.css`, and `legacy-chat.css`; the
-  `legacy-node.css` guard includes crop/expand interaction selectors so later
-  feature CSS migrations have a static safety net before visual smoke checks.
+  node selector guards track migrated crop selectors in `styles/features/node.css`
+  and remaining expand selectors in `legacy-node.css` so later feature CSS
+  migrations have a static safety net before visual smoke checks.
 - `styles/features/chat.css` now owns the conversation history popover styles
   that were moved out of `styles/legacy-chat.css`; the selector guard tracks
   the migrated chat rules in their feature file.
 - `styles/features/node.css` now owns generic node zoom/selected/source/label
   state styles, image node toolbar and canvas asset savebar styles, image text
   panel styles, image lightbox styles, stack/folded node styles, director node
-  styles, image/video/model media node preview styles, generation preview frame
-  styles, image generator node frame/panel styles, tail-end node generator
-  inline edit controls, and media/model/video preview helpers that were moved
-  out of
+  styles, crop controls and crop/expand edit-state visibility suppression,
+  image/video/model media node preview styles, generation preview frame styles,
+  image generator node frame/panel styles, tail-end node generator inline edit
+  controls, and media/model/video preview helpers that were moved out of
   `styles/legacy-node.css`; it is imported immediately after `legacy-node.css`
   to preserve cascade order.
 - The inactive AI Core runtime and its legacy style modules were removed after
