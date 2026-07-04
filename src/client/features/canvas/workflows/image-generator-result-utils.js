@@ -59,6 +59,12 @@ export function shouldUseImmediateGeneratorResult(result = {}) {
   return Boolean(result?.imageUrl || result?.videoUrl || !result?.jobId);
 }
 
+export function getRequiredGeneratorResultUrl(result = {}, parsedResult = {}, expectedType = "image") {
+  const url = parsedResult?.primaryUrl || "";
+  if (!url) throw getMissingGeneratorResultError(result, expectedType);
+  return url;
+}
+
 export function getResultImageUrls(result = {}) {
   const urls = [];
   if (Array.isArray(result?.imageUrls)) urls.push(...result.imageUrls);

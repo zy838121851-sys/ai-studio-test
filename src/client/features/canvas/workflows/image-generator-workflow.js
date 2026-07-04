@@ -7,9 +7,9 @@ import { renderModelPreferenceMenu } from "../../ai/model-preference-menu.js";
 import {
   applyGeneratedImageNodeResult,
   applyGeneratedImageNodeSize,
-  getMissingGeneratorResultError,
   getMissingGeneratorResultMessage,
   getGeneratorResultTitle,
+  getRequiredGeneratorResultUrl,
   getResultImageUrls,
   parseGeneratorResult,
   shouldUseImmediateGeneratorResult
@@ -536,8 +536,7 @@ export function createImageGeneratorWorkflow({
           }
         });
         const parsedResult = parseGeneratorResult(result, model, "video");
-        const videoUrl = parsedResult.primaryUrl;
-        if (!videoUrl) throw getMissingGeneratorResultError(result, "video");
+        const videoUrl = getRequiredGeneratorResultUrl(result, parsedResult, "video");
         ({ resultModel, modelUsage } = parsedResult);
         replaceGeneratorVideoPreview(previewNodes[0], videoUrl);
       } else if (midjourney) {
@@ -597,8 +596,7 @@ export function createImageGeneratorWorkflow({
           }
         });
         const parsedResult = parseGeneratorResult(result, model);
-        const imageUrl = parsedResult.primaryUrl;
-        if (!imageUrl) throw getMissingGeneratorResultError(result);
+        const imageUrl = getRequiredGeneratorResultUrl(result, parsedResult);
         ({ resultModel, modelUsage } = parsedResult);
 
         replaceGeneratorImagePreview(previewNode, imageUrl, index);

@@ -26,6 +26,7 @@ import {
 import {
   applyGeneratedImageNodeResult,
   applyGeneratedImageNodeSize,
+  getRequiredGeneratorResultUrl,
   getGeneratorResultTitle,
   shouldUseImmediateGeneratorResult
 } from "../src/client/features/canvas/workflows/image-generator-result-utils.js";
@@ -666,6 +667,34 @@ assert(shouldUseImmediateGeneratorResult({}) === true, "generator should keep im
 assert(shouldUseImmediateGeneratorResult({ jobId: "job-1" }) === false, "generator should poll async jobs that have no result URL yet");
 assert(shouldUseImmediateGeneratorResult({ jobId: "job-1", imageUrl: "/uploads/image.png" }) === true, "generator should return immediate image results");
 assert(shouldUseImmediateGeneratorResult({ jobId: "job-1", videoUrl: "/uploads/video.mp4" }) === true, "generator should return immediate video results");
+assert(
+  getRequiredGeneratorResultUrl({ jobId: "job-1" }, { primaryUrl: "/uploads/image.png" }) === "/uploads/image.png",
+  "generator required result helper should return parsed image URLs"
+);
+assert(
+  getRequiredGeneratorResultUrl({ jobId: "job-1" }, { primaryUrl: "/uploads/video.mp4" }, "video") === "/uploads/video.mp4",
+  "generator required result helper should return parsed video URLs"
+);
+let missingRequiredGeneratorUrlError = null;
+try {
+  getRequiredGeneratorResultUrl({ jobId: "job-1", status: "succeeded" }, { primaryUrl: "" });
+} catch (error) {
+  missingRequiredGeneratorUrlError = error;
+}
+assert(
+  missingRequiredGeneratorUrlError?.message === "Model returned without an image URL (jobId=job-1, status=succeeded)",
+  "generator required result helper should preserve missing image URL errors"
+);
+let missingRequiredGeneratorVideoUrlError = null;
+try {
+  getRequiredGeneratorResultUrl({ jobId: "job-2", status: "succeeded" }, { primaryUrl: "" }, "video");
+} catch (error) {
+  missingRequiredGeneratorVideoUrlError = error;
+}
+assert(
+  missingRequiredGeneratorVideoUrlError?.message === "Model returned without a video URL (jobId=job-2, status=succeeded)",
+  "generator required result helper should preserve missing video URL errors"
+);
 assert(getGeneratorPreviewDescription("", 0, 1) === "正在生成图片", "promptless generator preview description should stay stable");
 assert(getGeneratorPreviewDescription("A prompt", 0, 1) === "正在根据当前提示生成结果", "prompt generator preview description should stay stable");
 assert(getGeneratorPreviewDescription("A prompt", 1, 3) === "正在生成第 2/3 张", "multi preview description should include one-based progress");
