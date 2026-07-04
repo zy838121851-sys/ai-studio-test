@@ -55,13 +55,14 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 28 | 13,292 |
-| `scripts` | 90 | 18,837 |
+| `styles` | 28 | 13,293 |
+| `scripts` | 90 | 18,867 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
+| 2,426 | `styles/features/node.css` |
 | 2,273 | `styles/features/assets.css` |
 | 1,608 | `scripts/check-api-error-contract.js` |
 | 1,569 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
@@ -73,7 +74,7 @@ Largest files in the current source tree:
 | 1,214 | `scripts/check-canvas-menu-actions.js` |
 | 1,203 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,065 | `scripts/check-library-bulk-select.js` |
-| 205 | `styles/legacy-node.css` |
+| 1,030 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 
 Post-baseline CSS governance note:
 
@@ -85,21 +86,23 @@ Post-baseline CSS governance note:
   removed; `scripts/check-style-entry.js` now guards that it stays import-free.
 - `scripts/check-style-entry.js` now guards key selectors in
   `legacy-canvas.css`, `legacy-node.css`, and `legacy-chat.css`; the
-  node selector guards track migrated crop and expand selectors in
+  node selector guards now track migrated node selectors in
   `styles/features/node.css` so later feature CSS migrations have a static
-  safety net before visual smoke checks.
+  safety net before visual smoke checks. `legacy-node.css` is currently a
+  compatibility shim with no active selector ownership.
 - `styles/features/chat.css` now owns the conversation history popover styles
   that were moved out of `styles/legacy-chat.css`; the selector guard tracks
   the migrated chat rules in their feature file.
-- `styles/features/node.css` now owns generic node zoom/selected/source/label
-  state styles, image node toolbar and canvas asset savebar styles, image text
-  panel styles, image lightbox styles, stack/folded node styles, director node
-  styles, crop controls, expand controls, crop/expand edit-state visibility
-  suppression, image/video/model media node preview styles, generation preview
-  frame styles, image generator node frame/panel styles, tail-end node generator
-  inline edit controls, and media/model/video preview helpers that were moved
-  out of `styles/legacy-node.css`; it is imported immediately after
-  `legacy-node.css` to preserve cascade order.
+- `styles/features/node.css` now owns base node/card/resize/action styles,
+  generic node zoom/selected/source/label state styles, image node toolbar and
+  canvas asset savebar styles, image text panel styles, image lightbox styles,
+  stack/folded node styles, director node styles, crop controls, expand
+  controls, crop/expand edit-state visibility suppression, image/video/model
+  media node preview styles, generation preview frame styles, image generator
+  node frame/panel styles, tail-end node generator inline edit controls, and
+  media/model/video preview helpers that were moved out of
+  `styles/legacy-node.css`; it is imported immediately after `legacy-node.css`
+  to preserve cascade order.
 - The inactive AI Core runtime and its legacy style modules were removed after
   dead-code audit evidence and check/build verification; `legacy-split.css` no
   longer imports `legacy-ai-core*.css`.

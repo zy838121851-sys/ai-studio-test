@@ -111,12 +111,13 @@ const EXPECTED_LEGACY_CANVAS_SELECTORS = [
   ".image-edit-popover",
   ".video-generator-popover"
 ];
-const EXPECTED_LEGACY_NODE_SELECTORS = [
+const EXPECTED_LEGACY_NODE_SELECTORS = [];
+const EXPECTED_NODE_SELECTORS = [
   ".node-card",
   ".resize-handle",
-  ".node-card.node-group"
-];
-const EXPECTED_NODE_SELECTORS = [
+  ".node-card.node-group",
+  ".node-expand",
+  ".node-download",
   ".node-card.node-zoomed",
   ".node-loading-image.node-zoomed",
   ".node-image.cropping",
