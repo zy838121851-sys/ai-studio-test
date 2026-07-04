@@ -53,10 +53,10 @@ Current source footprint, excluding `node_modules` and `dist`:
 
 | Area | Files | Lines |
 | --- | ---: | ---: |
-| `src/client` | 298 | 36,785 |
+| `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
 | `styles` | 28 | 13,293 |
-| `scripts` | 90 | 18,806 |
+| `scripts` | 90 | 18,835 |
 
 Largest files in the current source tree:
 
@@ -65,7 +65,7 @@ Largest files in the current source tree:
 | 2,273 | `styles/features/assets.css` |
 | 2,201 | `styles/legacy-node.css` |
 | 1,608 | `scripts/check-api-error-contract.js` |
-| 1,572 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
+| 1,569 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,529 | `styles/legacy-theme-sync.css` |
 | 1,503 | `styles/legacy-canvas.css` |
 | 1,446 | `scripts/check-generator-job-recovery.js` |
@@ -96,8 +96,9 @@ Post-baseline CSS governance note:
   dead-code audit evidence and check/build verification; `legacy-split.css` no
   longer imports `legacy-ai-core*.css`.
 - `prompt-input-utils.js` now owns prompt submit attachment source resolution
-  for composer files, pending home files, DOM previews, and debug source labels;
-  `scripts/check-prompt-input-utils.js` guards the extracted behavior.
+  and submit debug payload building for composer files, pending home files, DOM
+  previews, and debug source labels; `scripts/check-prompt-input-utils.js`
+  guards the extracted behavior.
 
 ## Static Reachability Snapshot
 

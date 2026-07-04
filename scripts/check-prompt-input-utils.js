@@ -1,4 +1,6 @@
 import {
+  buildPromptSubmitBeforeDebugPayload,
+  buildPromptSubmitConsoleDebugPayload,
   clearComposerAttachments,
   copyReferenceFiles,
   getChatPreviewDomSummaries,
@@ -92,6 +94,35 @@ assert(
   resolvePromptSubmitAttachmentState().selectedSource === "none",
   "Submit state should classify empty attachment state"
 );
+
+const submitConsoleDebugPayload = buildPromptSubmitConsoleDebugPayload({
+  triggerSource: "quick-action",
+  currentFiles: composerFiles,
+  pendingHomeFiles: pendingFiles,
+  domPreviewAttachments: [{ name: "dom" }]
+});
+assert(submitConsoleDebugPayload.source === "quick-action", "Submit console debug payload should expose the trigger source");
+assert(submitConsoleDebugPayload.composerAttachmentCount === 1, "Submit console debug payload should count composer files");
+assert(submitConsoleDebugPayload.pendingHomeAttachmentCount === 1, "Submit console debug payload should count pending home files");
+assert(submitConsoleDebugPayload.domPreviewAttachmentCount === 1, "Submit console debug payload should count DOM previews");
+assert(submitConsoleDebugPayload.composerAttachments.count === 1, "Submit console debug payload should summarize composer files");
+assert(submitConsoleDebugPayload.pendingHomeAttachments.count === 1, "Submit console debug payload should summarize pending home files");
+assert(submitConsoleDebugPayload.domPreviewAttachments[0].name === "dom", "Submit console debug payload should preserve DOM previews");
+
+const submitBeforeDebugPayload = buildPromptSubmitBeforeDebugPayload({
+  triggerSource: "send-button",
+  currentFiles: composerFiles,
+  pendingHomeFiles: pendingFiles,
+  domPreviewAttachments: [{ name: "dom" }],
+  selectedSource: "composer"
+});
+assert(submitBeforeDebugPayload.triggerSource === "send-button", "Submit before debug payload should expose the trigger source");
+assert(submitBeforeDebugPayload.selectedSource === "composer", "Submit before debug payload should expose the selected source");
+assert(submitBeforeDebugPayload.composerAttachmentCount === 1, "Submit before debug payload should count composer files");
+assert(submitBeforeDebugPayload.pendingHomeAttachmentCount === 1, "Submit before debug payload should count pending home files");
+assert(submitBeforeDebugPayload.domPreviewAttachmentCount === 1, "Submit before debug payload should count DOM previews");
+assert(submitBeforeDebugPayload.composerAttachments.count === 1, "Submit before debug payload should summarize composer files");
+assert(submitBeforeDebugPayload.domPreviewAttachments[0].name === "dom", "Submit before debug payload should preserve DOM previews");
 
 const calls = [];
 clearComposerAttachments({

@@ -63,6 +63,8 @@ import {
 import {
   clearComposerAttachments,
   copyReferenceFiles,
+  buildPromptSubmitBeforeDebugPayload,
+  buildPromptSubmitConsoleDebugPayload,
   getChatPreviewDomSummaries,
   inferSubmitTriggerSource,
   resolvePromptSubmitAttachmentState,
@@ -393,15 +395,12 @@ export function bindPromptSubmit({
       chatImageFiles: chatImageFilesRef(),
       domPreviewAttachments
     });
-    console.debug("[chat-submit] trigger source", {
-      source: triggerSource,
-      composerAttachmentCount: currentFiles.length,
-      pendingHomeAttachmentCount: pendingHomeFiles.length,
-      domPreviewAttachmentCount: domPreviewAttachments.length,
-      composerAttachments: summarizeFiles(currentFiles),
-      pendingHomeAttachments: summarizeFiles(pendingHomeFiles),
+    console.debug("[chat-submit] trigger source", buildPromptSubmitConsoleDebugPayload({
+      triggerSource,
+      currentFiles,
+      pendingHomeFiles,
       domPreviewAttachments
-    });
+    }));
     const agentDebug = createAgentDebugRecord({
       originalPrompt: prompt,
       modelId: pendingHomeModel || resolvedChatModelSelect.dataset.selectedModelId || resolvedChatModelSelect.value,
@@ -412,15 +411,13 @@ export function bindPromptSubmit({
       autoExecute: CHAT_AGENT_CONFIG.autoExecute
     });
     activeChatAgentRunId = agentDebug.runId;
-    logAgentDebug(agentDebug, "submit.before", {
+    logAgentDebug(agentDebug, "submit.before", buildPromptSubmitBeforeDebugPayload({
       triggerSource,
-      composerAttachmentCount: currentFiles.length,
-      pendingHomeAttachmentCount: pendingHomeFiles.length,
-      domPreviewAttachmentCount: domPreviewAttachments.length,
+      currentFiles,
+      pendingHomeFiles,
+      domPreviewAttachments,
       selectedSource,
-      composerAttachments: summarizeFiles(currentFiles),
-      domPreviewAttachments
-    });
+    }));
 
     if (!prompt && !referenceFiles.length && !domPreviewAttachments.length) {
       resolvedPromptForm.__pendingHomeGenerationModel = "";

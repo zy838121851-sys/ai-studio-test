@@ -40,6 +40,41 @@ export function resolvePromptSubmitAttachmentState({
   };
 }
 
+export function buildPromptSubmitConsoleDebugPayload({
+  triggerSource = "",
+  currentFiles = [],
+  pendingHomeFiles = [],
+  domPreviewAttachments = []
+} = {}) {
+  return {
+    source: triggerSource,
+    composerAttachmentCount: currentFiles.length,
+    pendingHomeAttachmentCount: pendingHomeFiles.length,
+    domPreviewAttachmentCount: domPreviewAttachments.length,
+    composerAttachments: summarizeFiles(currentFiles),
+    pendingHomeAttachments: summarizeFiles(pendingHomeFiles),
+    domPreviewAttachments
+  };
+}
+
+export function buildPromptSubmitBeforeDebugPayload({
+  triggerSource = "",
+  currentFiles = [],
+  pendingHomeFiles = [],
+  domPreviewAttachments = [],
+  selectedSource = ""
+} = {}) {
+  return {
+    triggerSource,
+    composerAttachmentCount: currentFiles.length,
+    pendingHomeAttachmentCount: pendingHomeFiles.length,
+    domPreviewAttachmentCount: domPreviewAttachments.length,
+    selectedSource,
+    composerAttachments: summarizeFiles(currentFiles),
+    domPreviewAttachments
+  };
+}
+
 export function clearComposerAttachments({ setChatImageFiles, renderChatImagePreview } = {}) {
   setChatImageFiles([]);
   renderChatImagePreview();
