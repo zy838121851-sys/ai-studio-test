@@ -165,9 +165,11 @@ Risk:
 Likely mitigation path:
 
 1. Keep `data:` and `blob:` for now.
-2. Normalize persisted same-origin media to relative `/uploads/...`.
-3. Add a check that production snapshots do not persist `http://localhost/...`
-   or same-origin absolute local URLs.
+2. Normalize persisted same-origin media to relative `/uploads/...`. Current
+   project snapshot checks cover localhost, loopback, same-origin HTTPS, and
+   same-host HTTP `/uploads/...` URLs.
+3. Add broader restore checks for thumbnails, legacy snapshots, and generated
+   assets before changing the media CSP.
 4. Remove `http:` from `img-src` and `media-src` in production CSP after
    existing restore and upload flows pass.
 
@@ -230,6 +232,7 @@ Before changing `src/server/index.js` CSP:
 
 The first two safe implementation stages have been completed: production CSP
 removes `unsafe-eval` and `connect-src http:`, while development/test CSP keeps
-broader allowances. The next safe implementation stage is production-only
-removal of `http:` from `img-src` and `media-src` after media URL normalization
-and restore checks.
+broader allowances. Media URL normalization now covers same-host HTTP
+`/uploads/...` URLs in project snapshots. The next safe implementation stage is
+to broaden browser/API restore checks before removing production `http:` from
+`img-src` and `media-src`.

@@ -235,7 +235,7 @@ export function normalizePersistentMediaUrl(url = "") {
     if (
       /^https?:$/i.test(parsed.protocol)
       && parsed.pathname.startsWith("/uploads/")
-      && (isLocalUploadHost(parsed.hostname) || isCurrentOrigin(parsed))
+      && (isLocalUploadHost(parsed.hostname) || isCurrentOrigin(parsed) || isCurrentHost(parsed))
     ) {
       return `${parsed.pathname}${parsed.search}${parsed.hash}`;
     }
@@ -272,6 +272,14 @@ function isLocalUploadHost(hostname = "") {
 function isCurrentOrigin(url) {
   try {
     return Boolean(globalThis.location?.origin && url.origin === globalThis.location.origin);
+  } catch {
+    return false;
+  }
+}
+
+function isCurrentHost(url) {
+  try {
+    return Boolean(globalThis.location?.hostname && url.hostname === globalThis.location.hostname);
   } catch {
     return false;
   }

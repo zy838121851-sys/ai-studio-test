@@ -113,7 +113,7 @@ function normalizePersistentMediaUrl(value = "") {
     if (
       /^https?:$/i.test(parsed.protocol)
       && parsed.pathname.startsWith("/uploads/")
-      && (isLocalUploadHost(parsed.hostname) || isAppBaseUrlOrigin(parsed))
+      && (isLocalUploadHost(parsed.hostname) || isAppBaseUrlOrigin(parsed) || isAppBaseUrlHost(parsed))
     ) {
       return `${parsed.pathname}${parsed.search}${parsed.hash}`;
     }
@@ -133,6 +133,16 @@ function isAppBaseUrlOrigin(url) {
   if (!baseUrl) return false;
   try {
     return new URL(baseUrl).origin === url.origin;
+  } catch {
+    return false;
+  }
+}
+
+function isAppBaseUrlHost(url) {
+  const baseUrl = String(process.env.APP_BASE_URL || "").trim();
+  if (!baseUrl) return false;
+  try {
+    return new URL(baseUrl).hostname === url.hostname;
   } catch {
     return false;
   }

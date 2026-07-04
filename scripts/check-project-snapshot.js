@@ -44,6 +44,12 @@ assert(
   normalizePersistentMediaUrl("https://cdn.example.com/uploads/a.png") === "https://cdn.example.com/uploads/a.png",
   "External HTTPS uploads URLs should not be rewritten"
 );
+globalThis.location = { origin: "https://ai-studio.example.test", hostname: "ai-studio.example.test" };
+assert(
+  normalizePersistentMediaUrl("http://ai-studio.example.test/uploads/a.png?x=1") === "/uploads/a.png?x=1",
+  "Same-host HTTP uploads URLs should be stored as stable relative paths"
+);
+delete globalThis.location;
 assert(
   normalizePersistentMediaUrl("blob:http://localhost:3000/generated") === "",
   "Blob URLs should not be persisted"
@@ -300,6 +306,26 @@ assert(serverSanitizedSnapshot.nodes[0].media.url === "/uploads/server.png?cache
 assert(serverSanitizedSnapshot.nodes[0].dataset.objectUrl === "/uploads/server.png?cache=1", "Server snapshot sanitizer should normalize dataset media URLs");
 assert(serverSanitizedSnapshot.nodes[0].dataset.externalUrl === "https://cdn.example.com/uploads/server.png", "Server snapshot sanitizer should keep external HTTPS URLs");
 assert(serverSanitizedSnapshot.nodes[0].html.includes("src=\"/uploads/server.png?cache=1\""), "Server snapshot sanitizer should normalize HTML media URLs");
+
+const serverSanitizedHttpHostSnapshot = JSON.parse(sanitizeCanvasSnapshotJson(JSON.stringify({
+  version: 1,
+  savedAt: 3000,
+  nodes: [
+    {
+      kind: "video",
+      className: "node-card node-video",
+      html: "<video src=\"http://ai-studio.example.test/uploads/video.mp4\" poster=\"http://ai-studio.example.test/uploads/poster.png\"></video>",
+      dataset: {
+        objectUrl: "http://ai-studio.example.test/uploads/video.mp4"
+      },
+      media: { url: "http://ai-studio.example.test/uploads/video.mp4" }
+    }
+  ]
+})));
+assert(serverSanitizedHttpHostSnapshot.nodes[0].media.url === "/uploads/video.mp4", "Server snapshot sanitizer should normalize same-host HTTP media URLs");
+assert(serverSanitizedHttpHostSnapshot.nodes[0].dataset.objectUrl === "/uploads/video.mp4", "Server snapshot sanitizer should normalize same-host HTTP dataset URLs");
+assert(serverSanitizedHttpHostSnapshot.nodes[0].html.includes("src=\"/uploads/video.mp4\""), "Server snapshot sanitizer should normalize same-host HTTP HTML src URLs");
+assert(serverSanitizedHttpHostSnapshot.nodes[0].html.includes("poster=\"/uploads/poster.png\""), "Server snapshot sanitizer should normalize same-host HTTP HTML poster URLs");
 
 const authSyncCalls = [];
 const authListeners = new Map();
