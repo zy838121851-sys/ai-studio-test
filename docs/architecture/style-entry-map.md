@@ -184,6 +184,10 @@ Notes:
 
 - `legacy-split.css` is the active legacy bundle entry imported by `styles.css`.
 - Most `legacy-*.css` files are still reachable through `legacy-split.css`.
+- `legacy-base.css` is currently an import-free compatibility shim. The concrete
+  canvas, chat, and node legacy modules are imported directly by
+  `legacy-split.css`, and `scripts/check-style-entry.js` guards against
+  reintroducing duplicate imports there.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.

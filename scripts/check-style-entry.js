@@ -38,6 +38,7 @@ const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./legacy-ai-core-ambient.css",
   "./menu-select-overrides.css"
 ];
+const EXPECTED_LEGACY_BASE_IMPORTS = [];
 const ALLOWED_UNREACHABLE_CSS = [];
 const EXPECTED_PROJECT_LIBRARY_SELECTORS = [
   ".library-shell",
@@ -249,11 +250,13 @@ function checkFileContains(filePath, snippets) {
 const stylesImports = parseCssImports("styles.css");
 const workspaceImports = parseCssImports("styles/workspace.css");
 const legacySplitImports = parseCssImports("styles/legacy-split.css");
+const legacyBaseImports = parseCssImports("styles/legacy-base.css");
 
 checkIndexStylesheet();
 assertListEqual("styles.css", stylesImports, EXPECTED_STYLES_IMPORTS);
 assertListEqual("styles/workspace.css", workspaceImports, EXPECTED_WORKSPACE_IMPORTS);
 assertListEqual("styles/legacy-split.css", legacySplitImports, EXPECTED_LEGACY_SPLIT_IMPORTS);
+assertListEqual("styles/legacy-base.css", legacyBaseImports, EXPECTED_LEGACY_BASE_IMPORTS);
 checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(legacySplitImports, "styles");

@@ -79,6 +79,9 @@ Post-baseline CSS governance note:
 - `styles/legacy-assets.css` was later split into `styles/features/assets.css`,
   removed from the active CSS import graph, and deleted after static and
   check-script verification.
+- `styles/legacy-base.css` was reduced to a compatibility shim after duplicate
+  imports of `legacy-canvas.css`, `legacy-node.css`, and `legacy-chat.css` were
+  removed; `scripts/check-style-entry.js` now guards that it stays import-free.
 
 ## Static Reachability Snapshot
 

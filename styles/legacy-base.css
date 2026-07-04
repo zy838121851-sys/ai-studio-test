@@ -1,4 +1,1 @@
-﻿@import url("./legacy-canvas.css");
-@import url("./legacy-node.css");
-@import url("./legacy-chat.css");
-
+/* Compatibility shim: concrete legacy modules are imported by legacy-split.css. */
