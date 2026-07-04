@@ -591,10 +591,11 @@ export function createImageGeneratorWorkflow({
             dimensions
           })),
           onProgress: (payload) => {
-            const progress = Number(payload?.progress || 0);
-            updatePreviewStatus(previewNode, progress > 0
-              ? `正在生成第 ${index + 1}/${count} 张 (${Math.min(99, progress)}%)`
-              : `正在生成第 ${index + 1}/${count} 张`);
+            const generatingText = `正在生成第 ${index + 1}/${count} 张`;
+            updatePreviewStatus(previewNode, getGeneratorProgressStatusText(payload?.progress, {
+              idleText: generatingText,
+              activeText: generatingText
+            }));
           }
         });
         const parsedResult = parseGeneratorResult(result, model);
