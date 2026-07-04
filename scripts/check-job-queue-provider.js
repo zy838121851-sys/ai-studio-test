@@ -1,5 +1,5 @@
 import { createLocalJobQueue } from "../src/server/providers/queue/local-job-queue.provider.js";
-import { isJobActive, scheduleUniqueJob } from "../src/server/services/job-queue.service.js";
+import { getDefaultJobQueue, isJobActive, scheduleUniqueJob } from "../src/server/services/job-queue.service.js";
 
 function assert(condition, message) {
   if (!condition) {
@@ -20,6 +20,10 @@ async function tick() {
 }
 
 const queue = createLocalJobQueue();
+const defaultQueue = getDefaultJobQueue();
+assert(defaultQueue?.scheduleUnique, "Job queue service should expose a default queue with scheduleUnique");
+assert(defaultQueue?.isActive, "Job queue service should expose a default queue with isActive");
+
 let invalidCalls = 0;
 
 assert(queue.scheduleUnique("", () => {

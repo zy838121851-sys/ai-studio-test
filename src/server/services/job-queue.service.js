@@ -1,9 +1,13 @@
 import { localJobQueue } from "../providers/queue/local-job-queue.provider.js";
 
+export function getDefaultJobQueue() {
+  return localJobQueue;
+}
+
 export function scheduleUniqueJob(key, task) {
-  return localJobQueue.scheduleUnique(key, task);
+  return getDefaultJobQueue().scheduleUnique(key, task);
 }
 
 export function isJobActive(key) {
-  return localJobQueue.isActive(key);
+  return getDefaultJobQueue().isActive(key);
 }
