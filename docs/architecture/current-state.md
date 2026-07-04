@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 38 | 13,302 |
-| `scripts` | 90 | 18,936 |
+| `styles` | 39 | 13,303 |
+| `scripts` | 90 | 18,939 |
 
 Largest files in the current source tree:
 
@@ -94,8 +94,8 @@ Post-baseline CSS governance note:
   `styles/features/node-image-panels.css`, `styles/features/node-stack.css`,
   `styles/features/node-director.css`, `styles/features/node-media.css`,
   `styles/features/node-generation.css`, `styles/features/node-image-generator.css`,
-  and `styles/features/node.css` so later feature CSS migrations have a static
-  safety net before visual smoke checks.
+  `styles/features/node-preview.css`, and `styles/features/node.css` so later
+  feature CSS migrations have a static safety net before visual smoke checks.
   `legacy-node.css` is currently a compatibility shim with no active selector
   ownership and is intentionally outside the active `legacy-split.css` import
   graph.
@@ -124,7 +124,10 @@ Post-baseline CSS governance note:
   and shimmer animation styles.
 - `styles/features/node-image-generator.css` owns image generator node
   frame/panel styles and tail-end node generator inline edit controls.
-- `styles/features/node.css` now owns media/model/video preview helpers.
+- `styles/features/node-preview.css` owns media/model/video preview helper,
+  cube preview, and bottom control styles.
+- `styles/features/node.css` is now a feature CSS aggregation entry for node
+  submodules.
 - The inactive AI Core runtime and its legacy style modules were removed after
   dead-code audit evidence and check/build verification; `legacy-split.css` no
   longer imports `legacy-ai-core*.css`.

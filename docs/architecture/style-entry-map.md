@@ -88,6 +88,7 @@ styles/features/node-director.css
 styles/features/node-media.css
 styles/features/node-generation.css
 styles/features/node-image-generator.css
+styles/features/node-preview.css
 ```
 
 ## `/styles` and `/assets/styles`
@@ -221,7 +222,10 @@ Notes:
   shimmer animation styles.
 - `features/node-image-generator.css` owns image generator node frame/panel
   styles and tail-end node generator inline edit controls.
-- `features/node.css` owns media/model/video preview helpers.
+- `features/node-preview.css` owns media/model/video preview helper, cube
+  preview, and bottom control styles.
+- `features/node.css` is now a feature CSS aggregation entry for node
+  submodules.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.
@@ -254,6 +258,7 @@ styles/features/node-director.css
 styles/features/node-media.css
 styles/features/node-generation.css
 styles/features/node-image-generator.css
+styles/features/node-preview.css
 styles/features/node.css
 styles/features/project-library.css
 styles/components.css
@@ -309,7 +314,8 @@ Additional caution:
   `features/node-director.css`, migrated media node selectors in
   `features/node-media.css`, migrated generation preview selectors in
   `features/node-generation.css`, migrated image generator selectors in
-  `features/node-image-generator.css`, and remaining migrated node selectors in
+  `features/node-image-generator.css`, migrated preview selectors in
+  `features/node-preview.css`, and the node aggregation entry in
   `features/node.css`; it also keeps compatibility shims such as
   `legacy-node.css` outside the active import graph.
 - Move one feature area at a time from legacy files into a clearer structure.
