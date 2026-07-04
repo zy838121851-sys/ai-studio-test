@@ -51,7 +51,8 @@ const EXPECTED_NODE_IMPORTS = [
 const EXPECTED_ASSET_IMPORTS = [
   "./assets-page.css",
   "./assets-board.css",
-  "./assets-save.css"
+  "./assets-save.css",
+  "./assets-picker.css"
 ];
 const ALLOWED_UNREACHABLE_CSS = [
   "styles/legacy-node.css"
@@ -110,14 +111,19 @@ const EXPECTED_ASSET_SAVE_SELECTORS = [
   ".asset-save-section",
   ".asset-save-new-board"
 ];
+const EXPECTED_ASSET_PICKER_SELECTORS = [
+  ".asset-picker-popover",
+  ".asset-picker-card",
+  ".asset-picker-item",
+  ".asset-preview-overlay",
+  ".asset-preview-dialog"
+];
 const EXPECTED_ASSET_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-pinterest-shell",
   "body[data-view=\"assetsPage\"] .asset-pinterest-stats",
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-grid",
   "body[data-view=\"assetsPage\"] .asset-pinterest-masonry",
   "body[data-view=\"assetsPage\"] .asset-card-context-menu",
-  ".asset-picker-popover",
-  ".asset-preview-overlay",
   ".asset-canvas-picker"
 ];
 const EXPECTED_CHAT_SELECTORS = [
@@ -403,6 +409,7 @@ checkFileContains("styles/features/auth.css", EXPECTED_AUTH_SELECTORS);
 checkFileContains("styles/features/assets-page.css", EXPECTED_ASSET_PAGE_SELECTORS);
 checkFileContains("styles/features/assets-board.css", EXPECTED_ASSET_BOARD_SELECTORS);
 checkFileContains("styles/features/assets-save.css", EXPECTED_ASSET_SAVE_SELECTORS);
+checkFileContains("styles/features/assets-picker.css", EXPECTED_ASSET_PICKER_SELECTORS);
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);

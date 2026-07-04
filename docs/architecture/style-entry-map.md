@@ -97,6 +97,7 @@ styles/features/node-preview.css
 styles/features/assets-page.css
 styles/features/assets-board.css
 styles/features/assets-save.css
+styles/features/assets-picker.css
 ```
 
 ## `/styles` and `/assets/styles`
@@ -213,6 +214,8 @@ Notes:
   action, and empty-state styles; it is imported by `features/assets.css`.
 - `features/assets-save.css` owns asset save popover and canvas asset board
   popover styles; it is imported by `features/assets.css`.
+- `features/assets-picker.css` owns asset picker modal and asset preview overlay
+  styles; it is imported by `features/assets.css`.
 - `legacy-node.css` is currently a compatibility shim with no active selector
   ownership and is intentionally outside the active CSS import graph.
 - `features/node-base.css` owns base node/card/resize/action styles that were
@@ -263,6 +266,7 @@ styles/features/auth.css
 styles/features/assets-page.css
 styles/features/assets-board.css
 styles/features/assets-save.css
+styles/features/assets-picker.css
 styles/features/assets.css
 styles/features/chat.css
 styles/features/home.css
@@ -325,7 +329,8 @@ Additional caution:
   It now checks key selectors for feature CSS plus the legacy canvas and chat
   modules, including migrated asset page selectors in `features/assets-page.css`,
   migrated asset board selectors in `features/assets-board.css`, migrated asset
-  save selectors in `features/assets-save.css`, migrated node base selectors in
+  save selectors in `features/assets-save.css`, migrated asset picker selectors
+  in `features/assets-picker.css`, migrated node base selectors in
   `features/node-base.css`,
   migrated image edit selectors in `features/node-image-edit.css`, migrated node
   state selectors in `features/node-state.css`, migrated image toolbar selectors
