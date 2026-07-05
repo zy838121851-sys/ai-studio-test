@@ -239,6 +239,13 @@ styles/features/assets-canvas-picker-shell.css
 styles/features/assets-canvas-picker-projects.css
 ```
 
+`styles/features/assets-canvas-picker-shell.css` currently imports:
+
+```text
+styles/features/assets-canvas-picker-shell-frame.css
+styles/features/assets-canvas-picker-shell-head.css
+```
+
 `styles/features/assets-page.css` currently imports:
 
 ```text
@@ -708,8 +715,12 @@ Notes:
 - `features/assets-canvas-picker.css` is now a pure aggregation entry for canvas
   project picker shell and project row submodules; it is imported by
   `features/assets.css`.
-- `features/assets-canvas-picker-shell.css` owns canvas project picker overlay
-  shell, backdrop, card, header, close control, and list container styles.
+- `features/assets-canvas-picker-shell.css` is now a pure aggregation entry for
+  canvas project picker frame and header/list container submodules.
+- `features/assets-canvas-picker-shell-frame.css` owns canvas project picker
+  overlay shell, backdrop, and card styles.
+- `features/assets-canvas-picker-shell-head.css` owns canvas project picker
+  header, close control, and list container styles.
 - `features/assets-canvas-picker-projects.css` owns canvas project picker
   project row, thumbnail, metadata, active/hover, and badge styles.
 - `features/assets-context-menu.css` owns asset page card context menu styles;
@@ -1076,6 +1087,8 @@ styles/features/assets-picker-preview-overlay.css
 styles/features/assets-picker-preview-dialog.css
 styles/features/assets-canvas-picker.css
 styles/features/assets-canvas-picker-shell.css
+styles/features/assets-canvas-picker-shell-frame.css
+styles/features/assets-canvas-picker-shell-head.css
 styles/features/assets-canvas-picker-projects.css
 styles/features/assets-context-menu.css
 styles/features/assets-pinterest-board.css
@@ -1301,9 +1314,12 @@ Additional caution:
   preview overlay and dialog selectors in
   `features/assets-picker-preview-overlay.css` and
   `features/assets-picker-preview-dialog.css`, migrated canvas asset picker imports in
-  `features/assets-canvas-picker.css`, migrated canvas asset picker shell and
-  project row selectors in `features/assets-canvas-picker-shell.css` and
-  `features/assets-canvas-picker-projects.css`, migrated asset context menu selectors in
+  `features/assets-canvas-picker.css`, migrated canvas asset picker shell
+  imports in `features/assets-canvas-picker-shell.css`, migrated canvas asset
+  picker shell frame and header selectors in
+  `features/assets-canvas-picker-shell-frame.css` and
+  `features/assets-canvas-picker-shell-head.css`, migrated canvas asset picker
+  project row selectors in `features/assets-canvas-picker-projects.css`, migrated asset context menu selectors in
   `features/assets-context-menu.css`, migrated asset Pinterest board imports in
   `features/assets-pinterest-board.css`, migrated first Pinterest shell selectors
   in `features/assets-pinterest-board-shell-legacy.css`, migrated first Pinterest

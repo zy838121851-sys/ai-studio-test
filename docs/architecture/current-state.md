@@ -55,14 +55,14 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,350 |
-| `styles` | 200 | 15,276 |
-| `scripts` | 90 | 21,947 |
+| `styles` | 202 | 15,277 |
+| `scripts` | 90 | 21,963 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
-| 1,727 | `scripts/check-style-entry.js` |
+| 1,743 | `scripts/check-style-entry.js` |
 | 1,709 | `scripts/check-api-error-contract.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
@@ -250,9 +250,12 @@ Post-baseline CSS governance note:
 - `styles/features/assets-canvas-picker.css` is now a pure aggregation entry
   for canvas project picker shell and project row submodules; it is imported by
   `styles/features/assets.css`.
-- `styles/features/assets-canvas-picker-shell.css` owns canvas project picker
-  overlay shell, backdrop, card, header, close control, and list container
-  styles.
+- `styles/features/assets-canvas-picker-shell.css` is now a pure aggregation
+  entry for canvas project picker frame and header/list container submodules.
+- `styles/features/assets-canvas-picker-shell-frame.css` owns canvas project
+  picker overlay shell, backdrop, and card styles.
+- `styles/features/assets-canvas-picker-shell-head.css` owns canvas project
+  picker header, close control, and list container styles.
 - `styles/features/assets-canvas-picker-projects.css` owns canvas project picker
   project row, thumbnail, metadata, active/hover, and badge styles.
 - `styles/features/assets-context-menu.css` owns asset page card context menu

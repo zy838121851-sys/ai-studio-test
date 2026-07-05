@@ -1,0 +1,38 @@
+.asset-canvas-picker {
+  position: fixed;
+  inset: 0;
+  z-index: 4100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.asset-canvas-picker-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgba(248, 250, 252, 0.28);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.asset-canvas-picker-card {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 14px;
+  width: min(430px, calc(100vw - 40px));
+  max-height: min(560px, calc(100vh - 48px));
+  padding: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 24px;
+  color: #111827;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.95), rgba(247, 250, 253, 0.8)),
+    rgba(255, 255, 255, 0.9);
+  box-shadow:
+    0 30px 92px rgba(15, 23, 42, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(26px) saturate(1.18);
+  -webkit-backdrop-filter: blur(26px) saturate(1.18);
+}

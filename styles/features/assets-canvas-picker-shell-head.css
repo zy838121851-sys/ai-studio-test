@@ -1,0 +1,48 @@
+.asset-canvas-picker-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.asset-canvas-picker-head > div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.asset-canvas-picker-head strong {
+  font-size: 18px;
+  font-weight: 820;
+  letter-spacing: 0;
+}
+
+.asset-canvas-picker-head span {
+  overflow: hidden;
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asset-canvas-picker-head button {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 12px;
+  color: #6b7280;
+  background: rgba(17, 24, 39, 0.05);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.asset-canvas-picker-list {
+  display: grid;
+  gap: 8px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
