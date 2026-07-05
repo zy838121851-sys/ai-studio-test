@@ -1,0 +1,86 @@
+.asset-board-card {
+  display: grid;
+  grid-template-columns: 44px 1fr 24px 24px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.asset-board-card.active,
+.asset-board-card:hover {
+  border-color: rgba(127, 200, 255, 0.42);
+  background: rgba(127, 200, 255, 0.12);
+}
+
+.asset-board-cover,
+.asset-board-main,
+.asset-board-action {
+  border: 0;
+  color: inherit;
+  background: transparent;
+  cursor: pointer;
+}
+
+.asset-board-cover {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 34px;
+  border-radius: 7px;
+  background: #2b3035;
+  overflow: hidden;
+  padding: 0;
+}
+
+.asset-board-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.asset-board-cover span {
+  color: var(--green);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.asset-board-main {
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.asset-board-main strong,
+.asset-board-main span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asset-board-main strong {
+  font-size: 13px;
+}
+
+.asset-board-main span {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.asset-board-action,
+.asset-move {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  color: var(--muted);
+}
+
+.asset-board-action:hover,
+.asset-move:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}

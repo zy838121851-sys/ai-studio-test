@@ -395,11 +395,30 @@ const EXPECTED_ASSET_PAGE_PINTEREST_RESPONSIVE_LEGACY_SELECTORS = [
   ".asset-pinterest-profile"
 ];
 const EXPECTED_ASSET_BOARD_SELECTORS = [
+  "@import url(\"./assets-board-shell.css\")",
+  "@import url(\"./assets-board-card.css\")",
+  "@import url(\"./assets-board-item.css\")"
+];
+const EXPECTED_ASSET_BOARD_IMPORTS = [
+  "./assets-board-shell.css",
+  "./assets-board-card.css",
+  "./assets-board-item.css"
+];
+const EXPECTED_ASSET_BOARD_SHELL_SELECTORS = [
   ".asset-board-bar",
+  ".asset-board-chip",
+  ".asset-board-list"
+];
+const EXPECTED_ASSET_BOARD_CARD_SELECTORS = [
   ".asset-board-card",
   ".asset-board-cover",
+  ".asset-board-main",
+  ".asset-board-action"
+];
+const EXPECTED_ASSET_BOARD_ITEM_SELECTORS = [
   ".asset-item",
   ".asset-thumb",
+  ".asset-delete",
   ".asset-empty"
 ];
 const EXPECTED_ASSET_SAVE_SELECTORS = [
@@ -1254,6 +1273,7 @@ const nodeMediaImports = parseCssImports("styles/features/node-media.css");
 const nodeImageGeneratorImports = parseCssImports("styles/features/node-image-generator.css");
 const nodeImageGeneratorBaseImports = parseCssImports("styles/features/node-image-generator-base.css");
 const assetImports = parseCssImports("styles/features/assets.css");
+const assetBoardImports = parseCssImports("styles/features/assets-board.css");
 const assetSaveImports = parseCssImports("styles/features/assets-save.css");
 const assetPageImports = parseCssImports("styles/features/assets-page.css");
 const assetPagePinterestLegacyImports = parseCssImports("styles/features/assets-page-pinterest-legacy.css");
@@ -1295,6 +1315,7 @@ assertListEqual("styles/features/node-media.css", nodeMediaImports, EXPECTED_NOD
 assertListEqual("styles/features/node-image-generator.css", nodeImageGeneratorImports, EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS);
 assertListEqual("styles/features/node-image-generator-base.css", nodeImageGeneratorBaseImports, EXPECTED_NODE_IMAGE_GENERATOR_BASE_IMPORTS);
 assertListEqual("styles/features/assets.css", assetImports, EXPECTED_ASSET_IMPORTS);
+assertListEqual("styles/features/assets-board.css", assetBoardImports, EXPECTED_ASSET_BOARD_IMPORTS);
 assertListEqual("styles/features/assets-save.css", assetSaveImports, EXPECTED_ASSET_SAVE_IMPORTS);
 assertListEqual("styles/features/assets-page.css", assetPageImports, EXPECTED_ASSET_PAGE_IMPORTS);
 assertListEqual("styles/features/assets-page-pinterest-legacy.css", assetPagePinterestLegacyImports, EXPECTED_ASSET_PAGE_PINTEREST_LEGACY_IMPORTS);
@@ -1333,6 +1354,7 @@ checkImportedFilesExist(nodeMediaImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorBaseImports, "styles/features");
 checkImportedFilesExist(assetImports, "styles/features");
+checkImportedFilesExist(assetBoardImports, "styles/features");
 checkImportedFilesExist(assetSaveImports, "styles/features");
 checkImportedFilesExist(assetPageImports, "styles/features");
 checkImportedFilesExist(assetPagePinterestLegacyImports, "styles/features");
@@ -1354,6 +1376,9 @@ checkFileContains("styles/features/assets-page-pinterest-board-legacy.css", EXPE
 checkFileContains("styles/features/assets-page-pinterest-pin-legacy.css", EXPECTED_ASSET_PAGE_PINTEREST_PIN_LEGACY_SELECTORS);
 checkFileContains("styles/features/assets-page-pinterest-responsive-legacy.css", EXPECTED_ASSET_PAGE_PINTEREST_RESPONSIVE_LEGACY_SELECTORS);
 checkFileContains("styles/features/assets-board.css", EXPECTED_ASSET_BOARD_SELECTORS);
+checkFileContains("styles/features/assets-board-shell.css", EXPECTED_ASSET_BOARD_SHELL_SELECTORS);
+checkFileContains("styles/features/assets-board-card.css", EXPECTED_ASSET_BOARD_CARD_SELECTORS);
+checkFileContains("styles/features/assets-board-item.css", EXPECTED_ASSET_BOARD_ITEM_SELECTORS);
 checkFileContains("styles/features/assets-save.css", EXPECTED_ASSET_SAVE_SELECTORS);
 checkFileContains("styles/features/assets-save-popover.css", EXPECTED_ASSET_SAVE_POPOVER_SELECTORS);
 checkFileContains("styles/features/assets-save-board-popover.css", EXPECTED_ASSET_SAVE_BOARD_POPOVER_SELECTORS);

@@ -173,6 +173,14 @@ styles/features/assets-context-menu.css
 styles/features/assets-pinterest.css
 ```
 
+`styles/features/assets-board.css` currently imports:
+
+```text
+styles/features/assets-board-shell.css
+styles/features/assets-board-card.css
+styles/features/assets-board-item.css
+```
+
 `styles/features/assets-save.css` currently imports:
 
 ```text
@@ -570,8 +578,15 @@ Notes:
   empty-state styles.
 - `features/assets-page-pinterest-responsive-legacy.css` owns first-pass
   Pinterest-style legacy responsive overrides.
-- `features/assets-board.css` owns asset board/list/card/thumb, move/delete
-  action, and empty-state styles; it is imported by `features/assets.css`.
+- `features/assets-board.css` is now a pure aggregation entry for asset board
+  shell, board card, and asset item submodules; it is imported by
+  `features/assets.css`.
+- `features/assets-board-shell.css` owns asset board bar, board chip, create
+  control, and board list styles.
+- `features/assets-board-card.css` owns asset board card, cover, main text,
+  board action, and move action hover styles.
+- `features/assets-board-item.css` owns asset item, thumb, type variants,
+  delete/move controls, and empty-state styles.
 - `features/assets-save.css` is now a pure aggregation entry for asset save
   popover and canvas asset board popover submodules.
 - `features/assets-save-popover.css` owns the asset save popover shell, title,
@@ -900,6 +915,9 @@ styles/features/assets-page-pinterest-board-legacy.css
 styles/features/assets-page-pinterest-pin-legacy.css
 styles/features/assets-page-pinterest-responsive-legacy.css
 styles/features/assets-board.css
+styles/features/assets-board-shell.css
+styles/features/assets-board-card.css
+styles/features/assets-board-item.css
 styles/features/assets-save.css
 styles/features/assets-save-popover.css
 styles/features/assets-save-board-popover.css
@@ -1094,7 +1112,10 @@ Additional caution:
   `features/assets-page-pinterest-pin-legacy.css`, migrated legacy asset page
   Pinterest responsive selectors in
   `features/assets-page-pinterest-responsive-legacy.css`,
-  migrated asset board selectors in `features/assets-board.css`, migrated asset
+  migrated asset board imports in `features/assets-board.css`, migrated asset
+  board shell selectors in `features/assets-board-shell.css`, migrated asset
+  board card selectors in `features/assets-board-card.css`, migrated asset
+  board item selectors in `features/assets-board-item.css`, migrated asset
   save imports in `features/assets-save.css`, migrated asset save popover
   selectors in `features/assets-save-popover.css`, migrated canvas asset board
   popover selectors in `features/assets-save-board-popover.css`, migrated asset picker selectors

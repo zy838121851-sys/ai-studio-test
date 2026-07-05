@@ -1,0 +1,48 @@
+.asset-board-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.asset-board-chip,
+.asset-board-create {
+  min-height: 32px;
+  border: 0;
+  border-radius: 8px;
+  color: #f4f7fb;
+  background: rgba(255, 255, 255, 0.09);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.asset-board-chip {
+  flex: 1;
+  text-align: left;
+  padding: 0 10px;
+}
+
+.asset-board-chip span {
+  float: right;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.asset-board-chip.active,
+.asset-board-chip:hover,
+.asset-board-create:hover {
+  background: rgba(127, 200, 255, 0.2);
+}
+
+.asset-board-create {
+  padding: 0 10px;
+}
+
+.asset-board-list {
+  display: grid;
+  gap: 8px;
+  max-height: 188px;
+  margin-bottom: 10px;
+  overflow: auto;
+}

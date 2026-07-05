@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,350 |
-| `styles` | 170 | 15,260 |
-| `scripts` | 90 | 21,716 |
+| `styles` | 173 | 15,263 |
+| `scripts` | 90 | 21,741 |
 
 Largest files in the current source tree:
 
@@ -64,7 +64,7 @@ Largest files in the current source tree:
 | ---: | --- |
 | 1,709 | `scripts/check-api-error-contract.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
-| 1,496 | `scripts/check-style-entry.js` |
+| 1,521 | `scripts/check-style-entry.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
@@ -200,9 +200,15 @@ Post-baseline CSS governance note:
   empty-state styles.
 - `styles/features/assets-page-pinterest-responsive-legacy.css` owns first-pass
   Pinterest-style legacy responsive overrides.
-- `styles/features/assets-board.css` owns asset board/list/card/thumb,
-  move/delete action, and empty-state styles; it is imported by
+- `styles/features/assets-board.css` is now a pure aggregation entry for asset
+  board shell, board card, and asset item submodules; it is imported by
   `styles/features/assets.css`.
+- `styles/features/assets-board-shell.css` owns asset board bar, board chip,
+  create control, and board list styles.
+- `styles/features/assets-board-card.css` owns asset board card, cover, main
+  text, board action, and move action hover styles.
+- `styles/features/assets-board-item.css` owns asset item, thumb, type variants,
+  delete/move controls, and empty-state styles.
 - `styles/features/assets-save.css` is now a pure aggregation entry for asset
   save popover and canvas asset board popover submodules.
 - `styles/features/assets-save-popover.css` owns the asset save popover shell,
