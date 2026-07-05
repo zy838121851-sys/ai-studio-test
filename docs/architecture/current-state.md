@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 87 | 13,351 |
-| `scripts` | 90 | 19,438 |
+| `styles` | 88 | 13,352 |
+| `scripts` | 90 | 19,441 |
 
 Largest files in the current source tree:
 
@@ -71,7 +71,7 @@ Largest files in the current source tree:
 | 1,065 | `scripts/check-library-bulk-select.js` |
 | 1,030 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 898 | `scripts/check-prompt-conversation-event-utils.js` |
-| 882 | `scripts/check-style-entry.js` |
+| 885 | `scripts/check-style-entry.js` |
 | 765 | `src/server/services/ai-job.service.js` |
 | 760 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
 | 713 | `src/client/features/canvas/model-viewer.js` |
@@ -143,9 +143,11 @@ Post-baseline CSS governance note:
 - `styles/features/auth-credit-detail.css` owns credit detail dialog, profile,
   info, transaction, empty/status, and responsive credit detail styles moved
   out of `styles/features/auth.css`.
-- `styles/features/auth.css` owns login/auth dialog styles; it imports
-  `styles/features/auth-account.css` and
-  `styles/features/auth-credit-detail.css`.
+- `styles/features/auth-dialog.css` owns login/auth dialog, WeChat panel, QR,
+  icon methods, mode switch, auth form, message, and submit styles moved out
+  of `styles/features/auth.css`.
+- `styles/features/auth.css` is now a pure aggregation entry for auth account,
+  credit detail, and auth dialog submodules.
 - `styles/features/assets-page.css` owns floating asset library shell, upload
   button/list basics, asset page shell, and first-pass Pinterest-style asset
   page overview styles; it is imported by `styles/features/assets.css`.

@@ -165,10 +165,13 @@ const EXPECTED_HOME_COMMUNITY_SELECTORS = [
 ];
 const EXPECTED_AUTH_IMPORTS = [
   "./auth-account.css",
-  "./auth-credit-detail.css"
+  "./auth-credit-detail.css",
+  "./auth-dialog.css"
 ];
-const EXPECTED_AUTH_SELECTORS = [
+const EXPECTED_AUTH_DIALOG_SELECTORS = [
   ".auth-dialog",
+  ".auth-wechat-panel",
+  ".auth-icon-methods",
   ".auth-form",
   ".auth-submit"
 ];
@@ -834,9 +837,9 @@ checkImportedFilesExist(assetImports, "styles/features");
 checkImportedFilesExist(assetPinterestImports, "styles/features");
 checkImportedFilesExist(homeImports, "styles/features");
 checkCssReachability();
-checkFileContains("styles/features/auth.css", EXPECTED_AUTH_SELECTORS);
 checkFileContains("styles/features/auth-account.css", EXPECTED_AUTH_ACCOUNT_SELECTORS);
 checkFileContains("styles/features/auth-credit-detail.css", EXPECTED_AUTH_CREDIT_DETAIL_SELECTORS);
+checkFileContains("styles/features/auth-dialog.css", EXPECTED_AUTH_DIALOG_SELECTORS);
 checkFileContains("styles/features/assets-page.css", EXPECTED_ASSET_PAGE_SELECTORS);
 checkFileContains("styles/features/assets-board.css", EXPECTED_ASSET_BOARD_SELECTORS);
 checkFileContains("styles/features/assets-save.css", EXPECTED_ASSET_SAVE_SELECTORS);
