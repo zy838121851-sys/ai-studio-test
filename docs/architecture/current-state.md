@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,350 |
-| `styles` | 156 | 15,253 |
-| `scripts` | 90 | 21,604 |
+| `styles` | 160 | 15,254 |
+| `scripts` | 90 | 21,631 |
 
 Largest files in the current source tree:
 
@@ -65,7 +65,7 @@ Largest files in the current source tree:
 | 1,709 | `scripts/check-api-error-contract.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
-| 1,384 | `scripts/check-style-entry.js` |
+| 1,411 | `scripts/check-style-entry.js` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,282 | `scripts/check-canvas-menu-actions.js` |
@@ -377,9 +377,17 @@ Post-baseline CSS governance note:
 - `styles/legacy-canvas-video-generator-controls.css` owns video generator
   prompt, model selector, option group, send control, disabled state, and
   status styles.
-- `styles/legacy-canvas-project-header.css` owns canvas-view project header,
-  project title editing states, save-status badge states, and return-to-content
-  control styles that were moved out of `styles/legacy-canvas.css`.
+- `styles/legacy-canvas-project-header.css` is now a pure aggregation entry
+  for canvas project header shell, title, save-status, and return control
+  submodules.
+- `styles/legacy-canvas-project-header-shell.css` owns canvas project header
+  fixed positioning and transparent shell overrides.
+- `styles/legacy-canvas-project-header-title.css` owns canvas project title
+  editing affordance styles.
+- `styles/legacy-canvas-project-header-status.css` owns save-status badge base,
+  visible, success, error, and pending states.
+- `styles/legacy-canvas-project-header-return.css` owns the return-to-content
+  control styles.
 - `styles/legacy-canvas-library.css` owns library head styles that were moved
   out of `styles/legacy-canvas.css`.
 - `styles/legacy-canvas.css` now imports `styles/legacy-canvas-shell.css`,

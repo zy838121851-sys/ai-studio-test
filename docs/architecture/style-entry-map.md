@@ -322,6 +322,15 @@ styles/legacy-canvas-video-generator-reference.css
 styles/legacy-canvas-video-generator-controls.css
 ```
 
+`styles/legacy-canvas-project-header.css` currently imports:
+
+```text
+styles/legacy-canvas-project-header-shell.css
+styles/legacy-canvas-project-header-title.css
+styles/legacy-canvas-project-header-status.css
+styles/legacy-canvas-project-header-return.css
+```
+
 `styles/legacy-canvas-shell.css` currently imports:
 
 ```text
@@ -775,8 +784,15 @@ Notes:
   list/thumb and tool button styles.
 - `legacy-canvas-video-generator-controls.css` owns video generator prompt,
   model selector, option group, send control, disabled state, and status styles.
-- `legacy-canvas-project-header.css` owns canvas-view project header, project
-  title editing states, save-status badge states, and return-to-content control
+- `legacy-canvas-project-header.css` is now a pure aggregation entry for canvas
+  project header shell, title, save-status, and return control submodules.
+- `legacy-canvas-project-header-shell.css` owns canvas project header fixed
+  positioning and transparent shell overrides.
+- `legacy-canvas-project-header-title.css` owns canvas project title editing
+  affordance styles.
+- `legacy-canvas-project-header-status.css` owns save-status badge base,
+  visible, success, error, and pending states.
+- `legacy-canvas-project-header-return.css` owns the return-to-content control
   styles.
 - `legacy-canvas-library.css` owns library head styles.
 - `legacy-canvas.css` imports `legacy-canvas-shell.css`,
@@ -926,6 +942,10 @@ styles/legacy-canvas-video-generator-shell.css
 styles/legacy-canvas-video-generator-reference.css
 styles/legacy-canvas-video-generator-controls.css
 styles/legacy-canvas-project-header.css
+styles/legacy-canvas-project-header-shell.css
+styles/legacy-canvas-project-header-title.css
+styles/legacy-canvas-project-header-status.css
+styles/legacy-canvas-project-header-return.css
 styles/legacy-canvas-library.css
 styles/legacy-canvas.css
 styles/legacy-canvas-visual-shape-tools.css
@@ -1103,7 +1123,11 @@ Additional caution:
   `legacy-canvas-video-generator-shell.css`,
   `legacy-canvas-video-generator-reference.css`, and
   `legacy-canvas-video-generator-controls.css`, and
-  `legacy-canvas-project-header.css`, and `legacy-canvas-library.css`, plus
+  `legacy-canvas-project-header.css` imports of
+  `legacy-canvas-project-header-shell.css`,
+  `legacy-canvas-project-header-title.css`,
+  `legacy-canvas-project-header-status.css`, and
+  `legacy-canvas-project-header-return.css`, and `legacy-canvas-library.css`, plus
   the `legacy-canvas-visual.css` import of
   `legacy-canvas-visual-shape-tools.css` and
   `legacy-canvas-visual-media.css` and

@@ -107,6 +107,12 @@ const EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_IMPORTS = [
   "./legacy-canvas-video-generator-reference.css",
   "./legacy-canvas-video-generator-controls.css"
 ];
+const EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_IMPORTS = [
+  "./legacy-canvas-project-header-shell.css",
+  "./legacy-canvas-project-header-title.css",
+  "./legacy-canvas-project-header-status.css",
+  "./legacy-canvas-project-header-return.css"
+];
 const EXPECTED_LEGACY_CANVAS_SHELL_IMPORTS = [
   "./legacy-canvas-shell-brand.css",
   "./legacy-canvas-shell-actions.css",
@@ -730,13 +736,27 @@ const EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_CONTROLS_SELECTORS = [
   ".video-generator-status"
 ];
 const EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_SELECTORS = [
+  "@import url(\"./legacy-canvas-project-header-shell.css\")",
+  "@import url(\"./legacy-canvas-project-header-title.css\")",
+  "@import url(\"./legacy-canvas-project-header-status.css\")",
+  "@import url(\"./legacy-canvas-project-header-return.css\")"
+];
+const EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_SHELL_SELECTORS = [
   "body[data-view=\"canvas\"] .project-header",
+  "body[data-view=\"canvas\"] .project-header > div"
+];
+const EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_TITLE_SELECTORS = [
   "body[data-view=\"canvas\"] .project-header h1",
+  "body[data-view=\"canvas\"] .project-header h1:hover"
+];
+const EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_STATUS_SELECTORS = [
   "body[data-view=\"canvas\"] .project-header p",
   "body[data-view=\"canvas\"] .project-header p.show",
   "body[data-view=\"canvas\"] .project-header p.is-success",
   "body[data-view=\"canvas\"] .project-header p.is-error",
-  "body[data-view=\"canvas\"] .project-header p.is-pending",
+  "body[data-view=\"canvas\"] .project-header p.is-pending"
+];
+const EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_RETURN_SELECTORS = [
   "body[data-view=\"canvas\"] .return-to-content"
 ];
 const EXPECTED_LEGACY_CANVAS_LIBRARY_SELECTORS = [
@@ -1153,6 +1173,7 @@ const legacyCanvasImports = parseCssImports("styles/legacy-canvas.css");
 const legacyCanvasChoiceOverlayImports = parseCssImports("styles/legacy-canvas-choice-overlays.css");
 const legacyCanvasWorldImports = parseCssImports("styles/legacy-canvas-world.css");
 const legacyCanvasVideoGeneratorImports = parseCssImports("styles/legacy-canvas-video-generator.css");
+const legacyCanvasProjectHeaderImports = parseCssImports("styles/legacy-canvas-project-header.css");
 const legacyCanvasShellImports = parseCssImports("styles/legacy-canvas-shell.css");
 const legacyCanvasImageEditImports = parseCssImports("styles/legacy-canvas-image-edit.css");
 const legacyCanvasVisualImports = parseCssImports("styles/legacy-canvas-visual.css");
@@ -1190,6 +1211,7 @@ assertListEqual("styles/legacy-canvas.css", legacyCanvasImports, EXPECTED_LEGACY
 assertListEqual("styles/legacy-canvas-choice-overlays.css", legacyCanvasChoiceOverlayImports, EXPECTED_LEGACY_CANVAS_CHOICE_OVERLAY_IMPORTS);
 assertListEqual("styles/legacy-canvas-world.css", legacyCanvasWorldImports, EXPECTED_LEGACY_CANVAS_WORLD_IMPORTS);
 assertListEqual("styles/legacy-canvas-video-generator.css", legacyCanvasVideoGeneratorImports, EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_IMPORTS);
+assertListEqual("styles/legacy-canvas-project-header.css", legacyCanvasProjectHeaderImports, EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_IMPORTS);
 assertListEqual("styles/legacy-canvas-shell.css", legacyCanvasShellImports, EXPECTED_LEGACY_CANVAS_SHELL_IMPORTS);
 assertListEqual("styles/legacy-canvas-image-edit.css", legacyCanvasImageEditImports, EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_IMPORTS);
 assertListEqual("styles/legacy-canvas-visual.css", legacyCanvasVisualImports, EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS);
@@ -1224,6 +1246,7 @@ checkImportedFilesExist(legacyCanvasImports, "styles");
 checkImportedFilesExist(legacyCanvasChoiceOverlayImports, "styles");
 checkImportedFilesExist(legacyCanvasWorldImports, "styles");
 checkImportedFilesExist(legacyCanvasVideoGeneratorImports, "styles");
+checkImportedFilesExist(legacyCanvasProjectHeaderImports, "styles");
 checkImportedFilesExist(legacyCanvasShellImports, "styles");
 checkImportedFilesExist(legacyCanvasImageEditImports, "styles");
 checkImportedFilesExist(legacyCanvasVisualImports, "styles");
@@ -1313,6 +1336,10 @@ checkFileContains("styles/legacy-canvas-video-generator-shell.css", EXPECTED_LEG
 checkFileContains("styles/legacy-canvas-video-generator-reference.css", EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_REFERENCE_SELECTORS);
 checkFileContains("styles/legacy-canvas-video-generator-controls.css", EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_CONTROLS_SELECTORS);
 checkFileContains("styles/legacy-canvas-project-header.css", EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_SELECTORS);
+checkFileContains("styles/legacy-canvas-project-header-shell.css", EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_SHELL_SELECTORS);
+checkFileContains("styles/legacy-canvas-project-header-title.css", EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_TITLE_SELECTORS);
+checkFileContains("styles/legacy-canvas-project-header-status.css", EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_STATUS_SELECTORS);
+checkFileContains("styles/legacy-canvas-project-header-return.css", EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_RETURN_SELECTORS);
 checkFileContains("styles/legacy-canvas-library.css", EXPECTED_LEGACY_CANVAS_LIBRARY_SELECTORS);
 checkFileContains("styles/legacy-canvas-visual-shape-tools.css", EXPECTED_LEGACY_CANVAS_VISUAL_SHAPE_TOOLS_SELECTORS);
 checkFileContains("styles/legacy-canvas-visual-selection-draw.css", EXPECTED_LEGACY_CANVAS_VISUAL_SELECTION_DRAW_SELECTORS);
