@@ -10,7 +10,6 @@ import {
   applyPersistedGeneratedImageNodeResult,
   buildGeneratorCompletionMessage,
   buildGeneratedImageNodeOptions,
-  getMissingGeneratorResultMessage,
   getGeneratorResultTitle,
   getRequiredGeneratorResultUrl,
   getRequiredGeneratorResultUrls,
@@ -29,7 +28,8 @@ import {
   buildGeneratorImagePreviewReplacementOptions,
   buildGeneratorVideoPreviewReplacementOptions,
   ensureGeneratorPreviewReplacement,
-  replaceGeneratorImagePreviewNode
+  replaceGeneratorImagePreviewNode,
+  replaceRecoveredGeneratorPreview
 } from "./image-generator-preview-replacement-utils.js";
 import {
   applyGeneratorPreviewBatchMetadata,
@@ -40,7 +40,6 @@ import {
   getGeneratorPreviewNodeWidth as getPreviewNodeWidth,
   getGeneratorProgressStatusText,
   getPendingGeneratorPreviewGroups,
-  getRecoveredGeneratorPreviewReplacementMeta,
   markGeneratorPreviewFailed,
   tagGeneratorPreviewJobs,
   updateGeneratorPreviewStatus as updatePreviewStatus
@@ -705,29 +704,11 @@ export function createImageGeneratorWorkflow({
       result: item.result,
       url: item.url,
       index: item.index,
-      count: item.count
+      count: item.count,
+      replacePreviewWithImage
     }));
     window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
     saveCurrentProjectAfterGeneration?.();
-  }
-
-  function replaceRecoveredGeneratorPreview(previewNode, { jobId, result = {}, url = "", index = 0, count = 1 } = {}) {
-    if (!previewNode?.isConnected) return null;
-    if (!url) throw new Error(getMissingGeneratorResultMessage(result));
-    const meta = getRecoveredGeneratorPreviewReplacementMeta(previewNode, { result, index });
-    const createdNode = ensureGeneratorPreviewReplacement(replaceGeneratorImagePreviewNode(previewNode, buildGeneratorImagePreviewReplacementOptions({
-      replacePreviewWithImage,
-      getPreviewNodeWidth,
-      title: getGeneratorResultTitle(meta.batchIndex, count),
-      desc: meta.desc,
-      url,
-      aspectRatio: meta.aspectRatio,
-      prompt: meta.prompt,
-      actionType: meta.actionType,
-      model: meta.model
-    })));
-    createdNode.dataset.generatorJobId = jobId;
-    return createdNode;
   }
 
   async function addGeneratedImageBesideGenerator(node, {

@@ -44,6 +44,9 @@ import {
   mergeGeneratorJobPayload
 } from "../src/client/features/canvas/workflows/image-generator-job-polling-utils.js";
 import {
+  replaceRecoveredGeneratorPreview
+} from "../src/client/features/canvas/workflows/image-generator-preview-replacement-utils.js";
+import {
   readGeneratorReferenceFromImageNode,
   readGeneratorReferenceFiles
 } from "../src/client/features/canvas/workflows/image-generator-reference-utils.js";
@@ -88,6 +91,7 @@ const generatorWorkflow = read("src/client/features/canvas/workflows/image-gener
 const generatorResultUtils = read("src/client/features/canvas/workflows/image-generator-result-utils.js");
 const generatorJobPollingUtils = read("src/client/features/canvas/workflows/image-generator-job-polling-utils.js");
 const generatorPreviewJobUtils = read("src/client/features/canvas/workflows/image-generator-preview-job-utils.js");
+const generatorPreviewReplacementUtils = read("src/client/features/canvas/workflows/image-generator-preview-replacement-utils.js");
 const generatorDomStateUtils = read("src/client/features/canvas/workflows/image-generator-dom-state-utils.js");
 const generatorControlStateUtils = read("src/client/features/canvas/workflows/image-generator-control-state-utils.js");
 const generatorSelectUtils = read("src/client/features/canvas/workflows/image-generator-select-utils.js");
@@ -96,7 +100,9 @@ const generatorRunContextUtils = read("src/client/features/canvas/workflows/imag
 assert(
   generatorWorkflow.includes("onJobCreated")
     && generatorWorkflow.includes("tagGeneratorPreviewJobs")
-    && generatorWorkflow.includes("getRecoveredGeneratorPreviewReplacementMeta")
+    && generatorWorkflow.includes("replaceRecoveredGeneratorPreview")
+    && generatorPreviewReplacementUtils.includes("export function replaceRecoveredGeneratorPreview")
+    && generatorPreviewReplacementUtils.includes("getRecoveredGeneratorPreviewReplacementMeta")
     && generatorPreviewJobUtils.includes("getRecoveredGeneratorPreviewUrl")
     && generatorWorkflow.includes("getGeneratorPreviewDescription")
     && generatorWorkflow.includes("getGeneratorPreviewNodeWidth as getPreviewNodeWidth")
@@ -671,6 +677,60 @@ const fallbackRecoveredMeta = getRecoveredGeneratorPreviewReplacementMeta({ data
 assert(fallbackRecoveredMeta.batchIndex === 2, "recovered generator preview metadata should fall back to loop index");
 assert(fallbackRecoveredMeta.desc === "Image generator result", "recovered generator preview metadata should keep fallback descriptions");
 assert(fallbackRecoveredMeta.model === "result-model", "recovered generator preview metadata should fall back to result model");
+const recoveredReplacementCalls = [];
+const recoveredReplacementNode = {
+  isConnected: true,
+  dataset: {
+    generatorBatchIndex: "2",
+    generatorPrompt: "Recovered prompt",
+    generatorAspectRatio: "4 / 3",
+    generatorActionType: "image_generation",
+    generatorModel: "stored-model"
+  },
+  offsetWidth: 120,
+  querySelector(selector) {
+    return selector === ".image-frame" ? { offsetWidth: 420 } : null;
+  }
+};
+const recoveredCreatedNode = replaceRecoveredGeneratorPreview(recoveredReplacementNode, {
+  jobId: "job-1",
+  result: { requestedModel: "returned-model" },
+  url: "/uploads/two.png",
+  index: 0,
+  count: 3,
+  replacePreviewWithImage: (previewNode, options) => {
+    recoveredReplacementCalls.push({ previewNode, options });
+    return { dataset: {} };
+  }
+});
+assert(recoveredCreatedNode.dataset.generatorJobId === "job-1", "recovered generator preview replacement should preserve job ids");
+assert(recoveredReplacementCalls[0].previewNode === recoveredReplacementNode, "recovered generator preview replacement should pass through preview nodes");
+assert(recoveredReplacementCalls[0].options.title === "Image Generator Result 2.png", "recovered generator preview replacement should preserve batch titles");
+assert(recoveredReplacementCalls[0].options.url === "/uploads/two.png", "recovered generator preview replacement should preserve recovered URLs");
+assert(recoveredReplacementCalls[0].options.width === 420, "recovered generator preview replacement should preserve preview frame width");
+assert(recoveredReplacementCalls[0].options.desc === "Recovered prompt", "recovered generator preview replacement should preserve descriptions");
+assert(recoveredReplacementCalls[0].options.prompt === "Recovered prompt", "recovered generator preview replacement should preserve prompts");
+assert(recoveredReplacementCalls[0].options.actionType === "image_generation", "recovered generator preview replacement should preserve action types");
+assert(recoveredReplacementCalls[0].options.model === "returned-model", "recovered generator preview replacement should prefer returned models");
+assert(
+  replaceRecoveredGeneratorPreview({ isConnected: false, dataset: {} }, {
+    url: "/uploads/skip.png",
+    replacePreviewWithImage: () => {
+      throw new Error("should not replace disconnected previews");
+    }
+  }) === null,
+  "recovered generator preview replacement should skip disconnected previews"
+);
+let recoveredMissingUrlError = null;
+try {
+  replaceRecoveredGeneratorPreview({ isConnected: true, dataset: {}, querySelector: () => null }, {
+    result: { errorMessage: "missing url" },
+    replacePreviewWithImage: () => ({ dataset: {} })
+  });
+} catch (error) {
+  recoveredMissingUrlError = error;
+}
+assert(recoveredMissingUrlError?.message === "missing url", "recovered generator preview replacement should preserve missing URL errors");
 assert(getGeneratorResultTitle(0, 1) === "Image Generator Result.png", "single image generator result title should stay stable");
 assert(getGeneratorResultTitle(1, 3) === "Image Generator Result 2.png", "multi image generator result title should include one-based index");
 assert(getGeneratorResultTitle(0, 4) === "Image Generator Result 1.png", "generator replacement title should preserve first numbered result");

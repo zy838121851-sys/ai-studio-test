@@ -1,3 +1,12 @@
+import {
+  getGeneratorResultTitle,
+  getMissingGeneratorResultMessage
+} from "./image-generator-result-utils.js";
+import {
+  getGeneratorPreviewNodeWidth,
+  getRecoveredGeneratorPreviewReplacementMeta
+} from "./image-generator-preview-job-utils.js";
+
 export function replaceGeneratorImagePreviewNode(previewNode, {
   replacePreviewWithImage,
   getPreviewNodeWidth,
@@ -71,5 +80,31 @@ export function buildGeneratorVideoPreviewReplacementOptions(previewNode, {
 
 export function ensureGeneratorPreviewReplacement(createdNode) {
   if (!createdNode) throw new Error("Unable to replace generation preview");
+  return createdNode;
+}
+
+export function replaceRecoveredGeneratorPreview(previewNode, {
+  jobId = "",
+  result = {},
+  url = "",
+  index = 0,
+  count = 1,
+  replacePreviewWithImage = null
+} = {}) {
+  if (!previewNode?.isConnected) return null;
+  if (!url) throw new Error(getMissingGeneratorResultMessage(result));
+  const meta = getRecoveredGeneratorPreviewReplacementMeta(previewNode, { result, index });
+  const createdNode = ensureGeneratorPreviewReplacement(replaceGeneratorImagePreviewNode(previewNode, buildGeneratorImagePreviewReplacementOptions({
+    replacePreviewWithImage,
+    getPreviewNodeWidth: getGeneratorPreviewNodeWidth,
+    title: getGeneratorResultTitle(meta.batchIndex, count),
+    desc: meta.desc,
+    url,
+    aspectRatio: meta.aspectRatio,
+    prompt: meta.prompt,
+    actionType: meta.actionType,
+    model: meta.model
+  })));
+  createdNode.dataset.generatorJobId = jobId;
   return createdNode;
 }

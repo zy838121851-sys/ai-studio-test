@@ -620,6 +620,9 @@ Post-baseline CSS governance note:
 - `image-generator-job-polling-utils.js` now owns the image generator async job
   polling loop; `scripts/check-image-generator-job-polling-utils.js` guards
   success, rate-limit, missing-URL retry, failure, and timeout behavior.
+- `image-generator-preview-replacement-utils.js` now owns recovered image
+  generator preview replacement; `scripts/check-generator-job-recovery.js`
+  guards recovered title, URL, sizing, metadata, skip, and missing-URL behavior.
 
 ## Static Reachability Snapshot
 
