@@ -4,7 +4,8 @@ import {
   isPromptVideoGeneration,
   isPromptGenerationPayloadMissing,
   resolvePromptAgentGenerationType,
-  resolvePromptGenerationType
+  resolvePromptGenerationType,
+  resolvePromptModelSelection
 } from "../src/client/features/workspace/chat/workflows/prompt-generation-payload-utils.js";
 
 function assert(condition, message) {
@@ -19,6 +20,25 @@ assert(resolvePromptAgentGenerationType("3d") === "3d", "Prompt agent generation
 assert(resolvePromptAgentGenerationType("video") === "video", "Prompt agent generation type should preserve video model types");
 assert(resolvePromptAgentGenerationType("image") === "image", "Prompt agent generation type should preserve image model types");
 assert(resolvePromptAgentGenerationType("unknown") === "image", "Prompt agent generation type should fall back to image for unknown model types");
+
+const pendingSelection = resolvePromptModelSelection({
+  pendingHomeModel: "home-model",
+  selectedModel: "selected-model",
+  resolveModelId: (value, source) => `${source}:${value}`
+});
+assert(pendingSelection.requestedModel === "home-model", "Prompt model selection should prefer pending home models");
+assert(pendingSelection.model === "chat:home-model", "Prompt model selection should pass requested models through the resolver");
+assert(pendingSelection.normalized === true, "Prompt model selection should report normalized model ids");
+
+const selectedSelection = resolvePromptModelSelection({
+  pendingHomeModel: "",
+  selectedModel: "selected-model",
+  resolveModelId: (value) => value
+});
+assert(selectedSelection.requestedModel === "selected-model", "Prompt model selection should fall back to selected models");
+assert(selectedSelection.model === "selected-model", "Prompt model selection should keep resolved model ids");
+assert(selectedSelection.normalized === false, "Prompt model selection should report unchanged model ids");
+
 assert(isPrompt3DGeneration({ modelType: "3d" }), "Prompt 3D generation should accept 3D model types");
 assert(!isPrompt3DGeneration({ modelType: "video" }), "Prompt 3D generation should reject video model types");
 assert(!isPrompt3DGeneration({}), "Prompt 3D generation should default to false");

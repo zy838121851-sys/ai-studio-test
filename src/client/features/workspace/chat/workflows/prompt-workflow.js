@@ -80,7 +80,8 @@ import {
   isPromptVideoGeneration,
   isPromptGenerationPayloadMissing,
   resolvePromptAgentGenerationType,
-  resolvePromptGenerationType
+  resolvePromptGenerationType,
+  resolvePromptModelSelection
 } from "./prompt-generation-payload-utils.js";
 import {
   collectReferenceImages
@@ -420,7 +421,12 @@ export function bindPromptSubmit({
     if (prompt) lastConversationPrompt = prompt;
 
     const selectedChatModel = resolvedChatModelSelect.dataset.selectedModelId || resolvedChatModelSelect.value;
-    const model = resolveImageModelId(pendingHomeModel || selectedChatModel, "chat");
+    const modelSelection = resolvePromptModelSelection({
+      pendingHomeModel,
+      selectedModel: selectedChatModel,
+      resolveModelId: resolveImageModelId
+    });
+    const model = modelSelection.model;
     agentDebug.modelId = model;
     if (resolvedChatModelSelect.value !== model) {
       resolvedChatModelSelect.value = model;
@@ -428,9 +434,9 @@ export function bindPromptSubmit({
       resolvedChatModelSelect.dataset.selectedModelId = model;
       resolvedChatModelSelect.__compactSelectSync?.();
     }
-    if (model !== (pendingHomeModel || selectedChatModel)) {
+    if (modelSelection.normalized) {
       console.warn("[models] Submitted model was normalized", {
-        selected: pendingHomeModel || selectedChatModel,
+        selected: modelSelection.requestedModel,
         submitted: model
       });
     }

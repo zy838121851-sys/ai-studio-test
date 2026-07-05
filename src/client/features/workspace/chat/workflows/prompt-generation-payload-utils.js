@@ -8,6 +8,20 @@ export function resolvePromptAgentGenerationType(modelType = "") {
   return "image";
 }
 
+export function resolvePromptModelSelection({
+  pendingHomeModel = "",
+  selectedModel = "",
+  resolveModelId = (value) => value
+} = {}) {
+  const requestedModel = pendingHomeModel || selectedModel;
+  const model = resolveModelId(requestedModel, "chat");
+  return {
+    requestedModel,
+    model,
+    normalized: model !== requestedModel
+  };
+}
+
 export function isPrompt3DGeneration({ modelType = "" } = {}) {
   return modelType === "3d";
 }

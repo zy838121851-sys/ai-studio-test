@@ -53,10 +53,10 @@ Current source footprint, excluding `node_modules` and `dist`:
 
 | Area | Files | Lines |
 | --- | ---: | ---: |
-| `src/client` | 299 | 39,397 |
+| `src/client` | 299 | 39,417 |
 | `src/server` | 80 | 14,350 |
 | `styles` | 207 | 15,279 |
-| `scripts` | 91 | 22,030 |
+| `scripts` | 91 | 22,050 |
 
 Largest files in the current source tree:
 
@@ -64,7 +64,7 @@ Largest files in the current source tree:
 | ---: | --- |
 | 1,779 | `scripts/check-style-entry.js` |
 | 1,709 | `scripts/check-api-error-contract.js` |
-| 1,600 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
+| 1,606 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
@@ -606,6 +606,10 @@ Post-baseline CSS governance note:
   for thinking steps, Midjourney image count, stream timeout, and chat agent
   debug/version flags; `scripts/check-prompt-workflow-constants.js` guards the
   extracted constants without changing prompt generation behavior.
+- `prompt-generation-payload-utils.js` now owns prompt model selection
+  normalization for pending-home and selected chat models; the workflow still
+  owns DOM synchronization, and `scripts/check-prompt-generation-payload-utils.js`
+  guards the extracted model-selection behavior.
 
 ## Static Reachability Snapshot
 
