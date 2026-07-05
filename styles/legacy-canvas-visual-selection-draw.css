@@ -1,0 +1,67 @@
+body[data-view="canvas"] .canvas-object.selected {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+body[data-view="canvas"] .canvas-object.selected::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border: 1.5px solid rgba(99, 102, 241, 0.78);
+  pointer-events: none;
+}
+
+body[data-view="canvas"] .canvas-shape.selected::after {
+  display: none;
+}
+
+body[data-view="canvas"] .canvas-object .resize-handle {
+  z-index: 9;
+  border-color: rgba(99, 102, 241, 0.92);
+  background: #ffffff;
+}
+
+body[data-view="canvas"] .draw-node {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  color: #17202c;
+}
+
+body[data-view="canvas"] .draw-shape {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+body[data-view="canvas"] .draw-shape svg {
+  width: 100%;
+  height: 100%;
+  fill: var(--shape-fill, rgba(255, 255, 255, 0));
+  stroke: var(--shape-stroke, #1f2933);
+  stroke-width: var(--shape-stroke-width, 3);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: visiblePainted;
+  background: transparent !important;
+}
+
+body[data-view="canvas"] .draw-line .draw-shape svg,
+body[data-view="canvas"] .draw-arrow .draw-shape svg,
+body[data-view="canvas"] .draw-pen .draw-shape svg {
+  fill: none;
+  stroke-width: 3.2;
+}
+
+body[data-view="canvas"] .draw-pen .draw-shape svg {
+  stroke: #050505 !important;
+  stroke-width: 4 !important;
+}

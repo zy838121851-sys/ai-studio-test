@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,683 |
 | `src/server` | 80 | 14,430 |
-| `styles` | 136 | 15,386 |
-| `scripts` | 90 | 21,530 |
+| `styles` | 140 | 15,391 |
+| `scripts` | 90 | 21,558 |
 
 Largest files in the current source tree:
 
@@ -68,7 +68,7 @@ Largest files in the current source tree:
 | 1,303 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,294 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,283 | `scripts/check-canvas-menu-actions.js` |
-| 1,221 | `scripts/check-style-entry.js` |
+| 1,249 | `scripts/check-style-entry.js` |
 | 1,121 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,119 | `scripts/check-library-bulk-select.js` |
 | 949 | `scripts/check-prompt-conversation-event-utils.js` |
@@ -356,10 +356,17 @@ Post-baseline CSS governance note:
   `styles/legacy-canvas-project-header.css`, and
   `styles/legacy-canvas-library.css` as a pure aggregation entry to preserve
   cascade order.
-- `styles/legacy-canvas-visual-shape-tools.css` owns canvas object selected
-  visuals, draw-shape visuals, canvas text editor, shape format toolbar,
-  shape color popover, stroke width control, text format toolbar, and text
-  color picker styles that were moved out of `styles/legacy-canvas-visual.css`.
+- `styles/legacy-canvas-visual-shape-tools.css` is now a pure aggregation entry
+  for canvas selection/draw, text editor, shape toolbar, and text toolbar
+  visual submodules.
+- `styles/legacy-canvas-visual-selection-draw.css` owns canvas object selected
+  visuals, resize handle polish, draw-node, and draw-shape visuals.
+- `styles/legacy-canvas-visual-text-editor.css` owns canvas text node/editor,
+  text editing state, placeholder, focus, and shape text editor styles.
+- `styles/legacy-canvas-visual-shape-toolbar.css` owns shape format toolbar,
+  shape swatches, shape color popover/spectrum/tokens, and stroke width control.
+- `styles/legacy-canvas-visual-text-toolbar.css` owns canvas text format
+  toolbar, select/button controls, and text color picker styles.
 - `styles/legacy-canvas-visual.css` now imports
   `styles/legacy-canvas-visual-shape-tools.css` and
   `styles/legacy-canvas-visual-media.css` and

@@ -313,6 +313,15 @@ styles/legacy-canvas-visual-media.css
 styles/legacy-canvas-visual-shell.css
 ```
 
+`styles/legacy-canvas-visual-shape-tools.css` currently imports:
+
+```text
+styles/legacy-canvas-visual-selection-draw.css
+styles/legacy-canvas-visual-text-editor.css
+styles/legacy-canvas-visual-shape-toolbar.css
+styles/legacy-canvas-visual-text-toolbar.css
+```
+
 ## `/styles` and `/assets/styles`
 
 Current server behavior in `src/server/index.js`:
@@ -706,10 +715,17 @@ Notes:
   `legacy-canvas-video-generator.css`, and
   `legacy-canvas-project-header.css`, and `legacy-canvas-library.css` as a pure
   aggregation entry.
-- `legacy-canvas-visual-shape-tools.css` owns canvas object selected visuals,
-  draw-shape visuals, canvas text editor, shape format toolbar, shape color
-  popover, stroke width control, text format toolbar, and text color picker
-  styles.
+- `legacy-canvas-visual-shape-tools.css` is now a pure aggregation entry for
+  canvas selection/draw, text editor, shape toolbar, and text toolbar visual
+  submodules.
+- `legacy-canvas-visual-selection-draw.css` owns canvas object selected visuals,
+  resize handle polish, draw-node, and draw-shape visuals.
+- `legacy-canvas-visual-text-editor.css` owns canvas text node/editor, text
+  editing state, placeholder, focus, and shape text editor styles.
+- `legacy-canvas-visual-shape-toolbar.css` owns shape format toolbar, shape
+  swatches, shape color popover/spectrum/tokens, and stroke width control.
+- `legacy-canvas-visual-text-toolbar.css` owns canvas text format toolbar,
+  select/button controls, and text color picker styles.
 - `legacy-canvas-visual.css` imports `legacy-canvas-visual-shape-tools.css`,
   `legacy-canvas-visual-media.css`, and `legacy-canvas-visual-shell.css` as a
   pure aggregation entry.
@@ -831,6 +847,10 @@ styles/legacy-canvas-project-header.css
 styles/legacy-canvas-library.css
 styles/legacy-canvas.css
 styles/legacy-canvas-visual-shape-tools.css
+styles/legacy-canvas-visual-selection-draw.css
+styles/legacy-canvas-visual-text-editor.css
+styles/legacy-canvas-visual-shape-toolbar.css
+styles/legacy-canvas-visual-text-toolbar.css
 styles/legacy-canvas-visual-media.css
 styles/legacy-canvas-visual-shell.css
 styles/legacy-canvas-visual.css
@@ -986,7 +1006,12 @@ Additional caution:
   the `legacy-canvas-visual.css` import of
   `legacy-canvas-visual-shape-tools.css` and
   `legacy-canvas-visual-media.css` and
-  `legacy-canvas-visual-shell.css` and selectors in the canvas files.
+  `legacy-canvas-visual-shell.css`, the
+  `legacy-canvas-visual-shape-tools.css` imports of
+  `legacy-canvas-visual-selection-draw.css`,
+  `legacy-canvas-visual-text-editor.css`,
+  `legacy-canvas-visual-shape-toolbar.css`, and
+  `legacy-canvas-visual-text-toolbar.css`, and selectors in the canvas files.
 - Move one feature area at a time from legacy files into a clearer structure.
 - Start with documentation and smoke checks before moving selectors.
 - Prefer feature grouping such as:

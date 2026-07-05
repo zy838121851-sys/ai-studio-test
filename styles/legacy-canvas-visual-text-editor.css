@@ -1,0 +1,53 @@
+body[data-view="canvas"] .node-text-tool {
+  min-height: 1.2em !important;
+}
+
+body[data-view="canvas"] .canvas-text-editor {
+  min-width: 54px;
+  min-height: 1.1em;
+  padding: 2px 4px;
+  border-radius: 4px;
+  outline: 1px solid transparent;
+  color: #0f172a;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 80px;
+  font-weight: 400;
+  line-height: 1.08;
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-word;
+  cursor: grab;
+}
+
+body[data-view="canvas"] .text-editing .canvas-text-editor,
+body[data-view="canvas"] .canvas-text-editor[contenteditable="true"] {
+  cursor: text;
+}
+
+body[data-view="canvas"] .canvas-text-editor:empty::before {
+  content: attr(data-placeholder);
+  color: rgba(15, 23, 42, 0.34);
+}
+
+body[data-view="canvas"] .node-text-tool.selected .canvas-text-editor,
+body[data-view="canvas"] .canvas-text-editor:focus {
+  outline-color: rgba(77, 143, 255, 0.86);
+  background: transparent;
+  box-shadow: 0 0 0 3px rgba(77, 143, 255, 0.08);
+}
+
+body[data-view="canvas"] .shape-text-editor {
+  position: absolute;
+  inset: 12%;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  font-size: 28px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.text-format-toolbar {
+  display: none;
+}
