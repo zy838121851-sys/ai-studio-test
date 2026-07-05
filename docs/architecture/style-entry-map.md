@@ -211,6 +211,13 @@ styles/features/assets-picker-list.css
 styles/features/assets-picker-preview.css
 ```
 
+`styles/features/assets-picker-popover.css` currently imports:
+
+```text
+styles/features/assets-picker-popover-shell.css
+styles/features/assets-picker-popover-head.css
+```
+
 `styles/features/assets-canvas-picker.css` currently imports:
 
 ```text
@@ -667,8 +674,12 @@ Notes:
 - `features/assets-picker.css` is now a pure aggregation entry for asset picker
   popover, list, and preview overlay submodules; it is imported by
   `features/assets.css`.
-- `features/assets-picker-popover.css` owns asset picker modal shell, backdrop,
-  card, header, and scrollable list container styles.
+- `features/assets-picker-popover.css` is now a pure aggregation entry for asset
+  picker modal shell and header/list container submodules.
+- `features/assets-picker-popover-shell.css` owns asset picker modal shell,
+  backdrop, and card styles.
+- `features/assets-picker-popover-head.css` owns asset picker modal header and
+  scrollable list container styles.
 - `features/assets-picker-list.css` owns asset picker item, thumbnail,
   metadata, and empty-state styles.
 - `features/assets-picker-preview.css` owns asset preview overlay, backdrop,
@@ -1034,6 +1045,8 @@ styles/features/assets-save-board-popover-list.css
 styles/features/assets-save-board-popover-new.css
 styles/features/assets-picker.css
 styles/features/assets-picker-popover.css
+styles/features/assets-picker-popover-shell.css
+styles/features/assets-picker-popover-head.css
 styles/features/assets-picker-list.css
 styles/features/assets-picker-preview.css
 styles/features/assets-canvas-picker.css
@@ -1252,8 +1265,10 @@ Additional caution:
   `features/assets-save-board-popover-shell.css`,
   `features/assets-save-board-popover-list.css`, and
   `features/assets-save-board-popover-new.css`, migrated asset picker imports
-  in `features/assets-picker.css`, migrated asset picker popover selectors in
-  `features/assets-picker-popover.css`, migrated asset picker list selectors in
+  in `features/assets-picker.css`, migrated asset picker popover imports in
+  `features/assets-picker-popover.css`, migrated asset picker popover shell and
+  header selectors in `features/assets-picker-popover-shell.css` and
+  `features/assets-picker-popover-head.css`, migrated asset picker list selectors in
   `features/assets-picker-list.css`, migrated asset picker preview selectors in
   `features/assets-picker-preview.css`, migrated canvas asset picker imports in
   `features/assets-canvas-picker.css`, migrated canvas asset picker shell and

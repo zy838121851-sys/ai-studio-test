@@ -55,15 +55,15 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,350 |
-| `styles` | 194 | 15,273 |
-| `scripts` | 90 | 21,900 |
+| `styles` | 196 | 15,274 |
+| `scripts` | 90 | 21,916 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
 | 1,709 | `scripts/check-api-error-contract.js` |
-| 1,680 | `scripts/check-style-entry.js` |
+| 1,696 | `scripts/check-style-entry.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
@@ -229,8 +229,12 @@ Post-baseline CSS governance note:
 - `styles/features/assets-picker.css` is now a pure aggregation entry for asset
   picker popover, list, and preview overlay submodules; it is imported by
   `styles/features/assets.css`.
-- `styles/features/assets-picker-popover.css` owns asset picker modal shell,
-  backdrop, card, header, and scrollable list container styles.
+- `styles/features/assets-picker-popover.css` is now a pure aggregation entry
+  for asset picker modal shell and header/list container submodules.
+- `styles/features/assets-picker-popover-shell.css` owns asset picker modal
+  shell, backdrop, and card styles.
+- `styles/features/assets-picker-popover-head.css` owns asset picker modal
+  header and scrollable list container styles.
 - `styles/features/assets-picker-list.css` owns asset picker item, thumbnail,
   metadata, and empty-state styles.
 - `styles/features/assets-picker-preview.css` owns asset preview overlay,
