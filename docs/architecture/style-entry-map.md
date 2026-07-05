@@ -107,6 +107,14 @@ styles/features/node-image-generator-base.css
 styles/features/node-image-generator-inline-edit.css
 ```
 
+`styles/features/node-image-toolbar.css` currently imports:
+
+```text
+styles/features/node-image-toolbar-base.css
+styles/features/node-image-toolbar-upscale.css
+styles/features/node-image-toolbar-menu.css
+```
+
 `styles/features/assets.css` currently imports:
 
 ```text
@@ -390,8 +398,14 @@ Notes:
 - `features/node-state.css` owns generic node zoom/selected/source/label state
   styles; it is imported before image toolbar styles to preserve the previous
   cascade position.
-- `features/node-image-toolbar.css` owns image node toolbar, toolbar menu, and
-  upscale controls.
+- `features/node-image-toolbar.css` is now a pure aggregation entry for image
+  toolbar base, upscale controls, and menu styles.
+- `features/node-image-toolbar-base.css` owns image toolbar shell, initial menu
+  defaults, button base styles, and main toolbar layout styles.
+- `features/node-image-toolbar-upscale.css` owns image toolbar upscale mode,
+  size option, and generate button styles.
+- `features/node-image-toolbar-menu.css` owns image toolbar icon/label,
+  compare, separator, menu card, upscale option card, and dark menu styles.
 - `features/node-image-toolbar-savebar.css` owns canvas asset savebar, asset
   board select, and save submit styles; it is imported immediately after
   `features/node-image-toolbar.css`.
@@ -540,6 +554,9 @@ styles/features/node-base.css
 styles/features/node-image-edit.css
 styles/features/node-state.css
 styles/features/node-image-toolbar.css
+styles/features/node-image-toolbar-base.css
+styles/features/node-image-toolbar-upscale.css
+styles/features/node-image-toolbar-menu.css
 styles/features/node-image-toolbar-savebar.css
 styles/features/node-image-panels.css
 styles/features/node-stack.css
@@ -656,9 +673,12 @@ Additional caution:
   migrated node base selectors in
   `features/node-base.css`,
   migrated image edit selectors in `features/node-image-edit.css`, migrated node
-  state selectors in `features/node-state.css`, migrated image toolbar selectors
-  in `features/node-image-toolbar.css`, migrated canvas asset savebar selectors
-  in `features/node-image-toolbar-savebar.css`, migrated image panel selectors
+  state selectors in `features/node-state.css`, migrated image toolbar imports
+  in `features/node-image-toolbar.css`, migrated image toolbar base selectors in
+  `features/node-image-toolbar-base.css`, migrated image toolbar upscale
+  selectors in `features/node-image-toolbar-upscale.css`, migrated image toolbar
+  menu selectors in `features/node-image-toolbar-menu.css`, migrated canvas
+  asset savebar selectors in `features/node-image-toolbar-savebar.css`, migrated image panel selectors
   in `features/node-image-panels.css`, migrated stack selectors in
   `features/node-stack.css`, migrated director selectors in
   `features/node-director.css`, migrated media node selectors in

@@ -91,6 +91,11 @@ const EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS = [
   "./node-image-generator-base.css",
   "./node-image-generator-inline-edit.css"
 ];
+const EXPECTED_NODE_IMAGE_TOOLBAR_IMPORTS = [
+  "./node-image-toolbar-base.css",
+  "./node-image-toolbar-upscale.css",
+  "./node-image-toolbar-menu.css"
+];
 const EXPECTED_ASSET_IMPORTS = [
   "./assets-page.css",
   "./assets-board.css",
@@ -501,12 +506,23 @@ const EXPECTED_NODE_STATE_SELECTORS = [
   ".node-label",
   "@keyframes sourcePulse"
 ];
-const EXPECTED_NODE_IMAGE_TOOLBAR_SELECTORS = [
+const EXPECTED_NODE_IMAGE_TOOLBAR_BASE_SELECTORS = [
   ".image-node-toolbar",
   ".image-toolbar-menu",
+  ".image-toolbar-main"
+];
+const EXPECTED_NODE_IMAGE_TOOLBAR_UPSCALE_SELECTORS = [
   ".image-toolbar-upscale-controls",
+  ".image-node-toolbar.mode-upscale .image-toolbar-main",
+  ".image-toolbar-size-option",
+  ".image-toolbar-generate"
+];
+const EXPECTED_NODE_IMAGE_TOOLBAR_MENU_SELECTORS = [
   ".image-toolbar-label",
-  ".image-toolbar-compare"
+  ".image-toolbar-compare",
+  ".image-toolbar-upscale-option",
+  ".upscale-option-main",
+  "body[data-theme=\"dark\"] .image-node-toolbar .image-toolbar-menu"
 ];
 const EXPECTED_NODE_IMAGE_TOOLBAR_SAVEBAR_SELECTORS = [
   ".canvas-asset-savebar",
@@ -805,6 +821,7 @@ const legacyCanvasImports = parseCssImports("styles/legacy-canvas.css");
 const legacyCanvasVisualImports = parseCssImports("styles/legacy-canvas-visual.css");
 const authImports = parseCssImports("styles/features/auth.css");
 const nodeImports = parseCssImports("styles/features/node.css");
+const nodeImageToolbarImports = parseCssImports("styles/features/node-image-toolbar.css");
 const nodeImageGeneratorImports = parseCssImports("styles/features/node-image-generator.css");
 const assetImports = parseCssImports("styles/features/assets.css");
 const assetPinterestImports = parseCssImports("styles/features/assets-pinterest.css");
@@ -822,6 +839,7 @@ assertListEqual("styles/legacy-canvas.css", legacyCanvasImports, EXPECTED_LEGACY
 assertListEqual("styles/legacy-canvas-visual.css", legacyCanvasVisualImports, EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS);
 assertListEqual("styles/features/auth.css", authImports, EXPECTED_AUTH_IMPORTS);
 assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
+assertListEqual("styles/features/node-image-toolbar.css", nodeImageToolbarImports, EXPECTED_NODE_IMAGE_TOOLBAR_IMPORTS);
 assertListEqual("styles/features/node-image-generator.css", nodeImageGeneratorImports, EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS);
 assertListEqual("styles/features/assets.css", assetImports, EXPECTED_ASSET_IMPORTS);
 assertListEqual("styles/features/assets-pinterest.css", assetPinterestImports, EXPECTED_ASSET_PINTEREST_IMPORTS);
@@ -836,6 +854,7 @@ checkImportedFilesExist(legacyCanvasImports, "styles");
 checkImportedFilesExist(legacyCanvasVisualImports, "styles");
 checkImportedFilesExist(authImports, "styles/features");
 checkImportedFilesExist(nodeImports, "styles/features");
+checkImportedFilesExist(nodeImageToolbarImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorImports, "styles/features");
 checkImportedFilesExist(assetImports, "styles/features");
 checkImportedFilesExist(assetPinterestImports, "styles/features");
@@ -887,7 +906,9 @@ checkFileContains("styles/features/home-community.css", EXPECTED_HOME_COMMUNITY_
 checkFileContains("styles/features/node-base.css", EXPECTED_NODE_BASE_SELECTORS);
 checkFileContains("styles/features/node-image-edit.css", EXPECTED_NODE_IMAGE_EDIT_SELECTORS);
 checkFileContains("styles/features/node-state.css", EXPECTED_NODE_STATE_SELECTORS);
-checkFileContains("styles/features/node-image-toolbar.css", EXPECTED_NODE_IMAGE_TOOLBAR_SELECTORS);
+checkFileContains("styles/features/node-image-toolbar-base.css", EXPECTED_NODE_IMAGE_TOOLBAR_BASE_SELECTORS);
+checkFileContains("styles/features/node-image-toolbar-upscale.css", EXPECTED_NODE_IMAGE_TOOLBAR_UPSCALE_SELECTORS);
+checkFileContains("styles/features/node-image-toolbar-menu.css", EXPECTED_NODE_IMAGE_TOOLBAR_MENU_SELECTORS);
 checkFileContains("styles/features/node-image-toolbar-savebar.css", EXPECTED_NODE_IMAGE_TOOLBAR_SAVEBAR_SELECTORS);
 checkFileContains("styles/features/node-image-panels.css", EXPECTED_NODE_IMAGE_PANELS_SELECTORS);
 checkFileContains("styles/features/node-stack.css", EXPECTED_NODE_STACK_SELECTORS);

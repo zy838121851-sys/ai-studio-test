@@ -55,7 +55,7 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 89 | 13,353 |
+| `styles` | 92 | 13,356 |
 | `scripts` | 90 | 19,441 |
 
 Largest files in the current source tree:
@@ -94,6 +94,10 @@ Post-baseline CSS governance note:
   selector guards now track migrated node selectors in
   `styles/features/node-base.css`, `styles/features/node-image-edit.css`,
   `styles/features/node-state.css`, `styles/features/node-image-toolbar.css`,
+  `styles/features/node-image-toolbar-base.css`,
+  `styles/features/node-image-toolbar-upscale.css`,
+  `styles/features/node-image-toolbar-menu.css`,
+  `styles/features/node-image-toolbar-savebar.css`,
   `styles/features/node-image-panels.css`, `styles/features/node-stack.css`,
   `styles/features/node-director.css`, `styles/features/node-media.css`,
   `styles/features/node-generation.css`, `styles/features/node-image-generator.css`,
@@ -298,8 +302,14 @@ Post-baseline CSS governance note:
 - `styles/features/node-state.css` owns generic node zoom/selected/source/label
   state styles; it is imported before image toolbar styles to preserve the
   previous cascade position.
-- `styles/features/node-image-toolbar.css` owns image node toolbar, toolbar menu,
-  and upscale controls.
+- `styles/features/node-image-toolbar.css` is now a pure aggregation entry for
+  image toolbar base, upscale controls, and menu styles.
+- `styles/features/node-image-toolbar-base.css` owns image toolbar shell,
+  initial menu defaults, button base styles, and main toolbar layout styles.
+- `styles/features/node-image-toolbar-upscale.css` owns image toolbar upscale
+  mode, size option, and generate button styles.
+- `styles/features/node-image-toolbar-menu.css` owns image toolbar icon/label,
+  compare, separator, menu card, upscale option card, and dark menu styles.
 - `styles/features/node-image-toolbar-savebar.css` owns canvas asset savebar,
   asset board select, and save submit styles; it is imported immediately after
   `styles/features/node-image-toolbar.css`.
