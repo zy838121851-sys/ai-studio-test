@@ -1,0 +1,186 @@
+.home-history-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  justify-content: stretch;
+  gap: 16px;
+}
+
+.home-history-card {
+  position: relative;
+  min-width: 0;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+.home-history-card.is-removing {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.985);
+}
+
+.home-history-card > button:not(.home-history-delete) {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  gap: 12px;
+  padding: 10px 10px 12px;
+  border: 1px solid rgba(17, 24, 39, 0.035);
+  border-radius: 10px;
+  color: #17202c;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 12px 28px rgba(31, 46, 72, 0.045);
+  text-align: left;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.home-history-card > button:not(.home-history-delete):hover {
+  border-color: rgba(17, 24, 39, 0.08);
+  box-shadow: 0 18px 36px rgba(31, 46, 72, 0.075);
+  transform: translateY(-2px);
+}
+
+.home-history-card.is-create > button:not(.home-history-delete) {
+  min-height: 260px;
+}
+
+.home-history-delete {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  background: rgba(17, 24, 39, 0.66);
+  box-shadow: 0 12px 28px rgba(17, 24, 39, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+.home-history-card:hover .home-history-delete,
+.home-history-delete:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.home-history-delete:hover {
+  background: rgba(17, 24, 39, 0.78);
+}
+
+.home-history-delete span {
+  position: relative;
+  width: 14px;
+  height: 15px;
+  border-radius: 2px 2px 3px 3px;
+  background: currentColor;
+}
+
+.home-history-delete span::before {
+  position: absolute;
+  top: -4px;
+  left: 2px;
+  width: 10px;
+  height: 3px;
+  border-radius: 2px;
+  background: currentColor;
+  content: "";
+}
+
+.home-history-delete span::after {
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  width: 6px;
+  height: 8px;
+  border-right: 1px solid rgba(17, 24, 39, 0.58);
+  border-left: 1px solid rgba(17, 24, 39, 0.58);
+  content: "";
+}
+
+.home-history-thumb {
+  position: relative;
+  display: grid;
+  aspect-ratio: 16 / 9.2;
+  overflow: hidden;
+  place-items: center;
+  border-radius: 8px;
+  background: #f1f1f2;
+}
+
+.home-history-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.home-history-thumb b,
+.project-preview-fallback {
+  color: #4f8cff;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.project-preview-fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: grid;
+  place-items: center;
+  background: #f1f1f2;
+  pointer-events: none;
+}
+
+.project-preview-image {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
+}
+
+.project-preview-image[hidden] {
+  display: none !important;
+}
+
+.home-history-card.is-create .home-history-thumb {
+  gap: 18px;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.home-history-card.is-create .home-history-thumb strong {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.home-history-create-icon {
+  color: #111827;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.home-history-card strong {
+  overflow: hidden;
+  color: #17202c;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-history-card small {
+  overflow: hidden;
+  color: rgba(23, 32, 44, 0.42);
+  font-size: 12px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

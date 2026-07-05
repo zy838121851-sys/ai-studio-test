@@ -184,6 +184,14 @@ styles/features/home-community.css
 styles/features/home-shell.css
 ```
 
+`styles/features/home-history.css` currently imports:
+
+```text
+styles/features/home-history-stack.css
+styles/features/home-history-section.css
+styles/features/home-history-cards.css
+```
+
 `styles/features/home-community.css` currently imports:
 
 ```text
@@ -505,8 +513,14 @@ Notes:
   preview, and bottom control styles.
 - `features/node.css` is now a feature CSS aggregation entry for node
   submodules.
-- `features/home-history.css` owns home recent project/history stack, grid,
-  card, thumbnail, preview fallback, and delete-control styles.
+- `features/home-history.css` is now a pure aggregation entry for home history
+  stack, section header, and recent project card styles.
+- `features/home-history-stack.css` owns the home recent project/history stack,
+  trigger, layered thumbnails, and open affordance styles.
+- `features/home-history-section.css` owns home history section header and
+  section navigation styles.
+- `features/home-history-cards.css` owns home history grid, card, thumbnail,
+  preview fallback, create-card, and delete-control styles.
 - `features/home-community.css` is now a pure aggregation entry for home
   community channel, feed, and inspiration submodules.
 - `features/home-community-channels.css` owns home community section, channel
@@ -648,6 +662,9 @@ styles/features/assets.css
 styles/features/chat.css
 styles/features/home.css
 styles/features/home-history.css
+styles/features/home-history-stack.css
+styles/features/home-history-section.css
+styles/features/home-history-cards.css
 styles/features/home-community.css
 styles/features/home-community-channels.css
 styles/features/home-community-feed.css
@@ -817,7 +834,10 @@ Additional caution:
   in `features/node.css`, migrated project library imports in
   `features/project-library.css`, and migrated project library selectors in
   `features/project-library-shell.css`, `features/project-library-cards.css`,
-  and `features/project-library-page.css`, migrated home community imports in
+  and `features/project-library-page.css`, migrated home history imports in
+  `features/home-history.css`, migrated home history selectors in
+  `features/home-history-stack.css`, `features/home-history-section.css`, and
+  `features/home-history-cards.css`, migrated home community imports in
   `features/home-community.css`, and migrated home community selectors in
   `features/home-community-channels.css`, `features/home-community-feed.css`,
   and `features/home-community-inspiration.css`, migrated home shell imports in

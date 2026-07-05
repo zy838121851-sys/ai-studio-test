@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,683 |
 | `src/server` | 80 | 14,430 |
-| `styles` | 112 | 15,349 |
-| `scripts` | 90 | 21,364 |
+| `styles` | 115 | 15,355 |
+| `scripts` | 90 | 21,383 |
 
 Largest files in the current source tree:
 
@@ -70,7 +70,7 @@ Largest files in the current source tree:
 | 1,283 | `scripts/check-canvas-menu-actions.js` |
 | 1,121 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,119 | `scripts/check-library-bulk-select.js` |
-| 1,055 | `scripts/check-style-entry.js` |
+| 1,074 | `scripts/check-style-entry.js` |
 | 949 | `scripts/check-prompt-conversation-event-utils.js` |
 | 820 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
 | 811 | `src/server/services/ai-job.service.js` |
@@ -220,9 +220,15 @@ Post-baseline CSS governance note:
   `styles/features/assets.css`.
 - `styles/features/assets.css` is now an asset feature CSS aggregation entry for
   asset submodules.
-- `styles/features/home-history.css` owns home recent project/history stack,
-  grid, card, thumbnail, and delete-control styles; it is imported by
-  `styles/features/home.css`.
+- `styles/features/home-history.css` is now a pure aggregation entry for home
+  history stack, section header, and recent project card styles; it is imported
+  by `styles/features/home.css`.
+- `styles/features/home-history-stack.css` owns the home recent project/history
+  stack, trigger, layered thumbnails, and open affordance styles.
+- `styles/features/home-history-section.css` owns home history section header
+  and section navigation styles.
+- `styles/features/home-history-cards.css` owns home history grid, card,
+  thumbnail, preview fallback, create-card, and delete-control styles.
 - `styles/features/home-community.css` is now a pure aggregation entry for home
   community channel, feed, and inspiration submodules.
 - `styles/features/home-community-channels.css` owns home community section,
