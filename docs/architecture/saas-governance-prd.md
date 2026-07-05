@@ -1,4 +1,4 @@
-﻿# AI Studio SaaS 架构治理 PRD
+# AI Studio SaaS 架构治理 PRD
 
 更新日期：2026-07-03
 
