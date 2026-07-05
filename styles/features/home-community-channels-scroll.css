@@ -1,0 +1,60 @@
+.home-channel-scroll {
+  position: absolute;
+  top: 50%;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba(17, 24, 39, 0.06);
+  border-radius: 50%;
+  color: rgba(23, 32, 44, 0.74);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 16px 32px rgba(31, 46, 72, 0.12), inset 0 1px rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(18px) saturate(1.18);
+  -webkit-backdrop-filter: blur(18px) saturate(1.18);
+  transform: translateY(-50%);
+  transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
+}
+
+.home-channel-scroll:hover {
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 18px 36px rgba(31, 46, 72, 0.16), inset 0 1px rgba(255, 255, 255, 0.98);
+}
+
+.home-channel-scroll:active {
+  transform: translateY(-50%) scale(0.96);
+}
+
+.home-channel-scroll.prev {
+  position: relative;
+  left: auto;
+  top: auto;
+  flex: 0 0 auto;
+  transform: none;
+}
+
+.home-channel-scroll.next {
+  right: 24px;
+}
+
+.home-channel-scroll.prev:active {
+  transform: scale(0.96);
+}
+
+.home-channel-scroll span {
+  width: 10px;
+  height: 10px;
+  margin: 0;
+  border-top: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+  text-transform: none;
+}
+
+.home-channel-scroll.prev span {
+  transform: translateX(2px) rotate(-45deg);
+}
+
+.home-channel-scroll.next span {
+  transform: translateX(-2px) rotate(135deg);
+}

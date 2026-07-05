@@ -1,0 +1,70 @@
+.home-community-section {
+  position: relative;
+  z-index: 1;
+  width: auto;
+  max-width: none;
+  margin: 0 34px 36px 130px;
+}
+
+.home-community-channels {
+  margin-top: 34px;
+}
+
+.home-channel-shell {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 18;
+  margin: 0 -34px 22px -130px;
+  padding: 10px 70px 10px 130px;
+  border-top: 1px solid rgba(255, 255, 255, 0.72);
+  border-bottom: 1px solid rgba(17, 24, 39, 0.055);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.82), rgba(247, 249, 252, 0.64)),
+    rgba(255, 255, 255, 0.68);
+  box-shadow: 0 18px 50px rgba(31, 46, 72, 0.08);
+  backdrop-filter: blur(24px) saturate(1.28);
+  -webkit-backdrop-filter: blur(24px) saturate(1.28);
+  transform: translateY(0);
+  transition: opacity 190ms ease, transform 220ms cubic-bezier(0.2, 0.75, 0.2, 1), box-shadow 190ms ease;
+  will-change: transform, opacity;
+}
+
+.home-channel-shell.is-floating {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding-right: 70px;
+  padding-left: 130px;
+  box-shadow: 0 18px 48px rgba(31, 46, 72, 0.13);
+}
+
+.home-channel-shell.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(calc(-100% - 10px));
+}
+
+.home-channel-shell::before,
+.home-channel-shell::after {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 2;
+  width: 64px;
+  content: "";
+  pointer-events: none;
+}
+
+.home-channel-shell::before {
+  left: 286px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.92), transparent);
+}
+
+.home-channel-shell::after {
+  right: 0;
+  background: linear-gradient(270deg, rgba(255, 255, 255, 0.92), transparent);
+}

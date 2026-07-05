@@ -336,6 +336,11 @@ const EXPECTED_HOME_COMMUNITY_IMPORTS = [
   "./home-community-feed.css",
   "./home-community-inspiration.css"
 ];
+const EXPECTED_HOME_COMMUNITY_CHANNEL_IMPORTS = [
+  "./home-community-channels-shell.css",
+  "./home-community-channels-strip.css",
+  "./home-community-channels-scroll.css"
+];
 const EXPECTED_HOME_SHELL_IMPORTS = [
   "./home-shell-boot.css",
   "./home-shell-prompt.css",
@@ -415,9 +420,22 @@ const EXPECTED_HOME_HISTORY_CARD_SELECTORS = [
 const EXPECTED_HOME_COMMUNITY_SELECTORS = [
 ];
 const EXPECTED_HOME_COMMUNITY_CHANNEL_SELECTORS = [
+  "@import url(\"./home-community-channels-shell.css\")",
+  "@import url(\"./home-community-channels-strip.css\")",
+  "@import url(\"./home-community-channels-scroll.css\")"
+];
+const EXPECTED_HOME_COMMUNITY_CHANNEL_SHELL_SELECTORS = [
   ".home-community-section",
-  ".home-channel-shell",
+  ".home-channel-shell.is-floating",
+  ".home-channel-shell::before"
+];
+const EXPECTED_HOME_COMMUNITY_CHANNEL_STRIP_SELECTORS = [
   ".home-channel-strip",
+  ".home-channel-all",
+  ".home-channel-tone-xr",
+  ".home-channel-tone-abstract"
+];
+const EXPECTED_HOME_COMMUNITY_CHANNEL_SCROLL_SELECTORS = [
   ".home-channel-scroll"
 ];
 const EXPECTED_HOME_COMMUNITY_FEED_SELECTORS = [
@@ -1613,6 +1631,7 @@ const assetPinterestResponsiveImports = parseCssImports("styles/features/assets-
 const homeImports = parseCssImports("styles/features/home.css");
 const homeHistoryImports = parseCssImports("styles/features/home-history.css");
 const homeCommunityImports = parseCssImports("styles/features/home-community.css");
+const homeCommunityChannelImports = parseCssImports("styles/features/home-community-channels.css");
 const homeShellImports = parseCssImports("styles/features/home-shell.css");
 
 checkIndexStylesheet();
@@ -1673,6 +1692,7 @@ assertListEqual("styles/features/assets-pinterest-responsive.css", assetPinteres
 assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
 assertListEqual("styles/features/home-history.css", homeHistoryImports, EXPECTED_HOME_HISTORY_IMPORTS);
 assertListEqual("styles/features/home-community.css", homeCommunityImports, EXPECTED_HOME_COMMUNITY_IMPORTS);
+assertListEqual("styles/features/home-community-channels.css", homeCommunityChannelImports, EXPECTED_HOME_COMMUNITY_CHANNEL_IMPORTS);
 assertListEqual("styles/features/home-shell.css", homeShellImports, EXPECTED_HOME_SHELL_IMPORTS);
 checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(taskLogImports, "styles");
@@ -1730,6 +1750,7 @@ checkImportedFilesExist(assetPinterestResponsiveImports, "styles/features");
 checkImportedFilesExist(homeImports, "styles/features");
 checkImportedFilesExist(homeHistoryImports, "styles/features");
 checkImportedFilesExist(homeCommunityImports, "styles/features");
+checkImportedFilesExist(homeCommunityChannelImports, "styles/features");
 checkImportedFilesExist(homeShellImports, "styles/features");
 checkCssReachability();
 checkFileContains("styles/task-log-shell.css", EXPECTED_TASK_LOG_SHELL_SELECTORS);
@@ -1884,6 +1905,9 @@ checkFileContains("styles/features/home-history-section.css", EXPECTED_HOME_HIST
 checkFileContains("styles/features/home-history-cards.css", EXPECTED_HOME_HISTORY_CARD_SELECTORS);
 checkFileContains("styles/features/home-community.css", EXPECTED_HOME_COMMUNITY_SELECTORS);
 checkFileContains("styles/features/home-community-channels.css", EXPECTED_HOME_COMMUNITY_CHANNEL_SELECTORS);
+checkFileContains("styles/features/home-community-channels-shell.css", EXPECTED_HOME_COMMUNITY_CHANNEL_SHELL_SELECTORS);
+checkFileContains("styles/features/home-community-channels-strip.css", EXPECTED_HOME_COMMUNITY_CHANNEL_STRIP_SELECTORS);
+checkFileContains("styles/features/home-community-channels-scroll.css", EXPECTED_HOME_COMMUNITY_CHANNEL_SCROLL_SELECTORS);
 checkFileContains("styles/features/home-community-feed.css", EXPECTED_HOME_COMMUNITY_FEED_SELECTORS);
 checkFileContains("styles/features/home-community-inspiration.css", EXPECTED_HOME_COMMUNITY_INSPIRATION_SELECTORS);
 checkFileContains("styles/features/node-base.css", EXPECTED_NODE_BASE_SELECTORS);
