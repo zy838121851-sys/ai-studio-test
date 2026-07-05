@@ -1,0 +1,90 @@
+/* Asset library page: Pinterest-style channel rail and preview */
+body[data-view="assetsPage"] .asset-pinterest-shell {
+  width: 100%;
+  min-height: 100vh;
+  padding: 58px clamp(24px, 7vw, 150px) 82px;
+  color: #111827;
+  background: #fff;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-profile {
+  display: block;
+  margin: 0 0 28px;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-profile h1 {
+  margin: 0;
+  color: #101827;
+  font-size: clamp(36px, 4vw, 54px);
+  font-weight: 950;
+  line-height: 1.02;
+  letter-spacing: 0;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-tabs {
+  display: flex;
+  align-items: center;
+  gap: 26px;
+  margin-top: 30px;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-tabs button {
+  position: relative;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  color: #111827;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-tabs button.active::after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  border-radius: 999px;
+  background: #111827;
+  content: "";
+}
+
+body[data-view="assetsPage"] .asset-pinterest-assets {
+  margin-top: 0;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-section-title {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-section-title strong {
+  color: #101827;
+  font-size: 26px;
+  font-weight: 950;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-section-title span {
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.asset-pinterest-back {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  color: #111827;
+  background: rgba(17, 24, 39, 0.06);
+  font-size: 13px;
+  font-weight: 850;
+  cursor: pointer;
+}
+
+.asset-pinterest-back:hover {
+  background: rgba(17, 24, 39, 0.1);
+}

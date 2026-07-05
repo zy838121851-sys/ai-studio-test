@@ -1,0 +1,9 @@
+@media (max-width: 900px) {
+  body[data-view="assetsPage"] .asset-pinterest-shell {
+    padding: 42px 18px 60px;
+  }
+
+  body[data-view="assetsPage"] .asset-pinterest-masonry {
+    columns: 2 150px;
+  }
+}

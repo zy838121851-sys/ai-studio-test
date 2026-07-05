@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,350 |
-| `styles` | 162 | 15,255 |
-| `scripts` | 90 | 21,650 |
+| `styles` | 166 | 15,256 |
+| `scripts` | 90 | 21,684 |
 
 Largest files in the current source tree:
 
@@ -65,7 +65,7 @@ Largest files in the current source tree:
 | 1,709 | `scripts/check-api-error-contract.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
-| 1,430 | `scripts/check-style-entry.js` |
+| 1,464 | `scripts/check-style-entry.js` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,282 | `scripts/check-canvas-menu-actions.js` |
@@ -205,10 +205,20 @@ Post-baseline CSS governance note:
   styles for asset insertion; it is imported by `styles/features/assets.css`.
 - `styles/features/assets-context-menu.css` owns asset page card context menu
   styles; it is imported by `styles/features/assets.css`.
-- `styles/features/assets-pinterest-board.css` owns the first asset page
-  Pinterest board, masonry, pin, delete, empty, floating library item, and
-  responsive foundation block; it is imported by
-  `styles/features/assets-pinterest.css`.
+- `styles/features/assets-pinterest-board.css` is now a pure aggregation entry
+  for the first asset page Pinterest shell, board tiles, masonry pins, and
+  responsive legacy submodules.
+- `styles/features/assets-pinterest-board-shell-legacy.css` owns the first
+  asset page Pinterest shell, profile, tabs, section title, and back control
+  styles.
+- `styles/features/assets-pinterest-board-tiles-legacy.css` owns the first
+  asset page Pinterest board grid, cover, title, create tile, and delete
+  styles.
+- `styles/features/assets-pinterest-board-masonry-legacy.css` owns the first
+  asset page Pinterest masonry, pin sizing/delete, empty state, and floating
+  library item styles.
+- `styles/features/assets-pinterest-board-responsive-legacy.css` owns the first
+  asset page Pinterest responsive overrides.
 - `styles/features/assets-pinterest-shell.css` owns asset page Pinterest refresh
   shell, profile heading, upload CTA, stats, tabs, section title, and back
   control styles; it is imported by `styles/features/assets-pinterest.css`.

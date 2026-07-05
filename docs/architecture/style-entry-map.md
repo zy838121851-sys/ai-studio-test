@@ -199,6 +199,15 @@ styles/features/assets-pinterest-layout.css
 styles/features/assets-pinterest-responsive.css
 ```
 
+`styles/features/assets-pinterest-board.css` currently imports:
+
+```text
+styles/features/assets-pinterest-board-shell-legacy.css
+styles/features/assets-pinterest-board-tiles-legacy.css
+styles/features/assets-pinterest-board-masonry-legacy.css
+styles/features/assets-pinterest-board-responsive-legacy.css
+```
+
 `styles/features/home.css` currently imports:
 
 ```text
@@ -555,9 +564,18 @@ Notes:
   for asset insertion; it is imported by `features/assets.css`.
 - `features/assets-context-menu.css` owns asset page card context menu styles;
   it is imported by `features/assets.css`.
-- `features/assets-pinterest-board.css` owns the first asset page Pinterest
-  board, masonry, pin, delete, empty, floating library item, and responsive
-  foundation block; it is imported by `features/assets-pinterest.css`.
+- `features/assets-pinterest-board.css` is now a pure aggregation entry for the
+  first asset page Pinterest shell, board tiles, masonry pins, and responsive
+  legacy submodules.
+- `features/assets-pinterest-board-shell-legacy.css` owns the first asset page
+  Pinterest shell, profile, tabs, section title, and back control styles.
+- `features/assets-pinterest-board-tiles-legacy.css` owns the first asset page
+  Pinterest board grid, cover, title, create tile, and delete styles.
+- `features/assets-pinterest-board-masonry-legacy.css` owns the first asset
+  page Pinterest masonry, pin sizing/delete, empty state, and floating library
+  item styles.
+- `features/assets-pinterest-board-responsive-legacy.css` owns the first asset
+  page Pinterest responsive overrides.
 - `features/assets-pinterest-shell.css` owns asset page Pinterest refresh shell,
   profile heading, upload CTA, stats, tabs, section title, and back control
   styles; it is imported by `features/assets-pinterest.css`.
@@ -865,6 +883,10 @@ styles/features/assets-picker.css
 styles/features/assets-canvas-picker.css
 styles/features/assets-context-menu.css
 styles/features/assets-pinterest-board.css
+styles/features/assets-pinterest-board-shell-legacy.css
+styles/features/assets-pinterest-board-tiles-legacy.css
+styles/features/assets-pinterest-board-masonry-legacy.css
+styles/features/assets-pinterest-board-responsive-legacy.css
 styles/features/assets-pinterest-shell.css
 styles/features/assets-pinterest-board-refresh.css
 styles/features/assets-pinterest-pin.css
@@ -1047,8 +1069,14 @@ Additional caution:
   popover selectors in `features/assets-save-board-popover.css`, migrated asset picker selectors
   in `features/assets-picker.css`, migrated canvas asset picker selectors in
   `features/assets-canvas-picker.css`, migrated asset context menu selectors in
-  `features/assets-context-menu.css`, migrated asset Pinterest board selectors
-  in `features/assets-pinterest-board.css`, migrated asset Pinterest shell
+  `features/assets-context-menu.css`, migrated asset Pinterest board imports in
+  `features/assets-pinterest-board.css`, migrated first Pinterest shell selectors
+  in `features/assets-pinterest-board-shell-legacy.css`, migrated first Pinterest
+  board tile selectors in `features/assets-pinterest-board-tiles-legacy.css`,
+  migrated first Pinterest masonry selectors in
+  `features/assets-pinterest-board-masonry-legacy.css`, migrated first Pinterest
+  responsive selectors in `features/assets-pinterest-board-responsive-legacy.css`,
+  migrated asset Pinterest shell
   selectors in `features/assets-pinterest-shell.css`, migrated asset Pinterest
   board refresh selectors in `features/assets-pinterest-board-refresh.css`,
   migrated asset Pinterest pin selectors in `features/assets-pinterest-pin.css`,
