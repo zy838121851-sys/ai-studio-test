@@ -195,6 +195,14 @@ styles/features/assets-save-popover-shell.css
 styles/features/assets-save-popover-list.css
 ```
 
+`styles/features/assets-save-board-popover.css` currently imports:
+
+```text
+styles/features/assets-save-board-popover-shell.css
+styles/features/assets-save-board-popover-list.css
+styles/features/assets-save-board-popover-new.css
+```
+
 `styles/features/assets-picker.css` currently imports:
 
 ```text
@@ -648,8 +656,14 @@ Notes:
   title, folder icon, create action, and tabs.
 - `features/assets-save-popover-list.css` owns the asset save popover folder
   list, chevron/folder rows, and submit/cancel controls.
-- `features/assets-save-board-popover.css` owns the canvas asset board popover
-  shell, search, section/list, board thumb, and new-board control styles.
+- `features/assets-save-board-popover.css` is now a pure aggregation entry for
+  the canvas asset board popover shell, list, and new-board control submodules.
+- `features/assets-save-board-popover-shell.css` owns the canvas asset board
+  popover shell and search field styles.
+- `features/assets-save-board-popover-list.css` owns the canvas asset board
+  popover list, section, row, and board thumbnail styles.
+- `features/assets-save-board-popover-new.css` owns the canvas asset board
+  popover new-board control styles.
 - `features/assets-picker.css` is now a pure aggregation entry for asset picker
   popover, list, and preview overlay submodules; it is imported by
   `features/assets.css`.
@@ -1015,6 +1029,9 @@ styles/features/assets-save-popover.css
 styles/features/assets-save-popover-shell.css
 styles/features/assets-save-popover-list.css
 styles/features/assets-save-board-popover.css
+styles/features/assets-save-board-popover-shell.css
+styles/features/assets-save-board-popover-list.css
+styles/features/assets-save-board-popover-new.css
 styles/features/assets-picker.css
 styles/features/assets-picker-popover.css
 styles/features/assets-picker-list.css
@@ -1229,8 +1246,12 @@ Additional caution:
   save imports in `features/assets-save.css`, migrated asset save popover
   imports in `features/assets-save-popover.css`, migrated asset save popover
   shell and list selectors in `features/assets-save-popover-shell.css` and
-  `features/assets-save-popover-list.css`, migrated canvas asset board
-  popover selectors in `features/assets-save-board-popover.css`, migrated asset picker imports
+  `features/assets-save-popover-list.css`, migrated canvas asset board popover
+  imports in `features/assets-save-board-popover.css`, migrated canvas asset
+  board popover shell, list, and new-board selectors in
+  `features/assets-save-board-popover-shell.css`,
+  `features/assets-save-board-popover-list.css`, and
+  `features/assets-save-board-popover-new.css`, migrated asset picker imports
   in `features/assets-picker.css`, migrated asset picker popover selectors in
   `features/assets-picker-popover.css`, migrated asset picker list selectors in
   `features/assets-picker-list.css`, migrated asset picker preview selectors in

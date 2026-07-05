@@ -1,0 +1,59 @@
+.canvas-asset-board-popover .asset-save-list {
+  max-height: min(300px, calc(100vh - 178px));
+  margin: 16px -3px 10px 0;
+  overflow: auto;
+  padding-right: 3px;
+}
+
+.asset-save-section {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 16px;
+}
+
+.asset-save-section > span {
+  margin-bottom: 3px;
+  color: #111;
+  font-size: 12px;
+}
+
+.asset-save-section button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 50px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: 14px;
+  color: #111827;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.asset-save-section button:hover,
+.asset-save-section button.selected {
+  background: rgba(255, 255, 255, 0.42);
+}
+
+.asset-save-board-thumb {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  color: #fff;
+  background: linear-gradient(135deg, #8b5cf6, #38a3db);
+  font-size: 16px;
+  font-weight: 900;
+}
+
+.asset-save-section strong {
+  overflow: hidden;
+  font-size: 16px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
