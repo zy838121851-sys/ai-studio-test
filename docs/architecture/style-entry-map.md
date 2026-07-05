@@ -118,6 +118,7 @@ styles/legacy-theme-sync-base.css
 styles/legacy-theme-sync-surfaces.css
 styles/legacy-theme-sync-image-edit.css
 styles/legacy-theme-sync-crop-expand.css
+styles/legacy-theme-sync-media-edit.css
 ```
 
 `styles/legacy-canvas.css` currently imports:
@@ -315,10 +316,14 @@ Notes:
   generator control theme synchronization styles.
 - `legacy-theme-sync-crop-expand.css` owns primary action button, crop action,
   and image expand action theme synchronization styles.
+- `legacy-theme-sync-media-edit.css` owns secondary menu separator, shared
+  textarea, edit reference, crop overlay, image expand overlay, and image
+  lightbox theme synchronization styles.
 - `legacy-theme-sync.css` imports `legacy-theme-sync-base.css`,
   `legacy-theme-sync-surfaces.css`, `legacy-theme-sync-image-edit.css`, and
-  `legacy-theme-sync-crop-expand.css`, then keeps the remaining
-  cross-component theme synchronization rules.
+  `legacy-theme-sync-crop-expand.css`, and
+  `legacy-theme-sync-media-edit.css`, then keeps the remaining cross-component
+  theme synchronization rules.
 - `legacy-canvas-shell.css` owns the first legacy canvas shell block: canvas
   area background, project header/logo, top actions, tool rail, add-node menu,
   canvas context menu, selection action bar, and related mobile selection-bar
@@ -431,6 +436,7 @@ styles/legacy-theme-sync-base.css
 styles/legacy-theme-sync-surfaces.css
 styles/legacy-theme-sync-image-edit.css
 styles/legacy-theme-sync-crop-expand.css
+styles/legacy-theme-sync-media-edit.css
 styles/legacy-theme-sync.css
 styles/menu-select-overrides.css
 ```
