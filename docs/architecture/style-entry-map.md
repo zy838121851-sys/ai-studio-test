@@ -64,6 +64,14 @@ styles/features/auth-credit-detail.css
 styles/features/auth-dialog.css
 ```
 
+`styles/features/project-library.css` currently imports:
+
+```text
+styles/features/project-library-shell.css
+styles/features/project-library-cards.css
+styles/features/project-library-page.css
+```
+
 `styles/legacy-split.css` currently imports:
 
 ```text
@@ -476,6 +484,14 @@ Notes:
 - `features/home.css` imports `features/home-history.css`,
   `features/home-community.css`, and `features/home-shell.css`, then keeps
   responsive overrides for the home feature submodules.
+- `features/project-library.css` is now a pure aggregation entry for project
+  library shell, cards, and page-view override styles.
+- `features/project-library-shell.css` owns project library shell, title, grid,
+  header, selection bar, and empty-state styles.
+- `features/project-library-cards.css` owns project library board, card,
+  selection check, new-card, thumbnail, and base responsive styles.
+- `features/project-library-page.css` owns `body[data-view="library"]` project
+  library page overrides, mobile overrides, and library entry animation.
 - `legacy-theme-sync-base.css` owns root light/dark theme variables, dark canvas
   background, and light/dark theme switch styles.
 - `legacy-theme-sync-surfaces.css` owns the first cross-component theme
@@ -613,6 +629,9 @@ styles/features/node-image-generator-inline-edit.css
 styles/features/node-preview.css
 styles/features/node.css
 styles/features/project-library.css
+styles/features/project-library-shell.css
+styles/features/project-library-cards.css
+styles/features/project-library-page.css
 styles/components.css
 styles/image-compare.css
 styles/task-log.css
@@ -737,8 +756,11 @@ Additional caution:
   `features/node-generation.css`, migrated image generator base selectors in
   `features/node-image-generator-base.css`, image generator inline edit
   selectors in `features/node-image-generator-inline-edit.css`, migrated
-  preview selectors in `features/node-preview.css`, and the node aggregation entry in
-  `features/node.css`; it also keeps compatibility shims such as
+  preview selectors in `features/node-preview.css`, the node aggregation entry
+  in `features/node.css`, migrated project library imports in
+  `features/project-library.css`, and migrated project library selectors in
+  `features/project-library-shell.css`, `features/project-library-cards.css`,
+  and `features/project-library-page.css`; it also keeps compatibility shims such as
   `legacy-node.css` outside the active import graph, and guards the
   `legacy-canvas.css` imports of `legacy-canvas-shell.css` and
   `legacy-canvas-image-edit.css`, `legacy-canvas-add-node.css`, and

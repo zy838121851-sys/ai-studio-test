@@ -847,14 +847,20 @@ if (showAssetPreviewOverlay({
   throw new Error("Asset preview helper should ignore assets without a preview source");
 }
 
-assertContains("styles/features/project-library.css", [
-  ".library-selection-bar",
+assertContains("styles/features/project-library-shell.css", [
+  ".library-selection-bar"
+]);
+
+assertContains("styles/features/project-library-cards.css", [
   ".library-card-check",
   ".library-small-card.selected"
 ]);
 
-assertContains("styles/features/assets.css", [
-  ".asset-selection-bar",
+assertContains("styles/features/assets-pinterest-layout.css", [
+  ".asset-selection-bar"
+]);
+
+assertContains("styles/features/assets-pinterest-pin.css", [
   ".asset-card-check",
   ".asset-pinterest-pin.selected"
 ]);

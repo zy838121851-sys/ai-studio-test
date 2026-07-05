@@ -18,6 +18,11 @@ const EXPECTED_WORKSPACE_IMPORTS = [
   "./features/home.css",
   "./features/project-library.css"
 ];
+const EXPECTED_PROJECT_LIBRARY_IMPORTS = [
+  "./project-library-shell.css",
+  "./project-library-cards.css",
+  "./project-library-page.css"
+];
 const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./legacy-base.css",
   "./features/assets.css",
@@ -135,12 +140,24 @@ const ALLOWED_UNREACHABLE_CSS = [
   "styles/legacy-node.css"
 ];
 const EXPECTED_PROJECT_LIBRARY_SELECTORS = [
+];
+const EXPECTED_PROJECT_LIBRARY_SHELL_SELECTORS = [
   ".library-shell",
   ".library-title",
   ".project-grid",
   ".library-page-header",
+  ".library-selection-bar",
+  ".project-empty"
+];
+const EXPECTED_PROJECT_LIBRARY_CARDS_SELECTORS = [
   ".project-card-board",
   ".library-small-card",
+  ".library-card-check",
+  ".library-small-card.selected",
+  ".library-new-card",
+  "@media (max-width: 1200px)"
+];
+const EXPECTED_PROJECT_LIBRARY_PAGE_SELECTORS = [
   "body[data-view=\"library\"] .project-card-board"
 ];
 const EXPECTED_HOME_SELECTORS = [
@@ -834,6 +851,7 @@ function checkFileContains(filePath, snippets) {
 
 const stylesImports = parseCssImports("styles.css");
 const workspaceImports = parseCssImports("styles/workspace.css");
+const projectLibraryImports = parseCssImports("styles/features/project-library.css");
 const legacySplitImports = parseCssImports("styles/legacy-split.css");
 const legacyBaseImports = parseCssImports("styles/legacy-base.css");
 const legacyChatImports = parseCssImports("styles/legacy-chat.css");
@@ -855,6 +873,7 @@ const homeImports = parseCssImports("styles/features/home.css");
 checkIndexStylesheet();
 assertListEqual("styles.css", stylesImports, EXPECTED_STYLES_IMPORTS);
 assertListEqual("styles/workspace.css", workspaceImports, EXPECTED_WORKSPACE_IMPORTS);
+assertListEqual("styles/features/project-library.css", projectLibraryImports, EXPECTED_PROJECT_LIBRARY_IMPORTS);
 assertListEqual("styles/legacy-split.css", legacySplitImports, EXPECTED_LEGACY_SPLIT_IMPORTS);
 assertListEqual("styles/legacy-base.css", legacyBaseImports, EXPECTED_LEGACY_BASE_IMPORTS);
 assertListEqual("styles/legacy-chat.css", legacyChatImports, EXPECTED_LEGACY_CHAT_IMPORTS);
@@ -874,6 +893,7 @@ assertListEqual("styles/features/assets-pinterest.css", assetPinterestImports, E
 assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
 checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(workspaceImports, "styles");
+checkImportedFilesExist(projectLibraryImports, "styles/features");
 checkImportedFilesExist(legacySplitImports, "styles");
 checkImportedFilesExist(legacyChatImports, "styles");
 checkImportedFilesExist(legacyCompactControlsImports, "styles");
@@ -955,6 +975,9 @@ checkFileContains("styles/features/node-image-generator-inline-edit.css", EXPECT
 checkFileContains("styles/features/node-preview.css", EXPECTED_NODE_PREVIEW_SELECTORS);
 checkFileContains("styles/features/node.css", EXPECTED_NODE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
+checkFileContains("styles/features/project-library-shell.css", EXPECTED_PROJECT_LIBRARY_SHELL_SELECTORS);
+checkFileContains("styles/features/project-library-cards.css", EXPECTED_PROJECT_LIBRARY_CARDS_SELECTORS);
+checkFileContains("styles/features/project-library-page.css", EXPECTED_PROJECT_LIBRARY_PAGE_SELECTORS);
 checkFileContains("styles/legacy-canvas.css", EXPECTED_LEGACY_CANVAS_SELECTORS);
 checkFileContains("styles/legacy-canvas-visual.css", EXPECTED_LEGACY_CANVAS_VISUAL_SELECTORS);
 checkFileContains("styles/legacy-node.css", EXPECTED_LEGACY_NODE_SELECTORS);

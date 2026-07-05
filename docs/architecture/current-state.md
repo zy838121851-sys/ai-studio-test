@@ -55,7 +55,7 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 99 | 13,363 |
+| `styles` | 101 | 13,257 |
 | `scripts` | 90 | 19,441 |
 
 Largest files in the current source tree:
@@ -106,8 +106,11 @@ Post-baseline CSS governance note:
   `styles/features/node-media-shell.css`, `styles/features/node-media-video.css`,
   `styles/features/node-media-frame.css`,
   `styles/features/node-generation.css`, `styles/features/node-image-generator.css`,
-  `styles/features/node-preview.css`, and `styles/features/node.css` so later
-  feature CSS migrations have a static safety net before visual smoke checks.
+  `styles/features/node-preview.css`, `styles/features/node.css`,
+  `styles/features/project-library-shell.css`,
+  `styles/features/project-library-cards.css`, and
+  `styles/features/project-library-page.css` so later feature CSS migrations
+  have a static safety net before visual smoke checks.
   `legacy-node.css` is currently a compatibility shim with no active selector
   ownership and is intentionally outside the active `legacy-split.css` import
   graph.
@@ -214,6 +217,15 @@ Post-baseline CSS governance note:
   animation styles; it is imported by `styles/features/home.css`.
 - `styles/features/home.css` is now a home feature CSS aggregation entry plus
   responsive overrides for home submodules.
+- `styles/features/project-library.css` is now a pure aggregation entry for
+  project library shell, cards, and page-view override styles.
+- `styles/features/project-library-shell.css` owns project library shell, title,
+  grid, header, selection bar, and empty-state styles.
+- `styles/features/project-library-cards.css` owns project library board, card,
+  selection check, new-card, thumbnail, and base responsive styles.
+- `styles/features/project-library-page.css` owns `body[data-view="library"]`
+  project library page overrides, mobile overrides, and library entry
+  animation.
 - `styles/legacy-theme-sync-base.css` owns root light/dark theme variables,
   dark canvas background, and the light/dark theme switch styles; it is
   imported by `styles/legacy-theme-sync.css`.
