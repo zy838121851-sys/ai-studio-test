@@ -1,0 +1,29 @@
+.node-image.cropping {
+  z-index: 80;
+}
+
+.node-image.expanding {
+  z-index: 82;
+}
+
+.node-image.cropping .image-node-toolbar,
+.node-image.expanding .image-node-toolbar,
+.node-image.cropping .node-expand,
+.node-image.expanding .node-expand,
+.node-image.cropping .node-download,
+.node-image.expanding .node-download,
+.node-image.cropping .canvas-asset-savebar,
+.node-image.expanding .canvas-asset-savebar,
+.node-image.cropping .resize-handle,
+.node-image.expanding .resize-handle {
+  opacity: 0;
+  pointer-events: none;
+}
+
+body.canvas-has-multi-selection .node-image .image-node-toolbar,
+body.canvas-has-multi-selection .node-image .canvas-asset-savebar,
+body.canvas-has-multi-selection .node-image .node-download,
+body.canvas-has-multi-selection .node-image .node-expand {
+  opacity: 0 !important;
+  pointer-events: none !important;
+}

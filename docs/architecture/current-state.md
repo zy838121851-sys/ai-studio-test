@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,683 |
 | `src/server` | 80 | 14,430 |
-| `styles` | 118 | 15,360 |
-| `scripts` | 90 | 21,402 |
+| `styles` | 121 | 15,366 |
+| `scripts` | 90 | 21,416 |
 
 Largest files in the current source tree:
 
@@ -70,7 +70,7 @@ Largest files in the current source tree:
 | 1,283 | `scripts/check-canvas-menu-actions.js` |
 | 1,121 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,119 | `scripts/check-library-bulk-select.js` |
-| 1,093 | `scripts/check-style-entry.js` |
+| 1,107 | `scripts/check-style-entry.js` |
 | 949 | `scripts/check-prompt-conversation-event-utils.js` |
 | 820 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
 | 811 | `src/server/services/ai-job.service.js` |
@@ -344,10 +344,17 @@ Post-baseline CSS governance note:
 - `styles/features/node-base.css` owns base node/card/resize/action styles that
   were moved out of `styles/legacy-node.css`; it is imported at the top of
   `styles/features/node.css` to preserve cascade order.
-- `styles/features/node-image-edit.css` owns crop controls, expand controls, and
-  crop/expand edit-state visibility suppression; it is imported by
+- `styles/features/node-image-edit.css` is now a pure aggregation entry for
+  image edit state, crop, and expand styles; it is imported by
   `styles/features/node.css` immediately after node base styles to preserve the
   previous cascade position.
+- `styles/features/node-image-edit-state.css` owns crop/expand z-index and
+  toolbar, savebar, download, expand, resize-handle, and multi-selection
+  visibility suppression.
+- `styles/features/node-image-crop.css` owns crop overlay, crop box, crop
+  handles, and crop action controls.
+- `styles/features/node-image-expand.css` owns image expand overlay, source
+  frame, expand handles, prompt field, action row, and confirming state styles.
 - `styles/features/node-state.css` owns generic node zoom/selected/source/label
   state styles; it is imported before image toolbar styles to preserve the
   previous cascade position.

@@ -101,6 +101,11 @@ const EXPECTED_NODE_IMAGE_GENERATOR_BASE_IMPORTS = [
   "./node-image-generator-panel.css",
   "./node-image-generator-glass.css"
 ];
+const EXPECTED_NODE_IMAGE_EDIT_IMPORTS = [
+  "./node-image-edit-state.css",
+  "./node-image-crop.css",
+  "./node-image-expand.css"
+];
 const EXPECTED_NODE_IMAGE_TOOLBAR_IMPORTS = [
   "./node-image-toolbar-base.css",
   "./node-image-toolbar-upscale.css",
@@ -573,10 +578,14 @@ const EXPECTED_NODE_BASE_SELECTORS = [
 ];
 const EXPECTED_NODE_IMAGE_EDIT_SELECTORS = [
   ".node-image.cropping",
-  ".node-image.expanding",
+  ".node-image.expanding"
+];
+const EXPECTED_NODE_IMAGE_CROP_SELECTORS = [
   ".node-crop-layer",
   ".crop-box",
-  ".crop-actions",
+  ".crop-actions"
+];
+const EXPECTED_NODE_IMAGE_EXPAND_SELECTORS = [
   ".image-expand-box",
   ".image-expand-source",
   ".image-expand-actions",
@@ -925,6 +934,7 @@ const legacyCanvasImports = parseCssImports("styles/legacy-canvas.css");
 const legacyCanvasVisualImports = parseCssImports("styles/legacy-canvas-visual.css");
 const authImports = parseCssImports("styles/features/auth.css");
 const nodeImports = parseCssImports("styles/features/node.css");
+const nodeImageEditImports = parseCssImports("styles/features/node-image-edit.css");
 const nodeImageToolbarImports = parseCssImports("styles/features/node-image-toolbar.css");
 const nodeImagePanelsImports = parseCssImports("styles/features/node-image-panels.css");
 const nodeStackImports = parseCssImports("styles/features/node-stack.css");
@@ -952,6 +962,7 @@ assertListEqual("styles/legacy-canvas.css", legacyCanvasImports, EXPECTED_LEGACY
 assertListEqual("styles/legacy-canvas-visual.css", legacyCanvasVisualImports, EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS);
 assertListEqual("styles/features/auth.css", authImports, EXPECTED_AUTH_IMPORTS);
 assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
+assertListEqual("styles/features/node-image-edit.css", nodeImageEditImports, EXPECTED_NODE_IMAGE_EDIT_IMPORTS);
 assertListEqual("styles/features/node-image-toolbar.css", nodeImageToolbarImports, EXPECTED_NODE_IMAGE_TOOLBAR_IMPORTS);
 assertListEqual("styles/features/node-image-panels.css", nodeImagePanelsImports, EXPECTED_NODE_IMAGE_PANELS_IMPORTS);
 assertListEqual("styles/features/node-stack.css", nodeStackImports, EXPECTED_NODE_STACK_IMPORTS);
@@ -976,6 +987,7 @@ checkImportedFilesExist(legacyCanvasImports, "styles");
 checkImportedFilesExist(legacyCanvasVisualImports, "styles");
 checkImportedFilesExist(authImports, "styles/features");
 checkImportedFilesExist(nodeImports, "styles/features");
+checkImportedFilesExist(nodeImageEditImports, "styles/features");
 checkImportedFilesExist(nodeImageToolbarImports, "styles/features");
 checkImportedFilesExist(nodeImagePanelsImports, "styles/features");
 checkImportedFilesExist(nodeStackImports, "styles/features");
@@ -1045,7 +1057,9 @@ checkFileContains("styles/features/home-community-channels.css", EXPECTED_HOME_C
 checkFileContains("styles/features/home-community-feed.css", EXPECTED_HOME_COMMUNITY_FEED_SELECTORS);
 checkFileContains("styles/features/home-community-inspiration.css", EXPECTED_HOME_COMMUNITY_INSPIRATION_SELECTORS);
 checkFileContains("styles/features/node-base.css", EXPECTED_NODE_BASE_SELECTORS);
-checkFileContains("styles/features/node-image-edit.css", EXPECTED_NODE_IMAGE_EDIT_SELECTORS);
+checkFileContains("styles/features/node-image-edit-state.css", EXPECTED_NODE_IMAGE_EDIT_SELECTORS);
+checkFileContains("styles/features/node-image-crop.css", EXPECTED_NODE_IMAGE_CROP_SELECTORS);
+checkFileContains("styles/features/node-image-expand.css", EXPECTED_NODE_IMAGE_EXPAND_SELECTORS);
 checkFileContains("styles/features/node-state.css", EXPECTED_NODE_STATE_SELECTORS);
 checkFileContains("styles/features/node-image-toolbar-base.css", EXPECTED_NODE_IMAGE_TOOLBAR_BASE_SELECTORS);
 checkFileContains("styles/features/node-image-toolbar-upscale.css", EXPECTED_NODE_IMAGE_TOOLBAR_UPSCALE_SELECTORS);

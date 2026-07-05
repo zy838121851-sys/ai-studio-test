@@ -108,6 +108,14 @@ styles/features/node-image-generator.css
 styles/features/node-preview.css
 ```
 
+`styles/features/node-image-edit.css` currently imports:
+
+```text
+styles/features/node-image-edit-state.css
+styles/features/node-image-crop.css
+styles/features/node-image-expand.css
+```
+
 `styles/features/node-image-generator.css` currently imports:
 
 ```text
@@ -469,10 +477,16 @@ Notes:
 - `features/node-base.css` owns base node/card/resize/action styles that were
   moved out of `legacy-node.css`; it is imported at the top of
   `features/node.css`.
-- `features/node-image-edit.css` owns crop controls, expand controls, and
-  crop/expand edit-state visibility suppression; it is imported by
-  `features/node.css` immediately after node base styles to preserve the
-  previous cascade position.
+- `features/node-image-edit.css` is now a pure aggregation entry for image edit
+  state, crop, and expand styles; it is imported by `features/node.css`
+  immediately after node base styles to preserve the previous cascade position.
+- `features/node-image-edit-state.css` owns crop/expand z-index and toolbar,
+  savebar, download, expand, resize-handle, and multi-selection visibility
+  suppression.
+- `features/node-image-crop.css` owns crop overlay, crop box, crop handles, and
+  crop action controls.
+- `features/node-image-expand.css` owns image expand overlay, source frame,
+  expand handles, prompt field, action row, and confirming state styles.
 - `features/node-state.css` owns generic node zoom/selected/source/label state
   styles; it is imported before image toolbar styles to preserve the previous
   cascade position.
@@ -693,6 +707,9 @@ styles/features/home-shell-model.css
 styles/features/home-shell-transition.css
 styles/features/node-base.css
 styles/features/node-image-edit.css
+styles/features/node-image-edit-state.css
+styles/features/node-image-crop.css
+styles/features/node-image-expand.css
 styles/features/node-state.css
 styles/features/node-image-toolbar.css
 styles/features/node-image-toolbar-base.css
@@ -829,7 +846,10 @@ Additional caution:
   `legacy-compact-bottom-controls.css`,
   migrated node base selectors in
   `features/node-base.css`,
-  migrated image edit selectors in `features/node-image-edit.css`, migrated node
+  migrated image edit imports in `features/node-image-edit.css`, migrated image
+  edit state selectors in `features/node-image-edit-state.css`, migrated crop
+  selectors in `features/node-image-crop.css`, migrated expand selectors in
+  `features/node-image-expand.css`, migrated node
   state selectors in `features/node-state.css`, migrated image toolbar imports
   in `features/node-image-toolbar.css`, migrated image toolbar base selectors in
   `features/node-image-toolbar-base.css`, migrated image toolbar upscale
