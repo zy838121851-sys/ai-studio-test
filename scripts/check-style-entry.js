@@ -123,6 +123,11 @@ const EXPECTED_ASSET_IMPORTS = [
   "./assets-context-menu.css",
   "./assets-pinterest.css"
 ];
+const EXPECTED_ASSET_PAGE_IMPORTS = [
+  "./assets-floating-library.css",
+  "./assets-page-view.css",
+  "./assets-page-pinterest-legacy.css"
+];
 const EXPECTED_ASSET_PINTEREST_IMPORTS = [
   "./assets-pinterest-board.css",
   "./assets-pinterest-shell.css",
@@ -257,11 +262,15 @@ const EXPECTED_AUTH_ACCOUNT_SELECTORS = [
 const EXPECTED_ASSET_PAGE_SELECTORS = [
   ".floating-library",
   ".upload-asset",
-  ".asset-list",
+  ".asset-list"
+];
+const EXPECTED_ASSET_PAGE_VIEW_SELECTORS = [
   ".assets-page-toolbar",
   ".assets-page-list",
   "body[data-view=\"assetsPage\"] .assets-page-view",
-  "body[data-view=\"assetsPage\"] .simple-page-shell",
+  "body[data-view=\"assetsPage\"] .simple-page-shell"
+];
+const EXPECTED_ASSET_PAGE_PINTEREST_LEGACY_SELECTORS = [
   ".asset-pinterest-shell",
   ".asset-pinterest-board",
   ".asset-pinterest-pin.asset-item",
@@ -894,6 +903,7 @@ const nodeStackImports = parseCssImports("styles/features/node-stack.css");
 const nodeMediaImports = parseCssImports("styles/features/node-media.css");
 const nodeImageGeneratorImports = parseCssImports("styles/features/node-image-generator.css");
 const assetImports = parseCssImports("styles/features/assets.css");
+const assetPageImports = parseCssImports("styles/features/assets-page.css");
 const assetPinterestImports = parseCssImports("styles/features/assets-pinterest.css");
 const homeImports = parseCssImports("styles/features/home.css");
 const homeCommunityImports = parseCssImports("styles/features/home-community.css");
@@ -918,6 +928,7 @@ assertListEqual("styles/features/node-stack.css", nodeStackImports, EXPECTED_NOD
 assertListEqual("styles/features/node-media.css", nodeMediaImports, EXPECTED_NODE_MEDIA_IMPORTS);
 assertListEqual("styles/features/node-image-generator.css", nodeImageGeneratorImports, EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS);
 assertListEqual("styles/features/assets.css", assetImports, EXPECTED_ASSET_IMPORTS);
+assertListEqual("styles/features/assets-page.css", assetPageImports, EXPECTED_ASSET_PAGE_IMPORTS);
 assertListEqual("styles/features/assets-pinterest.css", assetPinterestImports, EXPECTED_ASSET_PINTEREST_IMPORTS);
 assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
 assertListEqual("styles/features/home-community.css", homeCommunityImports, EXPECTED_HOME_COMMUNITY_IMPORTS);
@@ -939,6 +950,7 @@ checkImportedFilesExist(nodeStackImports, "styles/features");
 checkImportedFilesExist(nodeMediaImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorImports, "styles/features");
 checkImportedFilesExist(assetImports, "styles/features");
+checkImportedFilesExist(assetPageImports, "styles/features");
 checkImportedFilesExist(assetPinterestImports, "styles/features");
 checkImportedFilesExist(homeImports, "styles/features");
 checkImportedFilesExist(homeCommunityImports, "styles/features");
@@ -947,7 +959,9 @@ checkCssReachability();
 checkFileContains("styles/features/auth-account.css", EXPECTED_AUTH_ACCOUNT_SELECTORS);
 checkFileContains("styles/features/auth-credit-detail.css", EXPECTED_AUTH_CREDIT_DETAIL_SELECTORS);
 checkFileContains("styles/features/auth-dialog.css", EXPECTED_AUTH_DIALOG_SELECTORS);
-checkFileContains("styles/features/assets-page.css", EXPECTED_ASSET_PAGE_SELECTORS);
+checkFileContains("styles/features/assets-floating-library.css", EXPECTED_ASSET_PAGE_SELECTORS);
+checkFileContains("styles/features/assets-page-view.css", EXPECTED_ASSET_PAGE_VIEW_SELECTORS);
+checkFileContains("styles/features/assets-page-pinterest-legacy.css", EXPECTED_ASSET_PAGE_PINTEREST_LEGACY_SELECTORS);
 checkFileContains("styles/features/assets-board.css", EXPECTED_ASSET_BOARD_SELECTORS);
 checkFileContains("styles/features/assets-save.css", EXPECTED_ASSET_SAVE_SELECTORS);
 checkFileContains("styles/features/assets-picker.css", EXPECTED_ASSET_PICKER_SELECTORS);

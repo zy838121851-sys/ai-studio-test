@@ -157,6 +157,14 @@ styles/features/assets-context-menu.css
 styles/features/assets-pinterest.css
 ```
 
+`styles/features/assets-page.css` currently imports:
+
+```text
+styles/features/assets-floating-library.css
+styles/features/assets-page-view.css
+styles/features/assets-page-pinterest-legacy.css
+```
+
 `styles/features/assets-pinterest.css` currently imports:
 
 ```text
@@ -391,9 +399,16 @@ Notes:
   by `features/auth.css`.
 - `features/auth.css` is now a pure aggregation entry for auth account, credit
   detail, and auth dialog submodules.
-- `features/assets-page.css` owns floating asset library shell, upload
-  button/list basics, asset page shell, and first-pass Pinterest-style asset
-  page overview styles; it is imported by `features/assets.css`.
+- `features/assets-page.css` is now a pure aggregation entry for floating
+  library, asset page view, and first-pass Pinterest-style legacy asset page
+  styles; it is imported by `features/assets.css`.
+- `features/assets-floating-library.css` owns the floating asset library shell,
+  upload button, and asset list basics.
+- `features/assets-page-view.css` owns asset page toolbar/list and
+  `body[data-view="assetsPage"]` page-view overrides.
+- `features/assets-page-pinterest-legacy.css` owns first-pass Pinterest-style
+  asset page overview styles that predate the refreshed
+  `features/assets-pinterest.css` submodules.
 - `features/assets-board.css` owns asset board/list/card/thumb, move/delete
   action, and empty-state styles; it is imported by `features/assets.css`.
 - `features/assets-save.css` owns asset save popover and canvas asset board
@@ -614,6 +629,9 @@ styles/features/auth-credit-detail.css
 styles/features/auth-dialog.css
 styles/features/auth.css
 styles/features/assets-page.css
+styles/features/assets-floating-library.css
+styles/features/assets-page-view.css
+styles/features/assets-page-pinterest-legacy.css
 styles/features/assets-board.css
 styles/features/assets-save.css
 styles/features/assets-picker.css
@@ -744,7 +762,10 @@ Additional caution:
   `features/auth-account.css`, credit detail selectors in
   `features/auth-credit-detail.css`, auth dialog selectors in
   `features/auth-dialog.css`,
-  migrated asset page selectors in `features/assets-page.css`,
+  migrated asset page imports in `features/assets-page.css`, migrated floating
+  asset library selectors in `features/assets-floating-library.css`, migrated
+  asset page view selectors in `features/assets-page-view.css`, migrated legacy
+  asset page Pinterest selectors in `features/assets-page-pinterest-legacy.css`,
   migrated asset board selectors in `features/assets-board.css`, migrated asset
   save selectors in `features/assets-save.css`, migrated asset picker selectors
   in `features/assets-picker.css`, migrated canvas asset picker selectors in

@@ -53,33 +53,33 @@ Current source footprint, excluding `node_modules` and `dist`:
 
 | Area | Files | Lines |
 | --- | ---: | ---: |
-| `src/client` | 298 | 36,815 |
-| `src/server` | 80 | 13,381 |
-| `styles` | 108 | 13,264 |
-| `scripts` | 90 | 19,441 |
+| `src/client` | 298 | 39,683 |
+| `src/server` | 80 | 14,430 |
+| `styles` | 112 | 15,349 |
+| `scripts` | 90 | 21,364 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
-| 1,608 | `scripts/check-api-error-contract.js` |
-| 1,569 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
-| 1,446 | `scripts/check-generator-job-recovery.js` |
-| 1,252 | `src/server/services/conversation-orchestrator.service.js` |
-| 1,214 | `scripts/check-canvas-menu-actions.js` |
-| 1,203 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
-| 1,065 | `scripts/check-library-bulk-select.js` |
-| 1,030 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
-| 898 | `scripts/check-prompt-conversation-event-utils.js` |
-| 885 | `scripts/check-style-entry.js` |
-| 765 | `src/server/services/ai-job.service.js` |
-| 760 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
-| 713 | `src/client/features/canvas/model-viewer.js` |
-| 667 | `src/client/features/canvas/node-controls.js` |
-| 661 | `src/server/services/asset.service.js` |
-| 656 | `src/client/features/workspace/asset-library/asset-panel.js` |
-| 651 | `scripts/check-project-snapshot.js` |
-| 647 | `src/client/features/projects/workflows/project-workflow.js` |
+| 1,710 | `scripts/check-api-error-contract.js` |
+| 1,608 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
+| 1,480 | `scripts/check-generator-job-recovery.js` |
+| 1,303 | `src/server/services/conversation-orchestrator.service.js` |
+| 1,294 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
+| 1,283 | `scripts/check-canvas-menu-actions.js` |
+| 1,121 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
+| 1,119 | `scripts/check-library-bulk-select.js` |
+| 1,055 | `scripts/check-style-entry.js` |
+| 949 | `scripts/check-prompt-conversation-event-utils.js` |
+| 820 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
+| 811 | `src/server/services/ai-job.service.js` |
+| 782 | `src/client/features/canvas/model-viewer.js` |
+| 709 | `src/client/features/workspace/asset-library/asset-panel.js` |
+| 706 | `src/server/services/asset.service.js` |
+| 704 | `src/client/features/canvas/node-controls.js` |
+| 702 | `src/client/features/projects/workflows/project-workflow.js` |
+| 676 | `scripts/check-project-snapshot.js` |
 
 Post-baseline CSS governance note:
 
@@ -167,9 +167,16 @@ Post-baseline CSS governance note:
   of `styles/features/auth.css`.
 - `styles/features/auth.css` is now a pure aggregation entry for auth account,
   credit detail, and auth dialog submodules.
-- `styles/features/assets-page.css` owns floating asset library shell, upload
-  button/list basics, asset page shell, and first-pass Pinterest-style asset
-  page overview styles; it is imported by `styles/features/assets.css`.
+- `styles/features/assets-page.css` is now a pure aggregation entry for
+  floating asset library, asset page view, and first-pass Pinterest-style
+  legacy asset page styles; it is imported by `styles/features/assets.css`.
+- `styles/features/assets-floating-library.css` owns the floating asset library
+  shell, upload button, and asset list basics.
+- `styles/features/assets-page-view.css` owns asset page toolbar/list and
+  `body[data-view="assetsPage"]` page-view overrides.
+- `styles/features/assets-page-pinterest-legacy.css` owns first-pass
+  Pinterest-style asset page overview styles that predate the refreshed
+  `styles/features/assets-pinterest.css` submodules.
 - `styles/features/assets-board.css` owns asset board/list/card/thumb,
   move/delete action, and empty-state styles; it is imported by
   `styles/features/assets.css`.
