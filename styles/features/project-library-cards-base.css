@@ -1,0 +1,28 @@
+.project-card-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 20px;
+  width: min(1340px, calc(100vw - 220px));
+  margin: 0 auto;
+  align-items: stretch;
+}
+
+.library-new-card,
+.library-small-card > button:not(.library-card-check) {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  min-height: 238px;
+  padding: 12px;
+  border: 1px solid rgba(17, 24, 39, 0.045);
+  border-radius: 14px;
+  color: #17202c;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 16px 42px rgba(31, 46, 72, 0.055), inset 0 1px rgba(255, 255, 255, 0.94);
+  text-align: left;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, background 0.18s ease;
+}
+
+.library-small-card {
+  position: relative;
+}

@@ -1,0 +1,10 @@
+@media (max-width: 1200px) {
+  .library-page-header,
+  .project-card-board {
+    width: min(900px, calc(100vw - 48px));
+  }
+
+  .project-card-board {
+    grid-template-columns: repeat(3, minmax(190px, 1fr));
+  }
+}

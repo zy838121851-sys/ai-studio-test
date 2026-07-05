@@ -418,6 +418,12 @@ const ALLOWED_UNREACHABLE_CSS = [
 ];
 const EXPECTED_PROJECT_LIBRARY_SELECTORS = [
 ];
+const EXPECTED_PROJECT_LIBRARY_CARDS_IMPORTS = [
+  "./project-library-cards-base.css",
+  "./project-library-cards-selection.css",
+  "./project-library-cards-content.css",
+  "./project-library-cards-responsive.css"
+];
 const EXPECTED_PROJECT_LIBRARY_SHELL_SELECTORS = [
   ".library-shell",
   ".library-title",
@@ -427,11 +433,27 @@ const EXPECTED_PROJECT_LIBRARY_SHELL_SELECTORS = [
   ".project-empty"
 ];
 const EXPECTED_PROJECT_LIBRARY_CARDS_SELECTORS = [
+  "@import url(\"./project-library-cards-base.css\")",
+  "@import url(\"./project-library-cards-selection.css\")",
+  "@import url(\"./project-library-cards-content.css\")",
+  "@import url(\"./project-library-cards-responsive.css\")"
+];
+const EXPECTED_PROJECT_LIBRARY_CARDS_BASE_SELECTORS = [
   ".project-card-board",
-  ".library-small-card",
+  ".library-new-card",
+  ".library-small-card"
+];
+const EXPECTED_PROJECT_LIBRARY_CARDS_SELECTION_SELECTORS = [
   ".library-card-check",
   ".library-small-card.selected",
+  ".library-small-card.selected .library-card-check"
+];
+const EXPECTED_PROJECT_LIBRARY_CARDS_CONTENT_SELECTORS = [
   ".library-new-card",
+  ".library-small-card img",
+  ".library-small-card strong"
+];
+const EXPECTED_PROJECT_LIBRARY_CARDS_RESPONSIVE_SELECTORS = [
   "@media (max-width: 1200px)"
 ];
 const EXPECTED_PROJECT_LIBRARY_PAGE_SELECTORS = [
@@ -1738,6 +1760,7 @@ const imageCompareImports = parseCssImports("styles/image-compare.css");
 const taskLogImports = parseCssImports("styles/task-log.css");
 const workspaceImports = parseCssImports("styles/workspace.css");
 const projectLibraryImports = parseCssImports("styles/features/project-library.css");
+const projectLibraryCardsImports = parseCssImports("styles/features/project-library-cards.css");
 const legacySplitImports = parseCssImports("styles/legacy-split.css");
 const legacyBaseImports = parseCssImports("styles/legacy-base.css");
 const legacyThemeIosImports = parseCssImports("styles/legacy-theme-ios.css");
@@ -1806,6 +1829,7 @@ assertListEqual("styles/image-compare.css", imageCompareImports, EXPECTED_IMAGE_
 assertListEqual("styles/task-log.css", taskLogImports, EXPECTED_TASK_LOG_IMPORTS);
 assertListEqual("styles/workspace.css", workspaceImports, EXPECTED_WORKSPACE_IMPORTS);
 assertListEqual("styles/features/project-library.css", projectLibraryImports, EXPECTED_PROJECT_LIBRARY_IMPORTS);
+assertListEqual("styles/features/project-library-cards.css", projectLibraryCardsImports, EXPECTED_PROJECT_LIBRARY_CARDS_IMPORTS);
 assertListEqual("styles/legacy-split.css", legacySplitImports, EXPECTED_LEGACY_SPLIT_IMPORTS);
 assertListEqual("styles/legacy-base.css", legacyBaseImports, EXPECTED_LEGACY_BASE_IMPORTS);
 assertListEqual("styles/legacy-theme-ios.css", legacyThemeIosImports, EXPECTED_LEGACY_THEME_IOS_IMPORTS);
@@ -1872,6 +1896,7 @@ checkImportedFilesExist(imageCompareImports, "styles");
 checkImportedFilesExist(taskLogImports, "styles");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(projectLibraryImports, "styles/features");
+checkImportedFilesExist(projectLibraryCardsImports, "styles/features");
 checkImportedFilesExist(legacySplitImports, "styles");
 checkImportedFilesExist(legacyThemeIosImports, "styles");
 checkImportedFilesExist(legacyChatImports, "styles");
@@ -2145,6 +2170,10 @@ checkFileContains("styles/features/node.css", EXPECTED_NODE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
 checkFileContains("styles/features/project-library-shell.css", EXPECTED_PROJECT_LIBRARY_SHELL_SELECTORS);
 checkFileContains("styles/features/project-library-cards.css", EXPECTED_PROJECT_LIBRARY_CARDS_SELECTORS);
+checkFileContains("styles/features/project-library-cards-base.css", EXPECTED_PROJECT_LIBRARY_CARDS_BASE_SELECTORS);
+checkFileContains("styles/features/project-library-cards-selection.css", EXPECTED_PROJECT_LIBRARY_CARDS_SELECTION_SELECTORS);
+checkFileContains("styles/features/project-library-cards-content.css", EXPECTED_PROJECT_LIBRARY_CARDS_CONTENT_SELECTORS);
+checkFileContains("styles/features/project-library-cards-responsive.css", EXPECTED_PROJECT_LIBRARY_CARDS_RESPONSIVE_SELECTORS);
 checkFileContains("styles/features/project-library-page.css", EXPECTED_PROJECT_LIBRARY_PAGE_SELECTORS);
 checkFileContains("styles/legacy-canvas.css", EXPECTED_LEGACY_CANVAS_SELECTORS);
 checkFileContains("styles/legacy-canvas-visual.css", EXPECTED_LEGACY_CANVAS_VISUAL_SELECTORS);
