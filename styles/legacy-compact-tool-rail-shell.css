@@ -1,0 +1,73 @@
+.tool-rail {
+  left: 20px !important;
+  top: 50% !important;
+  width: 64px !important;
+  min-height: 64px;
+  padding: 8px !important;
+  border-radius: 34px !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  overflow: visible;
+  transform-origin: center left;
+  transition:
+    width 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+    min-height 0.24s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.24s ease,
+    background 0.24s ease,
+    transform 0.24s ease;
+}
+
+.rail-main {
+  position: relative;
+  display: grid !important;
+  place-items: center !important;
+  width: 48px !important;
+  height: 48px !important;
+  padding: 0 !important;
+  color: #8b949e !important;
+  background: rgba(255, 255, 255, 0.94) !important;
+  font-size: 0 !important;
+  font-weight: 300;
+  line-height: 1 !important;
+  box-shadow: 0 12px 26px rgba(31, 46, 72, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.96) !important;
+  transform: scale(1);
+  transition:
+    color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.rail-main::before,
+.rail-main::after {
+  content: none;
+}
+
+.rail-main-icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.tool-rail:not(.collapsed) .rail-main {
+  color: #8b949e !important;
+  transform: scale(1);
+}
+
+.rail-main-icon path {
+  transition: opacity 0.18s ease;
+}
+
+.tool-rail.collapsed .rail-icon-close,
+.tool-rail:not(.collapsed) .rail-icon-plus {
+  opacity: 0;
+}
+
+.tool-rail.collapsed .rail-icon-plus,
+.tool-rail:not(.collapsed) .rail-icon-close {
+  opacity: 1;
+}

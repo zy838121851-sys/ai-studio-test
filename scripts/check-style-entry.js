@@ -71,6 +71,11 @@ const EXPECTED_LEGACY_COMPACT_CONTROLS_IMPORTS = [
   "./legacy-compact-tool-rail.css",
   "./legacy-compact-bottom-controls.css"
 ];
+const EXPECTED_LEGACY_COMPACT_TOOL_RAIL_IMPORTS = [
+  "./legacy-compact-tool-rail-shell.css",
+  "./legacy-compact-tool-rail-items.css",
+  "./legacy-compact-tool-rail-light.css"
+];
 const EXPECTED_LEGACY_THEME_SYNC_IMPORTS = [
   "./legacy-theme-sync-base.css",
   "./legacy-theme-sync-surfaces.css",
@@ -1530,14 +1535,23 @@ const EXPECTED_LEGACY_COMPACT_BOTTOM_CONTROLS_SELECTORS = [
   "body[data-theme=\"light\"] .zoom-stepper"
 ];
 const EXPECTED_LEGACY_COMPACT_TOOL_RAIL_SELECTORS = [
+  "@import url(\"./legacy-compact-tool-rail-shell.css\")",
+  "@import url(\"./legacy-compact-tool-rail-items.css\")",
+  "@import url(\"./legacy-compact-tool-rail-light.css\")"
+];
+const EXPECTED_LEGACY_COMPACT_TOOL_RAIL_SHELL_SELECTORS = [
   ".tool-rail",
   ".rail-main",
-  ".rail-main-icon",
+  ".rail-main-icon"
+];
+const EXPECTED_LEGACY_COMPACT_TOOL_RAIL_ITEMS_SELECTORS = [
   ".rail-items",
   ".rail-btn",
   ".rail-btn.add",
   ".rail-btn.jump",
-  ".rail-separator",
+  ".rail-separator"
+];
+const EXPECTED_LEGACY_COMPACT_TOOL_RAIL_LIGHT_SELECTORS = [
   "body[data-theme=\"light\"] .tool-rail"
 ];
 const EXPECTED_LEGACY_COMPACT_PROJECT_MENU_SELECTORS = [
@@ -1694,6 +1708,7 @@ const legacyBaseImports = parseCssImports("styles/legacy-base.css");
 const legacyThemeIosImports = parseCssImports("styles/legacy-theme-ios.css");
 const legacyChatImports = parseCssImports("styles/legacy-chat.css");
 const legacyCompactControlsImports = parseCssImports("styles/legacy-compact-controls.css");
+const legacyCompactToolRailImports = parseCssImports("styles/legacy-compact-tool-rail.css");
 const legacyThemeSyncImports = parseCssImports("styles/legacy-theme-sync.css");
 const legacyThemeSyncNodeMediaImports = parseCssImports("styles/legacy-theme-sync-node-media.css");
 const legacyThemeSyncModelPreferenceImports = parseCssImports("styles/legacy-theme-sync-model-preference.css");
@@ -1759,6 +1774,7 @@ assertListEqual("styles/legacy-base.css", legacyBaseImports, EXPECTED_LEGACY_BAS
 assertListEqual("styles/legacy-theme-ios.css", legacyThemeIosImports, EXPECTED_LEGACY_THEME_IOS_IMPORTS);
 assertListEqual("styles/legacy-chat.css", legacyChatImports, EXPECTED_LEGACY_CHAT_IMPORTS);
 assertListEqual("styles/legacy-compact-controls.css", legacyCompactControlsImports, EXPECTED_LEGACY_COMPACT_CONTROLS_IMPORTS);
+assertListEqual("styles/legacy-compact-tool-rail.css", legacyCompactToolRailImports, EXPECTED_LEGACY_COMPACT_TOOL_RAIL_IMPORTS);
 assertListEqual("styles/legacy-theme-sync.css", legacyThemeSyncImports, EXPECTED_LEGACY_THEME_SYNC_IMPORTS);
 assertListEqual("styles/legacy-theme-sync-node-media.css", legacyThemeSyncNodeMediaImports, EXPECTED_LEGACY_THEME_SYNC_NODE_MEDIA_IMPORTS);
 assertListEqual("styles/legacy-theme-sync-model-preference.css", legacyThemeSyncModelPreferenceImports, EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_IMPORTS);
@@ -1821,6 +1837,7 @@ checkImportedFilesExist(legacySplitImports, "styles");
 checkImportedFilesExist(legacyThemeIosImports, "styles");
 checkImportedFilesExist(legacyChatImports, "styles");
 checkImportedFilesExist(legacyCompactControlsImports, "styles");
+checkImportedFilesExist(legacyCompactToolRailImports, "styles");
 checkImportedFilesExist(legacyThemeSyncImports, "styles");
 checkImportedFilesExist(legacyThemeSyncNodeMediaImports, "styles");
 checkImportedFilesExist(legacyThemeSyncModelPreferenceImports, "styles");
@@ -2093,6 +2110,9 @@ checkFileContains("styles/legacy-chat-responsive.css", EXPECTED_LEGACY_CHAT_RESP
 checkFileContains("styles/legacy-compact-bottom-controls.css", EXPECTED_LEGACY_COMPACT_BOTTOM_CONTROLS_SELECTORS);
 checkFileContains("styles/legacy-compact-project-menu.css", EXPECTED_LEGACY_COMPACT_PROJECT_MENU_SELECTORS);
 checkFileContains("styles/legacy-compact-tool-rail.css", EXPECTED_LEGACY_COMPACT_TOOL_RAIL_SELECTORS);
+checkFileContains("styles/legacy-compact-tool-rail-shell.css", EXPECTED_LEGACY_COMPACT_TOOL_RAIL_SHELL_SELECTORS);
+checkFileContains("styles/legacy-compact-tool-rail-items.css", EXPECTED_LEGACY_COMPACT_TOOL_RAIL_ITEMS_SELECTORS);
+checkFileContains("styles/legacy-compact-tool-rail-light.css", EXPECTED_LEGACY_COMPACT_TOOL_RAIL_LIGHT_SELECTORS);
 
 if (errors.length > 0) {
   console.error("Style entry check failed:");
