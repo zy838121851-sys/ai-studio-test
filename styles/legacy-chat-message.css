@@ -1,0 +1,108 @@
+.message {
+  max-width: 92%;
+  padding: 11px 12px;
+  border-radius: 8px;
+  line-height: 1.55;
+  font-size: 13px;
+}
+
+.message.assistant {
+  align-self: flex-start;
+  color: #e6ebf1;
+  background: #242424;
+}
+
+.message.thinking {
+  display: grid;
+  gap: 8px;
+  color: #d9e2ec;
+  background: #202225;
+}
+
+.message.thinking strong {
+  font-size: 13px;
+}
+
+.message.thinking ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.thinking-summary {
+  padding: 8px 10px;
+  border-radius: 8px;
+  color: #bfc8d4;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.thinking-summary summary {
+  cursor: pointer;
+  color: #edf2f7;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.thinking-summary p {
+  margin: 6px 0 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.message.thinking li {
+  color: #858c95;
+  font-size: 12px;
+}
+
+.message.thinking li::before {
+  content: "-";
+  margin-right: 6px;
+}
+
+.message.thinking li.active {
+  color: #e9eef5;
+}
+
+.message.thinking li.active::before {
+  content: ">";
+}
+
+.message.thinking li.done {
+  color: #9bdab8;
+}
+
+.message.thinking li.failed {
+  color: #ffb4a8;
+}
+
+.message.loading::before {
+  content: "";
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  margin-right: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.24);
+  border-top-color: #e6edf4;
+  border-radius: 50%;
+  vertical-align: -2px;
+  animation: spinLoading 0.8s linear infinite;
+}
+
+.image-message {
+  display: grid;
+  gap: 8px;
+  max-width: 220px;
+}
+
+.image-message img {
+  width: 180px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.image-message span {
+  color: #cfd6df;
+  font-size: 12px;
+}
