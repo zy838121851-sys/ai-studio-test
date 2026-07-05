@@ -151,6 +151,11 @@ const EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS = [
   "./legacy-canvas-visual-media.css",
   "./legacy-canvas-visual-shell.css"
 ];
+const EXPECTED_LEGACY_CANVAS_VISUAL_SHELL_IMPORTS = [
+  "./legacy-canvas-visual-shell-brand-menu.css",
+  "./legacy-canvas-visual-shell-home-menu.css",
+  "./legacy-canvas-visual-shell-simple-page.css"
+];
 const EXPECTED_LEGACY_CANVAS_VISUAL_SHAPE_TOOLS_IMPORTS = [
   "./legacy-canvas-visual-selection-draw.css",
   "./legacy-canvas-visual-text-editor.css",
@@ -1275,9 +1280,19 @@ const EXPECTED_LEGACY_CANVAS_VISUAL_MEDIA_SELECTORS = [
   "body[data-view=\"canvas\"] .resize-handle"
 ];
 const EXPECTED_LEGACY_CANVAS_VISUAL_SHELL_SELECTORS = [
+  "@import url(\"./legacy-canvas-visual-shell-brand-menu.css\")",
+  "@import url(\"./legacy-canvas-visual-shell-home-menu.css\")",
+  "@import url(\"./legacy-canvas-visual-shell-simple-page.css\")"
+];
+const EXPECTED_LEGACY_CANVAS_VISUAL_SHELL_BRAND_MENU_SELECTORS = [
   ".brand-mark",
-  ".brand-menu",
+  ".brand-menu"
+];
+const EXPECTED_LEGACY_CANVAS_VISUAL_SHELL_HOME_MENU_SELECTORS = [
   ".home-side-menu",
+  "body[data-view=\"canvas\"] .home-side-menu"
+];
+const EXPECTED_LEGACY_CANVAS_VISUAL_SHELL_SIMPLE_PAGE_SELECTORS = [
   ".simple-page-view"
 ];
 const EXPECTED_LEGACY_CANVAS_VISUAL_SELECTORS = [];
@@ -1691,6 +1706,7 @@ const legacyCanvasProjectHeaderImports = parseCssImports("styles/legacy-canvas-p
 const legacyCanvasShellImports = parseCssImports("styles/legacy-canvas-shell.css");
 const legacyCanvasImageEditImports = parseCssImports("styles/legacy-canvas-image-edit.css");
 const legacyCanvasVisualImports = parseCssImports("styles/legacy-canvas-visual.css");
+const legacyCanvasVisualShellImports = parseCssImports("styles/legacy-canvas-visual-shell.css");
 const legacyCanvasVisualShapeToolsImports = parseCssImports("styles/legacy-canvas-visual-shape-tools.css");
 const authImports = parseCssImports("styles/features/auth.css");
 const authCreditDetailImports = parseCssImports("styles/features/auth-credit-detail.css");
@@ -1755,6 +1771,7 @@ assertListEqual("styles/legacy-canvas-project-header.css", legacyCanvasProjectHe
 assertListEqual("styles/legacy-canvas-shell.css", legacyCanvasShellImports, EXPECTED_LEGACY_CANVAS_SHELL_IMPORTS);
 assertListEqual("styles/legacy-canvas-image-edit.css", legacyCanvasImageEditImports, EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_IMPORTS);
 assertListEqual("styles/legacy-canvas-visual.css", legacyCanvasVisualImports, EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS);
+assertListEqual("styles/legacy-canvas-visual-shell.css", legacyCanvasVisualShellImports, EXPECTED_LEGACY_CANVAS_VISUAL_SHELL_IMPORTS);
 assertListEqual("styles/legacy-canvas-visual-shape-tools.css", legacyCanvasVisualShapeToolsImports, EXPECTED_LEGACY_CANVAS_VISUAL_SHAPE_TOOLS_IMPORTS);
 assertListEqual("styles/features/auth.css", authImports, EXPECTED_AUTH_IMPORTS);
 assertListEqual("styles/features/auth-credit-detail.css", authCreditDetailImports, EXPECTED_AUTH_CREDIT_DETAIL_IMPORTS);
@@ -1816,6 +1833,7 @@ checkImportedFilesExist(legacyCanvasProjectHeaderImports, "styles");
 checkImportedFilesExist(legacyCanvasShellImports, "styles");
 checkImportedFilesExist(legacyCanvasImageEditImports, "styles");
 checkImportedFilesExist(legacyCanvasVisualImports, "styles");
+checkImportedFilesExist(legacyCanvasVisualShellImports, "styles");
 checkImportedFilesExist(legacyCanvasVisualShapeToolsImports, "styles");
 checkImportedFilesExist(authImports, "styles/features");
 checkImportedFilesExist(authCreditDetailImports, "styles/features");
@@ -2008,6 +2026,9 @@ checkFileContains("styles/legacy-canvas-visual-shape-toolbar.css", EXPECTED_LEGA
 checkFileContains("styles/legacy-canvas-visual-text-toolbar.css", EXPECTED_LEGACY_CANVAS_VISUAL_TEXT_TOOLBAR_SELECTORS);
 checkFileContains("styles/legacy-canvas-visual-media.css", EXPECTED_LEGACY_CANVAS_VISUAL_MEDIA_SELECTORS);
 checkFileContains("styles/legacy-canvas-visual-shell.css", EXPECTED_LEGACY_CANVAS_VISUAL_SHELL_SELECTORS);
+checkFileContains("styles/legacy-canvas-visual-shell-brand-menu.css", EXPECTED_LEGACY_CANVAS_VISUAL_SHELL_BRAND_MENU_SELECTORS);
+checkFileContains("styles/legacy-canvas-visual-shell-home-menu.css", EXPECTED_LEGACY_CANVAS_VISUAL_SHELL_HOME_MENU_SELECTORS);
+checkFileContains("styles/legacy-canvas-visual-shell-simple-page.css", EXPECTED_LEGACY_CANVAS_VISUAL_SHELL_SIMPLE_PAGE_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/home-shell.css", EXPECTED_HOME_SHELL_SELECTORS);
 checkFileContains("styles/features/home-shell-boot.css", EXPECTED_HOME_SHELL_BOOT_SELECTORS);
