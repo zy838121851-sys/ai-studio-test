@@ -55,7 +55,7 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 94 | 13,358 |
+| `styles` | 96 | 13,360 |
 | `scripts` | 90 | 19,441 |
 
 Largest files in the current source tree:
@@ -101,6 +101,7 @@ Post-baseline CSS governance note:
   `styles/features/node-image-panels.css`,
   `styles/features/node-image-text-panel.css`,
   `styles/features/node-image-lightbox.css`, `styles/features/node-stack.css`,
+  `styles/features/node-stack-base.css`, `styles/features/node-stack-tray.css`,
   `styles/features/node-director.css`, `styles/features/node-media.css`,
   `styles/features/node-generation.css`, `styles/features/node-image-generator.css`,
   `styles/features/node-preview.css`, and `styles/features/node.css` so later
@@ -321,7 +322,12 @@ Post-baseline CSS governance note:
   status, editable input list, footer actions, and loading apply state styles.
 - `styles/features/node-image-lightbox.css` owns image lightbox overlay, figure,
   image, caption, and close button styles.
-- `styles/features/node-stack.css` owns stack/folded node styles.
+- `styles/features/node-stack.css` is now a pure aggregation entry for stack
+  base and tray styles.
+- `styles/features/node-stack-base.css` owns stack hidden/member state, stacked
+  card depth shadows, drop target state, and stack toggle styles.
+- `styles/features/node-stack-tray.css` owns stack tray, row, thumbnail, title,
+  and metadata styles.
 - `styles/features/node-director.css` owns director node styles.
 - `styles/features/node-media.css` owns image/video/model node shell, image
   frame, and video file preview styles.

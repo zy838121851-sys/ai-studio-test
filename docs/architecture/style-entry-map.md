@@ -122,6 +122,13 @@ styles/features/node-image-text-panel.css
 styles/features/node-image-lightbox.css
 ```
 
+`styles/features/node-stack.css` currently imports:
+
+```text
+styles/features/node-stack-base.css
+styles/features/node-stack-tray.css
+```
+
 `styles/features/assets.css` currently imports:
 
 ```text
@@ -422,7 +429,12 @@ Notes:
   editable input list, footer actions, and loading apply state styles.
 - `features/node-image-lightbox.css` owns image lightbox overlay, figure, image,
   caption, and close button styles.
-- `features/node-stack.css` owns stack/folded node styles.
+- `features/node-stack.css` is now a pure aggregation entry for stack base and
+  tray styles.
+- `features/node-stack-base.css` owns stack hidden/member state, stacked card
+  depth shadows, drop target state, and stack toggle styles.
+- `features/node-stack-tray.css` owns stack tray, row, thumbnail, title, and
+  metadata styles.
 - `features/node-director.css` owns director node styles.
 - `features/node-media.css` owns image/video/model node shell, image frame, and
   video file preview styles.
@@ -573,6 +585,8 @@ styles/features/node-image-panels.css
 styles/features/node-image-text-panel.css
 styles/features/node-image-lightbox.css
 styles/features/node-stack.css
+styles/features/node-stack-base.css
+styles/features/node-stack-tray.css
 styles/features/node-director.css
 styles/features/node-media.css
 styles/features/node-generation.css
@@ -694,8 +708,10 @@ Additional caution:
   asset savebar selectors in `features/node-image-toolbar-savebar.css`, migrated
   image panel imports in `features/node-image-panels.css`, migrated image text
   panel selectors in `features/node-image-text-panel.css`, migrated image
-  lightbox selectors in `features/node-image-lightbox.css`, migrated stack selectors in
-  `features/node-stack.css`, migrated director selectors in
+  lightbox selectors in `features/node-image-lightbox.css`, migrated stack
+  imports in `features/node-stack.css`, migrated stack base selectors in
+  `features/node-stack-base.css`, migrated stack tray selectors in
+  `features/node-stack-tray.css`, migrated director selectors in
   `features/node-director.css`, migrated media node selectors in
   `features/node-media.css`, migrated generation preview selectors in
   `features/node-generation.css`, migrated image generator base selectors in
