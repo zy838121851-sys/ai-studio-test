@@ -1,0 +1,99 @@
+.bottom-controls {
+  left: 14px !important;
+  bottom: 16px !important;
+  display: flex !important;
+  gap: 12px !important;
+  height: auto !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.zoom-stepper,
+.history-controls {
+  display: flex;
+  align-items: center;
+  height: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 10px;
+  background: rgba(238, 239, 247, 0.86);
+  box-shadow: 0 14px 34px rgba(31, 46, 72, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(22px) saturate(1.35);
+  -webkit-backdrop-filter: blur(22px) saturate(1.35);
+}
+
+.zoom-stepper {
+  width: 176px;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+
+.history-controls {
+  width: 100px;
+  justify-content: center;
+  gap: 8px;
+}
+
+.zoom-stepper button,
+.history-controls button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  color: #182230 !important;
+  background: transparent !important;
+  font-size: 26px !important;
+  line-height: 1;
+}
+
+.history-controls button {
+  font-size: 21px !important;
+}
+
+.history-controls button:disabled {
+  color: rgba(102, 112, 133, 0.34) !important;
+}
+
+.zoom-stepper span {
+  min-width: 58px !important;
+  color: #111827 !important;
+  text-align: center;
+  font-size: 15px !important;
+}
+
+.zoom-stepper input {
+  position: absolute;
+  width: 1px !important;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* Final polish: glass controls */
+
+body[data-theme="light"] .bottom-controls {
+  gap: 14px !important;
+}
+
+body[data-theme="light"] .zoom-stepper,
+body[data-theme="light"] .history-controls {
+  height: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(238, 241, 248, 0.5)) !important;
+  box-shadow:
+    0 18px 42px rgba(31, 46, 72, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96),
+    inset 0 -14px 24px rgba(31, 46, 72, 0.04) !important;
+  backdrop-filter: blur(28px) saturate(1.55) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(1.55) !important;
+}
+
+body[data-theme="light"] .zoom-stepper button,
+body[data-theme="light"] .history-controls button {
+}

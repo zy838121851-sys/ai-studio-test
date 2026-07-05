@@ -44,7 +44,8 @@ const EXPECTED_LEGACY_CHAT_IMPORTS = [
 ];
 const EXPECTED_LEGACY_COMPACT_CONTROLS_IMPORTS = [
   "./legacy-compact-project-menu.css",
-  "./legacy-compact-tool-rail.css"
+  "./legacy-compact-tool-rail.css",
+  "./legacy-compact-bottom-controls.css"
 ];
 const EXPECTED_LEGACY_THEME_SYNC_IMPORTS = [
   "./legacy-theme-sync-base.css",
@@ -608,10 +609,12 @@ const EXPECTED_LEGACY_CHAT_RESPONSIVE_SELECTORS = [
   ".empty-state-actions",
   ".tool-rail"
 ];
-const EXPECTED_LEGACY_COMPACT_CONTROLS_SELECTORS = [
+const EXPECTED_LEGACY_COMPACT_BOTTOM_CONTROLS_SELECTORS = [
   ".bottom-controls",
   ".zoom-stepper",
-  ".history-controls"
+  ".history-controls",
+  "body[data-theme=\"light\"] .bottom-controls",
+  "body[data-theme=\"light\"] .zoom-stepper"
 ];
 const EXPECTED_LEGACY_COMPACT_TOOL_RAIL_SELECTORS = [
   ".tool-rail",
@@ -876,7 +879,7 @@ checkFileContains("styles/legacy-chat-composer.css", EXPECTED_LEGACY_CHAT_COMPOS
 checkFileContains("styles/legacy-chat-message.css", EXPECTED_LEGACY_CHAT_MESSAGE_SELECTORS);
 checkFileContains("styles/legacy-chat-shell.css", EXPECTED_LEGACY_CHAT_SHELL_SELECTORS);
 checkFileContains("styles/legacy-chat-responsive.css", EXPECTED_LEGACY_CHAT_RESPONSIVE_SELECTORS);
-checkFileContains("styles/legacy-compact-controls.css", EXPECTED_LEGACY_COMPACT_CONTROLS_SELECTORS);
+checkFileContains("styles/legacy-compact-bottom-controls.css", EXPECTED_LEGACY_COMPACT_BOTTOM_CONTROLS_SELECTORS);
 checkFileContains("styles/legacy-compact-project-menu.css", EXPECTED_LEGACY_COMPACT_PROJECT_MENU_SELECTORS);
 checkFileContains("styles/legacy-compact-tool-rail.css", EXPECTED_LEGACY_COMPACT_TOOL_RAIL_SELECTORS);
 

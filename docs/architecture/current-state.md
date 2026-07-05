@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 83 | 13,347 |
-| `scripts` | 90 | 19,414 |
+| `styles` | 84 | 13,348 |
+| `scripts` | 90 | 19,417 |
 
 Largest files in the current source tree:
 
@@ -71,7 +71,7 @@ Largest files in the current source tree:
 | 1,065 | `scripts/check-library-bulk-select.js` |
 | 1,030 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 898 | `scripts/check-prompt-conversation-event-utils.js` |
-| 858 | `scripts/check-style-entry.js` |
+| 861 | `scripts/check-style-entry.js` |
 | 765 | `src/server/services/ai-job.service.js` |
 | 760 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
 | 713 | `src/client/features/canvas/model-viewer.js` |
@@ -132,6 +132,11 @@ Post-baseline CSS governance note:
   rail button, rail separator, and light-theme rail polish styles moved out of
   `styles/legacy-compact-controls.css`; it is imported by
   `styles/legacy-compact-controls.css`.
+- `styles/legacy-compact-bottom-controls.css` owns bottom controls,
+  zoom stepper, history controls, and light-theme glass control polish moved
+  out of `styles/legacy-compact-controls.css`; `styles/legacy-compact-controls.css`
+  is now a pure aggregation entry for compact project menu, tool rail, and
+  bottom controls styles.
 - `styles/features/auth-account.css` owns auth entry, authenticated avatar
   button, account popover, points row, and account menu styles; it is imported
   by `styles/features/auth.css`.
