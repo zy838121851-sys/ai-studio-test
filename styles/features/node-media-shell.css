@@ -1,0 +1,36 @@
+.node-2d {
+  background:
+    radial-gradient(circle at 82% 20%, rgba(127, 200, 255, 0.42), transparent 30%),
+    linear-gradient(135deg, #f7fafc, #dff5ef);
+}
+
+.node-3d,
+.node-video {
+  color: #f6f8fb;
+  background: #17191d;
+}
+
+.node-3d p,
+.node-video p,
+.node-model p {
+  color: #bac4ce;
+}
+
+.node-image,
+.node-model,
+.node-loading-image {
+  width: 320px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  color: #d8d8d8;
+  background: transparent;
+  box-shadow: none;
+}
+
+.node-image.selected,
+.node-model.selected,
+.node-loading-image.selected {
+  border-color: transparent;
+  box-shadow: none;
+}

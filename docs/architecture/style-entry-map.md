@@ -129,6 +129,14 @@ styles/features/node-stack-base.css
 styles/features/node-stack-tray.css
 ```
 
+`styles/features/node-media.css` currently imports:
+
+```text
+styles/features/node-media-shell.css
+styles/features/node-media-video.css
+styles/features/node-media-frame.css
+```
+
 `styles/features/assets.css` currently imports:
 
 ```text
@@ -436,8 +444,14 @@ Notes:
 - `features/node-stack-tray.css` owns stack tray, row, thumbnail, title, and
   metadata styles.
 - `features/node-director.css` owns director node styles.
-- `features/node-media.css` owns image/video/model node shell, image frame, and
-  video file preview styles.
+- `features/node-media.css` is now a pure aggregation entry for media shell,
+  video preview, and media frame styles.
+- `features/node-media-shell.css` owns 2D, 3D, image, model, video, and
+  loading-image node shell styles.
+- `features/node-media-video.css` owns video node selected state, hidden node
+  text, and video file preview styles.
+- `features/node-media-frame.css` owns image/model selected frame outline,
+  image filename, image frame, and image drag suppression styles.
 - `features/node-generation.css` owns temporary generation preview frame and
   shimmer animation styles.
 - `features/node-image-generator-base.css` owns image generator node, stage,
@@ -589,6 +603,9 @@ styles/features/node-stack-base.css
 styles/features/node-stack-tray.css
 styles/features/node-director.css
 styles/features/node-media.css
+styles/features/node-media-shell.css
+styles/features/node-media-video.css
+styles/features/node-media-frame.css
 styles/features/node-generation.css
 styles/features/node-image-generator.css
 styles/features/node-image-generator-base.css
@@ -712,8 +729,11 @@ Additional caution:
   imports in `features/node-stack.css`, migrated stack base selectors in
   `features/node-stack-base.css`, migrated stack tray selectors in
   `features/node-stack-tray.css`, migrated director selectors in
-  `features/node-director.css`, migrated media node selectors in
-  `features/node-media.css`, migrated generation preview selectors in
+  `features/node-director.css`, migrated media imports in
+  `features/node-media.css`, migrated media shell selectors in
+  `features/node-media-shell.css`, migrated video media selectors in
+  `features/node-media-video.css`, migrated media frame selectors in
+  `features/node-media-frame.css`, migrated generation preview selectors in
   `features/node-generation.css`, migrated image generator base selectors in
   `features/node-image-generator-base.css`, image generator inline edit
   selectors in `features/node-image-generator-inline-edit.css`, migrated

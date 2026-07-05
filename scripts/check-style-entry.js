@@ -104,6 +104,11 @@ const EXPECTED_NODE_STACK_IMPORTS = [
   "./node-stack-base.css",
   "./node-stack-tray.css"
 ];
+const EXPECTED_NODE_MEDIA_IMPORTS = [
+  "./node-media-shell.css",
+  "./node-media-video.css",
+  "./node-media-frame.css"
+];
 const EXPECTED_ASSET_IMPORTS = [
   "./assets-page.css",
   "./assets-board.css",
@@ -565,16 +570,21 @@ const EXPECTED_NODE_DIRECTOR_SELECTORS = [
   ".director-actions",
   ".director-tile"
 ];
-const EXPECTED_NODE_MEDIA_SELECTORS = [
+const EXPECTED_NODE_MEDIA_SHELL_SELECTORS = [
   ".node-2d",
-  ".node-video",
   ".node-image",
   ".node-model",
-  ".node-loading-image",
+  ".node-loading-image"
+];
+const EXPECTED_NODE_MEDIA_VIDEO_SELECTORS = [
+  ".node-video",
   ".video-file-preview",
-  ".image-file-name",
+  ".node-video.selected"
+];
+const EXPECTED_NODE_MEDIA_FRAME_SELECTORS = [
   ".image-frame",
-  ".image-frame img"
+  ".image-frame img",
+  ".image-file-name"
 ];
 const EXPECTED_NODE_GENERATION_SELECTORS = [
   ".generation-frame",
@@ -836,6 +846,7 @@ const nodeImports = parseCssImports("styles/features/node.css");
 const nodeImageToolbarImports = parseCssImports("styles/features/node-image-toolbar.css");
 const nodeImagePanelsImports = parseCssImports("styles/features/node-image-panels.css");
 const nodeStackImports = parseCssImports("styles/features/node-stack.css");
+const nodeMediaImports = parseCssImports("styles/features/node-media.css");
 const nodeImageGeneratorImports = parseCssImports("styles/features/node-image-generator.css");
 const assetImports = parseCssImports("styles/features/assets.css");
 const assetPinterestImports = parseCssImports("styles/features/assets-pinterest.css");
@@ -856,6 +867,7 @@ assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
 assertListEqual("styles/features/node-image-toolbar.css", nodeImageToolbarImports, EXPECTED_NODE_IMAGE_TOOLBAR_IMPORTS);
 assertListEqual("styles/features/node-image-panels.css", nodeImagePanelsImports, EXPECTED_NODE_IMAGE_PANELS_IMPORTS);
 assertListEqual("styles/features/node-stack.css", nodeStackImports, EXPECTED_NODE_STACK_IMPORTS);
+assertListEqual("styles/features/node-media.css", nodeMediaImports, EXPECTED_NODE_MEDIA_IMPORTS);
 assertListEqual("styles/features/node-image-generator.css", nodeImageGeneratorImports, EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS);
 assertListEqual("styles/features/assets.css", assetImports, EXPECTED_ASSET_IMPORTS);
 assertListEqual("styles/features/assets-pinterest.css", assetPinterestImports, EXPECTED_ASSET_PINTEREST_IMPORTS);
@@ -873,6 +885,7 @@ checkImportedFilesExist(nodeImports, "styles/features");
 checkImportedFilesExist(nodeImageToolbarImports, "styles/features");
 checkImportedFilesExist(nodeImagePanelsImports, "styles/features");
 checkImportedFilesExist(nodeStackImports, "styles/features");
+checkImportedFilesExist(nodeMediaImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorImports, "styles/features");
 checkImportedFilesExist(assetImports, "styles/features");
 checkImportedFilesExist(assetPinterestImports, "styles/features");
@@ -933,7 +946,9 @@ checkFileContains("styles/features/node-image-lightbox.css", EXPECTED_NODE_IMAGE
 checkFileContains("styles/features/node-stack-base.css", EXPECTED_NODE_STACK_BASE_SELECTORS);
 checkFileContains("styles/features/node-stack-tray.css", EXPECTED_NODE_STACK_TRAY_SELECTORS);
 checkFileContains("styles/features/node-director.css", EXPECTED_NODE_DIRECTOR_SELECTORS);
-checkFileContains("styles/features/node-media.css", EXPECTED_NODE_MEDIA_SELECTORS);
+checkFileContains("styles/features/node-media-shell.css", EXPECTED_NODE_MEDIA_SHELL_SELECTORS);
+checkFileContains("styles/features/node-media-video.css", EXPECTED_NODE_MEDIA_VIDEO_SELECTORS);
+checkFileContains("styles/features/node-media-frame.css", EXPECTED_NODE_MEDIA_FRAME_SELECTORS);
 checkFileContains("styles/features/node-generation.css", EXPECTED_NODE_GENERATION_SELECTORS);
 checkFileContains("styles/features/node-image-generator-base.css", EXPECTED_NODE_IMAGE_GENERATOR_BASE_SELECTORS);
 checkFileContains("styles/features/node-image-generator-inline-edit.css", EXPECTED_NODE_IMAGE_GENERATOR_INLINE_EDIT_SELECTORS);

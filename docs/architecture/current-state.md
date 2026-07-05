@@ -55,7 +55,7 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 96 | 13,360 |
+| `styles` | 99 | 13,363 |
 | `scripts` | 90 | 19,441 |
 
 Largest files in the current source tree:
@@ -103,6 +103,8 @@ Post-baseline CSS governance note:
   `styles/features/node-image-lightbox.css`, `styles/features/node-stack.css`,
   `styles/features/node-stack-base.css`, `styles/features/node-stack-tray.css`,
   `styles/features/node-director.css`, `styles/features/node-media.css`,
+  `styles/features/node-media-shell.css`, `styles/features/node-media-video.css`,
+  `styles/features/node-media-frame.css`,
   `styles/features/node-generation.css`, `styles/features/node-image-generator.css`,
   `styles/features/node-preview.css`, and `styles/features/node.css` so later
   feature CSS migrations have a static safety net before visual smoke checks.
@@ -329,8 +331,14 @@ Post-baseline CSS governance note:
 - `styles/features/node-stack-tray.css` owns stack tray, row, thumbnail, title,
   and metadata styles.
 - `styles/features/node-director.css` owns director node styles.
-- `styles/features/node-media.css` owns image/video/model node shell, image
-  frame, and video file preview styles.
+- `styles/features/node-media.css` is now a pure aggregation entry for media
+  shell, video preview, and media frame styles.
+- `styles/features/node-media-shell.css` owns 2D, 3D, image, model, video, and
+  loading-image node shell styles.
+- `styles/features/node-media-video.css` owns video node selected state, hidden
+  node text, and video file preview styles.
+- `styles/features/node-media-frame.css` owns image/model selected frame outline,
+  image filename, image frame, and image drag suppression styles.
 - `styles/features/node-generation.css` owns temporary generation preview frame
   and shimmer animation styles.
 - `styles/features/node-image-generator-base.css` owns image generator node,
