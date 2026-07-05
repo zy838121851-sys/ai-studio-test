@@ -1,0 +1,60 @@
+.home-history-delete {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 6px;
+  color: #fff;
+  background: rgba(17, 24, 39, 0.66);
+  box-shadow: 0 12px 28px rgba(17, 24, 39, 0.18);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-4px);
+  transition: opacity 160ms ease, transform 160ms ease, background 160ms ease;
+}
+
+.home-history-card:hover .home-history-delete,
+.home-history-delete:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.home-history-delete:hover {
+  background: rgba(17, 24, 39, 0.78);
+}
+
+.home-history-delete span {
+  position: relative;
+  width: 14px;
+  height: 15px;
+  border-radius: 2px 2px 3px 3px;
+  background: currentColor;
+}
+
+.home-history-delete span::before {
+  position: absolute;
+  top: -4px;
+  left: 2px;
+  width: 10px;
+  height: 3px;
+  border-radius: 2px;
+  background: currentColor;
+  content: "";
+}
+
+.home-history-delete span::after {
+  position: absolute;
+  top: 3px;
+  left: 4px;
+  width: 6px;
+  height: 8px;
+  border-right: 1px solid rgba(17, 24, 39, 0.58);
+  border-left: 1px solid rgba(17, 24, 39, 0.58);
+  content: "";
+}

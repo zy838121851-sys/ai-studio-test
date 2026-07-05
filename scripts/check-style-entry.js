@@ -397,6 +397,12 @@ const EXPECTED_HOME_HISTORY_IMPORTS = [
   "./home-history-section.css",
   "./home-history-cards.css"
 ];
+const EXPECTED_HOME_HISTORY_CARDS_IMPORTS = [
+  "./home-history-cards-base.css",
+  "./home-history-cards-delete.css",
+  "./home-history-cards-preview.css",
+  "./home-history-cards-meta.css"
+];
 const EXPECTED_HOME_COMMUNITY_IMPORTS = [
   "./home-community-channels.css",
   "./home-community-feed.css",
@@ -522,10 +528,30 @@ const EXPECTED_HOME_HISTORY_SECTION_SELECTORS = [
   ".home-history .home-section-head strong"
 ];
 const EXPECTED_HOME_HISTORY_CARD_SELECTORS = [
+  "@import url(\"./home-history-cards-base.css\")",
+  "@import url(\"./home-history-cards-delete.css\")",
+  "@import url(\"./home-history-cards-preview.css\")",
+  "@import url(\"./home-history-cards-meta.css\")"
+];
+const EXPECTED_HOME_HISTORY_CARD_BASE_SELECTORS = [
   ".home-history-grid",
   ".home-history-card",
+  ".home-history-card.is-create > button:not(.home-history-delete)"
+];
+const EXPECTED_HOME_HISTORY_CARD_DELETE_SELECTORS = [
   ".home-history-delete",
+  ".home-history-delete span::after"
+];
+const EXPECTED_HOME_HISTORY_CARD_PREVIEW_SELECTORS = [
+  ".home-history-thumb",
+  ".project-preview-image",
+  ".project-preview-image[hidden]",
   ".project-preview-fallback"
+];
+const EXPECTED_HOME_HISTORY_CARD_META_SELECTORS = [
+  ".home-history-card.is-create .home-history-thumb",
+  ".home-history-create-icon",
+  ".home-history-card small"
 ];
 const EXPECTED_HOME_COMMUNITY_SELECTORS = [
 ];
@@ -1841,6 +1867,7 @@ const assetPinterestPinImports = parseCssImports("styles/features/assets-pintere
 const assetPinterestResponsiveImports = parseCssImports("styles/features/assets-pinterest-responsive.css");
 const homeImports = parseCssImports("styles/features/home.css");
 const homeHistoryImports = parseCssImports("styles/features/home-history.css");
+const homeHistoryCardsImports = parseCssImports("styles/features/home-history-cards.css");
 const homeCommunityImports = parseCssImports("styles/features/home-community.css");
 const homeCommunityChannelImports = parseCssImports("styles/features/home-community-channels.css");
 const homeShellImports = parseCssImports("styles/features/home-shell.css");
@@ -1911,6 +1938,7 @@ assertListEqual("styles/features/assets-pinterest-pin.css", assetPinterestPinImp
 assertListEqual("styles/features/assets-pinterest-responsive.css", assetPinterestResponsiveImports, EXPECTED_ASSET_PINTEREST_RESPONSIVE_IMPORTS);
 assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
 assertListEqual("styles/features/home-history.css", homeHistoryImports, EXPECTED_HOME_HISTORY_IMPORTS);
+assertListEqual("styles/features/home-history-cards.css", homeHistoryCardsImports, EXPECTED_HOME_HISTORY_CARDS_IMPORTS);
 assertListEqual("styles/features/home-community.css", homeCommunityImports, EXPECTED_HOME_COMMUNITY_IMPORTS);
 assertListEqual("styles/features/home-community-channels.css", homeCommunityChannelImports, EXPECTED_HOME_COMMUNITY_CHANNEL_IMPORTS);
 assertListEqual("styles/features/home-shell.css", homeShellImports, EXPECTED_HOME_SHELL_IMPORTS);
@@ -1978,6 +2006,7 @@ checkImportedFilesExist(assetPinterestPinImports, "styles/features");
 checkImportedFilesExist(assetPinterestResponsiveImports, "styles/features");
 checkImportedFilesExist(homeImports, "styles/features");
 checkImportedFilesExist(homeHistoryImports, "styles/features");
+checkImportedFilesExist(homeHistoryCardsImports, "styles/features");
 checkImportedFilesExist(homeCommunityImports, "styles/features");
 checkImportedFilesExist(homeCommunityChannelImports, "styles/features");
 checkImportedFilesExist(homeShellImports, "styles/features");
@@ -2153,6 +2182,10 @@ checkFileContains("styles/features/home-shell-transition.css", EXPECTED_HOME_SHE
 checkFileContains("styles/features/home-history-stack.css", EXPECTED_HOME_HISTORY_SELECTORS);
 checkFileContains("styles/features/home-history-section.css", EXPECTED_HOME_HISTORY_SECTION_SELECTORS);
 checkFileContains("styles/features/home-history-cards.css", EXPECTED_HOME_HISTORY_CARD_SELECTORS);
+checkFileContains("styles/features/home-history-cards-base.css", EXPECTED_HOME_HISTORY_CARD_BASE_SELECTORS);
+checkFileContains("styles/features/home-history-cards-delete.css", EXPECTED_HOME_HISTORY_CARD_DELETE_SELECTORS);
+checkFileContains("styles/features/home-history-cards-preview.css", EXPECTED_HOME_HISTORY_CARD_PREVIEW_SELECTORS);
+checkFileContains("styles/features/home-history-cards-meta.css", EXPECTED_HOME_HISTORY_CARD_META_SELECTORS);
 checkFileContains("styles/features/home-community.css", EXPECTED_HOME_COMMUNITY_SELECTORS);
 checkFileContains("styles/features/home-community-channels.css", EXPECTED_HOME_COMMUNITY_CHANNEL_SELECTORS);
 checkFileContains("styles/features/home-community-channels-shell.css", EXPECTED_HOME_COMMUNITY_CHANNEL_SHELL_SELECTORS);
