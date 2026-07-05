@@ -55,7 +55,7 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 104 | 13,260 |
+| `styles` | 108 | 13,264 |
 | `scripts` | 90 | 19,441 |
 
 Largest files in the current source tree:
@@ -112,8 +112,12 @@ Post-baseline CSS governance note:
   `styles/features/project-library-page.css`,
   `styles/features/home-community-channels.css`,
   `styles/features/home-community-feed.css`, and
-  `styles/features/home-community-inspiration.css` so later feature CSS
-  migrations have a static safety net before visual smoke checks.
+  `styles/features/home-community-inspiration.css`,
+  `styles/features/home-shell-boot.css`,
+  `styles/features/home-shell-prompt.css`,
+  `styles/features/home-shell-model.css`, and
+  `styles/features/home-shell-transition.css` so later feature CSS migrations
+  have a static safety net before visual smoke checks.
   `legacy-node.css` is currently a compatibility shim with no active selector
   ownership and is intentionally outside the active `legacy-split.css` import
   graph.
@@ -220,9 +224,16 @@ Post-baseline CSS governance note:
   placeholder sweep animation, loading state, and back-to-top control.
 - `styles/features/home-community-inspiration.css` owns home inspiration grid
   and inspiration card styles.
-- `styles/features/home-shell.css` owns home boot skeleton, shell, prompt,
-  upload preview, model picker, send control, and home/canvas transition
-  animation styles; it is imported by `styles/features/home.css`.
+- `styles/features/home-shell.css` is now a pure aggregation entry for home
+  boot, prompt, model picker, and transition submodules.
+- `styles/features/home-shell-boot.css` owns home boot/ready visibility and
+  skeleton animation styles.
+- `styles/features/home-shell-prompt.css` owns home stage, title, prompt shell,
+  upload preview, input, and plus indicator styles.
+- `styles/features/home-shell-model.css` owns home model picker, menu, native
+  select, and model option styles.
+- `styles/features/home-shell-transition.css` owns home send button and
+  home-to-canvas transition animation styles.
 - `styles/features/home.css` is now a home feature CSS aggregation entry plus
   responsive overrides for home submodules.
 - `styles/features/project-library.css` is now a pure aggregation entry for

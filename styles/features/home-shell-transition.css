@@ -1,0 +1,60 @@
+.home-send {
+  grid-area: send;
+  width: 52px;
+  height: 52px !important;
+  color: #fff !important;
+  background: #050505 !important;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+  font-size: 24px !important;
+  font-weight: 700;
+  line-height: 1;
+}
+
+body.home-transitioning .home-view {
+  animation: homeSendOut 0.28s cubic-bezier(0.4, 0, 0.2, 1) both;
+}
+
+body.canvas-entering .canvas-area {
+  animation: canvasEnterSoft 0.46s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+}
+
+body.canvas-entering .chat-panel {
+  animation: chatEnterSoft 0.52s cubic-bezier(0.2, 0.75, 0.2, 1) both;
+}
+
+@keyframes homeSendOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  to {
+    opacity: 0;
+    transform: scale(0.985) translateY(-10px);
+    filter: blur(8px);
+  }
+}
+
+@keyframes canvasEnterSoft {
+  from {
+    opacity: 0;
+    transform: scale(1.018);
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes chatEnterSoft {
+  from {
+    opacity: 0;
+    transform: translateX(26px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

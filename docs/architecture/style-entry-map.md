@@ -184,6 +184,15 @@ styles/features/home-community-feed.css
 styles/features/home-community-inspiration.css
 ```
 
+`styles/features/home-shell.css` currently imports:
+
+```text
+styles/features/home-shell-boot.css
+styles/features/home-shell-prompt.css
+styles/features/home-shell-model.css
+styles/features/home-shell-transition.css
+```
+
 `styles/legacy-chat.css` currently imports:
 
 ```text
@@ -491,9 +500,16 @@ Notes:
   sweep animation, loading state, and back-to-top control.
 - `features/home-community-inspiration.css` owns home inspiration grid and
   inspiration card styles.
-- `features/home-shell.css` owns home boot skeleton, shell, prompt, upload
-  preview, model picker, send control, and home/canvas transition animation
-  styles.
+- `features/home-shell.css` is now a pure aggregation entry for home boot,
+  prompt, model picker, and transition submodules.
+- `features/home-shell-boot.css` owns home boot/ready visibility and skeleton
+  animation styles.
+- `features/home-shell-prompt.css` owns home stage, title, prompt shell, upload
+  preview, input, and plus indicator styles.
+- `features/home-shell-model.css` owns home model picker, menu, native select,
+  and model option styles.
+- `features/home-shell-transition.css` owns home send button and home-to-canvas
+  transition animation styles.
 - `features/home.css` imports `features/home-history.css`,
   `features/home-community.css`, and `features/home-shell.css`, then keeps
   responsive overrides for the home feature submodules.
@@ -619,6 +635,10 @@ styles/features/home-community-channels.css
 styles/features/home-community-feed.css
 styles/features/home-community-inspiration.css
 styles/features/home-shell.css
+styles/features/home-shell-boot.css
+styles/features/home-shell-prompt.css
+styles/features/home-shell-model.css
+styles/features/home-shell-transition.css
 styles/features/node-base.css
 styles/features/node-image-edit.css
 styles/features/node-state.css
@@ -779,7 +799,11 @@ Additional caution:
   and `features/project-library-page.css`, migrated home community imports in
   `features/home-community.css`, and migrated home community selectors in
   `features/home-community-channels.css`, `features/home-community-feed.css`,
-  and `features/home-community-inspiration.css`; it also keeps compatibility shims such as
+  and `features/home-community-inspiration.css`, migrated home shell imports in
+  `features/home-shell.css`, and migrated home shell selectors in
+  `features/home-shell-boot.css`, `features/home-shell-prompt.css`,
+  `features/home-shell-model.css`, and `features/home-shell-transition.css`;
+  it also keeps compatibility shims such as
   `legacy-node.css` outside the active import graph, and guards the
   `legacy-canvas.css` imports of `legacy-canvas-shell.css` and
   `legacy-canvas-image-edit.css`, `legacy-canvas-add-node.css`, and
