@@ -23,7 +23,7 @@ asset:
 Current observed build output includes:
 
 ```text
-dist/assets/index-D3Qz9b5K.css
+dist/assets/index-BjlODka2.css
 ```
 
 The hash can change after any CSS or imported asset change.
@@ -194,6 +194,13 @@ styles/features/assets-save-board-popover.css
 styles/features/assets-picker-popover.css
 styles/features/assets-picker-list.css
 styles/features/assets-picker-preview.css
+```
+
+`styles/features/assets-canvas-picker.css` currently imports:
+
+```text
+styles/features/assets-canvas-picker-shell.css
+styles/features/assets-canvas-picker-projects.css
 ```
 
 `styles/features/assets-page.css` currently imports:
@@ -610,8 +617,13 @@ Notes:
   metadata, and empty-state styles.
 - `features/assets-picker-preview.css` owns asset preview overlay, backdrop,
   dialog, image, title, and close control styles.
-- `features/assets-canvas-picker.css` owns canvas project picker overlay styles
-  for asset insertion; it is imported by `features/assets.css`.
+- `features/assets-canvas-picker.css` is now a pure aggregation entry for canvas
+  project picker shell and project row submodules; it is imported by
+  `features/assets.css`.
+- `features/assets-canvas-picker-shell.css` owns canvas project picker overlay
+  shell, backdrop, card, header, close control, and list container styles.
+- `features/assets-canvas-picker-projects.css` owns canvas project picker
+  project row, thumbnail, metadata, active/hover, and badge styles.
 - `features/assets-context-menu.css` owns asset page card context menu styles;
   it is imported by `features/assets.css`.
 - `features/assets-pinterest-board.css` is now a pure aggregation entry for the
@@ -941,6 +953,8 @@ styles/features/assets-picker-popover.css
 styles/features/assets-picker-list.css
 styles/features/assets-picker-preview.css
 styles/features/assets-canvas-picker.css
+styles/features/assets-canvas-picker-shell.css
+styles/features/assets-canvas-picker-projects.css
 styles/features/assets-context-menu.css
 styles/features/assets-pinterest-board.css
 styles/features/assets-pinterest-board-shell-legacy.css
@@ -1140,8 +1154,10 @@ Additional caution:
   in `features/assets-picker.css`, migrated asset picker popover selectors in
   `features/assets-picker-popover.css`, migrated asset picker list selectors in
   `features/assets-picker-list.css`, migrated asset picker preview selectors in
-  `features/assets-picker-preview.css`, migrated canvas asset picker selectors in
-  `features/assets-canvas-picker.css`, migrated asset context menu selectors in
+  `features/assets-picker-preview.css`, migrated canvas asset picker imports in
+  `features/assets-canvas-picker.css`, migrated canvas asset picker shell and
+  project row selectors in `features/assets-canvas-picker-shell.css` and
+  `features/assets-canvas-picker-projects.css`, migrated asset context menu selectors in
   `features/assets-context-menu.css`, migrated asset Pinterest board imports in
   `features/assets-pinterest-board.css`, migrated first Pinterest shell selectors
   in `features/assets-pinterest-board-shell-legacy.css`, migrated first Pinterest
