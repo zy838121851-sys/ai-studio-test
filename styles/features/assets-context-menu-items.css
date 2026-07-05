@@ -1,0 +1,56 @@
+body[data-view="assetsPage"] .asset-card-context-menu button,
+body[data-view="assetsPage"] .asset-card-context-empty {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  min-height: 42px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 14px;
+  color: #111827;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 760;
+  text-align: left;
+}
+
+body[data-view="assetsPage"] .asset-card-context-menu button:hover {
+  background: rgba(17, 24, 39, 0.06);
+}
+
+body[data-view="assetsPage"] .asset-card-context-menu button strong {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-view="assetsPage"] .asset-card-context-icon {
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 9px;
+  color: #111827;
+  background: rgba(17, 24, 39, 0.06);
+  font-size: 15px;
+  font-weight: 820;
+}
+
+body[data-view="assetsPage"] .asset-card-context-arrow {
+  flex: 0 0 auto;
+  color: #9ca3af;
+  font-size: 18px;
+  font-weight: 760;
+}
+
+body[data-view="assetsPage"] .asset-card-context-menu .danger {
+  color: #d74735;
+}
+
+body[data-view="assetsPage"] .asset-card-context-menu .danger .asset-card-context-icon {
+  color: #d74735;
+  background: rgba(215, 71, 53, 0.09);
+}

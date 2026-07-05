@@ -217,6 +217,11 @@ const EXPECTED_ASSET_CANVAS_PICKER_PROJECTS_IMPORTS = [
   "./assets-canvas-picker-projects-row.css",
   "./assets-canvas-picker-projects-meta.css"
 ];
+const EXPECTED_ASSET_CONTEXT_MENU_IMPORTS = [
+  "./assets-context-menu-shell.css",
+  "./assets-context-menu-items.css",
+  "./assets-context-menu-submenu.css"
+];
 const EXPECTED_ASSET_PAGE_IMPORTS = [
   "./assets-floating-library.css",
   "./assets-page-view.css",
@@ -582,9 +587,19 @@ const EXPECTED_ASSET_CANVAS_PICKER_PROJECTS_META_SELECTORS = [
   ".asset-canvas-picker-meta"
 ];
 const EXPECTED_ASSET_CONTEXT_MENU_SELECTORS = [
+  "@import url(\"./assets-context-menu-shell.css\")",
+  "@import url(\"./assets-context-menu-items.css\")",
+  "@import url(\"./assets-context-menu-submenu.css\")"
+];
+const EXPECTED_ASSET_CONTEXT_MENU_SHELL_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-card-context-menu",
-  "body[data-view=\"assetsPage\"] .asset-card-context-menu[hidden]",
+  "body[data-view=\"assetsPage\"] .asset-card-context-menu[hidden]"
+];
+const EXPECTED_ASSET_CONTEXT_MENU_ITEMS_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-card-context-icon",
+  "body[data-view=\"assetsPage\"] .asset-card-context-arrow"
+];
+const EXPECTED_ASSET_CONTEXT_MENU_SUBMENU_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-card-context-submenu",
   "body[data-view=\"assetsPage\"] .asset-card-context-submenu-panel"
 ];
@@ -1451,6 +1466,7 @@ const assetPickerPreviewImports = parseCssImports("styles/features/assets-picker
 const assetCanvasPickerImports = parseCssImports("styles/features/assets-canvas-picker.css");
 const assetCanvasPickerShellImports = parseCssImports("styles/features/assets-canvas-picker-shell.css");
 const assetCanvasPickerProjectsImports = parseCssImports("styles/features/assets-canvas-picker-projects.css");
+const assetContextMenuImports = parseCssImports("styles/features/assets-context-menu.css");
 const assetPageImports = parseCssImports("styles/features/assets-page.css");
 const assetPagePinterestLegacyImports = parseCssImports("styles/features/assets-page-pinterest-legacy.css");
 const assetPinterestImports = parseCssImports("styles/features/assets-pinterest.css");
@@ -1506,6 +1522,7 @@ assertListEqual("styles/features/assets-picker-preview.css", assetPickerPreviewI
 assertListEqual("styles/features/assets-canvas-picker.css", assetCanvasPickerImports, EXPECTED_ASSET_CANVAS_PICKER_IMPORTS);
 assertListEqual("styles/features/assets-canvas-picker-shell.css", assetCanvasPickerShellImports, EXPECTED_ASSET_CANVAS_PICKER_SHELL_IMPORTS);
 assertListEqual("styles/features/assets-canvas-picker-projects.css", assetCanvasPickerProjectsImports, EXPECTED_ASSET_CANVAS_PICKER_PROJECTS_IMPORTS);
+assertListEqual("styles/features/assets-context-menu.css", assetContextMenuImports, EXPECTED_ASSET_CONTEXT_MENU_IMPORTS);
 assertListEqual("styles/features/assets-page.css", assetPageImports, EXPECTED_ASSET_PAGE_IMPORTS);
 assertListEqual("styles/features/assets-page-pinterest-legacy.css", assetPagePinterestLegacyImports, EXPECTED_ASSET_PAGE_PINTEREST_LEGACY_IMPORTS);
 assertListEqual("styles/features/assets-pinterest.css", assetPinterestImports, EXPECTED_ASSET_PINTEREST_IMPORTS);
@@ -1558,6 +1575,7 @@ checkImportedFilesExist(assetPickerPreviewImports, "styles/features");
 checkImportedFilesExist(assetCanvasPickerImports, "styles/features");
 checkImportedFilesExist(assetCanvasPickerShellImports, "styles/features");
 checkImportedFilesExist(assetCanvasPickerProjectsImports, "styles/features");
+checkImportedFilesExist(assetContextMenuImports, "styles/features");
 checkImportedFilesExist(assetPageImports, "styles/features");
 checkImportedFilesExist(assetPagePinterestLegacyImports, "styles/features");
 checkImportedFilesExist(assetPinterestImports, "styles/features");
@@ -1611,6 +1629,9 @@ checkFileContains("styles/features/assets-canvas-picker-projects.css", EXPECTED_
 checkFileContains("styles/features/assets-canvas-picker-projects-row.css", EXPECTED_ASSET_CANVAS_PICKER_PROJECTS_ROW_SELECTORS);
 checkFileContains("styles/features/assets-canvas-picker-projects-meta.css", EXPECTED_ASSET_CANVAS_PICKER_PROJECTS_META_SELECTORS);
 checkFileContains("styles/features/assets-context-menu.css", EXPECTED_ASSET_CONTEXT_MENU_SELECTORS);
+checkFileContains("styles/features/assets-context-menu-shell.css", EXPECTED_ASSET_CONTEXT_MENU_SHELL_SELECTORS);
+checkFileContains("styles/features/assets-context-menu-items.css", EXPECTED_ASSET_CONTEXT_MENU_ITEMS_SELECTORS);
+checkFileContains("styles/features/assets-context-menu-submenu.css", EXPECTED_ASSET_CONTEXT_MENU_SUBMENU_SELECTORS);
 checkFileContains("styles/features/assets-pinterest.css", EXPECTED_ASSET_PINTEREST_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-shell.css", EXPECTED_ASSET_PINTEREST_SHELL_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-shell-header.css", EXPECTED_ASSET_PINTEREST_SHELL_HEADER_SELECTORS);

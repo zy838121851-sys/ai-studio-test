@@ -55,14 +55,14 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,350 |
-| `styles` | 204 | 15,278 |
-| `scripts` | 90 | 21,978 |
+| `styles` | 207 | 15,279 |
+| `scripts` | 90 | 21,999 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
-| 1,758 | `scripts/check-style-entry.js` |
+| 1,779 | `scripts/check-style-entry.js` |
 | 1,709 | `scripts/check-api-error-contract.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
@@ -262,8 +262,15 @@ Post-baseline CSS governance note:
   picker project row, thumbnail, active, and hover styles.
 - `styles/features/assets-canvas-picker-projects-meta.css` owns canvas project
   picker metadata and badge styles.
-- `styles/features/assets-context-menu.css` owns asset page card context menu
-  styles; it is imported by `styles/features/assets.css`.
+- `styles/features/assets-context-menu.css` is now a pure aggregation entry for
+  asset page card context menu shell, item, and submenu submodules; it is
+  imported by `styles/features/assets.css`.
+- `styles/features/assets-context-menu-shell.css` owns asset page card context
+  menu shell and hidden state styles.
+- `styles/features/assets-context-menu-items.css` owns asset page card context
+  menu button, icon, arrow, and danger state styles.
+- `styles/features/assets-context-menu-submenu.css` owns asset page card context
+  submenu shell and open-state styles.
 - `styles/features/assets-pinterest-board.css` is now a pure aggregation entry
   for the first asset page Pinterest shell, board tiles, masonry pins, and
   responsive legacy submodules.
