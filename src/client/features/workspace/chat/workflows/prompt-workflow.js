@@ -147,21 +147,19 @@ import {
 import {
   createConversationStreamRunner
 } from "./prompt-conversation-stream-workflow.js";
+import {
+  CHAT_AGENT_CONFIG,
+  CHAT_AGENT_DEBUG_PREFIX,
+  CHAT_AGENT_WORKFLOW_VERSION,
+  CONVERSATION_STREAM_TIMEOUT_MS,
+  CONVERSATION_THINKING_STEPS,
+  MIDJOURNEY_IMAGE_COUNT
+} from "./prompt-workflow-constants.js";
 
-const MIDJOURNEY_IMAGE_COUNT = 4;
-const CONVERSATION_THINKING_STEPS = [
-  { key: "context", label: "读取上下文" },
-  { key: "references", label: "图片分析" },
-  { key: "prompt", label: "优化提示词" },
-  { key: "tool", label: "执行生成" },
-  { key: "final", label: "整理结果" }
-];
 const conversationIdsByProject = new Map();
 let restoredConversationProjects = new Set();
 let activeChatAgentRunId = "";
 let lastConversationPrompt = "";
-const CONVERSATION_STREAM_TIMEOUT_MS = 0;
-const CHAT_AGENT_WORKFLOW_VERSION = "20260628-boot-inline-1";
 const conversationStreamRunner = createConversationStreamRunner({
   timeoutMs: CONVERSATION_STREAM_TIMEOUT_MS,
   logAgentDebug,
@@ -172,11 +170,6 @@ if (globalThis.window) {
   globalThis.__chatAgentWorkflowVersion = CHAT_AGENT_WORKFLOW_VERSION;
   console.debug("[chat-agent] workflow.version", CHAT_AGENT_WORKFLOW_VERSION);
 }
-
-const CHAT_AGENT_CONFIG = {
-  autoExecute: true
-};
-const CHAT_AGENT_DEBUG_PREFIX = "[chat-agent]";
 
 function isChatAgentDev() {
   const host = globalThis.location?.hostname || "";

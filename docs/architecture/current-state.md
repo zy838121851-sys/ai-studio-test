@@ -53,10 +53,10 @@ Current source footprint, excluding `node_modules` and `dist`:
 
 | Area | Files | Lines |
 | --- | ---: | ---: |
-| `src/client` | 298 | 39,385 |
+| `src/client` | 299 | 39,397 |
 | `src/server` | 80 | 14,350 |
 | `styles` | 207 | 15,279 |
-| `scripts` | 90 | 21,999 |
+| `scripts` | 91 | 22,030 |
 
 Largest files in the current source tree:
 
@@ -64,7 +64,7 @@ Largest files in the current source tree:
 | ---: | --- |
 | 1,779 | `scripts/check-style-entry.js` |
 | 1,709 | `scripts/check-api-error-contract.js` |
-| 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
+| 1,600 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
@@ -602,6 +602,10 @@ Post-baseline CSS governance note:
   and submit debug payload building for composer files, pending home files, DOM
   previews, and debug source labels; `scripts/check-prompt-input-utils.js`
   guards the extracted behavior.
+- `prompt-workflow-constants.js` now owns prompt workflow static configuration
+  for thinking steps, Midjourney image count, stream timeout, and chat agent
+  debug/version flags; `scripts/check-prompt-workflow-constants.js` guards the
+  extracted constants without changing prompt generation behavior.
 
 ## Static Reachability Snapshot
 
