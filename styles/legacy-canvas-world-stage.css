@@ -1,0 +1,8 @@
+.canvas-world {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1800px;
+  height: 1200px;
+  transform-origin: 0 0;
+}

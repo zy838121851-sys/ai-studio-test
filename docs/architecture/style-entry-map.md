@@ -305,6 +305,15 @@ styles/legacy-canvas-choice-floating-suggestions.css
 styles/legacy-canvas-choice-keyframes.css
 ```
 
+`styles/legacy-canvas-world.css` currently imports:
+
+```text
+styles/legacy-canvas-world-selection.css
+styles/legacy-canvas-world-stage.css
+styles/legacy-canvas-world-empty-state.css
+styles/legacy-canvas-world-hints.css
+```
+
 `styles/legacy-canvas-shell.css` currently imports:
 
 ```text
@@ -742,8 +751,14 @@ Notes:
   placement, card states, text, and running-state styles.
 - `legacy-canvas-choice-keyframes.css` owns the related choice overlay
   animations.
-- `legacy-canvas-world.css` owns canvas selection box, canvas world, empty
-  state, hint line, and quick action styles.
+- `legacy-canvas-world.css` is now a pure aggregation entry for canvas
+  selection box, world stage, empty state, and hint/quick-action submodules.
+- `legacy-canvas-world-selection.css` owns canvas selection box styles.
+- `legacy-canvas-world-stage.css` owns canvas world positioning and
+  transform-origin styles.
+- `legacy-canvas-world-empty-state.css` owns canvas empty state, spark, action,
+  and dot styles.
+- `legacy-canvas-world-hints.css` owns hint line and quick action styles.
 - `legacy-canvas-video-generator.css` owns video generator popover, reference
   list/thumb, model selector, option group, send control, disabled state, and
   status styles.
@@ -889,6 +904,10 @@ styles/legacy-canvas-choice-generation.css
 styles/legacy-canvas-choice-floating-suggestions.css
 styles/legacy-canvas-choice-keyframes.css
 styles/legacy-canvas-world.css
+styles/legacy-canvas-world-selection.css
+styles/legacy-canvas-world-stage.css
+styles/legacy-canvas-world-empty-state.css
+styles/legacy-canvas-world-hints.css
 styles/legacy-canvas-video-generator.css
 styles/legacy-canvas-project-header.css
 styles/legacy-canvas-library.css
@@ -1060,7 +1079,10 @@ Additional caution:
   `legacy-canvas-choice-viewport.css`, `legacy-canvas-choice-upload.css`,
   `legacy-canvas-choice-generation.css`,
   `legacy-canvas-choice-floating-suggestions.css`, and
-  `legacy-canvas-choice-keyframes.css`, `legacy-canvas-world.css`, and
+  `legacy-canvas-choice-keyframes.css`, `legacy-canvas-world.css` imports of
+  `legacy-canvas-world-selection.css`, `legacy-canvas-world-stage.css`,
+  `legacy-canvas-world-empty-state.css`, and
+  `legacy-canvas-world-hints.css`, and
   `legacy-canvas-video-generator.css`, and
   `legacy-canvas-project-header.css`, and `legacy-canvas-library.css`, plus
   the `legacy-canvas-visual.css` import of

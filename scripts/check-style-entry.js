@@ -96,6 +96,12 @@ const EXPECTED_LEGACY_CANVAS_CHOICE_OVERLAY_IMPORTS = [
   "./legacy-canvas-choice-floating-suggestions.css",
   "./legacy-canvas-choice-keyframes.css"
 ];
+const EXPECTED_LEGACY_CANVAS_WORLD_IMPORTS = [
+  "./legacy-canvas-world-selection.css",
+  "./legacy-canvas-world-stage.css",
+  "./legacy-canvas-world-empty-state.css",
+  "./legacy-canvas-world-hints.css"
+];
 const EXPECTED_LEGACY_CANVAS_SHELL_IMPORTS = [
   "./legacy-canvas-shell-brand.css",
   "./legacy-canvas-shell-actions.css",
@@ -672,10 +678,23 @@ const EXPECTED_LEGACY_CANVAS_CHOICE_KEYFRAMES_SELECTORS = [
   "@keyframes suggestionPop"
 ];
 const EXPECTED_LEGACY_CANVAS_WORLD_SELECTORS = [
-  ".canvas-world",
-  ".selection-box",
+  "@import url(\"./legacy-canvas-world-selection.css\")",
+  "@import url(\"./legacy-canvas-world-stage.css\")",
+  "@import url(\"./legacy-canvas-world-empty-state.css\")",
+  "@import url(\"./legacy-canvas-world-hints.css\")"
+];
+const EXPECTED_LEGACY_CANVAS_WORLD_SELECTION_SELECTORS = [
+  ".selection-box"
+];
+const EXPECTED_LEGACY_CANVAS_WORLD_STAGE_SELECTORS = [
+  ".canvas-world"
+];
+const EXPECTED_LEGACY_CANVAS_WORLD_EMPTY_STATE_SELECTORS = [
   ".empty-state",
   ".empty-state-action",
+  ".empty-state-dot"
+];
+const EXPECTED_LEGACY_CANVAS_WORLD_HINTS_SELECTORS = [
   ".hint-line",
   ".hint-line span",
   ".quick-actions",
@@ -1113,6 +1132,7 @@ const legacyThemeSyncNodeMediaImports = parseCssImports("styles/legacy-theme-syn
 const legacyThemeSyncModelPreferenceImports = parseCssImports("styles/legacy-theme-sync-model-preference.css");
 const legacyCanvasImports = parseCssImports("styles/legacy-canvas.css");
 const legacyCanvasChoiceOverlayImports = parseCssImports("styles/legacy-canvas-choice-overlays.css");
+const legacyCanvasWorldImports = parseCssImports("styles/legacy-canvas-world.css");
 const legacyCanvasShellImports = parseCssImports("styles/legacy-canvas-shell.css");
 const legacyCanvasImageEditImports = parseCssImports("styles/legacy-canvas-image-edit.css");
 const legacyCanvasVisualImports = parseCssImports("styles/legacy-canvas-visual.css");
@@ -1148,6 +1168,7 @@ assertListEqual("styles/legacy-theme-sync-node-media.css", legacyThemeSyncNodeMe
 assertListEqual("styles/legacy-theme-sync-model-preference.css", legacyThemeSyncModelPreferenceImports, EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_IMPORTS);
 assertListEqual("styles/legacy-canvas.css", legacyCanvasImports, EXPECTED_LEGACY_CANVAS_IMPORTS);
 assertListEqual("styles/legacy-canvas-choice-overlays.css", legacyCanvasChoiceOverlayImports, EXPECTED_LEGACY_CANVAS_CHOICE_OVERLAY_IMPORTS);
+assertListEqual("styles/legacy-canvas-world.css", legacyCanvasWorldImports, EXPECTED_LEGACY_CANVAS_WORLD_IMPORTS);
 assertListEqual("styles/legacy-canvas-shell.css", legacyCanvasShellImports, EXPECTED_LEGACY_CANVAS_SHELL_IMPORTS);
 assertListEqual("styles/legacy-canvas-image-edit.css", legacyCanvasImageEditImports, EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_IMPORTS);
 assertListEqual("styles/legacy-canvas-visual.css", legacyCanvasVisualImports, EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS);
@@ -1180,6 +1201,7 @@ checkImportedFilesExist(legacyThemeSyncNodeMediaImports, "styles");
 checkImportedFilesExist(legacyThemeSyncModelPreferenceImports, "styles");
 checkImportedFilesExist(legacyCanvasImports, "styles");
 checkImportedFilesExist(legacyCanvasChoiceOverlayImports, "styles");
+checkImportedFilesExist(legacyCanvasWorldImports, "styles");
 checkImportedFilesExist(legacyCanvasShellImports, "styles");
 checkImportedFilesExist(legacyCanvasImageEditImports, "styles");
 checkImportedFilesExist(legacyCanvasVisualImports, "styles");
@@ -1260,6 +1282,10 @@ checkFileContains("styles/legacy-canvas-choice-generation.css", EXPECTED_LEGACY_
 checkFileContains("styles/legacy-canvas-choice-floating-suggestions.css", EXPECTED_LEGACY_CANVAS_CHOICE_FLOATING_SUGGESTIONS_SELECTORS);
 checkFileContains("styles/legacy-canvas-choice-keyframes.css", EXPECTED_LEGACY_CANVAS_CHOICE_KEYFRAMES_SELECTORS);
 checkFileContains("styles/legacy-canvas-world.css", EXPECTED_LEGACY_CANVAS_WORLD_SELECTORS);
+checkFileContains("styles/legacy-canvas-world-selection.css", EXPECTED_LEGACY_CANVAS_WORLD_SELECTION_SELECTORS);
+checkFileContains("styles/legacy-canvas-world-stage.css", EXPECTED_LEGACY_CANVAS_WORLD_STAGE_SELECTORS);
+checkFileContains("styles/legacy-canvas-world-empty-state.css", EXPECTED_LEGACY_CANVAS_WORLD_EMPTY_STATE_SELECTORS);
+checkFileContains("styles/legacy-canvas-world-hints.css", EXPECTED_LEGACY_CANVAS_WORLD_HINTS_SELECTORS);
 checkFileContains("styles/legacy-canvas-video-generator.css", EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_SELECTORS);
 checkFileContains("styles/legacy-canvas-project-header.css", EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_SELECTORS);
 checkFileContains("styles/legacy-canvas-library.css", EXPECTED_LEGACY_CANVAS_LIBRARY_SELECTORS);

@@ -1,0 +1,45 @@
+.hint-line {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 18px;
+}
+
+.hint-line span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 38px;
+  padding: 0 16px;
+  border: 1px solid var(--line-soft);
+  border-radius: 14px;
+  color: #f3f7fb;
+  background: rgba(32, 32, 32, 0.92);
+}
+
+.hint-line strong {
+  font-weight: 500;
+}
+
+.quick-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+.quick-actions button {
+  min-height: 40px;
+  padding: 0 18px;
+  border: 1px solid var(--line-soft);
+  border-radius: 12px;
+  color: #8d9299;
+  background: rgba(22, 22, 22, 0.92);
+}
+
+.quick-actions button:hover,
+.suggestions button:hover {
+  color: #f5f7fa;
+  border-color: rgba(127, 200, 255, 0.55);
+}

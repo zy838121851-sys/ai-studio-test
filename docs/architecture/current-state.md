@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,350 |
-| `styles` | 149 | 15,252 |
-| `scripts` | 90 | 21,553 |
+| `styles` | 153 | 15,253 |
+| `scripts` | 90 | 21,579 |
 
 Largest files in the current source tree:
 
@@ -65,7 +65,7 @@ Largest files in the current source tree:
 | 1,709 | `scripts/check-api-error-contract.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
-| 1,333 | `scripts/check-style-entry.js` |
+| 1,359 | `scripts/check-style-entry.js` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,282 | `scripts/check-canvas-menu-actions.js` |
@@ -359,9 +359,15 @@ Post-baseline CSS governance note:
   suggestion placement, card states, text, and running-state styles.
 - `styles/legacy-canvas-choice-keyframes.css` owns the related choice overlay
   animations.
-- `styles/legacy-canvas-world.css` owns canvas selection box, canvas world,
-  empty state, hint line, and quick action styles that were moved out of
-  `styles/legacy-canvas.css`.
+- `styles/legacy-canvas-world.css` is now a pure aggregation entry for canvas
+  selection box, world stage, empty state, and hint/quick-action submodules.
+- `styles/legacy-canvas-world-selection.css` owns canvas selection box styles.
+- `styles/legacy-canvas-world-stage.css` owns canvas world positioning and
+  transform-origin styles.
+- `styles/legacy-canvas-world-empty-state.css` owns canvas empty state, spark,
+  action, and dot styles.
+- `styles/legacy-canvas-world-hints.css` owns hint line and quick action
+  styles.
 - `styles/legacy-canvas-video-generator.css` owns video generator popover,
   reference list/thumb, model selector, option group, send control, disabled
   state, and status styles that were moved out of `styles/legacy-canvas.css`.
