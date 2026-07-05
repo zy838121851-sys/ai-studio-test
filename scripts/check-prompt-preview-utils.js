@@ -2,6 +2,7 @@ import {
   buildPromptPreviewWaitingStatus,
   createPromptPreviewBatch,
   markPromptPreviewsFailed,
+  resolvePromptViewportCenterTarget,
   updatePromptPreviewStatus
 } from "../src/client/features/workspace/chat/workflows/prompt-preview-utils.js";
 
@@ -60,6 +61,22 @@ const videoPreviews = collectPreviewCalls({
 });
 assert(videoPreviews[0].title === "Generated Video.mp4", "Video previews should use video title");
 assert(videoPreviews[0].desc === "Waiting for video result...", "Video previews should use video waiting text");
+
+let rectCallCount = 0;
+const centerTarget = resolvePromptViewportCenterTarget({
+  canvasViewport: {
+    clientWidth: 800,
+    clientHeight: 600,
+    getBoundingClientRect() {
+      rectCallCount += 1;
+      return { left: 20, top: 40 };
+    }
+  },
+  viewportPointToWorld: (x, y) => ({ x: x + 10, y: y + 20 })
+});
+assert(centerTarget.x === 430, "Prompt viewport center target should use viewport center x");
+assert(centerTarget.y === 360, "Prompt viewport center target should use viewport center y");
+assert(rectCallCount === 2, "Prompt viewport center target should preserve the existing rect read pattern");
 
 assert(
   buildPromptPreviewWaitingStatus({ index: 2, count: 3, outputType: "image" }) === "Waiting for result 3/3...",

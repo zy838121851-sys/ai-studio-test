@@ -610,6 +610,10 @@ Post-baseline CSS governance note:
   normalization for pending-home and selected chat models; the workflow still
   owns DOM synchronization, and `scripts/check-prompt-generation-payload-utils.js`
   guards the extracted model-selection behavior.
+- `prompt-preview-utils.js` now owns prompt preview batch/status helpers and
+  the shared viewport-center target calculation used by prompt generation
+  previews; `scripts/check-prompt-preview-utils.js` guards the extracted
+  placement formula without changing preview creation behavior.
 - `image-generator-workflow-constants.js` now owns image generator selectors,
   default model/ratio/count configuration, and Midjourney output count;
   `scripts/check-image-generator-workflow-constants.js` guards those static

@@ -33,6 +33,16 @@ export function createPromptPreviewBatch({
   }).filter(Boolean);
 }
 
+export function resolvePromptViewportCenterTarget({
+  canvasViewport,
+  viewportPointToWorld
+} = {}) {
+  return viewportPointToWorld(
+    canvasViewport.getBoundingClientRect().left + canvasViewport.clientWidth / 2,
+    canvasViewport.getBoundingClientRect().top + canvasViewport.clientHeight / 2
+  );
+}
+
 export function updatePromptPreviewStatus(previewNode, text = "") {
   const statusText = previewNode?.querySelector?.(".generation-frame span");
   if (statusText && text) statusText.textContent = text;

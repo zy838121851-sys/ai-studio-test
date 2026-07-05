@@ -94,6 +94,7 @@ import {
   buildPromptPreviewWaitingStatus,
   createPromptPreviewBatch,
   markPromptPreviewsFailed,
+  resolvePromptViewportCenterTarget,
   updatePromptPreviewStatus
 } from "./prompt-preview-utils.js";
 import {
@@ -553,10 +554,10 @@ export function bindPromptSubmit({
           throw new Error("missing createPreview function");
         }
         const videoModel = isPromptVideoGeneration({ modelType: getModelType(model), outputType });
-        const target = viewportPointToWorld(
-          resolvedCanvasViewport.getBoundingClientRect().left + resolvedCanvasViewport.clientWidth / 2,
-          resolvedCanvasViewport.getBoundingClientRect().top + resolvedCanvasViewport.clientHeight / 2
-        );
+        const target = resolvePromptViewportCenterTarget({
+          canvasViewport: resolvedCanvasViewport,
+          viewportPointToWorld
+        });
         const placement = getGenerationPlacement(generationMetrics, target);
         previewCount = resolvePromptPreviewCount({ model, videoModel, midjourneyCount: MIDJOURNEY_IMAGE_COUNT });
         previewNodes = createPromptPreviewBatch({
@@ -668,10 +669,10 @@ export function bindPromptSubmit({
         });
         progress = addChat("assistant", "创建 3D 任务中...");
         progress?.classList?.add("loading");
-        const target = viewportPointToWorld(
-          resolvedCanvasViewport.getBoundingClientRect().left + resolvedCanvasViewport.clientWidth / 2,
-          resolvedCanvasViewport.getBoundingClientRect().top + resolvedCanvasViewport.clientHeight / 2
-        );
+        const target = resolvePromptViewportCenterTarget({
+          canvasViewport: resolvedCanvasViewport,
+          viewportPointToWorld
+        });
         const placement = getGenerationPlacement(generationMetrics, target);
         previewNodes = createPromptPreviewBatch({
           addGenerationPreview,
@@ -903,10 +904,10 @@ export function bindPromptSubmit({
       agentDebug.previewCreationAttempted = true;
       updateAgentDebugPanel(agentDebug);
       if (!previewNodes.length) {
-        const target = viewportPointToWorld(
-          resolvedCanvasViewport.getBoundingClientRect().left + resolvedCanvasViewport.clientWidth / 2,
-          resolvedCanvasViewport.getBoundingClientRect().top + resolvedCanvasViewport.clientHeight / 2
-        );
+        const target = resolvePromptViewportCenterTarget({
+          canvasViewport: resolvedCanvasViewport,
+          viewportPointToWorld
+        });
         const placement = getGenerationPlacement(generationMetrics, target);
         previewNodes = createPromptPreviewBatch({
           addGenerationPreview,
@@ -1180,10 +1181,10 @@ function bindImageTo3DRequests({
     try {
       progress = addChat("assistant", "创建 3D 任务中...");
       progress?.classList?.add("loading");
-      const target = viewportPointToWorld(
-        canvasViewport.getBoundingClientRect().left + canvasViewport.clientWidth / 2,
-        canvasViewport.getBoundingClientRect().top + canvasViewport.clientHeight / 2
-      );
+      const target = resolvePromptViewportCenterTarget({
+        canvasViewport,
+        viewportPointToWorld
+      });
       previewNode = addGenerationPreview({
         title: "Tripo 3D Model",
         desc: "Waiting for 3D model result...",
