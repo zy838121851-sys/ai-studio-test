@@ -505,6 +505,10 @@ const EXPECTED_ASSET_PICKER_LIST_IMPORTS = [
   "./assets-picker-list-item.css",
   "./assets-picker-list-empty.css"
 ];
+const EXPECTED_ASSET_PICKER_PREVIEW_IMPORTS = [
+  "./assets-picker-preview-overlay.css",
+  "./assets-picker-preview-dialog.css"
+];
 const EXPECTED_ASSET_PICKER_POPOVER_SELECTORS = [
   "@import url(\"./assets-picker-popover-shell.css\")",
   "@import url(\"./assets-picker-popover-head.css\")"
@@ -531,7 +535,14 @@ const EXPECTED_ASSET_PICKER_LIST_EMPTY_SELECTORS = [
   ".asset-picker-empty"
 ];
 const EXPECTED_ASSET_PICKER_PREVIEW_SELECTORS = [
+  "@import url(\"./assets-picker-preview-overlay.css\")",
+  "@import url(\"./assets-picker-preview-dialog.css\")"
+];
+const EXPECTED_ASSET_PICKER_PREVIEW_OVERLAY_SELECTORS = [
   ".asset-preview-overlay",
+  ".asset-preview-backdrop"
+];
+const EXPECTED_ASSET_PICKER_PREVIEW_DIALOG_SELECTORS = [
   ".asset-preview-dialog"
 ];
 const EXPECTED_ASSET_CANVAS_PICKER_SELECTORS = [
@@ -1415,6 +1426,7 @@ const assetSaveBoardPopoverImports = parseCssImports("styles/features/assets-sav
 const assetPickerImports = parseCssImports("styles/features/assets-picker.css");
 const assetPickerPopoverImports = parseCssImports("styles/features/assets-picker-popover.css");
 const assetPickerListImports = parseCssImports("styles/features/assets-picker-list.css");
+const assetPickerPreviewImports = parseCssImports("styles/features/assets-picker-preview.css");
 const assetCanvasPickerImports = parseCssImports("styles/features/assets-canvas-picker.css");
 const assetPageImports = parseCssImports("styles/features/assets-page.css");
 const assetPagePinterestLegacyImports = parseCssImports("styles/features/assets-page-pinterest-legacy.css");
@@ -1467,6 +1479,7 @@ assertListEqual("styles/features/assets-save-board-popover.css", assetSaveBoardP
 assertListEqual("styles/features/assets-picker.css", assetPickerImports, EXPECTED_ASSET_PICKER_IMPORTS);
 assertListEqual("styles/features/assets-picker-popover.css", assetPickerPopoverImports, EXPECTED_ASSET_PICKER_POPOVER_IMPORTS);
 assertListEqual("styles/features/assets-picker-list.css", assetPickerListImports, EXPECTED_ASSET_PICKER_LIST_IMPORTS);
+assertListEqual("styles/features/assets-picker-preview.css", assetPickerPreviewImports, EXPECTED_ASSET_PICKER_PREVIEW_IMPORTS);
 assertListEqual("styles/features/assets-canvas-picker.css", assetCanvasPickerImports, EXPECTED_ASSET_CANVAS_PICKER_IMPORTS);
 assertListEqual("styles/features/assets-page.css", assetPageImports, EXPECTED_ASSET_PAGE_IMPORTS);
 assertListEqual("styles/features/assets-page-pinterest-legacy.css", assetPagePinterestLegacyImports, EXPECTED_ASSET_PAGE_PINTEREST_LEGACY_IMPORTS);
@@ -1516,6 +1529,7 @@ checkImportedFilesExist(assetSaveBoardPopoverImports, "styles/features");
 checkImportedFilesExist(assetPickerImports, "styles/features");
 checkImportedFilesExist(assetPickerPopoverImports, "styles/features");
 checkImportedFilesExist(assetPickerListImports, "styles/features");
+checkImportedFilesExist(assetPickerPreviewImports, "styles/features");
 checkImportedFilesExist(assetCanvasPickerImports, "styles/features");
 checkImportedFilesExist(assetPageImports, "styles/features");
 checkImportedFilesExist(assetPagePinterestLegacyImports, "styles/features");
@@ -1560,6 +1574,8 @@ checkFileContains("styles/features/assets-picker-list.css", EXPECTED_ASSET_PICKE
 checkFileContains("styles/features/assets-picker-list-item.css", EXPECTED_ASSET_PICKER_LIST_ITEM_SELECTORS);
 checkFileContains("styles/features/assets-picker-list-empty.css", EXPECTED_ASSET_PICKER_LIST_EMPTY_SELECTORS);
 checkFileContains("styles/features/assets-picker-preview.css", EXPECTED_ASSET_PICKER_PREVIEW_SELECTORS);
+checkFileContains("styles/features/assets-picker-preview-overlay.css", EXPECTED_ASSET_PICKER_PREVIEW_OVERLAY_SELECTORS);
+checkFileContains("styles/features/assets-picker-preview-dialog.css", EXPECTED_ASSET_PICKER_PREVIEW_DIALOG_SELECTORS);
 checkFileContains("styles/features/assets-canvas-picker.css", EXPECTED_ASSET_CANVAS_PICKER_SELECTORS);
 checkFileContains("styles/features/assets-canvas-picker-shell.css", EXPECTED_ASSET_CANVAS_PICKER_SHELL_SELECTORS);
 checkFileContains("styles/features/assets-canvas-picker-projects.css", EXPECTED_ASSET_CANVAS_PICKER_PROJECTS_SELECTORS);

@@ -55,14 +55,14 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,350 |
-| `styles` | 198 | 15,275 |
-| `scripts` | 90 | 21,931 |
+| `styles` | 200 | 15,276 |
+| `scripts` | 90 | 21,947 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
-| 1,711 | `scripts/check-style-entry.js` |
+| 1,727 | `scripts/check-style-entry.js` |
 | 1,709 | `scripts/check-api-error-contract.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
@@ -241,8 +241,12 @@ Post-baseline CSS governance note:
   thumbnail, and metadata styles.
 - `styles/features/assets-picker-list-empty.css` owns asset picker empty-state
   styles.
-- `styles/features/assets-picker-preview.css` owns asset preview overlay,
-  backdrop, dialog, image, title, and close control styles.
+- `styles/features/assets-picker-preview.css` is now a pure aggregation entry
+  for asset preview overlay and dialog submodules.
+- `styles/features/assets-picker-preview-overlay.css` owns asset preview overlay
+  and backdrop styles.
+- `styles/features/assets-picker-preview-dialog.css` owns asset preview dialog,
+  image, title, and close control styles.
 - `styles/features/assets-canvas-picker.css` is now a pure aggregation entry
   for canvas project picker shell and project row submodules; it is imported by
   `styles/features/assets.css`.
