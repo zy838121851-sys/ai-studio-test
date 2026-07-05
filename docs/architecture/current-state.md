@@ -55,7 +55,7 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 88 | 13,352 |
+| `styles` | 89 | 13,353 |
 | `scripts` | 90 | 19,441 |
 
 Largest files in the current source tree:
@@ -299,7 +299,10 @@ Post-baseline CSS governance note:
   state styles; it is imported before image toolbar styles to preserve the
   previous cascade position.
 - `styles/features/node-image-toolbar.css` owns image node toolbar, toolbar menu,
-  upscale controls, and canvas asset savebar styles.
+  and upscale controls.
+- `styles/features/node-image-toolbar-savebar.css` owns canvas asset savebar,
+  asset board select, and save submit styles; it is imported immediately after
+  `styles/features/node-image-toolbar.css`.
 - `styles/features/node-image-panels.css` owns image text panel and image
   lightbox styles.
 - `styles/features/node-stack.css` owns stack/folded node styles.

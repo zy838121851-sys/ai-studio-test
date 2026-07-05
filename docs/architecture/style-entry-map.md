@@ -90,6 +90,7 @@ styles/features/node-base.css
 styles/features/node-image-edit.css
 styles/features/node-state.css
 styles/features/node-image-toolbar.css
+styles/features/node-image-toolbar-savebar.css
 styles/features/node-image-panels.css
 styles/features/node-stack.css
 styles/features/node-director.css
@@ -389,8 +390,11 @@ Notes:
 - `features/node-state.css` owns generic node zoom/selected/source/label state
   styles; it is imported before image toolbar styles to preserve the previous
   cascade position.
-- `features/node-image-toolbar.css` owns image node toolbar, toolbar menu,
-  upscale controls, and canvas asset savebar styles.
+- `features/node-image-toolbar.css` owns image node toolbar, toolbar menu, and
+  upscale controls.
+- `features/node-image-toolbar-savebar.css` owns canvas asset savebar, asset
+  board select, and save submit styles; it is imported immediately after
+  `features/node-image-toolbar.css`.
 - `features/node-image-panels.css` owns image text panel and image lightbox
   styles.
 - `features/node-stack.css` owns stack/folded node styles.
@@ -536,6 +540,7 @@ styles/features/node-base.css
 styles/features/node-image-edit.css
 styles/features/node-state.css
 styles/features/node-image-toolbar.css
+styles/features/node-image-toolbar-savebar.css
 styles/features/node-image-panels.css
 styles/features/node-stack.css
 styles/features/node-director.css
@@ -652,8 +657,9 @@ Additional caution:
   `features/node-base.css`,
   migrated image edit selectors in `features/node-image-edit.css`, migrated node
   state selectors in `features/node-state.css`, migrated image toolbar selectors
-  in `features/node-image-toolbar.css`, migrated image panel selectors in
-  `features/node-image-panels.css`, migrated stack selectors in
+  in `features/node-image-toolbar.css`, migrated canvas asset savebar selectors
+  in `features/node-image-toolbar-savebar.css`, migrated image panel selectors
+  in `features/node-image-panels.css`, migrated stack selectors in
   `features/node-stack.css`, migrated director selectors in
   `features/node-director.css`, migrated media node selectors in
   `features/node-media.css`, migrated generation preview selectors in

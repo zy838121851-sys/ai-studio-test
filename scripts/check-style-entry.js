@@ -78,6 +78,7 @@ const EXPECTED_NODE_IMPORTS = [
   "./node-image-edit.css",
   "./node-state.css",
   "./node-image-toolbar.css",
+  "./node-image-toolbar-savebar.css",
   "./node-image-panels.css",
   "./node-stack.css",
   "./node-director.css",
@@ -504,11 +505,14 @@ const EXPECTED_NODE_IMAGE_TOOLBAR_SELECTORS = [
   ".image-node-toolbar",
   ".image-toolbar-menu",
   ".image-toolbar-upscale-controls",
+  ".image-toolbar-label",
+  ".image-toolbar-compare"
+];
+const EXPECTED_NODE_IMAGE_TOOLBAR_SAVEBAR_SELECTORS = [
   ".canvas-asset-savebar",
   ".canvas-asset-board-select",
   ".canvas-asset-save-submit",
-  ".image-toolbar-label",
-  ".image-toolbar-compare"
+  ".canvas-asset-save-submit.is-saved"
 ];
 const EXPECTED_NODE_IMAGE_PANELS_SELECTORS = [
   ".image-text-panel",
@@ -884,6 +888,7 @@ checkFileContains("styles/features/node-base.css", EXPECTED_NODE_BASE_SELECTORS)
 checkFileContains("styles/features/node-image-edit.css", EXPECTED_NODE_IMAGE_EDIT_SELECTORS);
 checkFileContains("styles/features/node-state.css", EXPECTED_NODE_STATE_SELECTORS);
 checkFileContains("styles/features/node-image-toolbar.css", EXPECTED_NODE_IMAGE_TOOLBAR_SELECTORS);
+checkFileContains("styles/features/node-image-toolbar-savebar.css", EXPECTED_NODE_IMAGE_TOOLBAR_SAVEBAR_SELECTORS);
 checkFileContains("styles/features/node-image-panels.css", EXPECTED_NODE_IMAGE_PANELS_SELECTORS);
 checkFileContains("styles/features/node-stack.css", EXPECTED_NODE_STACK_SELECTORS);
 checkFileContains("styles/features/node-director.css", EXPECTED_NODE_DIRECTOR_SELECTORS);
