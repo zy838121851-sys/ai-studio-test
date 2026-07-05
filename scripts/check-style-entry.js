@@ -43,7 +43,8 @@ const EXPECTED_LEGACY_CANVAS_IMPORTS = [
   "./legacy-canvas-image-edit.css",
   "./legacy-canvas-add-node.css",
   "./legacy-canvas-choice-overlays.css",
-  "./legacy-canvas-world.css"
+  "./legacy-canvas-world.css",
+  "./legacy-canvas-video-generator.css"
 ];
 const EXPECTED_NODE_IMPORTS = [
   "./node-base.css",
@@ -256,9 +257,20 @@ const EXPECTED_LEGACY_CANVAS_WORLD_SELECTORS = [
   ".quick-actions",
   ".quick-actions button:hover"
 ];
+const EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_SELECTORS = [
+  ".video-generator-popover",
+  ".video-generator-popover.open",
+  ".video-generator-reference-list",
+  ".video-generator-reference-thumb",
+  ".video-generator-tool",
+  ".video-generator-model",
+  ".video-generator-group",
+  ".video-generator-status"
+];
 const EXPECTED_LEGACY_CANVAS_SELECTORS = [
   ".library-head",
-  ".video-generator-popover"
+  "body[data-view=\"canvas\"] .project-header",
+  "body[data-view=\"canvas\"] .return-to-content"
 ];
 const EXPECTED_LEGACY_NODE_SELECTORS = [];
 const EXPECTED_NODE_BASE_SELECTORS = [
@@ -548,6 +560,7 @@ checkFileContains("styles/legacy-canvas-image-edit.css", EXPECTED_LEGACY_CANVAS_
 checkFileContains("styles/legacy-canvas-add-node.css", EXPECTED_LEGACY_CANVAS_ADD_NODE_SELECTORS);
 checkFileContains("styles/legacy-canvas-choice-overlays.css", EXPECTED_LEGACY_CANVAS_CHOICE_OVERLAY_SELECTORS);
 checkFileContains("styles/legacy-canvas-world.css", EXPECTED_LEGACY_CANVAS_WORLD_SELECTORS);
+checkFileContains("styles/legacy-canvas-video-generator.css", EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/home-shell.css", EXPECTED_HOME_SHELL_SELECTORS);
 checkFileContains("styles/features/home-history.css", EXPECTED_HOME_HISTORY_SELECTORS);
