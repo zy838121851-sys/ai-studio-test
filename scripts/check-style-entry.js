@@ -201,6 +201,12 @@ const EXPECTED_ASSET_PAGE_IMPORTS = [
   "./assets-page-view.css",
   "./assets-page-pinterest-legacy.css"
 ];
+const EXPECTED_ASSET_PAGE_PINTEREST_LEGACY_IMPORTS = [
+  "./assets-page-pinterest-shell-legacy.css",
+  "./assets-page-pinterest-board-legacy.css",
+  "./assets-page-pinterest-pin-legacy.css",
+  "./assets-page-pinterest-responsive-legacy.css"
+];
 const EXPECTED_ASSET_PINTEREST_IMPORTS = [
   "./assets-pinterest-board.css",
   "./assets-pinterest-shell.css",
@@ -364,10 +370,29 @@ const EXPECTED_ASSET_PAGE_VIEW_SELECTORS = [
   "body[data-view=\"assetsPage\"] .simple-page-shell"
 ];
 const EXPECTED_ASSET_PAGE_PINTEREST_LEGACY_SELECTORS = [
+  "@import url(\"./assets-page-pinterest-shell-legacy.css\")",
+  "@import url(\"./assets-page-pinterest-board-legacy.css\")",
+  "@import url(\"./assets-page-pinterest-pin-legacy.css\")",
+  "@import url(\"./assets-page-pinterest-responsive-legacy.css\")"
+];
+const EXPECTED_ASSET_PAGE_PINTEREST_SHELL_LEGACY_SELECTORS = [
   ".asset-pinterest-shell",
+  ".asset-pinterest-profile",
+  ".asset-pinterest-profile nav button.active::after"
+];
+const EXPECTED_ASSET_PAGE_PINTEREST_BOARD_LEGACY_SELECTORS = [
   ".asset-pinterest-board",
+  ".asset-pinterest-board-cover",
+  ".asset-pinterest-section-title"
+];
+const EXPECTED_ASSET_PAGE_PINTEREST_PIN_LEGACY_SELECTORS = [
   ".asset-pinterest-pin.asset-item",
+  ".asset-pinterest-pin-actions",
   ".asset-pinterest-empty"
+];
+const EXPECTED_ASSET_PAGE_PINTEREST_RESPONSIVE_LEGACY_SELECTORS = [
+  "@media (max-width: 900px)",
+  ".asset-pinterest-profile"
 ];
 const EXPECTED_ASSET_BOARD_SELECTORS = [
   ".asset-board-bar",
@@ -1231,6 +1256,7 @@ const nodeImageGeneratorBaseImports = parseCssImports("styles/features/node-imag
 const assetImports = parseCssImports("styles/features/assets.css");
 const assetSaveImports = parseCssImports("styles/features/assets-save.css");
 const assetPageImports = parseCssImports("styles/features/assets-page.css");
+const assetPagePinterestLegacyImports = parseCssImports("styles/features/assets-page-pinterest-legacy.css");
 const assetPinterestImports = parseCssImports("styles/features/assets-pinterest.css");
 const assetPinterestBoardImports = parseCssImports("styles/features/assets-pinterest-board.css");
 const homeImports = parseCssImports("styles/features/home.css");
@@ -1271,6 +1297,7 @@ assertListEqual("styles/features/node-image-generator-base.css", nodeImageGenera
 assertListEqual("styles/features/assets.css", assetImports, EXPECTED_ASSET_IMPORTS);
 assertListEqual("styles/features/assets-save.css", assetSaveImports, EXPECTED_ASSET_SAVE_IMPORTS);
 assertListEqual("styles/features/assets-page.css", assetPageImports, EXPECTED_ASSET_PAGE_IMPORTS);
+assertListEqual("styles/features/assets-page-pinterest-legacy.css", assetPagePinterestLegacyImports, EXPECTED_ASSET_PAGE_PINTEREST_LEGACY_IMPORTS);
 assertListEqual("styles/features/assets-pinterest.css", assetPinterestImports, EXPECTED_ASSET_PINTEREST_IMPORTS);
 assertListEqual("styles/features/assets-pinterest-board.css", assetPinterestBoardImports, EXPECTED_ASSET_PINTEREST_BOARD_IMPORTS);
 assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
@@ -1308,6 +1335,7 @@ checkImportedFilesExist(nodeImageGeneratorBaseImports, "styles/features");
 checkImportedFilesExist(assetImports, "styles/features");
 checkImportedFilesExist(assetSaveImports, "styles/features");
 checkImportedFilesExist(assetPageImports, "styles/features");
+checkImportedFilesExist(assetPagePinterestLegacyImports, "styles/features");
 checkImportedFilesExist(assetPinterestImports, "styles/features");
 checkImportedFilesExist(assetPinterestBoardImports, "styles/features");
 checkImportedFilesExist(homeImports, "styles/features");
@@ -1321,6 +1349,10 @@ checkFileContains("styles/features/auth-dialog.css", EXPECTED_AUTH_DIALOG_SELECT
 checkFileContains("styles/features/assets-floating-library.css", EXPECTED_ASSET_PAGE_SELECTORS);
 checkFileContains("styles/features/assets-page-view.css", EXPECTED_ASSET_PAGE_VIEW_SELECTORS);
 checkFileContains("styles/features/assets-page-pinterest-legacy.css", EXPECTED_ASSET_PAGE_PINTEREST_LEGACY_SELECTORS);
+checkFileContains("styles/features/assets-page-pinterest-shell-legacy.css", EXPECTED_ASSET_PAGE_PINTEREST_SHELL_LEGACY_SELECTORS);
+checkFileContains("styles/features/assets-page-pinterest-board-legacy.css", EXPECTED_ASSET_PAGE_PINTEREST_BOARD_LEGACY_SELECTORS);
+checkFileContains("styles/features/assets-page-pinterest-pin-legacy.css", EXPECTED_ASSET_PAGE_PINTEREST_PIN_LEGACY_SELECTORS);
+checkFileContains("styles/features/assets-page-pinterest-responsive-legacy.css", EXPECTED_ASSET_PAGE_PINTEREST_RESPONSIVE_LEGACY_SELECTORS);
 checkFileContains("styles/features/assets-board.css", EXPECTED_ASSET_BOARD_SELECTORS);
 checkFileContains("styles/features/assets-save.css", EXPECTED_ASSET_SAVE_SELECTORS);
 checkFileContains("styles/features/assets-save-popover.css", EXPECTED_ASSET_SAVE_POPOVER_SELECTORS);

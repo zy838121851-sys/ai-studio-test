@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,350 |
-| `styles` | 166 | 15,256 |
-| `scripts` | 90 | 21,684 |
+| `styles` | 170 | 15,260 |
+| `scripts` | 90 | 21,716 |
 
 Largest files in the current source tree:
 
@@ -64,8 +64,8 @@ Largest files in the current source tree:
 | ---: | --- |
 | 1,709 | `scripts/check-api-error-contract.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
+| 1,496 | `scripts/check-style-entry.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
-| 1,464 | `scripts/check-style-entry.js` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,282 | `scripts/check-canvas-menu-actions.js` |
@@ -186,9 +186,20 @@ Post-baseline CSS governance note:
   shell, upload button, and asset list basics.
 - `styles/features/assets-page-view.css` owns asset page toolbar/list and
   `body[data-view="assetsPage"]` page-view overrides.
-- `styles/features/assets-page-pinterest-legacy.css` owns first-pass
-  Pinterest-style asset page overview styles that predate the refreshed
-  `styles/features/assets-pinterest.css` submodules.
+- `styles/features/assets-page-pinterest-legacy.css` is now a pure aggregation
+  entry for first-pass Pinterest-style legacy asset page submodules that
+  predate the refreshed `styles/features/assets-pinterest.css` submodules.
+- `styles/features/assets-page-pinterest-shell-legacy.css` owns first-pass
+  Pinterest-style legacy asset page shell, profile, tabs, and active tab
+  indicator styles.
+- `styles/features/assets-page-pinterest-board-legacy.css` owns first-pass
+  Pinterest-style legacy board grid, cover, create tile, metadata, action, and
+  section title styles.
+- `styles/features/assets-page-pinterest-pin-legacy.css` owns first-pass
+  Pinterest-style legacy masonry, pin/card thumbnail, metadata, action, and
+  empty-state styles.
+- `styles/features/assets-page-pinterest-responsive-legacy.css` owns first-pass
+  Pinterest-style legacy responsive overrides.
 - `styles/features/assets-board.css` owns asset board/list/card/thumb,
   move/delete action, and empty-state styles; it is imported by
   `styles/features/assets.css`.

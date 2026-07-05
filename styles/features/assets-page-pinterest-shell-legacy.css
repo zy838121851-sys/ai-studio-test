@@ -1,0 +1,51 @@
+.asset-pinterest-shell {
+  width: 100%;
+  min-height: 100vh;
+  padding: 56px clamp(24px, 7vw, 150px) 80px;
+  color: #111827;
+  background: #fff;
+}
+
+.asset-pinterest-profile {
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  gap: 24px;
+  margin-bottom: 34px;
+}
+
+.asset-pinterest-profile h1 {
+  margin: 0 0 34px;
+  color: #050505;
+  font-size: 34px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.asset-pinterest-profile nav {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+}
+
+.asset-pinterest-profile nav button {
+  position: relative;
+  min-height: 32px;
+  border: 0;
+  color: #111;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.asset-pinterest-profile nav button.active::after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  border-radius: 999px;
+  background: #111;
+  content: "";
+}

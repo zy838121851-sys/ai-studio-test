@@ -1,0 +1,11 @@
+@media (max-width: 900px) {
+  .asset-pinterest-shell {
+    padding: 42px 20px 60px;
+  }
+
+  .asset-pinterest-profile {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+}

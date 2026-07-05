@@ -188,6 +188,15 @@ styles/features/assets-page-view.css
 styles/features/assets-page-pinterest-legacy.css
 ```
 
+`styles/features/assets-page-pinterest-legacy.css` currently imports:
+
+```text
+styles/features/assets-page-pinterest-shell-legacy.css
+styles/features/assets-page-pinterest-board-legacy.css
+styles/features/assets-page-pinterest-pin-legacy.css
+styles/features/assets-page-pinterest-responsive-legacy.css
+```
+
 `styles/features/assets-pinterest.css` currently imports:
 
 ```text
@@ -547,9 +556,20 @@ Notes:
   upload button, and asset list basics.
 - `features/assets-page-view.css` owns asset page toolbar/list and
   `body[data-view="assetsPage"]` page-view overrides.
-- `features/assets-page-pinterest-legacy.css` owns first-pass Pinterest-style
-  asset page overview styles that predate the refreshed
-  `features/assets-pinterest.css` submodules.
+- `features/assets-page-pinterest-legacy.css` is now a pure aggregation entry
+  for first-pass Pinterest-style legacy asset page submodules that predate the
+  refreshed `features/assets-pinterest.css` submodules.
+- `features/assets-page-pinterest-shell-legacy.css` owns first-pass
+  Pinterest-style legacy asset page shell, profile, tabs, and active tab
+  indicator styles.
+- `features/assets-page-pinterest-board-legacy.css` owns first-pass
+  Pinterest-style legacy board grid, cover, create tile, metadata, action, and
+  section title styles.
+- `features/assets-page-pinterest-pin-legacy.css` owns first-pass
+  Pinterest-style legacy masonry, pin/card thumbnail, metadata, action, and
+  empty-state styles.
+- `features/assets-page-pinterest-responsive-legacy.css` owns first-pass
+  Pinterest-style legacy responsive overrides.
 - `features/assets-board.css` owns asset board/list/card/thumb, move/delete
   action, and empty-state styles; it is imported by `features/assets.css`.
 - `features/assets-save.css` is now a pure aggregation entry for asset save
@@ -875,6 +895,10 @@ styles/features/assets-page.css
 styles/features/assets-floating-library.css
 styles/features/assets-page-view.css
 styles/features/assets-page-pinterest-legacy.css
+styles/features/assets-page-pinterest-shell-legacy.css
+styles/features/assets-page-pinterest-board-legacy.css
+styles/features/assets-page-pinterest-pin-legacy.css
+styles/features/assets-page-pinterest-responsive-legacy.css
 styles/features/assets-board.css
 styles/features/assets-save.css
 styles/features/assets-save-popover.css
@@ -1062,7 +1086,14 @@ Additional caution:
   migrated asset page imports in `features/assets-page.css`, migrated floating
   asset library selectors in `features/assets-floating-library.css`, migrated
   asset page view selectors in `features/assets-page-view.css`, migrated legacy
-  asset page Pinterest selectors in `features/assets-page-pinterest-legacy.css`,
+  asset page Pinterest imports in `features/assets-page-pinterest-legacy.css`,
+  migrated legacy asset page Pinterest shell selectors in
+  `features/assets-page-pinterest-shell-legacy.css`, migrated legacy asset page
+  Pinterest board selectors in `features/assets-page-pinterest-board-legacy.css`,
+  migrated legacy asset page Pinterest pin selectors in
+  `features/assets-page-pinterest-pin-legacy.css`, migrated legacy asset page
+  Pinterest responsive selectors in
+  `features/assets-page-pinterest-responsive-legacy.css`,
   migrated asset board selectors in `features/assets-board.css`, migrated asset
   save imports in `features/assets-save.css`, migrated asset save popover
   selectors in `features/assets-save-popover.css`, migrated canvas asset board
