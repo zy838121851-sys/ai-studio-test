@@ -85,7 +85,8 @@ const EXPECTED_ASSET_IMPORTS = [
 ];
 const EXPECTED_ASSET_PINTEREST_IMPORTS = [
   "./assets-pinterest-board.css",
-  "./assets-pinterest-shell.css"
+  "./assets-pinterest-shell.css",
+  "./assets-pinterest-board-refresh.css"
 ];
 const EXPECTED_HOME_IMPORTS = [
   "./home-history.css",
@@ -211,7 +212,6 @@ const EXPECTED_ASSET_CONTEXT_MENU_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-card-context-submenu-panel"
 ];
 const EXPECTED_ASSET_PINTEREST_SELECTORS = [
-  "body[data-view=\"assetsPage\"] .asset-pinterest-board-grid",
   "body[data-view=\"assetsPage\"] .asset-pinterest-masonry",
   ".asset-selection-bar"
 ];
@@ -233,6 +233,15 @@ const EXPECTED_ASSET_PINTEREST_BOARD_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-pinterest-pin.asset-item",
   "body[data-view=\"assetsPage\"] .asset-pinterest-empty",
   ".floating-library .asset-item"
+];
+const EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_SELECTORS = [
+  "body[data-view=\"assetsPage\"] .asset-pinterest-board-grid",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-board-tile",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-board-cover-large",
+  "body[data-view=\"assetsPage\"] .asset-board-cover-cell",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-board-create-card",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-board-title",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-board-delete"
 ];
 const EXPECTED_ASSET_SELECTORS = [];
 const EXPECTED_CHAT_SELECTORS = [
@@ -704,6 +713,7 @@ checkFileContains("styles/features/assets-context-menu.css", EXPECTED_ASSET_CONT
 checkFileContains("styles/features/assets-pinterest.css", EXPECTED_ASSET_PINTEREST_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-shell.css", EXPECTED_ASSET_PINTEREST_SHELL_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-board.css", EXPECTED_ASSET_PINTEREST_BOARD_SELECTORS);
+checkFileContains("styles/features/assets-pinterest-board-refresh.css", EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_SELECTORS);
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-base.css", EXPECTED_LEGACY_THEME_SYNC_BASE_SELECTORS);

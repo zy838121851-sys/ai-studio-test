@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,683 |
 | `src/server` | 80 | 14,430 |
-| `styles` | 72 | 15,294 |
-| `scripts` | 90 | 21,062 |
+| `styles` | 73 | 15,295 |
+| `scripts` | 90 | 21,072 |
 
 Largest files in the current source tree:
 
@@ -75,7 +75,7 @@ Largest files in the current source tree:
 | 811 | `src/server/services/ai-job.service.js` |
 | 782 | `src/client/features/canvas/model-viewer.js` |
 | 780 | `styles/legacy-chat.css` |
-| 759 | `scripts/check-style-entry.js` |
+| 769 | `scripts/check-style-entry.js` |
 | 709 | `src/client/features/workspace/asset-library/asset-panel.js` |
 | 706 | `src/server/services/asset.service.js` |
 | 704 | `src/client/features/canvas/node-controls.js` |
@@ -131,11 +131,16 @@ Post-baseline CSS governance note:
 - `styles/features/assets-pinterest-shell.css` owns asset page Pinterest refresh
   shell, profile heading, upload CTA, stats, tabs, section title, and back
   control styles; it is imported by `styles/features/assets-pinterest.css`.
+- `styles/features/assets-pinterest-board-refresh.css` owns asset page
+  Pinterest refresh board grid, board cover count variants, cover cells,
+  create-card, board title, and board delete styles; it is imported by
+  `styles/features/assets-pinterest.css`.
 - `styles/features/assets-pinterest.css` owns asset page Pinterest refresh
-  board/masonry refinements, selection bar, pin/card styles, responsive rules,
-  and asset page interaction refinement styles; it imports
+  masonry, selection bar, pin/card styles, responsive rules, and asset page
+  interaction refinement styles; it imports
   `styles/features/assets-pinterest-board.css` and
-  `styles/features/assets-pinterest-shell.css`, and is imported by
+  `styles/features/assets-pinterest-shell.css`, and
+  `styles/features/assets-pinterest-board-refresh.css`, and is imported by
   `styles/features/assets.css`.
 - `styles/features/assets.css` is now an asset feature CSS aggregation entry for
   asset submodules.
