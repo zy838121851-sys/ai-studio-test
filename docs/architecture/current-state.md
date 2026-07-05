@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 86 | 13,350 |
-| `scripts` | 90 | 19,431 |
+| `styles` | 87 | 13,351 |
+| `scripts` | 90 | 19,438 |
 
 Largest files in the current source tree:
 
@@ -71,7 +71,7 @@ Largest files in the current source tree:
 | 1,065 | `scripts/check-library-bulk-select.js` |
 | 1,030 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 898 | `scripts/check-prompt-conversation-event-utils.js` |
-| 875 | `scripts/check-style-entry.js` |
+| 882 | `scripts/check-style-entry.js` |
 | 765 | `src/server/services/ai-job.service.js` |
 | 760 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
 | 713 | `src/client/features/canvas/model-viewer.js` |
@@ -140,8 +140,12 @@ Post-baseline CSS governance note:
 - `styles/features/auth-account.css` owns auth entry, authenticated avatar
   button, account popover, points row, and account menu styles; it is imported
   by `styles/features/auth.css`.
-- `styles/features/auth.css` owns credit detail dialog and login/auth dialog
-  styles; it imports `styles/features/auth-account.css`.
+- `styles/features/auth-credit-detail.css` owns credit detail dialog, profile,
+  info, transaction, empty/status, and responsive credit detail styles moved
+  out of `styles/features/auth.css`.
+- `styles/features/auth.css` owns login/auth dialog styles; it imports
+  `styles/features/auth-account.css` and
+  `styles/features/auth-credit-detail.css`.
 - `styles/features/assets-page.css` owns floating asset library shell, upload
   button/list basics, asset page shell, and first-pass Pinterest-style asset
   page overview styles; it is imported by `styles/features/assets.css`.

@@ -164,14 +164,20 @@ const EXPECTED_HOME_COMMUNITY_SELECTORS = [
   ".inspiration-card"
 ];
 const EXPECTED_AUTH_IMPORTS = [
-  "./auth-account.css"
+  "./auth-account.css",
+  "./auth-credit-detail.css"
 ];
 const EXPECTED_AUTH_SELECTORS = [
-  ".credit-detail-dialog",
-  ".credit-profile-card",
   ".auth-dialog",
   ".auth-form",
   ".auth-submit"
+];
+const EXPECTED_AUTH_CREDIT_DETAIL_SELECTORS = [
+  ".credit-detail-dialog",
+  ".credit-detail-panel",
+  ".credit-profile-card",
+  ".credit-transaction-item",
+  "@media (max-width: 760px)"
 ];
 const EXPECTED_AUTH_ACCOUNT_SELECTORS = [
   ".auth-entry",
@@ -830,6 +836,7 @@ checkImportedFilesExist(homeImports, "styles/features");
 checkCssReachability();
 checkFileContains("styles/features/auth.css", EXPECTED_AUTH_SELECTORS);
 checkFileContains("styles/features/auth-account.css", EXPECTED_AUTH_ACCOUNT_SELECTORS);
+checkFileContains("styles/features/auth-credit-detail.css", EXPECTED_AUTH_CREDIT_DETAIL_SELECTORS);
 checkFileContains("styles/features/assets-page.css", EXPECTED_ASSET_PAGE_SELECTORS);
 checkFileContains("styles/features/assets-board.css", EXPECTED_ASSET_BOARD_SELECTORS);
 checkFileContains("styles/features/assets-save.css", EXPECTED_ASSET_SAVE_SELECTORS);
