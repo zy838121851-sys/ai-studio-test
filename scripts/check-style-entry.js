@@ -83,6 +83,9 @@ const EXPECTED_ASSET_IMPORTS = [
   "./assets-context-menu.css",
   "./assets-pinterest.css"
 ];
+const EXPECTED_ASSET_PINTEREST_IMPORTS = [
+  "./assets-pinterest-board.css"
+];
 const EXPECTED_HOME_IMPORTS = [
   "./home-history.css",
   "./home-community.css",
@@ -201,7 +204,15 @@ const EXPECTED_ASSET_PINTEREST_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-pinterest-stats",
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-grid",
   "body[data-view=\"assetsPage\"] .asset-pinterest-masonry",
-  ".asset-selection-bar",
+  ".asset-selection-bar"
+];
+const EXPECTED_ASSET_PINTEREST_BOARD_SELECTORS = [
+  "body[data-view=\"assetsPage\"] .asset-pinterest-profile",
+  ".asset-pinterest-board-grid",
+  ".asset-pinterest-board-cover-large",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-masonry",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-pin.asset-item",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-empty",
   ".floating-library .asset-item"
 ];
 const EXPECTED_ASSET_SELECTORS = [];
@@ -634,6 +645,7 @@ const legacyCanvasImports = parseCssImports("styles/legacy-canvas.css");
 const legacyCanvasVisualImports = parseCssImports("styles/legacy-canvas-visual.css");
 const nodeImports = parseCssImports("styles/features/node.css");
 const assetImports = parseCssImports("styles/features/assets.css");
+const assetPinterestImports = parseCssImports("styles/features/assets-pinterest.css");
 const homeImports = parseCssImports("styles/features/home.css");
 
 checkIndexStylesheet();
@@ -646,6 +658,7 @@ assertListEqual("styles/legacy-canvas.css", legacyCanvasImports, EXPECTED_LEGACY
 assertListEqual("styles/legacy-canvas-visual.css", legacyCanvasVisualImports, EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS);
 assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
 assertListEqual("styles/features/assets.css", assetImports, EXPECTED_ASSET_IMPORTS);
+assertListEqual("styles/features/assets-pinterest.css", assetPinterestImports, EXPECTED_ASSET_PINTEREST_IMPORTS);
 assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
 checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(workspaceImports, "styles");
@@ -655,6 +668,7 @@ checkImportedFilesExist(legacyCanvasImports, "styles");
 checkImportedFilesExist(legacyCanvasVisualImports, "styles");
 checkImportedFilesExist(nodeImports, "styles/features");
 checkImportedFilesExist(assetImports, "styles/features");
+checkImportedFilesExist(assetPinterestImports, "styles/features");
 checkImportedFilesExist(homeImports, "styles/features");
 checkCssReachability();
 checkFileContains("styles/features/auth.css", EXPECTED_AUTH_SELECTORS);
@@ -665,6 +679,7 @@ checkFileContains("styles/features/assets-picker.css", EXPECTED_ASSET_PICKER_SEL
 checkFileContains("styles/features/assets-canvas-picker.css", EXPECTED_ASSET_CANVAS_PICKER_SELECTORS);
 checkFileContains("styles/features/assets-context-menu.css", EXPECTED_ASSET_CONTEXT_MENU_SELECTORS);
 checkFileContains("styles/features/assets-pinterest.css", EXPECTED_ASSET_PINTEREST_SELECTORS);
+checkFileContains("styles/features/assets-pinterest-board.css", EXPECTED_ASSET_PINTEREST_BOARD_SELECTORS);
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-base.css", EXPECTED_LEGACY_THEME_SYNC_BASE_SELECTORS);

@@ -55,30 +55,30 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,683 |
 | `src/server` | 80 | 14,430 |
-| `styles` | 69 | 15,289 |
-| `scripts` | 90 | 21,023 |
+| `styles` | 70 | 15,291 |
+| `scripts` | 90 | 21,038 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
-| 1,709 | `scripts/check-api-error-contract.js` |
-| 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
-| 1,553 | `styles/legacy-theme-sync.css` |
-| 1,479 | `scripts/check-generator-job-recovery.js` |
-| 1,302 | `src/server/services/conversation-orchestrator.service.js` |
-| 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
-| 1,282 | `scripts/check-canvas-menu-actions.js` |
-| 1,124 | `styles/features/assets-pinterest.css` |
-| 1,120 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
-| 1,112 | `scripts/check-library-bulk-select.js` |
-| 948 | `scripts/check-prompt-conversation-event-utils.js` |
-| 823 | `styles/features/auth.css` |
-| 819 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
-| 810 | `src/server/services/ai-job.service.js` |
-| 781 | `src/client/features/canvas/model-viewer.js` |
-| 779 | `styles/legacy-chat.css` |
-| 708 | `src/client/features/workspace/asset-library/asset-panel.js` |
+| 1,710 | `scripts/check-api-error-contract.js` |
+| 1,608 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
+| 1,480 | `scripts/check-generator-job-recovery.js` |
+| 1,303 | `src/server/services/conversation-orchestrator.service.js` |
+| 1,294 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
+| 1,283 | `scripts/check-canvas-menu-actions.js` |
+| 1,121 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
+| 1,113 | `scripts/check-library-bulk-select.js` |
+| 949 | `scripts/check-prompt-conversation-event-utils.js` |
+| 824 | `styles/features/auth.css` |
+| 820 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
+| 811 | `src/server/services/ai-job.service.js` |
+| 802 | `styles/features/assets-pinterest.css` |
+| 782 | `src/client/features/canvas/model-viewer.js` |
+| 780 | `styles/legacy-chat.css` |
+| 735 | `scripts/check-style-entry.js` |
+| 709 | `src/client/features/workspace/asset-library/asset-panel.js` |
 
 Post-baseline CSS governance note:
 
@@ -118,9 +118,15 @@ Post-baseline CSS governance note:
   styles for asset insertion; it is imported by `styles/features/assets.css`.
 - `styles/features/assets-context-menu.css` owns asset page card context menu
   styles; it is imported by `styles/features/assets.css`.
-- `styles/features/assets-pinterest.css` owns asset page Pinterest layout,
-  board/masonry/pin, selection bar, and asset page interaction refinement
-  styles; it is imported by `styles/features/assets.css`.
+- `styles/features/assets-pinterest-board.css` owns the first asset page
+  Pinterest board, masonry, pin, delete, empty, floating library item, and
+  responsive foundation block; it is imported by
+  `styles/features/assets-pinterest.css`.
+- `styles/features/assets-pinterest.css` owns asset page Pinterest refresh
+  layout, stats, board/masonry refinements, selection bar, and asset page
+  interaction refinement styles; it imports
+  `styles/features/assets-pinterest-board.css` and is imported by
+  `styles/features/assets.css`.
 - `styles/features/assets.css` is now an asset feature CSS aggregation entry for
   asset submodules.
 - `styles/features/home-history.css` owns home recent project/history stack,

@@ -103,6 +103,12 @@ styles/features/assets-context-menu.css
 styles/features/assets-pinterest.css
 ```
 
+`styles/features/assets-pinterest.css` currently imports:
+
+```text
+styles/features/assets-pinterest-board.css
+```
+
 `styles/features/home.css` currently imports:
 
 ```text
@@ -267,9 +273,13 @@ Notes:
   for asset insertion; it is imported by `features/assets.css`.
 - `features/assets-context-menu.css` owns asset page card context menu styles;
   it is imported by `features/assets.css`.
-- `features/assets-pinterest.css` owns asset page Pinterest layout,
-  board/masonry/pin, selection bar, and asset page interaction refinement
-  styles; it is imported by `features/assets.css`.
+- `features/assets-pinterest-board.css` owns the first asset page Pinterest
+  board, masonry, pin, delete, empty, floating library item, and responsive
+  foundation block; it is imported by `features/assets-pinterest.css`.
+- `features/assets-pinterest.css` owns asset page Pinterest refresh layout,
+  stats, board/masonry refinements, selection bar, and asset page interaction
+  refinement styles; it imports `features/assets-pinterest-board.css` and is
+  imported by `features/assets.css`.
 - `features/assets.css` is now an asset feature CSS aggregation entry for asset
   submodules.
 - `legacy-node.css` is currently a compatibility shim with no active selector
@@ -406,6 +416,7 @@ styles/features/assets-save.css
 styles/features/assets-picker.css
 styles/features/assets-canvas-picker.css
 styles/features/assets-context-menu.css
+styles/features/assets-pinterest-board.css
 styles/features/assets-pinterest.css
 styles/features/assets.css
 styles/features/chat.css
@@ -495,8 +506,9 @@ Additional caution:
   save selectors in `features/assets-save.css`, migrated asset picker selectors
   in `features/assets-picker.css`, migrated canvas asset picker selectors in
   `features/assets-canvas-picker.css`, migrated asset context menu selectors in
-  `features/assets-context-menu.css`, migrated asset Pinterest selectors in
-  `features/assets-pinterest.css`, migrated node base selectors in
+  `features/assets-context-menu.css`, migrated asset Pinterest board selectors
+  in `features/assets-pinterest-board.css`, migrated asset Pinterest selectors
+  in `features/assets-pinterest.css`, migrated node base selectors in
   `features/node-base.css`,
   migrated image edit selectors in `features/node-image-edit.css`, migrated node
   state selectors in `features/node-state.css`, migrated image toolbar selectors
