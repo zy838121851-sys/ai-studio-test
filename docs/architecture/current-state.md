@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,683 |
 | `src/server` | 80 | 14,430 |
-| `styles` | 65 | 15,285 |
-| `scripts` | 90 | 20,980 |
+| `styles` | 66 | 15,286 |
+| `scripts` | 90 | 20,992 |
 
 Largest files in the current source tree:
 
@@ -150,9 +150,14 @@ Post-baseline CSS governance note:
   shared textarea, edit reference, crop overlay, image expand overlay, and
   image lightbox theme synchronization styles that were moved out of
   `styles/legacy-theme-sync.css`.
+- `styles/legacy-theme-sync-node-media.css` owns dark node/card theme
+  synchronization, generation choice and AI panel theme surfaces, canvas media
+  node transparent-frame polish, loading-image generation frame theme polish,
+  and stack drop-target theme overrides that were moved out of
+  `styles/legacy-theme-sync.css`.
 - `styles/legacy-theme-sync.css` now imports the theme sync base, surfaces,
-  image edit, crop expand, and media edit submodules before the remaining
-  cross-component theme synchronization rules.
+  image edit, crop expand, media edit, and node media submodules before the
+  remaining cross-component theme synchronization rules.
 - `styles/legacy-canvas-shell.css` owns the first canvas shell block that was
   moved out of `styles/legacy-canvas.css`: canvas area background, project
   header/logo, top actions, tool rail, add-node menu, canvas context menu, and
