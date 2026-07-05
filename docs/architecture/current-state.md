@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,350 |
-| `styles` | 181 | 15,268 |
-| `scripts` | 90 | 21,803 |
+| `styles` | 184 | 15,269 |
+| `scripts` | 90 | 21,824 |
 
 Largest files in the current source tree:
 
@@ -64,7 +64,7 @@ Largest files in the current source tree:
 | ---: | --- |
 | 1,709 | `scripts/check-api-error-contract.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
-| 1,583 | `scripts/check-style-entry.js` |
+| 1,604 | `scripts/check-style-entry.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
@@ -249,9 +249,15 @@ Post-baseline CSS governance note:
   library item styles.
 - `styles/features/assets-pinterest-board-responsive-legacy.css` owns the first
   asset page Pinterest responsive overrides.
-- `styles/features/assets-pinterest-shell.css` owns asset page Pinterest refresh
-  shell, profile heading, upload CTA, stats, tabs, section title, and back
-  control styles; it is imported by `styles/features/assets-pinterest.css`.
+- `styles/features/assets-pinterest-shell.css` is now a pure aggregation entry
+  for asset page Pinterest shell header, stats, and navigation submodules; it
+  is imported by `styles/features/assets-pinterest.css`.
+- `styles/features/assets-pinterest-shell-header.css` owns asset page Pinterest
+  refresh shell, profile heading, and upload CTA styles.
+- `styles/features/assets-pinterest-shell-stats.css` owns asset page Pinterest
+  stats grid, stat card, icon, and count styles.
+- `styles/features/assets-pinterest-shell-nav.css` owns asset page Pinterest
+  tabs, section title, and back control styles.
 - `styles/features/assets-pinterest-board-refresh.css` owns asset page
   Pinterest refresh board grid, board cover count variants, cover cells,
   create-card, board title, and board delete styles; it is imported by

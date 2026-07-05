@@ -1,0 +1,57 @@
+/* Asset library page: iOS / Pinterest refresh */
+body[data-view="assetsPage"] .asset-pinterest-shell {
+  width: min(100%, 1580px);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 52px clamp(28px, 6vw, 112px) 92px;
+  color: #111827;
+  background:
+    radial-gradient(circle at 18% 0%, rgba(99, 102, 241, 0.06), transparent 28%),
+    radial-gradient(circle at 86% 8%, rgba(16, 185, 129, 0.05), transparent 24%),
+    #fff;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-profile {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 0 0 28px;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-heading h1,
+body[data-view="assetsPage"] .asset-pinterest-profile h1 {
+  margin: 0;
+  color: #111827;
+  font-size: clamp(34px, 3.8vw, 52px);
+  font-weight: 760;
+  line-height: 1.02;
+  letter-spacing: 0;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-heading p {
+  margin: 12px 0 0;
+  color: #697386;
+  font-size: 15px;
+  font-weight: 520;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-upload {
+  min-height: 46px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(135deg, #ef5a45, #d74735);
+  box-shadow: 0 18px 34px rgba(215, 71, 53, 0.22);
+  font-size: 14px;
+  font-weight: 760;
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-upload:hover {
+  filter: saturate(1.08);
+  box-shadow: 0 20px 40px rgba(215, 71, 53, 0.28);
+  transform: translateY(-1px);
+}

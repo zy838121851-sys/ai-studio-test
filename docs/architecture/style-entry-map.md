@@ -240,6 +240,14 @@ styles/features/assets-pinterest-board-masonry-legacy.css
 styles/features/assets-pinterest-board-responsive-legacy.css
 ```
 
+`styles/features/assets-pinterest-shell.css` currently imports:
+
+```text
+styles/features/assets-pinterest-shell-header.css
+styles/features/assets-pinterest-shell-stats.css
+styles/features/assets-pinterest-shell-nav.css
+```
+
 `styles/features/assets-pinterest-pin.css` currently imports:
 
 ```text
@@ -646,9 +654,15 @@ Notes:
   item styles.
 - `features/assets-pinterest-board-responsive-legacy.css` owns the first asset
   page Pinterest responsive overrides.
-- `features/assets-pinterest-shell.css` owns asset page Pinterest refresh shell,
-  profile heading, upload CTA, stats, tabs, section title, and back control
-  styles; it is imported by `features/assets-pinterest.css`.
+- `features/assets-pinterest-shell.css` is now a pure aggregation entry for
+  asset page Pinterest shell header, stats, and navigation submodules; it is
+  imported by `features/assets-pinterest.css`.
+- `features/assets-pinterest-shell-header.css` owns asset page Pinterest refresh
+  shell, profile heading, and upload CTA styles.
+- `features/assets-pinterest-shell-stats.css` owns asset page Pinterest stats
+  grid, stat card, icon, and count styles.
+- `features/assets-pinterest-shell-nav.css` owns asset page Pinterest tabs,
+  section title, and back control styles.
 - `features/assets-pinterest-board-refresh.css` owns asset page Pinterest
   refresh board grid, board cover count variants, cover cells, create-card,
   board title, and board delete styles; it is imported by
@@ -976,6 +990,9 @@ styles/features/assets-pinterest-board-tiles-legacy.css
 styles/features/assets-pinterest-board-masonry-legacy.css
 styles/features/assets-pinterest-board-responsive-legacy.css
 styles/features/assets-pinterest-shell.css
+styles/features/assets-pinterest-shell-header.css
+styles/features/assets-pinterest-shell-stats.css
+styles/features/assets-pinterest-shell-nav.css
 styles/features/assets-pinterest-board-refresh.css
 styles/features/assets-pinterest-pin.css
 styles/features/assets-pinterest-pin-card.css
@@ -1182,8 +1199,11 @@ Additional caution:
   migrated first Pinterest masonry selectors in
   `features/assets-pinterest-board-masonry-legacy.css`, migrated first Pinterest
   responsive selectors in `features/assets-pinterest-board-responsive-legacy.css`,
-  migrated asset Pinterest shell
-  selectors in `features/assets-pinterest-shell.css`, migrated asset Pinterest
+  migrated asset Pinterest shell imports in `features/assets-pinterest-shell.css`,
+  migrated asset Pinterest shell header, stats, and nav selectors in
+  `features/assets-pinterest-shell-header.css`,
+  `features/assets-pinterest-shell-stats.css`, and
+  `features/assets-pinterest-shell-nav.css`, migrated asset Pinterest
   board refresh selectors in `features/assets-pinterest-board-refresh.css`,
   migrated asset Pinterest pin imports in `features/assets-pinterest-pin.css`,
   migrated asset Pinterest pin card, actions, and empty-state selectors in

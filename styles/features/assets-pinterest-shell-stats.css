@@ -1,0 +1,84 @@
+body[data-view="assetsPage"] .asset-pinterest-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin: 0 0 30px;
+}
+
+body[data-view="assetsPage"] .asset-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  min-height: 86px;
+  padding: 18px;
+  border: 1px solid rgba(17, 24, 39, 0.06);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, 0.055);
+  backdrop-filter: blur(18px);
+}
+
+body[data-view="assetsPage"] .asset-stat-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  background: rgba(99, 102, 241, 0.13);
+}
+
+body[data-view="assetsPage"] .asset-stat-icon::before {
+  width: 13px;
+  height: 13px;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  content: "";
+}
+
+body[data-view="assetsPage"] .asset-stat-violet .asset-stat-icon {
+  color: #7667f2;
+  background: rgba(118, 103, 242, 0.13);
+}
+
+body[data-view="assetsPage"] .asset-stat-green .asset-stat-icon {
+  color: #39aa76;
+  background: rgba(57, 170, 118, 0.13);
+}
+
+body[data-view="assetsPage"] .asset-stat-rose .asset-stat-icon {
+  color: #e0577d;
+  background: rgba(224, 87, 125, 0.13);
+}
+
+body[data-view="assetsPage"] .asset-stat-blue .asset-stat-icon {
+  color: #4b8ee8;
+  background: rgba(75, 142, 232, 0.13);
+}
+
+body[data-view="assetsPage"] .asset-stat-card div {
+  min-width: 0;
+}
+
+body[data-view="assetsPage"] .asset-stat-card span,
+body[data-view="assetsPage"] .asset-stat-card em {
+  display: block;
+  color: #697386;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 620;
+}
+
+body[data-view="assetsPage"] .asset-stat-card strong {
+  display: inline-block;
+  margin-top: 3px;
+  color: #111827;
+  font-size: 25px;
+  font-weight: 780;
+  line-height: 1;
+}
+
+body[data-view="assetsPage"] .asset-stat-card em {
+  display: inline-block;
+  margin-left: 8px;
+  color: #39aa76;
+}

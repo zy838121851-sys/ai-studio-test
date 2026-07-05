@@ -1,0 +1,66 @@
+body[data-view="assetsPage"] .asset-pinterest-tabs {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin: 0 0 26px;
+  padding-bottom: 8px;
+  overflow-x: auto;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-tabs button {
+  position: relative;
+  flex: 0 0 auto;
+  min-height: 34px;
+  padding: 0;
+  border: 0;
+  color: #697386;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 680;
+  cursor: pointer;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-tabs button.active {
+  color: #111827;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-tabs button.active::after {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 2px;
+  border-radius: 999px;
+  background: #111827;
+  content: "";
+}
+
+body[data-view="assetsPage"] .asset-pinterest-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 20px;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-section-title strong {
+  color: #111827;
+  font-size: 23px;
+  font-weight: 760;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-section-title span {
+  color: #7b8495;
+  font-size: 14px;
+  font-weight: 540;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-back {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  color: #111827;
+  background: rgba(17, 24, 39, 0.06);
+  font-size: 13px;
+  font-weight: 720;
+}
