@@ -96,6 +96,10 @@ const EXPECTED_NODE_IMAGE_TOOLBAR_IMPORTS = [
   "./node-image-toolbar-upscale.css",
   "./node-image-toolbar-menu.css"
 ];
+const EXPECTED_NODE_IMAGE_PANELS_IMPORTS = [
+  "./node-image-text-panel.css",
+  "./node-image-lightbox.css"
+];
 const EXPECTED_ASSET_IMPORTS = [
   "./assets-page.css",
   "./assets-board.css",
@@ -530,10 +534,12 @@ const EXPECTED_NODE_IMAGE_TOOLBAR_SAVEBAR_SELECTORS = [
   ".canvas-asset-save-submit",
   ".canvas-asset-save-submit.is-saved"
 ];
-const EXPECTED_NODE_IMAGE_PANELS_SELECTORS = [
+const EXPECTED_NODE_IMAGE_TEXT_PANEL_SELECTORS = [
   ".image-text-panel",
   ".image-text-status",
-  ".image-text-list",
+  ".image-text-list"
+];
+const EXPECTED_NODE_IMAGE_LIGHTBOX_SELECTORS = [
   ".image-lightbox",
   ".image-lightbox-close"
 ];
@@ -822,6 +828,7 @@ const legacyCanvasVisualImports = parseCssImports("styles/legacy-canvas-visual.c
 const authImports = parseCssImports("styles/features/auth.css");
 const nodeImports = parseCssImports("styles/features/node.css");
 const nodeImageToolbarImports = parseCssImports("styles/features/node-image-toolbar.css");
+const nodeImagePanelsImports = parseCssImports("styles/features/node-image-panels.css");
 const nodeImageGeneratorImports = parseCssImports("styles/features/node-image-generator.css");
 const assetImports = parseCssImports("styles/features/assets.css");
 const assetPinterestImports = parseCssImports("styles/features/assets-pinterest.css");
@@ -840,6 +847,7 @@ assertListEqual("styles/legacy-canvas-visual.css", legacyCanvasVisualImports, EX
 assertListEqual("styles/features/auth.css", authImports, EXPECTED_AUTH_IMPORTS);
 assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
 assertListEqual("styles/features/node-image-toolbar.css", nodeImageToolbarImports, EXPECTED_NODE_IMAGE_TOOLBAR_IMPORTS);
+assertListEqual("styles/features/node-image-panels.css", nodeImagePanelsImports, EXPECTED_NODE_IMAGE_PANELS_IMPORTS);
 assertListEqual("styles/features/node-image-generator.css", nodeImageGeneratorImports, EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS);
 assertListEqual("styles/features/assets.css", assetImports, EXPECTED_ASSET_IMPORTS);
 assertListEqual("styles/features/assets-pinterest.css", assetPinterestImports, EXPECTED_ASSET_PINTEREST_IMPORTS);
@@ -855,6 +863,7 @@ checkImportedFilesExist(legacyCanvasVisualImports, "styles");
 checkImportedFilesExist(authImports, "styles/features");
 checkImportedFilesExist(nodeImports, "styles/features");
 checkImportedFilesExist(nodeImageToolbarImports, "styles/features");
+checkImportedFilesExist(nodeImagePanelsImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorImports, "styles/features");
 checkImportedFilesExist(assetImports, "styles/features");
 checkImportedFilesExist(assetPinterestImports, "styles/features");
@@ -910,7 +919,8 @@ checkFileContains("styles/features/node-image-toolbar-base.css", EXPECTED_NODE_I
 checkFileContains("styles/features/node-image-toolbar-upscale.css", EXPECTED_NODE_IMAGE_TOOLBAR_UPSCALE_SELECTORS);
 checkFileContains("styles/features/node-image-toolbar-menu.css", EXPECTED_NODE_IMAGE_TOOLBAR_MENU_SELECTORS);
 checkFileContains("styles/features/node-image-toolbar-savebar.css", EXPECTED_NODE_IMAGE_TOOLBAR_SAVEBAR_SELECTORS);
-checkFileContains("styles/features/node-image-panels.css", EXPECTED_NODE_IMAGE_PANELS_SELECTORS);
+checkFileContains("styles/features/node-image-text-panel.css", EXPECTED_NODE_IMAGE_TEXT_PANEL_SELECTORS);
+checkFileContains("styles/features/node-image-lightbox.css", EXPECTED_NODE_IMAGE_LIGHTBOX_SELECTORS);
 checkFileContains("styles/features/node-stack.css", EXPECTED_NODE_STACK_SELECTORS);
 checkFileContains("styles/features/node-director.css", EXPECTED_NODE_DIRECTOR_SELECTORS);
 checkFileContains("styles/features/node-media.css", EXPECTED_NODE_MEDIA_SELECTORS);

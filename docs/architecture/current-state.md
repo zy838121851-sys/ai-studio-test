@@ -55,7 +55,7 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 92 | 13,356 |
+| `styles` | 94 | 13,358 |
 | `scripts` | 90 | 19,441 |
 
 Largest files in the current source tree:
@@ -98,7 +98,9 @@ Post-baseline CSS governance note:
   `styles/features/node-image-toolbar-upscale.css`,
   `styles/features/node-image-toolbar-menu.css`,
   `styles/features/node-image-toolbar-savebar.css`,
-  `styles/features/node-image-panels.css`, `styles/features/node-stack.css`,
+  `styles/features/node-image-panels.css`,
+  `styles/features/node-image-text-panel.css`,
+  `styles/features/node-image-lightbox.css`, `styles/features/node-stack.css`,
   `styles/features/node-director.css`, `styles/features/node-media.css`,
   `styles/features/node-generation.css`, `styles/features/node-image-generator.css`,
   `styles/features/node-preview.css`, and `styles/features/node.css` so later
@@ -313,8 +315,12 @@ Post-baseline CSS governance note:
 - `styles/features/node-image-toolbar-savebar.css` owns canvas asset savebar,
   asset board select, and save submit styles; it is imported immediately after
   `styles/features/node-image-toolbar.css`.
-- `styles/features/node-image-panels.css` owns image text panel and image
-  lightbox styles.
+- `styles/features/node-image-panels.css` is now a pure aggregation entry for
+  image text panel and image lightbox styles.
+- `styles/features/node-image-text-panel.css` owns image text edit panel,
+  status, editable input list, footer actions, and loading apply state styles.
+- `styles/features/node-image-lightbox.css` owns image lightbox overlay, figure,
+  image, caption, and close button styles.
 - `styles/features/node-stack.css` owns stack/folded node styles.
 - `styles/features/node-director.css` owns director node styles.
 - `styles/features/node-media.css` owns image/video/model node shell, image

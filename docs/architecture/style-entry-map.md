@@ -115,6 +115,13 @@ styles/features/node-image-toolbar-upscale.css
 styles/features/node-image-toolbar-menu.css
 ```
 
+`styles/features/node-image-panels.css` currently imports:
+
+```text
+styles/features/node-image-text-panel.css
+styles/features/node-image-lightbox.css
+```
+
 `styles/features/assets.css` currently imports:
 
 ```text
@@ -409,8 +416,12 @@ Notes:
 - `features/node-image-toolbar-savebar.css` owns canvas asset savebar, asset
   board select, and save submit styles; it is imported immediately after
   `features/node-image-toolbar.css`.
-- `features/node-image-panels.css` owns image text panel and image lightbox
-  styles.
+- `features/node-image-panels.css` is now a pure aggregation entry for image
+  text panel and image lightbox styles.
+- `features/node-image-text-panel.css` owns image text edit panel, status,
+  editable input list, footer actions, and loading apply state styles.
+- `features/node-image-lightbox.css` owns image lightbox overlay, figure, image,
+  caption, and close button styles.
 - `features/node-stack.css` owns stack/folded node styles.
 - `features/node-director.css` owns director node styles.
 - `features/node-media.css` owns image/video/model node shell, image frame, and
@@ -559,6 +570,8 @@ styles/features/node-image-toolbar-upscale.css
 styles/features/node-image-toolbar-menu.css
 styles/features/node-image-toolbar-savebar.css
 styles/features/node-image-panels.css
+styles/features/node-image-text-panel.css
+styles/features/node-image-lightbox.css
 styles/features/node-stack.css
 styles/features/node-director.css
 styles/features/node-media.css
@@ -678,8 +691,10 @@ Additional caution:
   `features/node-image-toolbar-base.css`, migrated image toolbar upscale
   selectors in `features/node-image-toolbar-upscale.css`, migrated image toolbar
   menu selectors in `features/node-image-toolbar-menu.css`, migrated canvas
-  asset savebar selectors in `features/node-image-toolbar-savebar.css`, migrated image panel selectors
-  in `features/node-image-panels.css`, migrated stack selectors in
+  asset savebar selectors in `features/node-image-toolbar-savebar.css`, migrated
+  image panel imports in `features/node-image-panels.css`, migrated image text
+  panel selectors in `features/node-image-text-panel.css`, migrated image
+  lightbox selectors in `features/node-image-lightbox.css`, migrated stack selectors in
   `features/node-stack.css`, migrated director selectors in
   `features/node-director.css`, migrated media node selectors in
   `features/node-media.css`, migrated generation preview selectors in
