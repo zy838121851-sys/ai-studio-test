@@ -413,6 +413,12 @@ const EXPECTED_HOME_SHELL_IMPORTS = [
   "./home-shell-model.css",
   "./home-shell-transition.css"
 ];
+const EXPECTED_HOME_SHELL_PROMPT_IMPORTS = [
+  "./home-shell-prompt-stage.css",
+  "./home-shell-prompt-form.css",
+  "./home-shell-prompt-files.css",
+  "./home-shell-prompt-controls.css"
+];
 const ALLOWED_UNREACHABLE_CSS = [
   "styles/legacy-node.css"
 ];
@@ -472,9 +478,25 @@ const EXPECTED_HOME_SHELL_BOOT_SELECTORS = [
   "@keyframes homeBootSkeleton"
 ];
 const EXPECTED_HOME_SHELL_PROMPT_SELECTORS = [
+  "@import url(\"./home-shell-prompt-stage.css\")",
+  "@import url(\"./home-shell-prompt-form.css\")",
+  "@import url(\"./home-shell-prompt-files.css\")",
+  "@import url(\"./home-shell-prompt-controls.css\")"
+];
+const EXPECTED_HOME_SHELL_PROMPT_STAGE_SELECTORS = [
   ".home-stage",
+  ".home-title"
+];
+const EXPECTED_HOME_SHELL_PROMPT_FORM_SELECTORS = [
   ".home-prompt",
+  ".home-prompt.has-files"
+];
+const EXPECTED_HOME_SHELL_PROMPT_FILES_SELECTORS = [
   ".home-file-preview",
+  ".home-file-thumb",
+  ".home-file-thumb button"
+];
+const EXPECTED_HOME_SHELL_PROMPT_CONTROLS_SELECTORS = [
   ".home-plus"
 ];
 const EXPECTED_HOME_SHELL_MODEL_SELECTORS = [
@@ -1822,6 +1844,7 @@ const homeHistoryImports = parseCssImports("styles/features/home-history.css");
 const homeCommunityImports = parseCssImports("styles/features/home-community.css");
 const homeCommunityChannelImports = parseCssImports("styles/features/home-community-channels.css");
 const homeShellImports = parseCssImports("styles/features/home-shell.css");
+const homeShellPromptImports = parseCssImports("styles/features/home-shell-prompt.css");
 
 checkIndexStylesheet();
 assertListEqual("styles.css", stylesImports, EXPECTED_STYLES_IMPORTS);
@@ -1891,6 +1914,7 @@ assertListEqual("styles/features/home-history.css", homeHistoryImports, EXPECTED
 assertListEqual("styles/features/home-community.css", homeCommunityImports, EXPECTED_HOME_COMMUNITY_IMPORTS);
 assertListEqual("styles/features/home-community-channels.css", homeCommunityChannelImports, EXPECTED_HOME_COMMUNITY_CHANNEL_IMPORTS);
 assertListEqual("styles/features/home-shell.css", homeShellImports, EXPECTED_HOME_SHELL_IMPORTS);
+assertListEqual("styles/features/home-shell-prompt.css", homeShellPromptImports, EXPECTED_HOME_SHELL_PROMPT_IMPORTS);
 checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(imageCompareImports, "styles");
 checkImportedFilesExist(taskLogImports, "styles");
@@ -1957,6 +1981,7 @@ checkImportedFilesExist(homeHistoryImports, "styles/features");
 checkImportedFilesExist(homeCommunityImports, "styles/features");
 checkImportedFilesExist(homeCommunityChannelImports, "styles/features");
 checkImportedFilesExist(homeShellImports, "styles/features");
+checkImportedFilesExist(homeShellPromptImports, "styles/features");
 checkCssReachability();
 checkFileContains("styles/image-compare.css", EXPECTED_IMAGE_COMPARE_SELECTORS);
 checkFileContains("styles/image-compare-shell.css", EXPECTED_IMAGE_COMPARE_SHELL_SELECTORS);
@@ -2119,6 +2144,10 @@ checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/home-shell.css", EXPECTED_HOME_SHELL_SELECTORS);
 checkFileContains("styles/features/home-shell-boot.css", EXPECTED_HOME_SHELL_BOOT_SELECTORS);
 checkFileContains("styles/features/home-shell-prompt.css", EXPECTED_HOME_SHELL_PROMPT_SELECTORS);
+checkFileContains("styles/features/home-shell-prompt-stage.css", EXPECTED_HOME_SHELL_PROMPT_STAGE_SELECTORS);
+checkFileContains("styles/features/home-shell-prompt-form.css", EXPECTED_HOME_SHELL_PROMPT_FORM_SELECTORS);
+checkFileContains("styles/features/home-shell-prompt-files.css", EXPECTED_HOME_SHELL_PROMPT_FILES_SELECTORS);
+checkFileContains("styles/features/home-shell-prompt-controls.css", EXPECTED_HOME_SHELL_PROMPT_CONTROLS_SELECTORS);
 checkFileContains("styles/features/home-shell-model.css", EXPECTED_HOME_SHELL_MODEL_SELECTORS);
 checkFileContains("styles/features/home-shell-transition.css", EXPECTED_HOME_SHELL_TRANSITION_SELECTORS);
 checkFileContains("styles/features/home-history-stack.css", EXPECTED_HOME_HISTORY_SELECTORS);

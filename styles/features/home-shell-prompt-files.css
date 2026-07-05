@@ -1,0 +1,61 @@
+.home-file-preview {
+  grid-area: preview;
+  grid-column: 1 / -1;
+  display: none;
+  gap: 10px;
+  align-items: flex-start;
+  min-height: 150px;
+  overflow-x: auto;
+  padding: 0 0 2px;
+}
+
+.home-prompt.has-files .home-file-preview {
+  display: flex;
+}
+
+.home-file-thumb {
+  position: relative;
+  flex: 0 0 auto;
+  width: 168px;
+  height: 150px;
+  overflow: hidden;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 16px;
+  background: rgba(246, 248, 251, 0.78);
+  box-shadow: inset 0 1px rgba(255, 255, 255, 0.95), 0 14px 34px rgba(31, 46, 72, 0.08);
+}
+
+.home-file-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.home-file-thumb b {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  z-index: 1;
+  padding: 4px 7px;
+  border-radius: 999px;
+  color: #fff;
+  background: rgba(17, 24, 39, 0.62);
+  box-shadow: 0 8px 18px rgba(17, 24, 39, 0.18);
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.home-file-thumb button {
+  position: absolute;
+  right: 7px;
+  top: 7px;
+  width: 28px !important;
+  height: 28px !important;
+  min-height: 28px !important;
+  color: #fff !important;
+  background: #050505 !important;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.18);
+  font-size: 18px !important;
+  line-height: 1;
+}

@@ -1,0 +1,38 @@
+.home-prompt {
+  display: grid;
+  grid-template-areas: "plus input model send";
+  grid-template-columns: 38px minmax(0, 1fr) 168px 64px;
+  grid-template-rows: 52px;
+  align-items: center;
+  position: relative;
+  z-index: 1200;
+  gap: 10px;
+  width: min(900px, calc(100vw - 96px));
+  min-height: 70px;
+  padding: 8px 10px 8px 18px;
+  border: 1px solid rgba(17, 24, 39, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 54px rgba(31, 46, 72, 0.12), inset 0 1px rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  transform-origin: bottom center;
+  transition: min-height 0.22s ease, border-radius 0.22s ease, padding 0.22s ease, transform 0.18s ease;
+}
+
+body[data-view="canvas"] .home-prompt {
+  transform: scale(var(--canvas-prompt-scale, 1));
+}
+
+.home-prompt.has-files {
+  grid-template-areas:
+    "preview preview preview preview"
+    "plus input model send";
+  grid-template-rows: minmax(150px, auto) 52px;
+  width: min(1040px, calc(100vw - 140px));
+  min-height: 250px;
+  padding: 14px 12px 12px 18px;
+  border-radius: 32px;
+  align-items: center;
+  row-gap: 8px;
+}

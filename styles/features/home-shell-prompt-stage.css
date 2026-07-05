@@ -1,0 +1,22 @@
+.home-stage {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  min-height: 100vh;
+  padding: clamp(190px, 24vh, 250px) 22px 90px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.home-title {
+  margin: 0 0 30px;
+  color: #17202c;
+  font-size: 32px;
+  font-family: "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", Arial, sans-serif;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.15;
+  text-align: center;
+  text-shadow: 0 10px 34px rgba(31, 46, 72, 0.08);
+}
