@@ -56,7 +56,7 @@ Current source footprint, excluding `node_modules` and `dist`:
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
 | `styles` | 81 | 13,345 |
-| `scripts` | 90 | 19,380 |
+| `scripts` | 90 | 19,379 |
 
 Largest files in the current source tree:
 
@@ -71,7 +71,7 @@ Largest files in the current source tree:
 | 1,065 | `scripts/check-library-bulk-select.js` |
 | 1,030 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 898 | `scripts/check-prompt-conversation-event-utils.js` |
-| 824 | `scripts/check-style-entry.js` |
+| 823 | `scripts/check-style-entry.js` |
 | 765 | `src/server/services/ai-job.service.js` |
 | 760 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
 | 713 | `src/client/features/canvas/model-viewer.js` |
@@ -117,13 +117,14 @@ Post-baseline CSS governance note:
   blocks that were moved out of `styles/legacy-chat.css`; it is imported by
   `styles/legacy-chat.css`.
 - `styles/legacy-chat-agent.css` owns agent UI blocks, analysis/result cards,
-  prompt details, assistant summary, task status, and feedback button styles
-  moved out of `styles/legacy-chat.css`; existing `content` pseudo-element
-  overrides remain in `styles/legacy-chat.css`.
+  prompt details, assistant summary, task status, feedback button styles, and
+  agent summary pseudo-element content moved out of `styles/legacy-chat.css`.
 - `styles/legacy-chat-composer.css` owns composer layout, chat upload/model
-  controls, chat image preview, and send button styles moved out of
-  `styles/legacy-chat.css`; existing `content` pseudo-element overrides remain
-  in `styles/legacy-chat.css`.
+  controls, chat image preview, send button styles, drag-over pseudo-element
+  content, and preview close pseudo-element styles moved out of
+  `styles/legacy-chat.css`.
+- `styles/legacy-chat.css` is now a pure aggregation entry for chat shell,
+  message, responsive, agent, and composer submodules.
 - `styles/features/auth-account.css` owns auth entry, authenticated avatar
   button, account popover, points row, and account menu styles; it is imported
   by `styles/features/auth.css`.

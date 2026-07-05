@@ -40,6 +40,17 @@
   display: none;
 }
 
+.agent-analysis-card summary::after {
+  content: "⌃";
+  margin-left: auto;
+  color: #9aa3b2;
+  font-size: 12px;
+}
+
+.agent-analysis-card:not([open]) summary::after {
+  content: "⌄";
+}
+
 .agent-analysis-body {
   display: grid;
   gap: 10px;

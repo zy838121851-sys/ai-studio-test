@@ -73,6 +73,10 @@
   color: #9bdab8;
 }
 
+.message.thinking li.done::before {
+  content: "✓";
+}
+
 .message.thinking li.failed {
   color: #ffb4a8;
 }

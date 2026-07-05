@@ -551,16 +551,12 @@ const EXPECTED_NODE_PREVIEW_SELECTORS = [
   "@keyframes spinCube"
 ];
 const EXPECTED_NODE_SELECTORS = [];
-const EXPECTED_LEGACY_CHAT_SELECTORS = [
-  ".message.thinking li.done::before",
-  ".agent-analysis-card summary::after",
-  ".agent-analysis-card:not([open]) summary::after",
-  ".composer.drag-over::after",
-  ".chat-image-preview span::before"
-];
+const EXPECTED_LEGACY_CHAT_SELECTORS = [];
 const EXPECTED_LEGACY_CHAT_AGENT_SELECTORS = [
   ".agent-ui-blocks",
   ".agent-analysis-card",
+  ".agent-analysis-card summary::after",
+  ".agent-analysis-card:not([open]) summary::after",
   ".agent-result-card",
   ".agent-result-placeholder",
   ".agent-prompt-details",
@@ -574,9 +570,11 @@ const EXPECTED_LEGACY_CHAT_COMPOSER_SELECTORS = [
   ".composer.drag-over",
   ".composer textarea",
   ".composer-actions",
+  ".composer.drag-over::after",
   "#chatUploadImage",
   "#chatModelSelect",
   ".chat-image-preview",
+  ".chat-image-preview span::before",
   ".composer-actions .send"
 ];
 const EXPECTED_LEGACY_CHAT_MESSAGE_SELECTORS = [
@@ -584,6 +582,7 @@ const EXPECTED_LEGACY_CHAT_MESSAGE_SELECTORS = [
   ".message.assistant",
   ".message.thinking",
   ".thinking-summary",
+  ".message.thinking li.done::before",
   ".message.loading::before",
   "@keyframes spinLoading",
   ".message.user",

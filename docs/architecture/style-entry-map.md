@@ -290,13 +290,13 @@ Notes:
 - `legacy-chat-responsive.css` owns chat-related responsive override blocks; it
   is imported by `legacy-chat.css`.
 - `legacy-chat-agent.css` owns agent UI blocks, analysis/result cards, prompt
-  details, assistant summary, task status, and feedback button styles; it is
-  imported by `legacy-chat.css`. Existing `content` pseudo-element overrides
-  remain in `legacy-chat.css`.
+  details, assistant summary, task status, feedback button styles, and agent
+  summary pseudo-element content; it is imported by `legacy-chat.css`.
 - `legacy-chat-composer.css` owns composer layout, chat upload/model controls,
-  chat image preview, and send button styles; it is imported by
-  `legacy-chat.css`. Existing `content` pseudo-element overrides remain in
-  `legacy-chat.css`.
+  chat image preview, send button styles, drag-over pseudo-element content, and
+  preview close pseudo-element styles; it is imported by `legacy-chat.css`.
+- `legacy-chat.css` is now a pure aggregation entry for chat shell, message,
+  responsive, agent, and composer submodules.
 - `features/auth-account.css` owns auth entry, authenticated avatar button,
   account popover, points row, and account menu styles; it is imported by
   `features/auth.css`.
