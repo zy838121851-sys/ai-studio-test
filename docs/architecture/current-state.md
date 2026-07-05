@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,349 |
-| `styles` | 56 | 15,225 |
-| `scripts` | 90 | 20,805 |
+| `styles` | 57 | 15,221 |
+| `scripts` | 90 | 20,815 |
 
 Largest files in the current source tree:
 
@@ -159,12 +159,16 @@ Post-baseline CSS governance note:
 - `styles/legacy-canvas-video-generator.css` owns video generator popover,
   reference list/thumb, model selector, option group, send control, disabled
   state, and status styles that were moved out of `styles/legacy-canvas.css`.
+- `styles/legacy-canvas-project-header.css` owns canvas-view project header,
+  project title editing states, save-status badge states, and return-to-content
+  control styles that were moved out of `styles/legacy-canvas.css`.
 - `styles/legacy-canvas.css` now imports `styles/legacy-canvas-shell.css`,
   `styles/legacy-canvas-image-edit.css`, and
   `styles/legacy-canvas-add-node.css`, and
   `styles/legacy-canvas-choice-overlays.css`, and
   `styles/legacy-canvas-world.css`, and
-  `styles/legacy-canvas-video-generator.css` before the remaining legacy canvas
+  `styles/legacy-canvas-video-generator.css`, and
+  `styles/legacy-canvas-project-header.css` before the remaining legacy canvas
   styles to preserve cascade order.
 - `styles/features/node-base.css` owns base node/card/resize/action styles that
   were moved out of `styles/legacy-node.css`; it is imported at the top of
