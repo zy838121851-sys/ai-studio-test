@@ -196,6 +196,10 @@ const EXPECTED_ASSET_SAVE_IMPORTS = [
   "./assets-save-popover.css",
   "./assets-save-board-popover.css"
 ];
+const EXPECTED_ASSET_SAVE_POPOVER_IMPORTS = [
+  "./assets-save-popover-shell.css",
+  "./assets-save-popover-list.css"
+];
 const EXPECTED_ASSET_CANVAS_PICKER_IMPORTS = [
   "./assets-canvas-picker-shell.css",
   "./assets-canvas-picker-projects.css"
@@ -449,9 +453,17 @@ const EXPECTED_ASSET_SAVE_SELECTORS = [
   "@import url(\"./assets-save-board-popover.css\")"
 ];
 const EXPECTED_ASSET_SAVE_POPOVER_SELECTORS = [
+  "@import url(\"./assets-save-popover-shell.css\")",
+  "@import url(\"./assets-save-popover-list.css\")"
+];
+const EXPECTED_ASSET_SAVE_POPOVER_SHELL_SELECTORS = [
   ".asset-save-popover",
   ".asset-save-tabs",
+  ".asset-save-new"
+];
+const EXPECTED_ASSET_SAVE_POPOVER_LIST_SELECTORS = [
   ".asset-save-folders",
+  ".asset-save-folder",
   ".asset-save-actions"
 ];
 const EXPECTED_ASSET_SAVE_BOARD_POPOVER_SELECTORS = [
@@ -1362,6 +1374,7 @@ const nodeImageGeneratorBaseImports = parseCssImports("styles/features/node-imag
 const assetImports = parseCssImports("styles/features/assets.css");
 const assetBoardImports = parseCssImports("styles/features/assets-board.css");
 const assetSaveImports = parseCssImports("styles/features/assets-save.css");
+const assetSavePopoverImports = parseCssImports("styles/features/assets-save-popover.css");
 const assetPickerImports = parseCssImports("styles/features/assets-picker.css");
 const assetCanvasPickerImports = parseCssImports("styles/features/assets-canvas-picker.css");
 const assetPageImports = parseCssImports("styles/features/assets-page.css");
@@ -1410,6 +1423,7 @@ assertListEqual("styles/features/node-image-generator-base.css", nodeImageGenera
 assertListEqual("styles/features/assets.css", assetImports, EXPECTED_ASSET_IMPORTS);
 assertListEqual("styles/features/assets-board.css", assetBoardImports, EXPECTED_ASSET_BOARD_IMPORTS);
 assertListEqual("styles/features/assets-save.css", assetSaveImports, EXPECTED_ASSET_SAVE_IMPORTS);
+assertListEqual("styles/features/assets-save-popover.css", assetSavePopoverImports, EXPECTED_ASSET_SAVE_POPOVER_IMPORTS);
 assertListEqual("styles/features/assets-picker.css", assetPickerImports, EXPECTED_ASSET_PICKER_IMPORTS);
 assertListEqual("styles/features/assets-canvas-picker.css", assetCanvasPickerImports, EXPECTED_ASSET_CANVAS_PICKER_IMPORTS);
 assertListEqual("styles/features/assets-page.css", assetPageImports, EXPECTED_ASSET_PAGE_IMPORTS);
@@ -1455,6 +1469,7 @@ checkImportedFilesExist(nodeImageGeneratorBaseImports, "styles/features");
 checkImportedFilesExist(assetImports, "styles/features");
 checkImportedFilesExist(assetBoardImports, "styles/features");
 checkImportedFilesExist(assetSaveImports, "styles/features");
+checkImportedFilesExist(assetSavePopoverImports, "styles/features");
 checkImportedFilesExist(assetPickerImports, "styles/features");
 checkImportedFilesExist(assetCanvasPickerImports, "styles/features");
 checkImportedFilesExist(assetPageImports, "styles/features");
@@ -1486,6 +1501,8 @@ checkFileContains("styles/features/assets-board-card.css", EXPECTED_ASSET_BOARD_
 checkFileContains("styles/features/assets-board-item.css", EXPECTED_ASSET_BOARD_ITEM_SELECTORS);
 checkFileContains("styles/features/assets-save.css", EXPECTED_ASSET_SAVE_SELECTORS);
 checkFileContains("styles/features/assets-save-popover.css", EXPECTED_ASSET_SAVE_POPOVER_SELECTORS);
+checkFileContains("styles/features/assets-save-popover-shell.css", EXPECTED_ASSET_SAVE_POPOVER_SHELL_SELECTORS);
+checkFileContains("styles/features/assets-save-popover-list.css", EXPECTED_ASSET_SAVE_POPOVER_LIST_SELECTORS);
 checkFileContains("styles/features/assets-save-board-popover.css", EXPECTED_ASSET_SAVE_BOARD_POPOVER_SELECTORS);
 checkFileContains("styles/features/assets-picker.css", EXPECTED_ASSET_PICKER_SELECTORS);
 checkFileContains("styles/features/assets-picker-popover.css", EXPECTED_ASSET_PICKER_POPOVER_SELECTORS);
