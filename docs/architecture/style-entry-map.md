@@ -142,6 +142,7 @@ styles/legacy-chat-composer.css
 
 ```text
 styles/legacy-compact-project-menu.css
+styles/legacy-compact-tool-rail.css
 ```
 
 `styles/legacy-theme-sync.css` currently imports:
@@ -305,6 +306,9 @@ Notes:
   responsive, agent, and composer submodules.
 - `legacy-compact-project-menu.css` owns compact project header and project
   menu styles; it is imported by `legacy-compact-controls.css`.
+- `legacy-compact-tool-rail.css` owns compact tool rail, rail item, rail button,
+  rail separator, and light-theme rail polish styles; it is imported by
+  `legacy-compact-controls.css`.
 - `features/auth-account.css` owns auth entry, authenticated avatar button,
   account popover, points row, and account menu styles; it is imported by
   `features/auth.css`.
@@ -541,6 +545,7 @@ styles/legacy-node.css
 styles/legacy-overrides.css
 styles/legacy-compact-controls.css
 styles/legacy-compact-project-menu.css
+styles/legacy-compact-tool-rail.css
 styles/legacy-rail-polish.css
 styles/legacy-light-refinements.css
 styles/legacy-theme-ios.css
@@ -606,6 +611,8 @@ Additional caution:
   migrated chat composer selectors in `legacy-chat-composer.css`,
   migrated compact project menu selectors in
   `legacy-compact-project-menu.css`,
+  migrated compact tool rail selectors in
+  `legacy-compact-tool-rail.css`,
   migrated node base selectors in
   `features/node-base.css`,
   migrated image edit selectors in `features/node-image-edit.css`, migrated node

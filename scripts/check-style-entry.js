@@ -43,7 +43,8 @@ const EXPECTED_LEGACY_CHAT_IMPORTS = [
   "./legacy-chat-composer.css"
 ];
 const EXPECTED_LEGACY_COMPACT_CONTROLS_IMPORTS = [
-  "./legacy-compact-project-menu.css"
+  "./legacy-compact-project-menu.css",
+  "./legacy-compact-tool-rail.css"
 ];
 const EXPECTED_LEGACY_THEME_SYNC_IMPORTS = [
   "./legacy-theme-sync-base.css",
@@ -608,13 +609,20 @@ const EXPECTED_LEGACY_CHAT_RESPONSIVE_SELECTORS = [
   ".tool-rail"
 ];
 const EXPECTED_LEGACY_COMPACT_CONTROLS_SELECTORS = [
-  ".tool-rail",
-  ".rail-main",
-  ".rail-items",
-  ".rail-btn",
   ".bottom-controls",
   ".zoom-stepper",
   ".history-controls"
+];
+const EXPECTED_LEGACY_COMPACT_TOOL_RAIL_SELECTORS = [
+  ".tool-rail",
+  ".rail-main",
+  ".rail-main-icon",
+  ".rail-items",
+  ".rail-btn",
+  ".rail-btn.add",
+  ".rail-btn.jump",
+  ".rail-separator",
+  "body[data-theme=\"light\"] .tool-rail"
 ];
 const EXPECTED_LEGACY_COMPACT_PROJECT_MENU_SELECTORS = [
   ".project-header",
@@ -870,6 +878,7 @@ checkFileContains("styles/legacy-chat-shell.css", EXPECTED_LEGACY_CHAT_SHELL_SEL
 checkFileContains("styles/legacy-chat-responsive.css", EXPECTED_LEGACY_CHAT_RESPONSIVE_SELECTORS);
 checkFileContains("styles/legacy-compact-controls.css", EXPECTED_LEGACY_COMPACT_CONTROLS_SELECTORS);
 checkFileContains("styles/legacy-compact-project-menu.css", EXPECTED_LEGACY_COMPACT_PROJECT_MENU_SELECTORS);
+checkFileContains("styles/legacy-compact-tool-rail.css", EXPECTED_LEGACY_COMPACT_TOOL_RAIL_SELECTORS);
 
 if (errors.length > 0) {
   console.error("Style entry check failed:");
