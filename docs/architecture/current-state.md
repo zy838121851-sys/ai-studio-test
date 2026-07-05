@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,683 |
 | `src/server` | 80 | 14,430 |
-| `styles` | 70 | 15,291 |
-| `scripts` | 90 | 21,038 |
+| `styles` | 71 | 15,293 |
+| `scripts` | 90 | 21,052 |
 
 Largest files in the current source tree:
 
@@ -71,14 +71,15 @@ Largest files in the current source tree:
 | 1,121 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,113 | `scripts/check-library-bulk-select.js` |
 | 949 | `scripts/check-prompt-conversation-event-utils.js` |
-| 824 | `styles/features/auth.css` |
 | 820 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
 | 811 | `src/server/services/ai-job.service.js` |
 | 802 | `styles/features/assets-pinterest.css` |
 | 782 | `src/client/features/canvas/model-viewer.js` |
 | 780 | `styles/legacy-chat.css` |
-| 735 | `scripts/check-style-entry.js` |
+| 749 | `scripts/check-style-entry.js` |
 | 709 | `src/client/features/workspace/asset-library/asset-panel.js` |
+| 706 | `src/server/services/asset.service.js` |
+| 704 | `src/client/features/canvas/node-controls.js` |
 
 Post-baseline CSS governance note:
 
@@ -104,6 +105,11 @@ Post-baseline CSS governance note:
 - `styles/features/chat.css` now owns the conversation history popover styles
   that were moved out of `styles/legacy-chat.css`; the selector guard tracks
   the migrated chat rules in their feature file.
+- `styles/features/auth-account.css` owns auth entry, authenticated avatar
+  button, account popover, points row, and account menu styles; it is imported
+  by `styles/features/auth.css`.
+- `styles/features/auth.css` owns credit detail dialog and login/auth dialog
+  styles; it imports `styles/features/auth-account.css`.
 - `styles/features/assets-page.css` owns floating asset library shell, upload
   button/list basics, asset page shell, and first-pass Pinterest-style asset
   page overview styles; it is imported by `styles/features/assets.css`.

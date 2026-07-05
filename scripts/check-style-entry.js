@@ -142,14 +142,24 @@ const EXPECTED_HOME_COMMUNITY_SELECTORS = [
   ".home-inspiration-grid",
   ".inspiration-card"
 ];
+const EXPECTED_AUTH_IMPORTS = [
+  "./auth-account.css"
+];
 const EXPECTED_AUTH_SELECTORS = [
-  ".auth-entry",
-  ".auth-account-popover",
   ".credit-detail-dialog",
   ".credit-profile-card",
   ".auth-dialog",
   ".auth-form",
   ".auth-submit"
+];
+const EXPECTED_AUTH_ACCOUNT_SELECTORS = [
+  ".auth-entry",
+  ".auth-entry-button",
+  ".auth-entry.is-authenticated .auth-entry-button",
+  ".auth-account-popover",
+  ".auth-account-card",
+  ".auth-points-row",
+  ".auth-menu-list"
 ];
 const EXPECTED_ASSET_PAGE_SELECTORS = [
   ".floating-library",
@@ -643,6 +653,7 @@ const legacyBaseImports = parseCssImports("styles/legacy-base.css");
 const legacyThemeSyncImports = parseCssImports("styles/legacy-theme-sync.css");
 const legacyCanvasImports = parseCssImports("styles/legacy-canvas.css");
 const legacyCanvasVisualImports = parseCssImports("styles/legacy-canvas-visual.css");
+const authImports = parseCssImports("styles/features/auth.css");
 const nodeImports = parseCssImports("styles/features/node.css");
 const assetImports = parseCssImports("styles/features/assets.css");
 const assetPinterestImports = parseCssImports("styles/features/assets-pinterest.css");
@@ -656,6 +667,7 @@ assertListEqual("styles/legacy-base.css", legacyBaseImports, EXPECTED_LEGACY_BAS
 assertListEqual("styles/legacy-theme-sync.css", legacyThemeSyncImports, EXPECTED_LEGACY_THEME_SYNC_IMPORTS);
 assertListEqual("styles/legacy-canvas.css", legacyCanvasImports, EXPECTED_LEGACY_CANVAS_IMPORTS);
 assertListEqual("styles/legacy-canvas-visual.css", legacyCanvasVisualImports, EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS);
+assertListEqual("styles/features/auth.css", authImports, EXPECTED_AUTH_IMPORTS);
 assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
 assertListEqual("styles/features/assets.css", assetImports, EXPECTED_ASSET_IMPORTS);
 assertListEqual("styles/features/assets-pinterest.css", assetPinterestImports, EXPECTED_ASSET_PINTEREST_IMPORTS);
@@ -666,12 +678,14 @@ checkImportedFilesExist(legacySplitImports, "styles");
 checkImportedFilesExist(legacyThemeSyncImports, "styles");
 checkImportedFilesExist(legacyCanvasImports, "styles");
 checkImportedFilesExist(legacyCanvasVisualImports, "styles");
+checkImportedFilesExist(authImports, "styles/features");
 checkImportedFilesExist(nodeImports, "styles/features");
 checkImportedFilesExist(assetImports, "styles/features");
 checkImportedFilesExist(assetPinterestImports, "styles/features");
 checkImportedFilesExist(homeImports, "styles/features");
 checkCssReachability();
 checkFileContains("styles/features/auth.css", EXPECTED_AUTH_SELECTORS);
+checkFileContains("styles/features/auth-account.css", EXPECTED_AUTH_ACCOUNT_SELECTORS);
 checkFileContains("styles/features/assets-page.css", EXPECTED_ASSET_PAGE_SELECTORS);
 checkFileContains("styles/features/assets-board.css", EXPECTED_ASSET_BOARD_SELECTORS);
 checkFileContains("styles/features/assets-save.css", EXPECTED_ASSET_SAVE_SELECTORS);

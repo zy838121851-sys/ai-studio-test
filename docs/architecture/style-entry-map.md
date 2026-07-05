@@ -56,6 +56,12 @@ styles/features/home.css
 styles/features/project-library.css
 ```
 
+`styles/features/auth.css` currently imports:
+
+```text
+styles/features/auth-account.css
+```
+
 `styles/legacy-split.css` currently imports:
 
 ```text
@@ -260,6 +266,11 @@ Notes:
   imports there.
 - `features/chat.css` owns the conversation history popover styles that were
   moved out of `legacy-chat.css`.
+- `features/auth-account.css` owns auth entry, authenticated avatar button,
+  account popover, points row, and account menu styles; it is imported by
+  `features/auth.css`.
+- `features/auth.css` owns credit detail dialog and login/auth dialog styles;
+  it imports `features/auth-account.css`.
 - `features/assets-page.css` owns floating asset library shell, upload
   button/list basics, asset page shell, and first-pass Pinterest-style asset
   page overview styles; it is imported by `features/assets.css`.
@@ -409,6 +420,7 @@ styles.css
 styles/globals.css
 styles/workspace.css
 styles/workspace-layout.css
+styles/features/auth-account.css
 styles/features/auth.css
 styles/features/assets-page.css
 styles/features/assets-board.css
@@ -501,7 +513,9 @@ Additional caution:
   runtime. Treat serialization/export/snapshot as the highest-risk category.
 - Keep `scripts/check-style-entry.js` as the static CSS entry and selector guard.
   It now checks key selectors for feature CSS plus the legacy canvas and chat
-  modules, including migrated asset page selectors in `features/assets-page.css`,
+  modules, including migrated auth account selectors in
+  `features/auth-account.css`, auth dialog selectors in `features/auth.css`,
+  migrated asset page selectors in `features/assets-page.css`,
   migrated asset board selectors in `features/assets-board.css`, migrated asset
   save selectors in `features/assets-save.css`, migrated asset picker selectors
   in `features/assets-picker.css`, migrated canvas asset picker selectors in
