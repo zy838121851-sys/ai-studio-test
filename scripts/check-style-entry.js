@@ -50,7 +50,8 @@ const EXPECTED_LEGACY_CANVAS_IMPORTS = [
 ];
 const EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS = [
   "./legacy-canvas-visual-shape-tools.css",
-  "./legacy-canvas-visual-media.css"
+  "./legacy-canvas-visual-media.css",
+  "./legacy-canvas-visual-shell.css"
 ];
 const EXPECTED_NODE_IMPORTS = [
   "./node-base.css",
@@ -306,12 +307,13 @@ const EXPECTED_LEGACY_CANVAS_VISUAL_MEDIA_SELECTORS = [
   "body[data-view=\"canvas\"] .node-loading-image",
   "body[data-view=\"canvas\"] .resize-handle"
 ];
-const EXPECTED_LEGACY_CANVAS_VISUAL_SELECTORS = [
+const EXPECTED_LEGACY_CANVAS_VISUAL_SHELL_SELECTORS = [
   ".brand-mark",
   ".brand-menu",
   ".home-side-menu",
   ".simple-page-view"
 ];
+const EXPECTED_LEGACY_CANVAS_VISUAL_SELECTORS = [];
 const EXPECTED_LEGACY_NODE_SELECTORS = [];
 const EXPECTED_NODE_BASE_SELECTORS = [
   ".node-card",
@@ -608,6 +610,7 @@ checkFileContains("styles/legacy-canvas-project-header.css", EXPECTED_LEGACY_CAN
 checkFileContains("styles/legacy-canvas-library.css", EXPECTED_LEGACY_CANVAS_LIBRARY_SELECTORS);
 checkFileContains("styles/legacy-canvas-visual-shape-tools.css", EXPECTED_LEGACY_CANVAS_VISUAL_SHAPE_TOOLS_SELECTORS);
 checkFileContains("styles/legacy-canvas-visual-media.css", EXPECTED_LEGACY_CANVAS_VISUAL_MEDIA_SELECTORS);
+checkFileContains("styles/legacy-canvas-visual-shell.css", EXPECTED_LEGACY_CANVAS_VISUAL_SHELL_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/home-shell.css", EXPECTED_HOME_SHELL_SELECTORS);
 checkFileContains("styles/features/home-history.css", EXPECTED_HOME_HISTORY_SELECTORS);

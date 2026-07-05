@@ -135,6 +135,7 @@ styles/legacy-canvas-library.css
 ```text
 styles/legacy-canvas-visual-shape-tools.css
 styles/legacy-canvas-visual-media.css
+styles/legacy-canvas-visual-shell.css
 ```
 
 ## `/styles` and `/assets/styles`
@@ -222,6 +223,7 @@ styles/legacy.css
 styles/legacy-base.css
 styles/legacy-canvas.css
 styles/legacy-canvas-visual.css
+styles/legacy-canvas-visual-shell.css
 styles/legacy-chat.css
 styles/legacy-compact-controls.css
 styles/legacy-light-refinements.css
@@ -336,11 +338,13 @@ Notes:
   popover, stroke width control, text format toolbar, and text color picker
   styles.
 - `legacy-canvas-visual.css` imports `legacy-canvas-visual-shape-tools.css`,
-  and `legacy-canvas-visual-media.css`, then keeps the remaining brand/menu,
-  side-menu, and simple page visual polish styles.
+  `legacy-canvas-visual-media.css`, and `legacy-canvas-visual-shell.css` as a
+  pure aggregation entry.
 - `legacy-canvas-visual-media.css` owns canvas area/world background polish,
   image/model/loading-image transparent frame polish, and resize handle
   placement styles.
+- `legacy-canvas-visual-shell.css` owns brand mark/menu, home side menu, and
+  simple page visual polish styles.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.
@@ -402,6 +406,7 @@ styles/legacy-canvas-library.css
 styles/legacy-canvas.css
 styles/legacy-canvas-visual-shape-tools.css
 styles/legacy-canvas-visual-media.css
+styles/legacy-canvas-visual-shell.css
 styles/legacy-canvas-visual.css
 styles/legacy-chat.css
 styles/legacy-node.css
@@ -468,7 +473,8 @@ Additional caution:
   `legacy-canvas-project-header.css`, and `legacy-canvas-library.css`, plus
   the `legacy-canvas-visual.css` import of
   `legacy-canvas-visual-shape-tools.css` and
-  `legacy-canvas-visual-media.css` and selectors in the canvas files.
+  `legacy-canvas-visual-media.css` and
+  `legacy-canvas-visual-shell.css` and selectors in the canvas files.
 - Move one feature area at a time from legacy files into a clearer structure.
 - Start with documentation and smoke checks before moving selectors.
 - Prefer feature grouping such as:

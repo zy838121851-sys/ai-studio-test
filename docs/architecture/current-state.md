@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,349 |
-| `styles` | 60 | 15,221 |
-| `scripts` | 90 | 20,853 |
+| `styles` | 61 | 15,221 |
+| `scripts` | 90 | 20,856 |
 
 Largest files in the current source tree:
 
@@ -178,11 +178,15 @@ Post-baseline CSS governance note:
   color picker styles that were moved out of `styles/legacy-canvas-visual.css`.
 - `styles/legacy-canvas-visual.css` now imports
   `styles/legacy-canvas-visual-shape-tools.css` and
-  `styles/legacy-canvas-visual-media.css` before the remaining canvas visual
-  polish styles to preserve cascade order.
+  `styles/legacy-canvas-visual-media.css` and
+  `styles/legacy-canvas-visual-shell.css` as a pure aggregation entry to
+  preserve cascade order.
 - `styles/legacy-canvas-visual-media.css` owns canvas area/world background
   polish, image/model/loading-image transparent frame polish, and resize handle
   placement styles that were moved out of `styles/legacy-canvas-visual.css`.
+- `styles/legacy-canvas-visual-shell.css` owns brand mark/menu, home side menu,
+  and simple page visual polish styles that were moved out of
+  `styles/legacy-canvas-visual.css`.
 - `styles/features/node-base.css` owns base node/card/resize/action styles that
   were moved out of `styles/legacy-node.css`; it is imported at the top of
   `styles/features/node.css` to preserve cascade order.
