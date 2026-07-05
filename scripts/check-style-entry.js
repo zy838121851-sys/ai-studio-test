@@ -41,7 +41,8 @@ const EXPECTED_LEGACY_THEME_SYNC_IMPORTS = [
   "./legacy-theme-sync-image-edit.css",
   "./legacy-theme-sync-crop-expand.css",
   "./legacy-theme-sync-media-edit.css",
-  "./legacy-theme-sync-node-media.css"
+  "./legacy-theme-sync-node-media.css",
+  "./legacy-theme-sync-compact-select.css"
 ];
 const EXPECTED_LEGACY_CANVAS_IMPORTS = [
   "./legacy-canvas-shell.css",
@@ -234,7 +235,6 @@ const EXPECTED_LEGACY_THEME_SYNC_IMAGE_EDIT_SELECTORS = [
   "#imageEditCancel"
 ];
 const EXPECTED_LEGACY_THEME_SYNC_SELECTORS = [
-  ".compact-select",
   ".home-model-menu.model-preference-menu"
 ];
 const EXPECTED_LEGACY_THEME_SYNC_CROP_EXPAND_SELECTORS = [
@@ -261,6 +261,15 @@ const EXPECTED_LEGACY_THEME_SYNC_NODE_MEDIA_SELECTORS = [
   "body[data-view=\"canvas\"] .node-card.node-image",
   "body[data-view=\"canvas\"] .node-card.node-loading-image .generation-frame::before",
   "body[data-view=\"canvas\"] .node-card.stack-drop-target"
+];
+const EXPECTED_LEGACY_THEME_SYNC_COMPACT_SELECT_SELECTORS = [
+  ".native-compact-select",
+  ".compact-select",
+  ".compact-select-trigger",
+  ".compact-select-menu",
+  ".compact-select-option",
+  ".image-edit-popover .compact-select-trigger",
+  ".composer-actions .compact-select-trigger"
 ];
 const EXPECTED_LEGACY_CANVAS_SHELL_SELECTORS = [
   ".canvas-area",
@@ -645,6 +654,7 @@ checkFileContains("styles/legacy-theme-sync-image-edit.css", EXPECTED_LEGACY_THE
 checkFileContains("styles/legacy-theme-sync-crop-expand.css", EXPECTED_LEGACY_THEME_SYNC_CROP_EXPAND_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-media-edit.css", EXPECTED_LEGACY_THEME_SYNC_MEDIA_EDIT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-node-media.css", EXPECTED_LEGACY_THEME_SYNC_NODE_MEDIA_SELECTORS);
+checkFileContains("styles/legacy-theme-sync-compact-select.css", EXPECTED_LEGACY_THEME_SYNC_COMPACT_SELECT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync.css", EXPECTED_LEGACY_THEME_SYNC_SELECTORS);
 checkFileContains("styles/legacy-canvas-shell.css", EXPECTED_LEGACY_CANVAS_SHELL_SELECTORS);
 checkFileContains("styles/legacy-canvas-image-edit.css", EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_SELECTORS);

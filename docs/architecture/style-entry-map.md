@@ -120,6 +120,7 @@ styles/legacy-theme-sync-image-edit.css
 styles/legacy-theme-sync-crop-expand.css
 styles/legacy-theme-sync-media-edit.css
 styles/legacy-theme-sync-node-media.css
+styles/legacy-theme-sync-compact-select.css
 ```
 
 `styles/legacy-canvas.css` currently imports:
@@ -324,11 +325,15 @@ Notes:
   generation choice and AI panel theme surfaces, canvas media node transparent
   frame polish, loading-image generation frame theme polish, and stack
   drop-target theme overrides.
+- `legacy-theme-sync-compact-select.css` owns compact select base, image-edit
+  compact select, composer compact select, responsive compact select, and
+  compact select option state styles.
 - `legacy-theme-sync.css` imports `legacy-theme-sync-base.css`,
   `legacy-theme-sync-surfaces.css`, `legacy-theme-sync-image-edit.css`, and
   `legacy-theme-sync-crop-expand.css`, and
-  `legacy-theme-sync-media-edit.css`, and `legacy-theme-sync-node-media.css`,
-  then keeps the remaining cross-component theme synchronization rules.
+  `legacy-theme-sync-media-edit.css`, `legacy-theme-sync-node-media.css`, and
+  `legacy-theme-sync-compact-select.css`, then keeps the remaining
+  cross-component theme synchronization rules.
 - `legacy-canvas-shell.css` owns the first legacy canvas shell block: canvas
   area background, project header/logo, top actions, tool rail, add-node menu,
   canvas context menu, selection action bar, and related mobile selection-bar
@@ -443,6 +448,7 @@ styles/legacy-theme-sync-image-edit.css
 styles/legacy-theme-sync-crop-expand.css
 styles/legacy-theme-sync-media-edit.css
 styles/legacy-theme-sync-node-media.css
+styles/legacy-theme-sync-compact-select.css
 styles/legacy-theme-sync.css
 styles/menu-select-overrides.css
 ```
