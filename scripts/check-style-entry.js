@@ -38,7 +38,8 @@ const EXPECTED_LEGACY_BASE_IMPORTS = [];
 const EXPECTED_LEGACY_THEME_SYNC_IMPORTS = [
   "./legacy-theme-sync-base.css",
   "./legacy-theme-sync-surfaces.css",
-  "./legacy-theme-sync-image-edit.css"
+  "./legacy-theme-sync-image-edit.css",
+  "./legacy-theme-sync-crop-expand.css"
 ];
 const EXPECTED_LEGACY_CANVAS_IMPORTS = [
   "./legacy-canvas-shell.css",
@@ -231,9 +232,14 @@ const EXPECTED_LEGACY_THEME_SYNC_IMAGE_EDIT_SELECTORS = [
   "#imageEditCancel"
 ];
 const EXPECTED_LEGACY_THEME_SYNC_SELECTORS = [
+  "body[data-theme=\"dark\"] .node-card"
+];
+const EXPECTED_LEGACY_THEME_SYNC_CROP_EXPAND_SELECTORS = [
+  ".canvas-context-menu button:first-child",
   ".crop-actions:not(.image-expand-actions)",
   ".image-expand-actions",
-  "body[data-theme=\"dark\"] .node-card"
+  ".crop-actions:not(.image-expand-actions) .crop-confirm",
+  "body[data-theme=\"dark\"] .crop-actions:not(.image-expand-actions)"
 ];
 const EXPECTED_LEGACY_CANVAS_SHELL_SELECTORS = [
   ".canvas-area",
@@ -615,6 +621,7 @@ checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-base.css", EXPECTED_LEGACY_THEME_SYNC_BASE_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-surfaces.css", EXPECTED_LEGACY_THEME_SYNC_SURFACES_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-image-edit.css", EXPECTED_LEGACY_THEME_SYNC_IMAGE_EDIT_SELECTORS);
+checkFileContains("styles/legacy-theme-sync-crop-expand.css", EXPECTED_LEGACY_THEME_SYNC_CROP_EXPAND_SELECTORS);
 checkFileContains("styles/legacy-theme-sync.css", EXPECTED_LEGACY_THEME_SYNC_SELECTORS);
 checkFileContains("styles/legacy-canvas-shell.css", EXPECTED_LEGACY_CANVAS_SHELL_SELECTORS);
 checkFileContains("styles/legacy-canvas-image-edit.css", EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_SELECTORS);

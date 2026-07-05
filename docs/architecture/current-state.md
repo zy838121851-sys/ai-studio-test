@@ -53,10 +53,10 @@ Current source footprint, excluding `node_modules` and `dist`:
 
 | Area | Files | Lines |
 | --- | ---: | ---: |
-| `src/client` | 298 | 39,385 |
-| `src/server` | 80 | 14,349 |
-| `styles` | 63 | 15,221 |
-| `scripts` | 90 | 20,872 |
+| `src/client` | 298 | 39,683 |
+| `src/server` | 80 | 14,430 |
+| `styles` | 64 | 15,284 |
+| `scripts` | 90 | 20,969 |
 
 Largest files in the current source tree:
 
@@ -143,8 +143,11 @@ Post-baseline CSS governance note:
 - `styles/legacy-theme-sync-image-edit.css` owns image edit popover and image
   generator control theme synchronization styles that were moved out of
   `styles/legacy-theme-sync.css`.
-- `styles/legacy-theme-sync.css` now imports the theme sync base, surfaces, and
-  image edit submodules before the remaining cross-component theme
+- `styles/legacy-theme-sync-crop-expand.css` owns primary action button,
+  crop action, and image expand action theme synchronization styles that were
+  moved out of `styles/legacy-theme-sync.css`.
+- `styles/legacy-theme-sync.css` now imports the theme sync base, surfaces,
+  image edit, and crop expand submodules before the remaining cross-component theme
   synchronization rules.
 - `styles/legacy-canvas-shell.css` owns the first canvas shell block that was
   moved out of `styles/legacy-canvas.css`: canvas area background, project
