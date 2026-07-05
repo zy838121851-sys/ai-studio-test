@@ -55,16 +55,16 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,350 |
-| `styles` | 184 | 15,269 |
-| `scripts` | 90 | 21,824 |
+| `styles` | 187 | 15,270 |
+| `scripts` | 90 | 21,845 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
 | 1,709 | `scripts/check-api-error-contract.js` |
+| 1,625 | `scripts/check-style-entry.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
-| 1,604 | `scripts/check-style-entry.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
@@ -258,10 +258,16 @@ Post-baseline CSS governance note:
   stats grid, stat card, icon, and count styles.
 - `styles/features/assets-pinterest-shell-nav.css` owns asset page Pinterest
   tabs, section title, and back control styles.
-- `styles/features/assets-pinterest-board-refresh.css` owns asset page
-  Pinterest refresh board grid, board cover count variants, cover cells,
-  create-card, board title, and board delete styles; it is imported by
-  `styles/features/assets-pinterest.css`.
+- `styles/features/assets-pinterest-board-refresh.css` is now a pure
+  aggregation entry for asset page Pinterest refreshed board grid, create-card,
+  and metadata submodules; it is imported by `styles/features/assets-pinterest.css`.
+- `styles/features/assets-pinterest-board-refresh-grid.css` owns asset page
+  Pinterest refreshed board grid, tile, cover count variants, cover cells, and
+  empty cover styles.
+- `styles/features/assets-pinterest-board-refresh-create.css` owns asset page
+  Pinterest refreshed board create-card styles.
+- `styles/features/assets-pinterest-board-refresh-meta.css` owns asset page
+  Pinterest refreshed board title and delete control styles.
 - `styles/features/assets-pinterest-pin.css` is now a pure aggregation entry
   for asset page Pinterest pin card, action, and empty-state submodules; it is
   imported by `styles/features/assets-pinterest.css`.

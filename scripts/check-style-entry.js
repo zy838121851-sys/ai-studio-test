@@ -230,6 +230,11 @@ const EXPECTED_ASSET_PINTEREST_SHELL_IMPORTS = [
   "./assets-pinterest-shell-stats.css",
   "./assets-pinterest-shell-nav.css"
 ];
+const EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_IMPORTS = [
+  "./assets-pinterest-board-refresh-grid.css",
+  "./assets-pinterest-board-refresh-create.css",
+  "./assets-pinterest-board-refresh-meta.css"
+];
 const EXPECTED_ASSET_PINTEREST_PIN_IMPORTS = [
   "./assets-pinterest-pin-card.css",
   "./assets-pinterest-pin-actions.css",
@@ -556,11 +561,21 @@ const EXPECTED_ASSET_PINTEREST_BOARD_RESPONSIVE_LEGACY_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-pinterest-masonry"
 ];
 const EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_SELECTORS = [
+  "@import url(\"./assets-pinterest-board-refresh-grid.css\")",
+  "@import url(\"./assets-pinterest-board-refresh-create.css\")",
+  "@import url(\"./assets-pinterest-board-refresh-meta.css\")"
+];
+const EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_GRID_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-grid",
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-tile",
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-cover-large",
-  "body[data-view=\"assetsPage\"] .asset-board-cover-cell",
+  "body[data-view=\"assetsPage\"] .asset-board-cover-cell"
+];
+const EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_CREATE_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-create-card",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-board-create-card span"
+];
+const EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_META_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-title",
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-delete"
 ];
@@ -1342,6 +1357,7 @@ const assetPagePinterestLegacyImports = parseCssImports("styles/features/assets-
 const assetPinterestImports = parseCssImports("styles/features/assets-pinterest.css");
 const assetPinterestBoardImports = parseCssImports("styles/features/assets-pinterest-board.css");
 const assetPinterestShellImports = parseCssImports("styles/features/assets-pinterest-shell.css");
+const assetPinterestBoardRefreshImports = parseCssImports("styles/features/assets-pinterest-board-refresh.css");
 const assetPinterestPinImports = parseCssImports("styles/features/assets-pinterest-pin.css");
 const homeImports = parseCssImports("styles/features/home.css");
 const homeHistoryImports = parseCssImports("styles/features/home-history.css");
@@ -1388,6 +1404,7 @@ assertListEqual("styles/features/assets-page-pinterest-legacy.css", assetPagePin
 assertListEqual("styles/features/assets-pinterest.css", assetPinterestImports, EXPECTED_ASSET_PINTEREST_IMPORTS);
 assertListEqual("styles/features/assets-pinterest-board.css", assetPinterestBoardImports, EXPECTED_ASSET_PINTEREST_BOARD_IMPORTS);
 assertListEqual("styles/features/assets-pinterest-shell.css", assetPinterestShellImports, EXPECTED_ASSET_PINTEREST_SHELL_IMPORTS);
+assertListEqual("styles/features/assets-pinterest-board-refresh.css", assetPinterestBoardRefreshImports, EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_IMPORTS);
 assertListEqual("styles/features/assets-pinterest-pin.css", assetPinterestPinImports, EXPECTED_ASSET_PINTEREST_PIN_IMPORTS);
 assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
 assertListEqual("styles/features/home-history.css", homeHistoryImports, EXPECTED_HOME_HISTORY_IMPORTS);
@@ -1431,6 +1448,7 @@ checkImportedFilesExist(assetPagePinterestLegacyImports, "styles/features");
 checkImportedFilesExist(assetPinterestImports, "styles/features");
 checkImportedFilesExist(assetPinterestBoardImports, "styles/features");
 checkImportedFilesExist(assetPinterestShellImports, "styles/features");
+checkImportedFilesExist(assetPinterestBoardRefreshImports, "styles/features");
 checkImportedFilesExist(assetPinterestPinImports, "styles/features");
 checkImportedFilesExist(homeImports, "styles/features");
 checkImportedFilesExist(homeHistoryImports, "styles/features");
@@ -1473,6 +1491,9 @@ checkFileContains("styles/features/assets-pinterest-board-tiles-legacy.css", EXP
 checkFileContains("styles/features/assets-pinterest-board-masonry-legacy.css", EXPECTED_ASSET_PINTEREST_BOARD_MASONRY_LEGACY_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-board-responsive-legacy.css", EXPECTED_ASSET_PINTEREST_BOARD_RESPONSIVE_LEGACY_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-board-refresh.css", EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_SELECTORS);
+checkFileContains("styles/features/assets-pinterest-board-refresh-grid.css", EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_GRID_SELECTORS);
+checkFileContains("styles/features/assets-pinterest-board-refresh-create.css", EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_CREATE_SELECTORS);
+checkFileContains("styles/features/assets-pinterest-board-refresh-meta.css", EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_META_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-pin.css", EXPECTED_ASSET_PINTEREST_PIN_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-pin-card.css", EXPECTED_ASSET_PINTEREST_PIN_CARD_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-pin-actions.css", EXPECTED_ASSET_PINTEREST_PIN_ACTIONS_SELECTORS);

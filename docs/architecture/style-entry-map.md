@@ -248,6 +248,14 @@ styles/features/assets-pinterest-shell-stats.css
 styles/features/assets-pinterest-shell-nav.css
 ```
 
+`styles/features/assets-pinterest-board-refresh.css` currently imports:
+
+```text
+styles/features/assets-pinterest-board-refresh-grid.css
+styles/features/assets-pinterest-board-refresh-create.css
+styles/features/assets-pinterest-board-refresh-meta.css
+```
+
 `styles/features/assets-pinterest-pin.css` currently imports:
 
 ```text
@@ -663,10 +671,16 @@ Notes:
   grid, stat card, icon, and count styles.
 - `features/assets-pinterest-shell-nav.css` owns asset page Pinterest tabs,
   section title, and back control styles.
-- `features/assets-pinterest-board-refresh.css` owns asset page Pinterest
-  refresh board grid, board cover count variants, cover cells, create-card,
-  board title, and board delete styles; it is imported by
-  `features/assets-pinterest.css`.
+- `features/assets-pinterest-board-refresh.css` is now a pure aggregation entry
+  for asset page Pinterest refreshed board grid, create-card, and metadata
+  submodules; it is imported by `features/assets-pinterest.css`.
+- `features/assets-pinterest-board-refresh-grid.css` owns asset page Pinterest
+  refreshed board grid, tile, cover count variants, cover cells, and empty
+  cover styles.
+- `features/assets-pinterest-board-refresh-create.css` owns asset page
+  Pinterest refreshed board create-card styles.
+- `features/assets-pinterest-board-refresh-meta.css` owns asset page Pinterest
+  refreshed board title and delete control styles.
 - `features/assets-pinterest-pin.css` is now a pure aggregation entry for asset
   page Pinterest pin card, action, and empty-state submodules; it is imported by
   `features/assets-pinterest.css`.
@@ -994,6 +1008,9 @@ styles/features/assets-pinterest-shell-header.css
 styles/features/assets-pinterest-shell-stats.css
 styles/features/assets-pinterest-shell-nav.css
 styles/features/assets-pinterest-board-refresh.css
+styles/features/assets-pinterest-board-refresh-grid.css
+styles/features/assets-pinterest-board-refresh-create.css
+styles/features/assets-pinterest-board-refresh-meta.css
 styles/features/assets-pinterest-pin.css
 styles/features/assets-pinterest-pin-card.css
 styles/features/assets-pinterest-pin-actions.css
@@ -1204,7 +1221,11 @@ Additional caution:
   `features/assets-pinterest-shell-header.css`,
   `features/assets-pinterest-shell-stats.css`, and
   `features/assets-pinterest-shell-nav.css`, migrated asset Pinterest
-  board refresh selectors in `features/assets-pinterest-board-refresh.css`,
+  board refresh imports in `features/assets-pinterest-board-refresh.css`,
+  migrated asset Pinterest board refresh grid, create-card, and metadata
+  selectors in `features/assets-pinterest-board-refresh-grid.css`,
+  `features/assets-pinterest-board-refresh-create.css`, and
+  `features/assets-pinterest-board-refresh-meta.css`,
   migrated asset Pinterest pin imports in `features/assets-pinterest-pin.css`,
   migrated asset Pinterest pin card, actions, and empty-state selectors in
   `features/assets-pinterest-pin-card.css`,
