@@ -84,7 +84,8 @@ const EXPECTED_ASSET_IMPORTS = [
   "./assets-pinterest.css"
 ];
 const EXPECTED_ASSET_PINTEREST_IMPORTS = [
-  "./assets-pinterest-board.css"
+  "./assets-pinterest-board.css",
+  "./assets-pinterest-shell.css"
 ];
 const EXPECTED_HOME_IMPORTS = [
   "./home-history.css",
@@ -210,11 +211,19 @@ const EXPECTED_ASSET_CONTEXT_MENU_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-card-context-submenu-panel"
 ];
 const EXPECTED_ASSET_PINTEREST_SELECTORS = [
-  "body[data-view=\"assetsPage\"] .asset-pinterest-shell",
-  "body[data-view=\"assetsPage\"] .asset-pinterest-stats",
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-grid",
   "body[data-view=\"assetsPage\"] .asset-pinterest-masonry",
   ".asset-selection-bar"
+];
+const EXPECTED_ASSET_PINTEREST_SHELL_SELECTORS = [
+  "body[data-view=\"assetsPage\"] .asset-pinterest-shell",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-profile",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-upload",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-stats",
+  "body[data-view=\"assetsPage\"] .asset-stat-card",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-tabs",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-section-title",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-back"
 ];
 const EXPECTED_ASSET_PINTEREST_BOARD_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-pinterest-profile",
@@ -693,6 +702,7 @@ checkFileContains("styles/features/assets-picker.css", EXPECTED_ASSET_PICKER_SEL
 checkFileContains("styles/features/assets-canvas-picker.css", EXPECTED_ASSET_CANVAS_PICKER_SELECTORS);
 checkFileContains("styles/features/assets-context-menu.css", EXPECTED_ASSET_CONTEXT_MENU_SELECTORS);
 checkFileContains("styles/features/assets-pinterest.css", EXPECTED_ASSET_PINTEREST_SELECTORS);
+checkFileContains("styles/features/assets-pinterest-shell.css", EXPECTED_ASSET_PINTEREST_SHELL_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-board.css", EXPECTED_ASSET_PINTEREST_BOARD_SELECTORS);
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);

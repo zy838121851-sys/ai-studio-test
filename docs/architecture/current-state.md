@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,683 |
 | `src/server` | 80 | 14,430 |
-| `styles` | 71 | 15,293 |
-| `scripts` | 90 | 21,052 |
+| `styles` | 72 | 15,294 |
+| `scripts` | 90 | 21,062 |
 
 Largest files in the current source tree:
 
@@ -73,13 +73,13 @@ Largest files in the current source tree:
 | 949 | `scripts/check-prompt-conversation-event-utils.js` |
 | 820 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
 | 811 | `src/server/services/ai-job.service.js` |
-| 802 | `styles/features/assets-pinterest.css` |
 | 782 | `src/client/features/canvas/model-viewer.js` |
 | 780 | `styles/legacy-chat.css` |
-| 749 | `scripts/check-style-entry.js` |
+| 759 | `scripts/check-style-entry.js` |
 | 709 | `src/client/features/workspace/asset-library/asset-panel.js` |
 | 706 | `src/server/services/asset.service.js` |
 | 704 | `src/client/features/canvas/node-controls.js` |
+| 702 | `src/client/features/projects/workflows/project-workflow.js` |
 
 Post-baseline CSS governance note:
 
@@ -128,10 +128,14 @@ Post-baseline CSS governance note:
   Pinterest board, masonry, pin, delete, empty, floating library item, and
   responsive foundation block; it is imported by
   `styles/features/assets-pinterest.css`.
+- `styles/features/assets-pinterest-shell.css` owns asset page Pinterest refresh
+  shell, profile heading, upload CTA, stats, tabs, section title, and back
+  control styles; it is imported by `styles/features/assets-pinterest.css`.
 - `styles/features/assets-pinterest.css` owns asset page Pinterest refresh
-  layout, stats, board/masonry refinements, selection bar, and asset page
-  interaction refinement styles; it imports
-  `styles/features/assets-pinterest-board.css` and is imported by
+  board/masonry refinements, selection bar, pin/card styles, responsive rules,
+  and asset page interaction refinement styles; it imports
+  `styles/features/assets-pinterest-board.css` and
+  `styles/features/assets-pinterest-shell.css`, and is imported by
   `styles/features/assets.css`.
 - `styles/features/assets.css` is now an asset feature CSS aggregation entry for
   asset submodules.
