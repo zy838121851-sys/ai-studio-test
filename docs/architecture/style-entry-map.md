@@ -130,6 +130,12 @@ styles/legacy-canvas-project-header.css
 styles/legacy-canvas-library.css
 ```
 
+`styles/legacy-canvas-visual.css` currently imports:
+
+```text
+styles/legacy-canvas-visual-shape-tools.css
+```
+
 ## `/styles` and `/assets/styles`
 
 Current server behavior in `src/server/index.js`:
@@ -324,6 +330,13 @@ Notes:
   `legacy-canvas-video-generator.css`, and
   `legacy-canvas-project-header.css`, and `legacy-canvas-library.css` as a pure
   aggregation entry.
+- `legacy-canvas-visual-shape-tools.css` owns canvas object selected visuals,
+  draw-shape visuals, canvas text editor, shape format toolbar, shape color
+  popover, stroke width control, text format toolbar, and text color picker
+  styles.
+- `legacy-canvas-visual.css` imports `legacy-canvas-visual-shape-tools.css`,
+  then keeps the remaining canvas area/world, media node, brand/menu,
+  side-menu, and simple page visual polish styles.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.
@@ -383,6 +396,7 @@ styles/legacy-canvas-video-generator.css
 styles/legacy-canvas-project-header.css
 styles/legacy-canvas-library.css
 styles/legacy-canvas.css
+styles/legacy-canvas-visual-shape-tools.css
 styles/legacy-canvas-visual.css
 styles/legacy-chat.css
 styles/legacy-node.css
@@ -446,8 +460,9 @@ Additional caution:
   `legacy-canvas-image-edit.css`, `legacy-canvas-add-node.css`, and
   `legacy-canvas-choice-overlays.css`, `legacy-canvas-world.css`, and
   `legacy-canvas-video-generator.css`, and
-  `legacy-canvas-project-header.css`, and `legacy-canvas-library.css` plus
-  selectors in the canvas files.
+  `legacy-canvas-project-header.css`, and `legacy-canvas-library.css`, plus
+  the `legacy-canvas-visual.css` import of
+  `legacy-canvas-visual-shape-tools.css` and selectors in the canvas files.
 - Move one feature area at a time from legacy files into a clearer structure.
 - Start with documentation and smoke checks before moving selectors.
 - Prefer feature grouping such as:

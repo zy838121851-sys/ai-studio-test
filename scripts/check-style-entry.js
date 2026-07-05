@@ -48,6 +48,9 @@ const EXPECTED_LEGACY_CANVAS_IMPORTS = [
   "./legacy-canvas-project-header.css",
   "./legacy-canvas-library.css"
 ];
+const EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS = [
+  "./legacy-canvas-visual-shape-tools.css"
+];
 const EXPECTED_NODE_IMPORTS = [
   "./node-base.css",
   "./node-image-edit.css",
@@ -283,6 +286,27 @@ const EXPECTED_LEGACY_CANVAS_LIBRARY_SELECTORS = [
   ".library-head"
 ];
 const EXPECTED_LEGACY_CANVAS_SELECTORS = [];
+const EXPECTED_LEGACY_CANVAS_VISUAL_SHAPE_TOOLS_SELECTORS = [
+  "body[data-view=\"canvas\"] .canvas-object.selected",
+  "body[data-view=\"canvas\"] .draw-node",
+  "body[data-view=\"canvas\"] .draw-shape",
+  "body[data-view=\"canvas\"] .canvas-text-editor",
+  ".shape-format-toolbar",
+  ".shape-color-popover",
+  ".stroke-width-control",
+  "body[data-view=\"canvas\"] .text-format-toolbar",
+  "body[data-view=\"canvas\"] .text-color-picker"
+];
+const EXPECTED_LEGACY_CANVAS_VISUAL_SELECTORS = [
+  "body[data-view=\"canvas\"] .canvas-area",
+  "body[data-view=\"canvas\"] .canvas-world",
+  "body[data-view=\"canvas\"] .node-image",
+  "body[data-view=\"canvas\"] .resize-handle",
+  ".brand-mark",
+  ".brand-menu",
+  ".home-side-menu",
+  ".simple-page-view"
+];
 const EXPECTED_LEGACY_NODE_SELECTORS = [];
 const EXPECTED_NODE_BASE_SELECTORS = [
   ".node-card",
@@ -531,6 +555,7 @@ const legacySplitImports = parseCssImports("styles/legacy-split.css");
 const legacyBaseImports = parseCssImports("styles/legacy-base.css");
 const legacyThemeSyncImports = parseCssImports("styles/legacy-theme-sync.css");
 const legacyCanvasImports = parseCssImports("styles/legacy-canvas.css");
+const legacyCanvasVisualImports = parseCssImports("styles/legacy-canvas-visual.css");
 const nodeImports = parseCssImports("styles/features/node.css");
 const assetImports = parseCssImports("styles/features/assets.css");
 const homeImports = parseCssImports("styles/features/home.css");
@@ -542,6 +567,7 @@ assertListEqual("styles/legacy-split.css", legacySplitImports, EXPECTED_LEGACY_S
 assertListEqual("styles/legacy-base.css", legacyBaseImports, EXPECTED_LEGACY_BASE_IMPORTS);
 assertListEqual("styles/legacy-theme-sync.css", legacyThemeSyncImports, EXPECTED_LEGACY_THEME_SYNC_IMPORTS);
 assertListEqual("styles/legacy-canvas.css", legacyCanvasImports, EXPECTED_LEGACY_CANVAS_IMPORTS);
+assertListEqual("styles/legacy-canvas-visual.css", legacyCanvasVisualImports, EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS);
 assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
 assertListEqual("styles/features/assets.css", assetImports, EXPECTED_ASSET_IMPORTS);
 assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
@@ -550,6 +576,7 @@ checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(legacySplitImports, "styles");
 checkImportedFilesExist(legacyThemeSyncImports, "styles");
 checkImportedFilesExist(legacyCanvasImports, "styles");
+checkImportedFilesExist(legacyCanvasVisualImports, "styles");
 checkImportedFilesExist(nodeImports, "styles/features");
 checkImportedFilesExist(assetImports, "styles/features");
 checkImportedFilesExist(homeImports, "styles/features");
@@ -574,6 +601,7 @@ checkFileContains("styles/legacy-canvas-world.css", EXPECTED_LEGACY_CANVAS_WORLD
 checkFileContains("styles/legacy-canvas-video-generator.css", EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_SELECTORS);
 checkFileContains("styles/legacy-canvas-project-header.css", EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_SELECTORS);
 checkFileContains("styles/legacy-canvas-library.css", EXPECTED_LEGACY_CANVAS_LIBRARY_SELECTORS);
+checkFileContains("styles/legacy-canvas-visual-shape-tools.css", EXPECTED_LEGACY_CANVAS_VISUAL_SHAPE_TOOLS_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/home-shell.css", EXPECTED_HOME_SHELL_SELECTORS);
 checkFileContains("styles/features/home-history.css", EXPECTED_HOME_HISTORY_SELECTORS);
@@ -592,6 +620,7 @@ checkFileContains("styles/features/node-preview.css", EXPECTED_NODE_PREVIEW_SELE
 checkFileContains("styles/features/node.css", EXPECTED_NODE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
 checkFileContains("styles/legacy-canvas.css", EXPECTED_LEGACY_CANVAS_SELECTORS);
+checkFileContains("styles/legacy-canvas-visual.css", EXPECTED_LEGACY_CANVAS_VISUAL_SELECTORS);
 checkFileContains("styles/legacy-node.css", EXPECTED_LEGACY_NODE_SELECTORS);
 checkFileContains("styles/legacy-chat.css", EXPECTED_LEGACY_CHAT_SELECTORS);
 

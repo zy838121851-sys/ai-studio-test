@@ -1,0 +1,363 @@
+body[data-view="canvas"] .canvas-object.selected {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+body[data-view="canvas"] .canvas-object.selected::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border: 1.5px solid rgba(99, 102, 241, 0.78);
+  pointer-events: none;
+}
+
+body[data-view="canvas"] .canvas-shape.selected::after {
+  display: none;
+}
+
+body[data-view="canvas"] .canvas-object .resize-handle {
+  z-index: 9;
+  border-color: rgba(99, 102, 241, 0.92);
+  background: #ffffff;
+}
+
+body[data-view="canvas"] .draw-node {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  color: #17202c;
+}
+
+body[data-view="canvas"] .draw-shape {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+body[data-view="canvas"] .draw-shape svg {
+  width: 100%;
+  height: 100%;
+  fill: var(--shape-fill, rgba(255, 255, 255, 0));
+  stroke: var(--shape-stroke, #1f2933);
+  stroke-width: var(--shape-stroke-width, 3);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  pointer-events: visiblePainted;
+  background: transparent !important;
+}
+
+body[data-view="canvas"] .draw-line .draw-shape svg,
+body[data-view="canvas"] .draw-arrow .draw-shape svg,
+body[data-view="canvas"] .draw-pen .draw-shape svg {
+  fill: none;
+  stroke-width: 3.2;
+}
+
+body[data-view="canvas"] .draw-pen .draw-shape svg {
+  stroke: #050505 !important;
+  stroke-width: 4 !important;
+}
+
+body[data-view="canvas"] .node-text-tool {
+  min-height: 1.2em !important;
+}
+
+body[data-view="canvas"] .canvas-text-editor {
+  min-width: 54px;
+  min-height: 1.1em;
+  padding: 2px 4px;
+  border-radius: 4px;
+  outline: 1px solid transparent;
+  color: #0f172a;
+  font-family: Inter, system-ui, sans-serif;
+  font-size: 80px;
+  font-weight: 400;
+  line-height: 1.08;
+  text-align: left;
+  white-space: pre-wrap;
+  word-break: break-word;
+  cursor: grab;
+}
+
+body[data-view="canvas"] .text-editing .canvas-text-editor,
+body[data-view="canvas"] .canvas-text-editor[contenteditable="true"] {
+  cursor: text;
+}
+
+body[data-view="canvas"] .canvas-text-editor:empty::before {
+  content: attr(data-placeholder);
+  color: rgba(15, 23, 42, 0.34);
+}
+
+body[data-view="canvas"] .node-text-tool.selected .canvas-text-editor,
+body[data-view="canvas"] .canvas-text-editor:focus {
+  outline-color: rgba(77, 143, 255, 0.86);
+  background: transparent;
+  box-shadow: 0 0 0 3px rgba(77, 143, 255, 0.08);
+}
+
+body[data-view="canvas"] .shape-text-editor {
+  position: absolute;
+  inset: 12%;
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  min-height: 0;
+  font-size: 28px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.text-format-toolbar {
+  display: none;
+}
+
+.shape-format-toolbar {
+  position: fixed;
+  z-index: 42;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 18px 44px rgba(31, 46, 72, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.96);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -8px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.shape-format-toolbar.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+
+.shape-swatch {
+  display: block;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(28, 35, 45, 0.16);
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 3px rgba(255, 255, 255, 0.8);
+}
+
+.shape-color-trigger {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.shape-color-trigger:hover .shape-swatch {
+  outline: 2px solid rgba(77, 143, 255, 0.82);
+  outline-offset: 2px;
+}
+
+.shape-swatch.is-none {
+  background:
+    linear-gradient(135deg, transparent 44%, #ef4444 45% 55%, transparent 56%),
+    conic-gradient(#d7dbe2 25%, #ffffff 0 50%, #d7dbe2 0 75%, #ffffff 0) 0 0 / 12px 12px !important;
+}
+
+.stroke-swatch {
+  position: relative;
+  background: #ffffff;
+}
+
+.shape-color-popover {
+  position: absolute;
+  left: 8px;
+  top: 52px;
+  display: none;
+  grid-template-columns: repeat(5, 28px);
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(28, 35, 45, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 18px 44px rgba(31, 46, 72, 0.16);
+}
+
+.shape-color-spectrum {
+  position: relative;
+  grid-column: 1 / -1;
+  height: 88px;
+  border: 1px solid rgba(28, 35, 45, 0.12);
+  border-radius: 12px;
+  cursor: crosshair;
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.92), transparent 48%, rgba(0, 0, 0, 0.74)),
+    linear-gradient(to right, #ff4b4b, #ffd84b, #4bff77, #4bdfff, #4b5dff, #d44bff, #ff4b4b);
+}
+
+.shape-color-spectrum i {
+  position: absolute;
+  left: 50%;
+  top: 45%;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #ffffff;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.64);
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.shape-format-toolbar.picker-open .shape-color-popover {
+  display: grid;
+}
+
+.shape-format-toolbar.line-style-only [data-color-target="fill"] {
+  display: none;
+}
+
+.shape-color-popover button {
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(28, 35, 45, 0.14);
+  border-radius: 50%;
+  background: var(--color);
+}
+
+.shape-color-token-white {
+  --color: #ffffff;
+}
+
+.shape-color-token-ink {
+  --color: #1f2933;
+}
+
+.shape-color-token-rose {
+  --color: #b98f8f;
+}
+
+.shape-color-token-blue {
+  --color: #4f6f9f;
+}
+
+.shape-color-token-green {
+  --color: #4f7d5a;
+}
+
+.shape-color-token-gold {
+  --color: #d89a3d;
+}
+
+.shape-color-token-purple {
+  --color: #8b5cf6;
+}
+
+.shape-color-token-red {
+  --color: #ef4444;
+}
+
+.shape-color-popover .color-none {
+  overflow: hidden;
+  color: transparent;
+  background:
+    linear-gradient(135deg, transparent 44%, #ef4444 45% 55%, transparent 56%),
+    conic-gradient(#d7dbe2 25%, #ffffff 0 50%, #d7dbe2 0 75%, #ffffff 0) 0 0 / 10px 10px;
+}
+
+.stroke-width-control {
+  display: flex !important;
+  grid-auto-flow: column;
+  align-items: center;
+  gap: 8px;
+  padding: 0 10px;
+  height: 34px;
+  border: 1px solid rgba(28, 35, 45, 0.12);
+  border-radius: 999px;
+  color: #344054;
+  background: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.stroke-width-control input {
+  width: 82px;
+  accent-color: #64748b;
+}
+
+body[data-view="canvas"] .text-format-toolbar {
+  position: fixed;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 18px 44px rgba(31, 46, 72, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(24px) saturate(1.45);
+  -webkit-backdrop-filter: blur(24px) saturate(1.45);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -8px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+body[data-view="canvas"] .text-format-toolbar.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+
+body[data-view="canvas"] .text-format-toolbar button,
+body[data-view="canvas"] .text-format-toolbar select,
+body[data-view="canvas"] .text-color-picker {
+  height: 34px;
+  border: 1px solid rgba(28, 35, 45, 0.12);
+  border-radius: 999px;
+  color: #344054;
+  background: rgba(255, 255, 255, 0.72);
+  font: inherit;
+}
+
+body[data-view="canvas"] .text-format-toolbar select {
+  padding: 0 28px 0 12px;
+}
+
+body[data-view="canvas"] .text-color-picker {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  min-width: 36px;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+body[data-view="canvas"] .text-color-picker input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+body[data-view="canvas"] .text-color-picker span {
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: var(--text-toolbar-color, #0f172a);
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.18), 0 0 0 3px rgba(255, 255, 255, 0.82);
+}

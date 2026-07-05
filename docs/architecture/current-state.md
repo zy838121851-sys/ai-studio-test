@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,349 |
-| `styles` | 58 | 15,221 |
-| `scripts` | 90 | 20,818 |
+| `styles` | 59 | 15,221 |
+| `scripts` | 90 | 20,847 |
 
 Largest files in the current source tree:
 
@@ -78,7 +78,6 @@ Largest files in the current source tree:
 | 810 | `src/server/services/ai-job.service.js` |
 | 781 | `src/client/features/canvas/model-viewer.js` |
 | 779 | `styles/legacy-chat.css` |
-| 716 | `styles/legacy-canvas-visual.css` |
 | 708 | `src/client/features/workspace/asset-library/asset-panel.js` |
 
 Post-baseline CSS governance note:
@@ -173,6 +172,13 @@ Post-baseline CSS governance note:
   `styles/legacy-canvas-project-header.css`, and
   `styles/legacy-canvas-library.css` as a pure aggregation entry to preserve
   cascade order.
+- `styles/legacy-canvas-visual-shape-tools.css` owns canvas object selected
+  visuals, draw-shape visuals, canvas text editor, shape format toolbar,
+  shape color popover, stroke width control, text format toolbar, and text
+  color picker styles that were moved out of `styles/legacy-canvas-visual.css`.
+- `styles/legacy-canvas-visual.css` now imports
+  `styles/legacy-canvas-visual-shape-tools.css` before the remaining canvas
+  visual polish styles to preserve cascade order.
 - `styles/features/node-base.css` owns base node/card/resize/action styles that
   were moved out of `styles/legacy-node.css`; it is imported at the top of
   `styles/features/node.css` to preserve cascade order.
