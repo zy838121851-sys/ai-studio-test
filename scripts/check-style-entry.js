@@ -35,6 +35,9 @@ const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./menu-select-overrides.css"
 ];
 const EXPECTED_LEGACY_BASE_IMPORTS = [];
+const EXPECTED_LEGACY_CHAT_IMPORTS = [
+  "./legacy-chat-shell.css"
+];
 const EXPECTED_LEGACY_THEME_SYNC_IMPORTS = [
   "./legacy-theme-sync-base.css",
   "./legacy-theme-sync-surfaces.css",
@@ -545,14 +548,21 @@ const EXPECTED_NODE_PREVIEW_SELECTORS = [
 ];
 const EXPECTED_NODE_SELECTORS = [];
 const EXPECTED_LEGACY_CHAT_SELECTORS = [
-  ".chat-panel",
-  ".chat-float",
-  ".chat-log",
   ".message",
   ".image-message",
   ".agent-result-card",
   ".composer",
   ".composer-actions"
+];
+const EXPECTED_LEGACY_CHAT_SHELL_SELECTORS = [
+  ".chat-panel",
+  ".chat-panel.collapsed",
+  ".chat-float",
+  ".agent-debug-panel",
+  ".window-actions",
+  ".welcome",
+  ".suggestions",
+  ".chat-log"
 ];
 
 const errors = [];
@@ -693,6 +703,7 @@ const stylesImports = parseCssImports("styles.css");
 const workspaceImports = parseCssImports("styles/workspace.css");
 const legacySplitImports = parseCssImports("styles/legacy-split.css");
 const legacyBaseImports = parseCssImports("styles/legacy-base.css");
+const legacyChatImports = parseCssImports("styles/legacy-chat.css");
 const legacyThemeSyncImports = parseCssImports("styles/legacy-theme-sync.css");
 const legacyCanvasImports = parseCssImports("styles/legacy-canvas.css");
 const legacyCanvasVisualImports = parseCssImports("styles/legacy-canvas-visual.css");
@@ -707,6 +718,7 @@ assertListEqual("styles.css", stylesImports, EXPECTED_STYLES_IMPORTS);
 assertListEqual("styles/workspace.css", workspaceImports, EXPECTED_WORKSPACE_IMPORTS);
 assertListEqual("styles/legacy-split.css", legacySplitImports, EXPECTED_LEGACY_SPLIT_IMPORTS);
 assertListEqual("styles/legacy-base.css", legacyBaseImports, EXPECTED_LEGACY_BASE_IMPORTS);
+assertListEqual("styles/legacy-chat.css", legacyChatImports, EXPECTED_LEGACY_CHAT_IMPORTS);
 assertListEqual("styles/legacy-theme-sync.css", legacyThemeSyncImports, EXPECTED_LEGACY_THEME_SYNC_IMPORTS);
 assertListEqual("styles/legacy-canvas.css", legacyCanvasImports, EXPECTED_LEGACY_CANVAS_IMPORTS);
 assertListEqual("styles/legacy-canvas-visual.css", legacyCanvasVisualImports, EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS);
@@ -718,6 +730,7 @@ assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
 checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(legacySplitImports, "styles");
+checkImportedFilesExist(legacyChatImports, "styles");
 checkImportedFilesExist(legacyThemeSyncImports, "styles");
 checkImportedFilesExist(legacyCanvasImports, "styles");
 checkImportedFilesExist(legacyCanvasVisualImports, "styles");
@@ -786,6 +799,7 @@ checkFileContains("styles/legacy-canvas.css", EXPECTED_LEGACY_CANVAS_SELECTORS);
 checkFileContains("styles/legacy-canvas-visual.css", EXPECTED_LEGACY_CANVAS_VISUAL_SELECTORS);
 checkFileContains("styles/legacy-node.css", EXPECTED_LEGACY_NODE_SELECTORS);
 checkFileContains("styles/legacy-chat.css", EXPECTED_LEGACY_CHAT_SELECTORS);
+checkFileContains("styles/legacy-chat-shell.css", EXPECTED_LEGACY_CHAT_SHELL_SELECTORS);
 
 if (errors.length > 0) {
   console.error("Style entry check failed:");

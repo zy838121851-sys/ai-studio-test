@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 76 | 13,340 |
-| `scripts` | 90 | 19,321 |
+| `styles` | 77 | 13,341 |
+| `scripts` | 90 | 19,335 |
 
 Largest files in the current source tree:
 
@@ -71,15 +71,15 @@ Largest files in the current source tree:
 | 1,065 | `scripts/check-library-bulk-select.js` |
 | 1,030 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 898 | `scripts/check-prompt-conversation-event-utils.js` |
+| 779 | `scripts/check-style-entry.js` |
 | 765 | `src/server/services/ai-job.service.js` |
-| 765 | `scripts/check-style-entry.js` |
 | 760 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
 | 713 | `src/client/features/canvas/model-viewer.js` |
-| 672 | `styles/legacy-chat.css` |
 | 667 | `src/client/features/canvas/node-controls.js` |
 | 661 | `src/server/services/asset.service.js` |
 | 656 | `src/client/features/workspace/asset-library/asset-panel.js` |
 | 651 | `scripts/check-project-snapshot.js` |
+| 647 | `src/client/features/projects/workflows/project-workflow.js` |
 
 Post-baseline CSS governance note:
 
@@ -105,6 +105,10 @@ Post-baseline CSS governance note:
 - `styles/features/chat.css` now owns the conversation history popover styles
   that were moved out of `styles/legacy-chat.css`; the selector guard tracks
   the migrated chat rules in their feature file.
+- `styles/legacy-chat-shell.css` owns chat panel shell, floating chat button,
+  agent debug panel, window actions, welcome/suggestions, and chat log shell
+  styles that were moved out of `styles/legacy-chat.css`; it is imported by
+  `styles/legacy-chat.css`.
 - `styles/features/auth-account.css` owns auth entry, authenticated avatar
   button, account popover, points row, and account menu styles; it is imported
   by `styles/features/auth.css`.

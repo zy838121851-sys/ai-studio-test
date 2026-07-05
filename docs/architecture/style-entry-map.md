@@ -128,6 +128,12 @@ styles/features/home-community.css
 styles/features/home-shell.css
 ```
 
+`styles/legacy-chat.css` currently imports:
+
+```text
+styles/legacy-chat-shell.css
+```
+
 `styles/legacy-theme-sync.css` currently imports:
 
 ```text
@@ -271,6 +277,9 @@ Notes:
   imports there.
 - `features/chat.css` owns the conversation history popover styles that were
   moved out of `legacy-chat.css`.
+- `legacy-chat-shell.css` owns chat panel shell, floating chat button, agent
+  debug panel, window actions, welcome/suggestions, and chat log shell styles;
+  it is imported by `legacy-chat.css`.
 - `features/auth-account.css` owns auth entry, authenticated avatar button,
   account popover, points row, and account menu styles; it is imported by
   `features/auth.css`.
@@ -497,6 +506,7 @@ styles/legacy-canvas-visual-shape-tools.css
 styles/legacy-canvas-visual-media.css
 styles/legacy-canvas-visual-shell.css
 styles/legacy-canvas-visual.css
+styles/legacy-chat-shell.css
 styles/legacy-chat.css
 styles/legacy-node.css
 styles/legacy-overrides.css
@@ -534,7 +544,7 @@ Additional caution:
   `setAttribute("style")` calls, 298 `.style` operations, and 1 `cssText`
   write. `index.html` and `project-library.js` are no longer allowed inline
   style dependency files, and the chat agent debug panel static styles now live
-  in `styles/legacy-chat.css`. Selection group color swatches now use
+  in `styles/legacy-chat-shell.css`. Selection group color swatches now use
   `selection-swatch-*` classes instead of inline `--swatch` style attributes.
 - Keep `scripts/check-inline-style-categories.js` in `npm run check` to prevent
   the remaining inline style surface from becoming an undifferentiated bucket.
@@ -559,6 +569,7 @@ Additional caution:
   `features/assets-pinterest-layout.css`, migrated asset Pinterest responsive
   selectors in `features/assets-pinterest-responsive.css`,
   migrated asset Pinterest selectors in `features/assets-pinterest.css`,
+  migrated chat shell selectors in `legacy-chat-shell.css`,
   migrated node base selectors in
   `features/node-base.css`,
   migrated image edit selectors in `features/node-image-edit.css`, migrated node
