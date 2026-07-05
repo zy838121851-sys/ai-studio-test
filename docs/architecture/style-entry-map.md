@@ -135,6 +135,7 @@ styles/legacy-chat-shell.css
 styles/legacy-chat-message.css
 styles/legacy-chat-responsive.css
 styles/legacy-chat-agent.css
+styles/legacy-chat-composer.css
 ```
 
 `styles/legacy-theme-sync.css` currently imports:
@@ -292,6 +293,10 @@ Notes:
   details, assistant summary, task status, and feedback button styles; it is
   imported by `legacy-chat.css`. Existing `content` pseudo-element overrides
   remain in `legacy-chat.css`.
+- `legacy-chat-composer.css` owns composer layout, chat upload/model controls,
+  chat image preview, and send button styles; it is imported by
+  `legacy-chat.css`. Existing `content` pseudo-element overrides remain in
+  `legacy-chat.css`.
 - `features/auth-account.css` owns auth entry, authenticated avatar button,
   account popover, points row, and account menu styles; it is imported by
   `features/auth.css`.
@@ -522,6 +527,7 @@ styles/legacy-chat-shell.css
 styles/legacy-chat-message.css
 styles/legacy-chat-responsive.css
 styles/legacy-chat-agent.css
+styles/legacy-chat-composer.css
 styles/legacy-chat.css
 styles/legacy-node.css
 styles/legacy-overrides.css
@@ -588,6 +594,7 @@ Additional caution:
   migrated chat message selectors in `legacy-chat-message.css`,
   migrated chat responsive selectors in `legacy-chat-responsive.css`,
   migrated chat agent selectors in `legacy-chat-agent.css`,
+  migrated chat composer selectors in `legacy-chat-composer.css`,
   migrated node base selectors in
   `features/node-base.css`,
   migrated image edit selectors in `features/node-image-edit.css`, migrated node

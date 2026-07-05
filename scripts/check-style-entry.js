@@ -39,7 +39,8 @@ const EXPECTED_LEGACY_CHAT_IMPORTS = [
   "./legacy-chat-shell.css",
   "./legacy-chat-message.css",
   "./legacy-chat-responsive.css",
-  "./legacy-chat-agent.css"
+  "./legacy-chat-agent.css",
+  "./legacy-chat-composer.css"
 ];
 const EXPECTED_LEGACY_THEME_SYNC_IMPORTS = [
   "./legacy-theme-sync-base.css",
@@ -554,8 +555,8 @@ const EXPECTED_LEGACY_CHAT_SELECTORS = [
   ".message.thinking li.done::before",
   ".agent-analysis-card summary::after",
   ".agent-analysis-card:not([open]) summary::after",
-  ".composer",
-  ".composer-actions"
+  ".composer.drag-over::after",
+  ".chat-image-preview span::before"
 ];
 const EXPECTED_LEGACY_CHAT_AGENT_SELECTORS = [
   ".agent-ui-blocks",
@@ -566,6 +567,17 @@ const EXPECTED_LEGACY_CHAT_AGENT_SELECTORS = [
   ".agent-assistant-summary",
   ".agent-task-status",
   ".agent-feedback"
+];
+const EXPECTED_LEGACY_CHAT_COMPOSER_SELECTORS = [
+  ".composer",
+  ".chat-panel.has-chat .composer",
+  ".composer.drag-over",
+  ".composer textarea",
+  ".composer-actions",
+  "#chatUploadImage",
+  "#chatModelSelect",
+  ".chat-image-preview",
+  ".composer-actions .send"
 ];
 const EXPECTED_LEGACY_CHAT_MESSAGE_SELECTORS = [
   ".message",
@@ -829,6 +841,7 @@ checkFileContains("styles/legacy-canvas-visual.css", EXPECTED_LEGACY_CANVAS_VISU
 checkFileContains("styles/legacy-node.css", EXPECTED_LEGACY_NODE_SELECTORS);
 checkFileContains("styles/legacy-chat.css", EXPECTED_LEGACY_CHAT_SELECTORS);
 checkFileContains("styles/legacy-chat-agent.css", EXPECTED_LEGACY_CHAT_AGENT_SELECTORS);
+checkFileContains("styles/legacy-chat-composer.css", EXPECTED_LEGACY_CHAT_COMPOSER_SELECTORS);
 checkFileContains("styles/legacy-chat-message.css", EXPECTED_LEGACY_CHAT_MESSAGE_SELECTORS);
 checkFileContains("styles/legacy-chat-shell.css", EXPECTED_LEGACY_CHAT_SHELL_SELECTORS);
 checkFileContains("styles/legacy-chat-responsive.css", EXPECTED_LEGACY_CHAT_RESPONSIVE_SELECTORS);
