@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 81 | 13,345 |
-| `scripts` | 90 | 19,379 |
+| `styles` | 82 | 13,346 |
+| `scripts` | 90 | 19,405 |
 
 Largest files in the current source tree:
 
@@ -71,7 +71,7 @@ Largest files in the current source tree:
 | 1,065 | `scripts/check-library-bulk-select.js` |
 | 1,030 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 898 | `scripts/check-prompt-conversation-event-utils.js` |
-| 823 | `scripts/check-style-entry.js` |
+| 849 | `scripts/check-style-entry.js` |
 | 765 | `src/server/services/ai-job.service.js` |
 | 760 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
 | 713 | `src/client/features/canvas/model-viewer.js` |
@@ -125,6 +125,9 @@ Post-baseline CSS governance note:
   `styles/legacy-chat.css`.
 - `styles/legacy-chat.css` is now a pure aggregation entry for chat shell,
   message, responsive, agent, and composer submodules.
+- `styles/legacy-compact-project-menu.css` owns compact project header and
+  project menu styles moved out of `styles/legacy-compact-controls.css`; it is
+  imported by `styles/legacy-compact-controls.css`.
 - `styles/features/auth-account.css` owns auth entry, authenticated avatar
   button, account popover, points row, and account menu styles; it is imported
   by `styles/features/auth.css`.

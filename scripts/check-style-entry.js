@@ -42,6 +42,9 @@ const EXPECTED_LEGACY_CHAT_IMPORTS = [
   "./legacy-chat-agent.css",
   "./legacy-chat-composer.css"
 ];
+const EXPECTED_LEGACY_COMPACT_CONTROLS_IMPORTS = [
+  "./legacy-compact-project-menu.css"
+];
 const EXPECTED_LEGACY_THEME_SYNC_IMPORTS = [
   "./legacy-theme-sync-base.css",
   "./legacy-theme-sync-surfaces.css",
@@ -604,6 +607,24 @@ const EXPECTED_LEGACY_CHAT_RESPONSIVE_SELECTORS = [
   ".empty-state-actions",
   ".tool-rail"
 ];
+const EXPECTED_LEGACY_COMPACT_CONTROLS_SELECTORS = [
+  ".tool-rail",
+  ".rail-main",
+  ".rail-items",
+  ".rail-btn",
+  ".bottom-controls",
+  ".zoom-stepper",
+  ".history-controls"
+];
+const EXPECTED_LEGACY_COMPACT_PROJECT_MENU_SELECTORS = [
+  ".project-header",
+  ".project-menu-trigger",
+  ".project-menu-trigger::before",
+  ".project-menu",
+  ".project-menu.open",
+  ".project-menu button",
+  ".project-menu kbd"
+];
 
 const errors = [];
 
@@ -744,6 +765,7 @@ const workspaceImports = parseCssImports("styles/workspace.css");
 const legacySplitImports = parseCssImports("styles/legacy-split.css");
 const legacyBaseImports = parseCssImports("styles/legacy-base.css");
 const legacyChatImports = parseCssImports("styles/legacy-chat.css");
+const legacyCompactControlsImports = parseCssImports("styles/legacy-compact-controls.css");
 const legacyThemeSyncImports = parseCssImports("styles/legacy-theme-sync.css");
 const legacyCanvasImports = parseCssImports("styles/legacy-canvas.css");
 const legacyCanvasVisualImports = parseCssImports("styles/legacy-canvas-visual.css");
@@ -759,6 +781,7 @@ assertListEqual("styles/workspace.css", workspaceImports, EXPECTED_WORKSPACE_IMP
 assertListEqual("styles/legacy-split.css", legacySplitImports, EXPECTED_LEGACY_SPLIT_IMPORTS);
 assertListEqual("styles/legacy-base.css", legacyBaseImports, EXPECTED_LEGACY_BASE_IMPORTS);
 assertListEqual("styles/legacy-chat.css", legacyChatImports, EXPECTED_LEGACY_CHAT_IMPORTS);
+assertListEqual("styles/legacy-compact-controls.css", legacyCompactControlsImports, EXPECTED_LEGACY_COMPACT_CONTROLS_IMPORTS);
 assertListEqual("styles/legacy-theme-sync.css", legacyThemeSyncImports, EXPECTED_LEGACY_THEME_SYNC_IMPORTS);
 assertListEqual("styles/legacy-canvas.css", legacyCanvasImports, EXPECTED_LEGACY_CANVAS_IMPORTS);
 assertListEqual("styles/legacy-canvas-visual.css", legacyCanvasVisualImports, EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS);
@@ -771,6 +794,7 @@ checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(legacySplitImports, "styles");
 checkImportedFilesExist(legacyChatImports, "styles");
+checkImportedFilesExist(legacyCompactControlsImports, "styles");
 checkImportedFilesExist(legacyThemeSyncImports, "styles");
 checkImportedFilesExist(legacyCanvasImports, "styles");
 checkImportedFilesExist(legacyCanvasVisualImports, "styles");
@@ -844,6 +868,8 @@ checkFileContains("styles/legacy-chat-composer.css", EXPECTED_LEGACY_CHAT_COMPOS
 checkFileContains("styles/legacy-chat-message.css", EXPECTED_LEGACY_CHAT_MESSAGE_SELECTORS);
 checkFileContains("styles/legacy-chat-shell.css", EXPECTED_LEGACY_CHAT_SHELL_SELECTORS);
 checkFileContains("styles/legacy-chat-responsive.css", EXPECTED_LEGACY_CHAT_RESPONSIVE_SELECTORS);
+checkFileContains("styles/legacy-compact-controls.css", EXPECTED_LEGACY_COMPACT_CONTROLS_SELECTORS);
+checkFileContains("styles/legacy-compact-project-menu.css", EXPECTED_LEGACY_COMPACT_PROJECT_MENU_SELECTORS);
 
 if (errors.length > 0) {
   console.error("Style entry check failed:");

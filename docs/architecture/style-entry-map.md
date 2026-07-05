@@ -138,6 +138,12 @@ styles/legacy-chat-agent.css
 styles/legacy-chat-composer.css
 ```
 
+`styles/legacy-compact-controls.css` currently imports:
+
+```text
+styles/legacy-compact-project-menu.css
+```
+
 `styles/legacy-theme-sync.css` currently imports:
 
 ```text
@@ -297,6 +303,8 @@ Notes:
   preview close pseudo-element styles; it is imported by `legacy-chat.css`.
 - `legacy-chat.css` is now a pure aggregation entry for chat shell, message,
   responsive, agent, and composer submodules.
+- `legacy-compact-project-menu.css` owns compact project header and project
+  menu styles; it is imported by `legacy-compact-controls.css`.
 - `features/auth-account.css` owns auth entry, authenticated avatar button,
   account popover, points row, and account menu styles; it is imported by
   `features/auth.css`.
@@ -532,6 +540,7 @@ styles/legacy-chat.css
 styles/legacy-node.css
 styles/legacy-overrides.css
 styles/legacy-compact-controls.css
+styles/legacy-compact-project-menu.css
 styles/legacy-rail-polish.css
 styles/legacy-light-refinements.css
 styles/legacy-theme-ios.css
@@ -595,6 +604,8 @@ Additional caution:
   migrated chat responsive selectors in `legacy-chat-responsive.css`,
   migrated chat agent selectors in `legacy-chat-agent.css`,
   migrated chat composer selectors in `legacy-chat-composer.css`,
+  migrated compact project menu selectors in
+  `legacy-compact-project-menu.css`,
   migrated node base selectors in
   `features/node-base.css`,
   migrated image edit selectors in `features/node-image-edit.css`, migrated node
