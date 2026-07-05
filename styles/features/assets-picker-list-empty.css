@@ -1,0 +1,21 @@
+.asset-picker-empty {
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  min-height: 160px;
+  border-radius: 16px;
+  color: #6b7280;
+  background: rgba(243, 244, 246, 0.9);
+  text-align: center;
+}
+
+.asset-picker-empty strong {
+  color: #111827;
+  font-size: 15px;
+  font-weight: 820;
+}
+
+.asset-picker-empty span {
+  font-size: 13px;
+  font-weight: 620;
+}

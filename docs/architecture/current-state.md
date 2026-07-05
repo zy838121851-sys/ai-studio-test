@@ -55,15 +55,15 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,350 |
-| `styles` | 196 | 15,274 |
-| `scripts` | 90 | 21,916 |
+| `styles` | 198 | 15,275 |
+| `scripts` | 90 | 21,931 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
+| 1,711 | `scripts/check-style-entry.js` |
 | 1,709 | `scripts/check-api-error-contract.js` |
-| 1,696 | `scripts/check-style-entry.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
@@ -235,8 +235,12 @@ Post-baseline CSS governance note:
   shell, backdrop, and card styles.
 - `styles/features/assets-picker-popover-head.css` owns asset picker modal
   header and scrollable list container styles.
-- `styles/features/assets-picker-list.css` owns asset picker item, thumbnail,
-  metadata, and empty-state styles.
+- `styles/features/assets-picker-list.css` is now a pure aggregation entry for
+  asset picker item/metadata and empty-state submodules.
+- `styles/features/assets-picker-list-item.css` owns asset picker item,
+  thumbnail, and metadata styles.
+- `styles/features/assets-picker-list-empty.css` owns asset picker empty-state
+  styles.
 - `styles/features/assets-picker-preview.css` owns asset preview overlay,
   backdrop, dialog, image, title, and close control styles.
 - `styles/features/assets-canvas-picker.css` is now a pure aggregation entry
