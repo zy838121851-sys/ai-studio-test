@@ -1,0 +1,36 @@
+.image-node-toolbar svg {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.15;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.image-toolbar-label {
+  display: inline-flex !important;
+  align-items: center;
+  flex: 0 0 auto;
+  width: auto;
+  max-width: none;
+  overflow: visible;
+  color: currentColor !important;
+  opacity: 1;
+  letter-spacing: 0;
+  white-space: nowrap;
+}
+
+.image-node-toolbar .image-toolbar-compare {
+  display: none;
+  color: #fff;
+  background: rgba(74, 144, 245, 0.24);
+}
+
+.image-node-toolbar .toolbar-separator {
+  width: 1px;
+  height: 24px;
+  margin: 0 2px;
+  background: rgba(255, 255, 255, 0.16);
+}
