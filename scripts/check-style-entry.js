@@ -254,6 +254,12 @@ const EXPECTED_NODE_IMPORTS = [
   "./node-image-generator.css",
   "./node-preview.css"
 ];
+const EXPECTED_NODE_BASE_IMPORTS = [
+  "./node-base-card.css",
+  "./node-base-group.css",
+  "./node-base-resize.css",
+  "./node-base-actions.css"
+];
 const EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS = [
   "./node-image-generator-base.css",
   "./node-image-generator-inline-edit.css"
@@ -1302,10 +1308,23 @@ const EXPECTED_LEGACY_CANVAS_VISUAL_SHELL_SIMPLE_PAGE_SELECTORS = [
 ];
 const EXPECTED_LEGACY_CANVAS_VISUAL_SELECTORS = [];
 const EXPECTED_LEGACY_NODE_SELECTORS = [];
-const EXPECTED_NODE_BASE_SELECTORS = [
+const EXPECTED_NODE_BASE_SELECTORS = [];
+const EXPECTED_NODE_BASE_CARD_SELECTORS = [
   ".node-card",
   ".resize-handle",
+  ".node-card.selected .resize-handle",
+  ".node-card.node-locked"
+];
+const EXPECTED_NODE_BASE_GROUP_SELECTORS = [
   ".node-card.node-group",
+  ".canvas-group-label",
+  ".canvas-group-fill"
+];
+const EXPECTED_NODE_BASE_RESIZE_SELECTORS = [
+  ".resize-nw",
+  ".resize-se"
+];
+const EXPECTED_NODE_BASE_ACTIONS_SELECTORS = [
   ".node-expand",
   ".node-download"
 ];
@@ -1727,6 +1746,7 @@ const authImports = parseCssImports("styles/features/auth.css");
 const authCreditDetailImports = parseCssImports("styles/features/auth-credit-detail.css");
 const authDialogImports = parseCssImports("styles/features/auth-dialog.css");
 const nodeImports = parseCssImports("styles/features/node.css");
+const nodeBaseImports = parseCssImports("styles/features/node-base.css");
 const nodeImageEditImports = parseCssImports("styles/features/node-image-edit.css");
 const nodeImageToolbarImports = parseCssImports("styles/features/node-image-toolbar.css");
 const nodeImageToolbarMenuImports = parseCssImports("styles/features/node-image-toolbar-menu.css");
@@ -1793,6 +1813,7 @@ assertListEqual("styles/features/auth.css", authImports, EXPECTED_AUTH_IMPORTS);
 assertListEqual("styles/features/auth-credit-detail.css", authCreditDetailImports, EXPECTED_AUTH_CREDIT_DETAIL_IMPORTS);
 assertListEqual("styles/features/auth-dialog.css", authDialogImports, EXPECTED_AUTH_DIALOG_IMPORTS);
 assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
+assertListEqual("styles/features/node-base.css", nodeBaseImports, EXPECTED_NODE_BASE_IMPORTS);
 assertListEqual("styles/features/node-image-edit.css", nodeImageEditImports, EXPECTED_NODE_IMAGE_EDIT_IMPORTS);
 assertListEqual("styles/features/node-image-toolbar.css", nodeImageToolbarImports, EXPECTED_NODE_IMAGE_TOOLBAR_IMPORTS);
 assertListEqual("styles/features/node-image-toolbar-menu.css", nodeImageToolbarMenuImports, EXPECTED_NODE_IMAGE_TOOLBAR_MENU_IMPORTS);
@@ -1856,6 +1877,7 @@ checkImportedFilesExist(authImports, "styles/features");
 checkImportedFilesExist(authCreditDetailImports, "styles/features");
 checkImportedFilesExist(authDialogImports, "styles/features");
 checkImportedFilesExist(nodeImports, "styles/features");
+checkImportedFilesExist(nodeBaseImports, "styles/features");
 checkImportedFilesExist(nodeImageEditImports, "styles/features");
 checkImportedFilesExist(nodeImageToolbarImports, "styles/features");
 checkImportedFilesExist(nodeImageToolbarMenuImports, "styles/features");
@@ -2063,6 +2085,10 @@ checkFileContains("styles/features/home-community-channels-scroll.css", EXPECTED
 checkFileContains("styles/features/home-community-feed.css", EXPECTED_HOME_COMMUNITY_FEED_SELECTORS);
 checkFileContains("styles/features/home-community-inspiration.css", EXPECTED_HOME_COMMUNITY_INSPIRATION_SELECTORS);
 checkFileContains("styles/features/node-base.css", EXPECTED_NODE_BASE_SELECTORS);
+checkFileContains("styles/features/node-base-card.css", EXPECTED_NODE_BASE_CARD_SELECTORS);
+checkFileContains("styles/features/node-base-group.css", EXPECTED_NODE_BASE_GROUP_SELECTORS);
+checkFileContains("styles/features/node-base-resize.css", EXPECTED_NODE_BASE_RESIZE_SELECTORS);
+checkFileContains("styles/features/node-base-actions.css", EXPECTED_NODE_BASE_ACTIONS_SELECTORS);
 checkFileContains("styles/features/node-image-edit-state.css", EXPECTED_NODE_IMAGE_EDIT_SELECTORS);
 checkFileContains("styles/features/node-image-crop.css", EXPECTED_NODE_IMAGE_CROP_SELECTORS);
 checkFileContains("styles/features/node-image-expand.css", EXPECTED_NODE_IMAGE_EXPAND_SELECTORS);
