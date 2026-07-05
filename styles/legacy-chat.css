@@ -219,18 +219,6 @@
   cursor: pointer;
 }
 
-@keyframes spinLoading {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-.message.user {
-  align-self: flex-end;
-  color: #111;
-  background: #e7edf4;
-}
-
 .composer {
   grid-row: 3;
   position: relative;

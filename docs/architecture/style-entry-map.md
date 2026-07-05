@@ -282,8 +282,9 @@ Notes:
 - `legacy-chat-shell.css` owns chat panel shell, floating chat button, agent
   debug panel, window actions, welcome/suggestions, and chat log shell styles;
   it is imported by `legacy-chat.css`.
-- `legacy-chat-message.css` owns chat message, thinking message, loading
-  indicator, and image message styles; it is imported by `legacy-chat.css`.
+- `legacy-chat-message.css` owns chat message, user message, thinking message,
+  loading indicator/animation, and image message styles; it is imported by
+  `legacy-chat.css`.
 - `legacy-chat-responsive.css` owns chat-related responsive override blocks; it
   is imported by `legacy-chat.css`.
 - `features/auth-account.css` owns auth entry, authenticated avatar button,

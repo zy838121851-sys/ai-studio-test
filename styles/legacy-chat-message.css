@@ -90,6 +90,18 @@
   animation: spinLoading 0.8s linear infinite;
 }
 
+@keyframes spinLoading {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.message.user {
+  align-self: flex-end;
+  color: #111;
+  background: #e7edf4;
+}
+
 .image-message {
   display: grid;
   gap: 8px;

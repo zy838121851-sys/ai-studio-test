@@ -56,7 +56,7 @@ Current source footprint, excluding `node_modules` and `dist`:
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
 | `styles` | 79 | 13,343 |
-| `scripts` | 90 | 19,352 |
+| `scripts` | 90 | 19,354 |
 
 Largest files in the current source tree:
 
@@ -71,7 +71,7 @@ Largest files in the current source tree:
 | 1,065 | `scripts/check-library-bulk-select.js` |
 | 1,030 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 898 | `scripts/check-prompt-conversation-event-utils.js` |
-| 796 | `scripts/check-style-entry.js` |
+| 798 | `scripts/check-style-entry.js` |
 | 765 | `src/server/services/ai-job.service.js` |
 | 760 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
 | 713 | `src/client/features/canvas/model-viewer.js` |
@@ -109,9 +109,10 @@ Post-baseline CSS governance note:
   agent debug panel, window actions, welcome/suggestions, and chat log shell
   styles that were moved out of `styles/legacy-chat.css`; it is imported by
   `styles/legacy-chat.css`.
-- `styles/legacy-chat-message.css` owns chat message, thinking message, loading
-  indicator, and image message styles that were moved out of
-  `styles/legacy-chat.css`; it is imported by `styles/legacy-chat.css`.
+- `styles/legacy-chat-message.css` owns chat message, user message, thinking
+  message, loading indicator/animation, and image message styles that were
+  moved out of `styles/legacy-chat.css`; it is imported by
+  `styles/legacy-chat.css`.
 - `styles/legacy-chat-responsive.css` owns the chat-related responsive override
   blocks that were moved out of `styles/legacy-chat.css`; it is imported by
   `styles/legacy-chat.css`.

@@ -561,6 +561,8 @@ const EXPECTED_LEGACY_CHAT_MESSAGE_SELECTORS = [
   ".message.thinking",
   ".thinking-summary",
   ".message.loading::before",
+  "@keyframes spinLoading",
+  ".message.user",
   ".image-message"
 ];
 const EXPECTED_LEGACY_CHAT_SHELL_SELECTORS = [
