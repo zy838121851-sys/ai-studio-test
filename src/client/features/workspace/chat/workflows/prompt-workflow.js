@@ -139,6 +139,7 @@ import {
   ensureProjectConversation
 } from "./prompt-conversation-api-utils.js";
 import {
+  commitGeneratedProjectPatch,
   ensureActiveProjectReadyForGeneration
 } from "./prompt-project-persistence-utils.js";
 import {
@@ -361,11 +362,12 @@ export function bindPromptSubmit({
     notify: (message) => addChat("assistant", message)
   });
 
-  async function commitGeneratedProjectPatch(patch) {
-    updateActiveProject(patch);
-    await saveCurrentProjectAfterGeneration?.();
-    onProjectTitleRefresh();
-  }
+  const commitGeneratedProjectPatchForRun = (patch) => commitGeneratedProjectPatch({
+    patch,
+    updateActiveProject,
+    saveCurrentProjectAfterGeneration,
+    onProjectTitleRefresh
+  });
 
   function centerPendingHomeGenerationNode(node) {
     if (!getPendingHomeGenerationFocus()) return false;
@@ -757,7 +759,7 @@ export function bindPromptSubmit({
           model
         }));
         centerPendingHomeGenerationNode(modelNode);
-        await commitGeneratedProjectPatch(buildGeneratedModelProjectPatch({
+        await commitGeneratedProjectPatchForRun(buildGeneratedModelProjectPatch({
           project: getActiveProject(),
           titlePrompt: prompt,
           storedPrompt: prompt,
@@ -1014,7 +1016,7 @@ export function bindPromptSubmit({
           resultModel
         });
         centerPendingHomeGenerationNode(videoNode);
-        await commitGeneratedProjectPatch(buildGeneratedMediaProjectPatch({
+        await commitGeneratedProjectPatchForRun(buildGeneratedMediaProjectPatch({
           project: getActiveProject(),
           prompt,
           generationPrompt,
@@ -1054,7 +1056,7 @@ export function bindPromptSubmit({
         });
         const imageNode = imageNodes[0] || null;
         centerPendingHomeGenerationNode(imageNode);
-        await commitGeneratedProjectPatch(buildGeneratedMediaProjectPatch({
+        await commitGeneratedProjectPatchForRun(buildGeneratedMediaProjectPatch({
           project: getActiveProject(),
           prompt,
           generationPrompt,

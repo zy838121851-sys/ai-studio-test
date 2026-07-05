@@ -1,4 +1,5 @@
 import {
+  commitGeneratedProjectPatch,
   ensureActiveProjectReadyForGeneration,
   PROMPT_PROJECT_SAVE_COPY
 } from "../src/client/features/workspace/chat/workflows/prompt-project-persistence-utils.js";
@@ -74,5 +75,40 @@ const thrownWithoutMessage = await ensureActiveProjectReadyForGeneration({
 assert(thrownWithoutMessage.ok === false, "Project persistence guard should fail when save throws without a message");
 assert(thrownWithoutMessage.projectId === "project-empty-error", "Project persistence guard should preserve project ids for empty thrown messages");
 assert(thrownWithoutMessage.message === PROMPT_PROJECT_SAVE_COPY.failureText, "Project persistence guard should fall back to failure copy for empty thrown messages");
+
+const commitOrder = [];
+const generatedPatch = { title: "Generated title", thumbnail: "/uploads/generated.png" };
+await commitGeneratedProjectPatch({
+  patch: generatedPatch,
+  updateActiveProject: (patch) => {
+    commitOrder.push(["update", patch]);
+  },
+  saveCurrentProjectAfterGeneration: async () => {
+    commitOrder.push(["save"]);
+  },
+  onProjectTitleRefresh: () => {
+    commitOrder.push(["refresh"]);
+  }
+});
+assert(commitOrder.length === 3, "Generated project patch commits should update, save, and refresh");
+assert(commitOrder[0][0] === "update", "Generated project patch commits should update active project first");
+assert(commitOrder[0][1] === generatedPatch, "Generated project patch commits should pass the original patch object");
+assert(commitOrder[1][0] === "save", "Generated project patch commits should save after updating");
+assert(commitOrder[2][0] === "refresh", "Generated project patch commits should refresh titles after save");
+
+const optionalCommitOrder = [];
+await commitGeneratedProjectPatch({
+  patch: { itemCount: 1 },
+  updateActiveProject: (patch) => {
+    optionalCommitOrder.push(["update", patch.itemCount]);
+  },
+  onProjectTitleRefresh: () => {
+    optionalCommitOrder.push(["refresh"]);
+  }
+});
+assert(
+  JSON.stringify(optionalCommitOrder) === JSON.stringify([["update", 1], ["refresh"]]),
+  "Generated project patch commits should keep title refresh when save callback is unavailable"
+);
 
 console.log("Prompt project persistence utility checks passed.");

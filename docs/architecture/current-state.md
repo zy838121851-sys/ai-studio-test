@@ -614,6 +614,11 @@ Post-baseline CSS governance note:
   the shared viewport-center target calculation used by prompt generation
   previews; `scripts/check-prompt-preview-utils.js` guards the extracted
   placement formula without changing preview creation behavior.
+- `prompt-project-persistence-utils.js` now owns generated project patch
+  commit ordering for update, autosave, and title refresh; the workflow still
+  owns patch construction and generation timing, while
+  `scripts/check-prompt-project-persistence-utils.js` guards the extracted
+  persistence sequence.
 - `image-generator-workflow-constants.js` now owns image generator selectors,
   default model/ratio/count configuration, and Midjourney output count;
   `scripts/check-image-generator-workflow-constants.js` guards those static

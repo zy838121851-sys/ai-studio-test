@@ -35,3 +35,14 @@ export async function ensureActiveProjectReadyForGeneration({
     };
   }
 }
+
+export async function commitGeneratedProjectPatch({
+  patch = {},
+  updateActiveProject,
+  saveCurrentProjectAfterGeneration,
+  onProjectTitleRefresh = () => {}
+} = {}) {
+  updateActiveProject(patch);
+  await saveCurrentProjectAfterGeneration?.();
+  onProjectTitleRefresh();
+}
