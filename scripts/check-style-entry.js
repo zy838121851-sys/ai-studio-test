@@ -413,6 +413,10 @@ const EXPECTED_HOME_COMMUNITY_CHANNEL_IMPORTS = [
   "./home-community-channels-strip.css",
   "./home-community-channels-scroll.css"
 ];
+const EXPECTED_HOME_COMMUNITY_FEED_IMPORTS = [
+  "./home-community-feed-masonry.css",
+  "./home-community-feed-back-top.css"
+];
 const EXPECTED_HOME_SHELL_IMPORTS = [
   "./home-shell-boot.css",
   "./home-shell-prompt.css",
@@ -593,10 +597,19 @@ const EXPECTED_HOME_COMMUNITY_CHANNEL_SCROLL_SELECTORS = [
   ".home-channel-scroll"
 ];
 const EXPECTED_HOME_COMMUNITY_FEED_SELECTORS = [
+  "@import url(\"./home-community-feed-masonry.css\")",
+  "@import url(\"./home-community-feed-back-top.css\")"
+];
+const EXPECTED_HOME_COMMUNITY_FEED_MASONRY_SELECTORS = [
   ".home-masonry-feed",
   ".home-masonry-card",
-  "@keyframes masonryPlaceholderSweep",
-  ".home-back-top"
+  ".home-masonry-loading.show",
+  "@keyframes masonryPlaceholderSweep"
+];
+const EXPECTED_HOME_COMMUNITY_FEED_BACK_TOP_SELECTORS = [
+  ".home-back-top",
+  ".home-back-top span::before",
+  ".home-back-top.show"
 ];
 const EXPECTED_HOME_COMMUNITY_INSPIRATION_SELECTORS = [
   ".home-inspiration-grid",
@@ -1888,6 +1901,7 @@ const homeHistoryImports = parseCssImports("styles/features/home-history.css");
 const homeHistoryCardsImports = parseCssImports("styles/features/home-history-cards.css");
 const homeCommunityImports = parseCssImports("styles/features/home-community.css");
 const homeCommunityChannelImports = parseCssImports("styles/features/home-community-channels.css");
+const homeCommunityFeedImports = parseCssImports("styles/features/home-community-feed.css");
 const homeShellImports = parseCssImports("styles/features/home-shell.css");
 const homeShellPromptImports = parseCssImports("styles/features/home-shell-prompt.css");
 const homeShellModelImports = parseCssImports("styles/features/home-shell-model.css");
@@ -1960,6 +1974,7 @@ assertListEqual("styles/features/home-history.css", homeHistoryImports, EXPECTED
 assertListEqual("styles/features/home-history-cards.css", homeHistoryCardsImports, EXPECTED_HOME_HISTORY_CARDS_IMPORTS);
 assertListEqual("styles/features/home-community.css", homeCommunityImports, EXPECTED_HOME_COMMUNITY_IMPORTS);
 assertListEqual("styles/features/home-community-channels.css", homeCommunityChannelImports, EXPECTED_HOME_COMMUNITY_CHANNEL_IMPORTS);
+assertListEqual("styles/features/home-community-feed.css", homeCommunityFeedImports, EXPECTED_HOME_COMMUNITY_FEED_IMPORTS);
 assertListEqual("styles/features/home-shell.css", homeShellImports, EXPECTED_HOME_SHELL_IMPORTS);
 assertListEqual("styles/features/home-shell-prompt.css", homeShellPromptImports, EXPECTED_HOME_SHELL_PROMPT_IMPORTS);
 assertListEqual("styles/features/home-shell-model.css", homeShellModelImports, EXPECTED_HOME_SHELL_MODEL_IMPORTS);
@@ -2029,6 +2044,7 @@ checkImportedFilesExist(homeHistoryImports, "styles/features");
 checkImportedFilesExist(homeHistoryCardsImports, "styles/features");
 checkImportedFilesExist(homeCommunityImports, "styles/features");
 checkImportedFilesExist(homeCommunityChannelImports, "styles/features");
+checkImportedFilesExist(homeCommunityFeedImports, "styles/features");
 checkImportedFilesExist(homeShellImports, "styles/features");
 checkImportedFilesExist(homeShellPromptImports, "styles/features");
 checkImportedFilesExist(homeShellModelImports, "styles/features");
@@ -2216,6 +2232,8 @@ checkFileContains("styles/features/home-community-channels-shell.css", EXPECTED_
 checkFileContains("styles/features/home-community-channels-strip.css", EXPECTED_HOME_COMMUNITY_CHANNEL_STRIP_SELECTORS);
 checkFileContains("styles/features/home-community-channels-scroll.css", EXPECTED_HOME_COMMUNITY_CHANNEL_SCROLL_SELECTORS);
 checkFileContains("styles/features/home-community-feed.css", EXPECTED_HOME_COMMUNITY_FEED_SELECTORS);
+checkFileContains("styles/features/home-community-feed-masonry.css", EXPECTED_HOME_COMMUNITY_FEED_MASONRY_SELECTORS);
+checkFileContains("styles/features/home-community-feed-back-top.css", EXPECTED_HOME_COMMUNITY_FEED_BACK_TOP_SELECTORS);
 checkFileContains("styles/features/home-community-inspiration.css", EXPECTED_HOME_COMMUNITY_INSPIRATION_SELECTORS);
 checkFileContains("styles/features/node-base.css", EXPECTED_NODE_BASE_SELECTORS);
 checkFileContains("styles/features/node-base-card.css", EXPECTED_NODE_BASE_CARD_SELECTORS);

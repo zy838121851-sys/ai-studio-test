@@ -1,0 +1,75 @@
+.home-masonry-feed {
+  column-count: 5;
+  column-gap: 14px;
+  padding-bottom: 34px;
+}
+
+.home-masonry-card {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: var(--card-height, 260px);
+  margin: 0 0 14px;
+  break-inside: avoid;
+  overflow: hidden;
+  border: 1px solid rgba(17, 24, 39, 0.04);
+  border-radius: 10px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.34), transparent 48%),
+    linear-gradient(135deg, color-mix(in srgb, var(--card-tone, #d1d5db) 12%, transparent), transparent 64%),
+    #f0f1f3;
+  box-shadow: 0 16px 36px rgba(31, 46, 72, 0.055);
+}
+
+.home-masonry-card::before {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+  content: "";
+  opacity: 0.42;
+  transform: translateX(-100%);
+  animation: masonryPlaceholderSweep 1.8s ease-in-out infinite;
+}
+
+.home-masonry-card:nth-child(5n + 2) {
+  background-color: #eceff3;
+}
+
+.home-masonry-card:nth-child(5n + 3) {
+  background-color: #f4f4f5;
+}
+
+.home-masonry-card:nth-child(5n + 4) {
+  background-color: #eef1f4;
+}
+
+.home-masonry-card:nth-child(5n) {
+  background-color: #f2f3f5;
+}
+
+.home-masonry-loading {
+  height: 46px;
+  color: rgba(23, 32, 44, 0.34);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 46px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 160ms ease;
+}
+
+.home-masonry-loading.show {
+  opacity: 1;
+}
+
+@keyframes masonryPlaceholderSweep {
+  0% {
+    transform: translateX(-100%);
+  }
+
+  55%,
+  100% {
+    transform: translateX(100%);
+  }
+}
