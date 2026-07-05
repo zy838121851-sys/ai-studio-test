@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,683 |
 | `src/server` | 80 | 14,430 |
-| `styles` | 125 | 15,373 |
-| `scripts` | 90 | 21,441 |
+| `styles` | 130 | 15,378 |
+| `scripts` | 90 | 21,483 |
 
 Largest files in the current source tree:
 
@@ -68,7 +68,7 @@ Largest files in the current source tree:
 | 1,303 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,294 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,283 | `scripts/check-canvas-menu-actions.js` |
-| 1,132 | `scripts/check-style-entry.js` |
+| 1,174 | `scripts/check-style-entry.js` |
 | 1,121 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,119 | `scripts/check-library-bulk-select.js` |
 | 949 | `scripts/check-prompt-conversation-event-utils.js` |
@@ -293,10 +293,18 @@ Post-baseline CSS governance note:
 - `styles/legacy-theme-sync.css` is now a pure aggregation entry that imports
   the theme sync base, surfaces, image edit, crop expand, media edit, node
   media, compact select, model preference, and credit submit submodules.
-- `styles/legacy-canvas-shell.css` owns the first canvas shell block that was
-  moved out of `styles/legacy-canvas.css`: canvas area background, project
-  header/logo, top actions, tool rail, add-node menu, canvas context menu, and
-  selection action bar styles.
+- `styles/legacy-canvas-shell.css` is now a pure aggregation entry for legacy
+  canvas shell brand, action, tool rail, menu, and selection submodules.
+- `styles/legacy-canvas-shell-brand.css` owns canvas area background,
+  project header, and legacy logo mark styles.
+- `styles/legacy-canvas-shell-actions.css` owns legacy canvas top actions and
+  shared glass action surface styles.
+- `styles/legacy-canvas-shell-tool-rail.css` owns legacy canvas tool rail,
+  rail main/action/separator, and jump rail button styles.
+- `styles/legacy-canvas-shell-menus.css` owns add-node menu shell and canvas
+  context menu/submenu/color panel styles.
+- `styles/legacy-canvas-shell-selection.css` owns selection action bar, action
+  button, swatch, and mobile selection-bar override styles.
 - `styles/legacy-canvas-image-edit.css` is now a pure aggregation entry for
   image edit popover, generator select, compact select, and footer/reference
   styles that were moved out of `styles/legacy-canvas.css`.

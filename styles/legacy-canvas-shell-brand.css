@@ -1,0 +1,71 @@
+.canvas-area {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 18px 18px, rgba(255, 255, 255, 0.13) 1px, transparent 1.6px) 0 0 / 18px 18px,
+    radial-gradient(circle at 9px 9px, rgba(64, 164, 255, 0.14) 0.8px, transparent 1.4px) 0 0 / 72px 72px,
+    #010203;
+}
+
+.canvas-area::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at center, transparent 0 42%, rgba(0, 0, 0, 0.38) 82%);
+}
+
+.project-header {
+  position: absolute;
+  top: 18px;
+  left: 22px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-mark {
+  position: relative;
+  width: 30px;
+  height: 30px;
+  filter: drop-shadow(0 0 14px rgba(127, 200, 255, 0.45));
+}
+
+.logo-mark span {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 45% 55% 52% 48%;
+}
+
+.logo-mark span:nth-child(1) {
+  left: 0;
+  top: 2px;
+  background: #fff2a6;
+}
+
+.logo-mark span:nth-child(2) {
+  right: 0;
+  top: 4px;
+  background: #76ddff;
+}
+
+.logo-mark span:nth-child(3) {
+  left: 8px;
+  bottom: 0;
+  background: #a983ff;
+}
+
+.project-header h1 {
+  margin: 0;
+  font-size: 18px;
+  line-height: 1.1;
+  letter-spacing: 0;
+}
+
+.project-header p {
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 12px;
+}

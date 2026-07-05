@@ -270,6 +270,16 @@ styles/legacy-canvas-project-header.css
 styles/legacy-canvas-library.css
 ```
 
+`styles/legacy-canvas-shell.css` currently imports:
+
+```text
+styles/legacy-canvas-shell-brand.css
+styles/legacy-canvas-shell-actions.css
+styles/legacy-canvas-shell-tool-rail.css
+styles/legacy-canvas-shell-menus.css
+styles/legacy-canvas-shell-selection.css
+```
+
 `styles/legacy-canvas-image-edit.css` currently imports:
 
 ```text
@@ -622,10 +632,18 @@ Notes:
   `legacy-theme-sync-compact-select.css`, and
   `legacy-theme-sync-model-preference.css`, and
   `legacy-theme-sync-credit-submit.css`.
-- `legacy-canvas-shell.css` owns the first legacy canvas shell block: canvas
-  area background, project header/logo, top actions, tool rail, add-node menu,
-  canvas context menu, selection action bar, and related mobile selection-bar
-  overrides.
+- `legacy-canvas-shell.css` is now a pure aggregation entry for legacy canvas
+  shell brand, actions, tool rail, menus, and selection submodules.
+- `legacy-canvas-shell-brand.css` owns canvas area background, project header,
+  and legacy logo mark styles.
+- `legacy-canvas-shell-actions.css` owns legacy canvas top actions and shared
+  glass action surface styles.
+- `legacy-canvas-shell-tool-rail.css` owns legacy canvas tool rail, rail main,
+  rail buttons, separator, and jump rail button styles.
+- `legacy-canvas-shell-menus.css` owns add-node menu shell and canvas context
+  menu, submenu, and context color panel styles.
+- `legacy-canvas-shell-selection.css` owns selection action bar, action button,
+  color swatch, and related mobile selection-bar overrides.
 - `legacy-canvas-image-edit.css` is now a pure aggregation entry for image edit
   popover, generator select, compact select, and footer/reference styles.
 - `legacy-canvas-image-edit-popover.css` owns image edit popover shell, head,
@@ -765,6 +783,11 @@ styles/task-log.css
 styles/legacy-split.css
 styles/legacy-base.css
 styles/legacy-canvas-shell.css
+styles/legacy-canvas-shell-brand.css
+styles/legacy-canvas-shell-actions.css
+styles/legacy-canvas-shell-tool-rail.css
+styles/legacy-canvas-shell-menus.css
+styles/legacy-canvas-shell-selection.css
 styles/legacy-canvas-image-edit.css
 styles/legacy-canvas-image-edit-popover.css
 styles/legacy-canvas-image-edit-generator-select.css
@@ -913,7 +936,10 @@ Additional caution:
   it also keeps compatibility shims such as
   `legacy-node.css` outside the active import graph, and guards the
   `legacy-canvas.css` imports of `legacy-canvas-shell.css` and
-  `legacy-canvas-image-edit.css`, the `legacy-canvas-image-edit.css` imports of
+  `legacy-canvas-image-edit.css`, the `legacy-canvas-shell.css` imports of
+  `legacy-canvas-shell-brand.css`, `legacy-canvas-shell-actions.css`,
+  `legacy-canvas-shell-tool-rail.css`, `legacy-canvas-shell-menus.css`, and
+  `legacy-canvas-shell-selection.css`, the `legacy-canvas-image-edit.css` imports of
   `legacy-canvas-image-edit-popover.css`,
   `legacy-canvas-image-edit-generator-select.css`,
   `legacy-canvas-image-edit-compact-select.css`, and
