@@ -33,6 +33,46 @@ export function getResultUrls(result = {}) {
   ]));
 }
 
+export function resolvePromptGeneratedMediaResult({
+  result = {},
+  videoModel = false
+} = {}) {
+  const videoUrls = getResultVideoUrls(result);
+  if (videoModel && videoUrls.length) {
+    return {
+      generationType: "video",
+      videoUrls,
+      imageUrls: [],
+      primaryUrl: videoUrls[0],
+      missing: false,
+      errorMessage: ""
+    };
+  }
+
+  const imageUrls = getResultImageUrls(result);
+  if (imageUrls.length) {
+    return {
+      generationType: "image",
+      videoUrls: [],
+      imageUrls,
+      primaryUrl: imageUrls[0],
+      missing: false,
+      errorMessage: ""
+    };
+  }
+
+  return {
+    generationType: videoModel ? "video" : "image",
+    videoUrls: [],
+    imageUrls: [],
+    primaryUrl: "",
+    missing: true,
+    errorMessage: videoModel
+      ? "Generation completed but no video URL was returned."
+      : "Generation completed but no image URL was returned."
+  };
+}
+
 export function isMidjourneyModel(model = "") {
   return String(model || "").trim().toLowerCase() === "midjourney";
 }

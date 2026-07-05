@@ -602,6 +602,10 @@ Post-baseline CSS governance note:
   and submit debug payload building for composer files, pending home files, DOM
   previews, and debug source labels; `scripts/check-prompt-input-utils.js`
   guards the extracted behavior.
+- `prompt-result-utils.js` now owns prompt result URL collection, generated
+  media result classification, generated node option builders, and generated
+  project patch builders; `scripts/check-prompt-result-utils.js` guards image,
+  video, missing-result, node-option, and project-patch behavior.
 - `prompt-workflow-constants.js` now owns prompt workflow static configuration
   for thinking steps, Midjourney image count, stream timeout, and chat agent
   debug/version flags; `scripts/check-prompt-workflow-constants.js` guards the

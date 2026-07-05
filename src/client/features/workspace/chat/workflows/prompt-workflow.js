@@ -11,9 +11,8 @@ import {
   buildGeneratedMediaProjectPatch,
   createPromptGeneratedImageNodes,
   createPromptGeneratedVideoNode,
-  getResultImageUrls,
   getResultUrls,
-  getResultVideoUrls,
+  resolvePromptGeneratedMediaResult,
   resolvePromptPreviewCount
 } from "./prompt-result-utils.js";
 import {
@@ -1008,8 +1007,9 @@ export function bindPromptSubmit({
       updateChat(progress, "正在整理生成结果...");
       updateAgentDebugPanel(agentDebug);
 
-      const videoUrls = getResultVideoUrls(finalResult);
-      if (videoModel && videoUrls.length) {
+      const mediaResult = resolvePromptGeneratedMediaResult({ result: finalResult, videoModel });
+      if (!mediaResult.missing && mediaResult.generationType === "video") {
+        const videoUrls = mediaResult.videoUrls;
         const videoNode = createGeneratedVideoNode({
           url: videoUrls[0],
           generationPrompt,
@@ -1047,8 +1047,8 @@ export function bindPromptSubmit({
           addChat("assistant", `生成视频 · ${modelUsage}\n${videoUrls[0]}`);
         }
         window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
-      } else if (getResultImageUrls(finalResult).length) {
-        const imageUrls = getResultImageUrls(finalResult);
+      } else if (!mediaResult.missing && mediaResult.generationType === "image") {
+        const imageUrls = mediaResult.imageUrls;
         const imageNodes = createGeneratedImageNodes({
           imageUrls,
           generationPrompt,
@@ -1093,9 +1093,7 @@ export function bindPromptSubmit({
         }
         window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
       } else {
-        throw new Error(videoModel
-          ? "Generation completed but no video URL was returned."
-          : "Generation completed but no image URL was returned.");
+        throw new Error(mediaResult.errorMessage);
       }
 
       updateThinking(thinking, 5, true);
