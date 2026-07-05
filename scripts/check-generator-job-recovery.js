@@ -139,7 +139,9 @@ assert(
   "generator must resume pending preview jobs on focus and visibility restore"
 );
 assert(
-  generatorWorkflow.includes("missingUrlRetries") &&
+  generatorWorkflow.includes("waitForImageGenerationJob") &&
+  generatorJobPollingUtils.includes("export async function waitForImageGenerationJob") &&
+  generatorJobPollingUtils.includes("missingUrlRetries") &&
   generatorJobPollingUtils.includes("Waiting for saved image URL") &&
   generatorJobPollingUtils.includes("export function buildInitialGeneratorJobPayload") &&
   generatorJobPollingUtils.includes("export function delayGeneratorJobPoll") &&

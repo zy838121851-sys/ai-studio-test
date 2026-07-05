@@ -23,16 +23,7 @@ import {
   logSubmittedGeneratorModel
 } from "./image-generator-debug-log-utils.js";
 import {
-  buildGeneratorMissingUrlProgressPayload,
-  buildGeneratorRateLimitProgressPayload,
-  buildInitialGeneratorJobPayload,
-  delayGeneratorJobPoll,
-  getGeneratorJobRequestError,
-  getGeneratorJobStatusPath,
-  getRetryAfterDelayMs,
-  getTerminalGeneratorJobPollDecision,
-  isTerminalGeneratorJobStatus,
-  mergeGeneratorJobPayload
+  waitForImageGenerationJob
 } from "./image-generator-job-polling-utils.js";
 import {
   buildGeneratorImagePreviewReplacementOptions,
@@ -974,52 +965,12 @@ export function createImageGeneratorWorkflow({
     }));
     if (result?.jobId) onJobCreated?.(result);
     if (shouldUseImmediateGeneratorResult(result)) return result;
-    return waitForImageGenerationJob(result.jobId, { onProgress, fallback: result, expectedType });
-  }
-
-  async function waitForImageGenerationJob(jobId, {
-    attempts = 180,
-    delayMs = 2000,
-    onProgress = null,
-    fallback = {},
-    expectedType = "image",
-    missingUrlRetries = 4
-  } = {}) {
-    let lastPayload = buildInitialGeneratorJobPayload(jobId, fallback);
-    let missingUrlAttempts = 0;
-    for (let index = 0; index < attempts; index += 1) {
-      await delayGeneratorJobPoll(delayMs);
-      const response = await fetch(getGeneratorJobStatusPath(jobId), {
-        credentials: "include"
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (response.status === 429) {
-        const retryDelay = getRetryAfterDelayMs(response, delayMs * 2);
-        onProgress?.(buildGeneratorRateLimitProgressPayload(lastPayload, payload));
-        await delayGeneratorJobPoll(retryDelay);
-        continue;
-      }
-      if (!response.ok) throw getGeneratorJobRequestError(payload, response.status);
-      lastPayload = mergeGeneratorJobPayload(fallback, payload);
-      logGeneratorJobPoll(lastPayload);
-      if (isTerminalGeneratorJobStatus(payload?.status)) {
-        const decision = getTerminalGeneratorJobPollDecision({
-          lastPayload,
-          expectedType,
-          missingUrlAttempts,
-          missingUrlRetries
-        });
-        missingUrlAttempts = decision.missingUrlAttempts;
-        if (decision.shouldRetryMissingUrl) {
-          onProgress?.(buildGeneratorMissingUrlProgressPayload(lastPayload, expectedType));
-          continue;
-        }
-        if (decision.error) throw decision.error;
-        return lastPayload;
-      }
-      onProgress?.(payload);
-    }
-    throw new Error(`Generation is still running. Job ID: ${lastPayload.jobId || jobId}`);
+    return waitForImageGenerationJob(result.jobId, {
+      onProgress,
+      fallback: result,
+      expectedType,
+      logJobPoll: logGeneratorJobPoll
+    });
   }
 
   function saveGeneratorDraft(node) {

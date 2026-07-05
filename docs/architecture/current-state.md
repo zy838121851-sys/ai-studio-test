@@ -617,6 +617,9 @@ Post-baseline CSS governance note:
 - `image-generator-result-utils.js` now owns image generator completion message
   formatting alongside result URL parsing; `scripts/check-image-generator-result-utils.js`
   guards completion messages and image/video result URL behavior.
+- `image-generator-job-polling-utils.js` now owns the image generator async job
+  polling loop; `scripts/check-image-generator-job-polling-utils.js` guards
+  success, rate-limit, missing-URL retry, failure, and timeout behavior.
 
 ## Static Reachability Snapshot
 
