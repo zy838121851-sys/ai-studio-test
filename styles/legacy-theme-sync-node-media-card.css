@@ -1,0 +1,45 @@
+.asset-generation-card h3,
+.add-node-menu strong,
+.canvas-context-menu strong {
+  color: var(--theme-heading) !important;
+}
+
+.asset-generation-card p {
+  color: var(--theme-muted) !important;
+}
+
+body[data-theme="dark"] .node-card,
+body[data-theme="dark"] .generated-card,
+body[data-theme="dark"] .generated-node,
+body[data-theme="dark"] .asset-generation-card,
+body[data-theme="dark"] .image-node,
+body[data-theme="dark"] .video-node,
+body[data-theme="dark"] .model-node,
+body[data-theme="dark"] .text-node {
+  color: #f4f7fb;
+  border-color: rgba(255, 255, 255, 0.18);
+  background:
+    radial-gradient(circle at 18% 8%, rgba(255, 255, 255, 0.16), transparent 32%),
+    linear-gradient(145deg, rgba(38, 38, 38, 0.76), rgba(13, 13, 13, 0.68)) !important;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.44), 0 0 0 1px rgba(255, 255, 255, 0.04) inset !important;
+}
+
+body[data-theme="dark"] .node-card h3,
+body[data-theme="dark"] .node-card p {
+  color: #eef6ff;
+}
+
+body[data-theme="dark"] .message.user {
+  color: #111;
+  background: #e7edf4 !important;
+}
+
+body[data-theme="dark"] .message.assistant {
+  color: #e6ebf1 !important;
+}
+
+body[data-theme="dark"] input,
+body[data-theme="dark"] select,
+body[data-theme="dark"] textarea {
+  color-scheme: dark;
+}

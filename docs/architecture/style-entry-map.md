@@ -257,6 +257,14 @@ styles/legacy-theme-sync-model-preference.css
 styles/legacy-theme-sync-credit-submit.css
 ```
 
+`styles/legacy-theme-sync-node-media.css` currently imports:
+
+```text
+styles/legacy-theme-sync-node-media-card.css
+styles/legacy-theme-sync-node-media-ai.css
+styles/legacy-theme-sync-node-media-canvas.css
+```
+
 `styles/legacy-theme-sync-model-preference.css` currently imports:
 
 ```text
@@ -620,10 +628,17 @@ Notes:
 - `legacy-theme-sync-media-edit.css` owns secondary menu separator, shared
   textarea, edit reference, crop overlay, image expand overlay, and image
   lightbox theme synchronization styles.
-- `legacy-theme-sync-node-media.css` owns dark node/card theme synchronization,
-  generation choice and AI panel theme surfaces, canvas media node transparent
-  frame polish, loading-image generation frame theme polish, and stack
-  drop-target theme overrides.
+- `legacy-theme-sync-node-media.css` is now a pure aggregation entry for
+  node/card, AI/generation, and canvas media theme synchronization submodules.
+- `legacy-theme-sync-node-media-card.css` owns dark node/card, generated card,
+  asset generation card, message, and form control theme synchronization.
+- `legacy-theme-sync-node-media-ai.css` owns generation choice, AI
+  suggestion/result/thinking/progress, director, stack row/toggle, source badge,
+  model viewer, image frame, generation frame, and thinking/image message theme
+  surfaces.
+- `legacy-theme-sync-node-media-canvas.css` owns canvas media node
+  transparent-frame polish, resize handle placement, loading-image generation
+  frame theme polish, node group z-index, and stack drop-target overrides.
 - `legacy-theme-sync-compact-select.css` owns compact select base, image-edit
   compact select, composer compact select, responsive compact select, and
   compact select option state styles.
@@ -840,6 +855,9 @@ styles/legacy-theme-sync-image-edit.css
 styles/legacy-theme-sync-crop-expand.css
 styles/legacy-theme-sync-media-edit.css
 styles/legacy-theme-sync-node-media.css
+styles/legacy-theme-sync-node-media-card.css
+styles/legacy-theme-sync-node-media-ai.css
+styles/legacy-theme-sync-node-media-canvas.css
 styles/legacy-theme-sync-compact-select.css
 styles/legacy-theme-sync-model-preference.css
 styles/legacy-theme-sync-model-preference-menu.css

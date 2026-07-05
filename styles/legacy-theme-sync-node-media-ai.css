@@ -1,0 +1,97 @@
+.generation-choice-overlay {
+  background: color-mix(in srgb, var(--theme-bg) 78%, transparent) !important;
+  backdrop-filter: blur(20px) saturate(1.35);
+  -webkit-backdrop-filter: blur(20px) saturate(1.35);
+}
+
+.generation-choice-close,
+.generation-choice-stage,
+.ai-suggestion-panel,
+.ai-panel-actions,
+.ai-result-preview,
+.ai-thinking-card,
+.ai-progress,
+.stack-tray,
+.stack-row,
+.stack-toggle,
+.source-badge,
+.selection-box,
+.director-tile,
+.director-refresh,
+.director-generate-all,
+.model-viewer,
+.model-loading,
+.image-frame,
+.generation-frame,
+.message.thinking,
+.image-message {
+  color: var(--theme-text) !important;
+  border-color: var(--theme-border) !important;
+  background: var(--theme-surface) !important;
+  box-shadow: var(--theme-shadow) !important;
+  backdrop-filter: blur(24px) saturate(1.45);
+  -webkit-backdrop-filter: blur(24px) saturate(1.45);
+}
+
+.ai-suggestion-panel h2,
+.ai-result-preview h3,
+.ai-thinking-card h3,
+.director-tile strong,
+.stack-row strong,
+.image-file-name,
+.model-file-name {
+  color: var(--theme-heading) !important;
+}
+
+.ai-suggestion-panel p,
+.ai-progress,
+.ai-thinking-card li,
+.director-tile span,
+.stack-row span,
+.model-loading,
+.generation-content {
+  color: var(--theme-muted) !important;
+}
+
+.ai-panel-actions button,
+.ai-generate-now,
+.generation-choice-close,
+.director-refresh,
+.director-tile,
+.director-generate-all,
+.stack-toggle,
+.stack-row,
+.source-badge {
+  color: var(--theme-text) !important;
+  border-color: var(--theme-hairline) !important;
+  background: var(--theme-surface-deep) !important;
+}
+
+.ai-generate-now,
+.director-generate-all {
+  color: #ffffff !important;
+  border-color: transparent !important;
+  background: linear-gradient(135deg, var(--theme-primary), #5ac8fa) !important;
+}
+
+.generation-spinner,
+.model-spinner {
+  border-color: color-mix(in srgb, var(--theme-primary) 18%, transparent) !important;
+  border-top-color: var(--theme-primary) !important;
+}
+
+.ai-thinking-card li.done,
+.message.thinking li.done {
+  color: var(--theme-text) !important;
+}
+
+.ai-thinking-card li.active,
+.message.thinking li.active {
+  color: var(--theme-primary) !important;
+}
+
+body[data-theme="dark"] .generation-choice-image,
+body[data-theme="dark"] .image-frame,
+body[data-theme="dark"] .model-viewer {
+  background: rgba(17, 20, 24, 0.72) !important;
+}

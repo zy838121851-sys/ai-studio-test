@@ -63,6 +63,11 @@ const EXPECTED_LEGACY_THEME_SYNC_IMPORTS = [
   "./legacy-theme-sync-model-preference.css",
   "./legacy-theme-sync-credit-submit.css"
 ];
+const EXPECTED_LEGACY_THEME_SYNC_NODE_MEDIA_IMPORTS = [
+  "./legacy-theme-sync-node-media-card.css",
+  "./legacy-theme-sync-node-media-ai.css",
+  "./legacy-theme-sync-node-media-canvas.css"
+];
 const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_IMPORTS = [
   "./legacy-theme-sync-model-preference-menu.css",
   "./legacy-theme-sync-model-preference-panel.css",
@@ -466,10 +471,23 @@ const EXPECTED_LEGACY_THEME_SYNC_MEDIA_EDIT_SELECTORS = [
   ".image-lightbox"
 ];
 const EXPECTED_LEGACY_THEME_SYNC_NODE_MEDIA_SELECTORS = [
+  "@import url(\"./legacy-theme-sync-node-media-card.css\")",
+  "@import url(\"./legacy-theme-sync-node-media-ai.css\")",
+  "@import url(\"./legacy-theme-sync-node-media-canvas.css\")"
+];
+const EXPECTED_LEGACY_THEME_SYNC_NODE_MEDIA_CARD_SELECTORS = [
   "body[data-theme=\"dark\"] .node-card",
+  "body[data-theme=\"dark\"] .message.user",
+  "body[data-theme=\"dark\"] input"
+];
+const EXPECTED_LEGACY_THEME_SYNC_NODE_MEDIA_AI_SELECTORS = [
   ".generation-choice-overlay",
   ".ai-suggestion-panel",
   ".director-generate-all",
+  ".generation-spinner",
+  "body[data-theme=\"dark\"] .generation-choice-image"
+];
+const EXPECTED_LEGACY_THEME_SYNC_NODE_MEDIA_CANVAS_SELECTORS = [
   "body[data-view=\"canvas\"] .node-card.node-image",
   "body[data-view=\"canvas\"] .node-card.node-loading-image .generation-frame::before",
   "body[data-view=\"canvas\"] .node-card.stack-drop-target"
@@ -1000,6 +1018,7 @@ const legacyBaseImports = parseCssImports("styles/legacy-base.css");
 const legacyChatImports = parseCssImports("styles/legacy-chat.css");
 const legacyCompactControlsImports = parseCssImports("styles/legacy-compact-controls.css");
 const legacyThemeSyncImports = parseCssImports("styles/legacy-theme-sync.css");
+const legacyThemeSyncNodeMediaImports = parseCssImports("styles/legacy-theme-sync-node-media.css");
 const legacyThemeSyncModelPreferenceImports = parseCssImports("styles/legacy-theme-sync-model-preference.css");
 const legacyCanvasImports = parseCssImports("styles/legacy-canvas.css");
 const legacyCanvasShellImports = parseCssImports("styles/legacy-canvas-shell.css");
@@ -1031,6 +1050,7 @@ assertListEqual("styles/legacy-base.css", legacyBaseImports, EXPECTED_LEGACY_BAS
 assertListEqual("styles/legacy-chat.css", legacyChatImports, EXPECTED_LEGACY_CHAT_IMPORTS);
 assertListEqual("styles/legacy-compact-controls.css", legacyCompactControlsImports, EXPECTED_LEGACY_COMPACT_CONTROLS_IMPORTS);
 assertListEqual("styles/legacy-theme-sync.css", legacyThemeSyncImports, EXPECTED_LEGACY_THEME_SYNC_IMPORTS);
+assertListEqual("styles/legacy-theme-sync-node-media.css", legacyThemeSyncNodeMediaImports, EXPECTED_LEGACY_THEME_SYNC_NODE_MEDIA_IMPORTS);
 assertListEqual("styles/legacy-theme-sync-model-preference.css", legacyThemeSyncModelPreferenceImports, EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_IMPORTS);
 assertListEqual("styles/legacy-canvas.css", legacyCanvasImports, EXPECTED_LEGACY_CANVAS_IMPORTS);
 assertListEqual("styles/legacy-canvas-shell.css", legacyCanvasShellImports, EXPECTED_LEGACY_CANVAS_SHELL_IMPORTS);
@@ -1059,6 +1079,7 @@ checkImportedFilesExist(legacySplitImports, "styles");
 checkImportedFilesExist(legacyChatImports, "styles");
 checkImportedFilesExist(legacyCompactControlsImports, "styles");
 checkImportedFilesExist(legacyThemeSyncImports, "styles");
+checkImportedFilesExist(legacyThemeSyncNodeMediaImports, "styles");
 checkImportedFilesExist(legacyThemeSyncModelPreferenceImports, "styles");
 checkImportedFilesExist(legacyCanvasImports, "styles");
 checkImportedFilesExist(legacyCanvasShellImports, "styles");
@@ -1107,6 +1128,9 @@ checkFileContains("styles/legacy-theme-sync-image-edit.css", EXPECTED_LEGACY_THE
 checkFileContains("styles/legacy-theme-sync-crop-expand.css", EXPECTED_LEGACY_THEME_SYNC_CROP_EXPAND_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-media-edit.css", EXPECTED_LEGACY_THEME_SYNC_MEDIA_EDIT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-node-media.css", EXPECTED_LEGACY_THEME_SYNC_NODE_MEDIA_SELECTORS);
+checkFileContains("styles/legacy-theme-sync-node-media-card.css", EXPECTED_LEGACY_THEME_SYNC_NODE_MEDIA_CARD_SELECTORS);
+checkFileContains("styles/legacy-theme-sync-node-media-ai.css", EXPECTED_LEGACY_THEME_SYNC_NODE_MEDIA_AI_SELECTORS);
+checkFileContains("styles/legacy-theme-sync-node-media-canvas.css", EXPECTED_LEGACY_THEME_SYNC_NODE_MEDIA_CANVAS_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-compact-select.css", EXPECTED_LEGACY_THEME_SYNC_COMPACT_SELECT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-model-preference.css", EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-model-preference-menu.css", EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_MENU_SELECTORS);

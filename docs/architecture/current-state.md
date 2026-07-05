@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,683 |
 | `src/server` | 80 | 14,430 |
-| `styles` | 133 | 15,382 |
-| `scripts` | 90 | 21,506 |
+| `styles` | 136 | 15,386 |
+| `scripts` | 90 | 21,530 |
 
 Largest files in the current source tree:
 
@@ -68,7 +68,7 @@ Largest files in the current source tree:
 | 1,303 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,294 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,283 | `scripts/check-canvas-menu-actions.js` |
-| 1,197 | `scripts/check-style-entry.js` |
+| 1,221 | `scripts/check-style-entry.js` |
 | 1,121 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,119 | `scripts/check-library-bulk-select.js` |
 | 949 | `scripts/check-prompt-conversation-event-utils.js` |
@@ -274,11 +274,17 @@ Post-baseline CSS governance note:
   shared textarea, edit reference, crop overlay, image expand overlay, and
   image lightbox theme synchronization styles that were moved out of
   `styles/legacy-theme-sync.css`.
-- `styles/legacy-theme-sync-node-media.css` owns dark node/card theme
-  synchronization, generation choice and AI panel theme surfaces, canvas media
-  node transparent-frame polish, loading-image generation frame theme polish,
-  and stack drop-target theme overrides that were moved out of
-  `styles/legacy-theme-sync.css`.
+- `styles/legacy-theme-sync-node-media.css` is now a pure aggregation entry for
+  node/card, AI/generation, and canvas media theme synchronization submodules.
+- `styles/legacy-theme-sync-node-media-card.css` owns dark node/card, generated
+  card, asset generation card, message, and form control theme synchronization.
+- `styles/legacy-theme-sync-node-media-ai.css` owns generation choice, AI
+  suggestion/result/thinking/progress, director, stack row/toggle, source badge,
+  model viewer, image frame, generation frame, and thinking/image message theme
+  surfaces.
+- `styles/legacy-theme-sync-node-media-canvas.css` owns canvas media node
+  transparent-frame polish, resize handle placement, loading-image generation
+  frame theme polish, node group z-index, and stack drop-target overrides.
 - `styles/legacy-theme-sync-compact-select.css` owns compact select base,
   image-edit compact select, composer compact select, responsive compact
   select, and compact select option state styles that were moved out of
