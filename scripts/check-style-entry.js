@@ -49,7 +49,8 @@ const EXPECTED_LEGACY_CANVAS_IMPORTS = [
   "./legacy-canvas-library.css"
 ];
 const EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS = [
-  "./legacy-canvas-visual-shape-tools.css"
+  "./legacy-canvas-visual-shape-tools.css",
+  "./legacy-canvas-visual-media.css"
 ];
 const EXPECTED_NODE_IMPORTS = [
   "./node-base.css",
@@ -297,11 +298,15 @@ const EXPECTED_LEGACY_CANVAS_VISUAL_SHAPE_TOOLS_SELECTORS = [
   "body[data-view=\"canvas\"] .text-format-toolbar",
   "body[data-view=\"canvas\"] .text-color-picker"
 ];
-const EXPECTED_LEGACY_CANVAS_VISUAL_SELECTORS = [
+const EXPECTED_LEGACY_CANVAS_VISUAL_MEDIA_SELECTORS = [
   "body[data-view=\"canvas\"] .canvas-area",
   "body[data-view=\"canvas\"] .canvas-world",
   "body[data-view=\"canvas\"] .node-image",
-  "body[data-view=\"canvas\"] .resize-handle",
+  "body[data-view=\"canvas\"] .node-model",
+  "body[data-view=\"canvas\"] .node-loading-image",
+  "body[data-view=\"canvas\"] .resize-handle"
+];
+const EXPECTED_LEGACY_CANVAS_VISUAL_SELECTORS = [
   ".brand-mark",
   ".brand-menu",
   ".home-side-menu",
@@ -602,6 +607,7 @@ checkFileContains("styles/legacy-canvas-video-generator.css", EXPECTED_LEGACY_CA
 checkFileContains("styles/legacy-canvas-project-header.css", EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_SELECTORS);
 checkFileContains("styles/legacy-canvas-library.css", EXPECTED_LEGACY_CANVAS_LIBRARY_SELECTORS);
 checkFileContains("styles/legacy-canvas-visual-shape-tools.css", EXPECTED_LEGACY_CANVAS_VISUAL_SHAPE_TOOLS_SELECTORS);
+checkFileContains("styles/legacy-canvas-visual-media.css", EXPECTED_LEGACY_CANVAS_VISUAL_MEDIA_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/home-shell.css", EXPECTED_HOME_SHELL_SELECTORS);
 checkFileContains("styles/features/home-history.css", EXPECTED_HOME_HISTORY_SELECTORS);

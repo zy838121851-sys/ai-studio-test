@@ -1,0 +1,112 @@
+body[data-view="canvas"] .canvas-area {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(237, 244, 252, 0.84)) !important;
+}
+
+body[data-view="canvas"] .canvas-area::after {
+  z-index: 0;
+  background:
+    radial-gradient(circle at 40% 35%, rgba(255, 255, 255, 0.16), transparent 22%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.2), transparent 34%, rgba(255, 255, 255, 0.32)) !important;
+}
+
+body[data-view="canvas"] .canvas-world {
+  isolation: isolate;
+}
+
+body[data-view="canvas"] .canvas-world::before {
+  position: absolute;
+  inset: -6000px;
+  z-index: 0;
+  pointer-events: none;
+  content: "";
+  background:
+    radial-gradient(circle, rgba(24, 34, 48, 0.12) 1px, transparent 1.5px) 0 0 / 20px 20px,
+    radial-gradient(circle, rgba(10, 132, 255, 0.13) 0.8px, transparent 1.4px) 10px 10px / 80px 80px;
+}
+
+body[data-view="canvas"] .canvas-world > * {
+  z-index: 1;
+}
+
+body[data-view="canvas"] .node-image,
+body[data-view="canvas"] .node-model,
+body[data-view="canvas"] .node-loading-image {
+  padding: 0 !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body[data-view="canvas"] .node-image > .image-file-name,
+body[data-view="canvas"] .node-model > .model-file-name,
+body[data-view="canvas"] .node-loading-image > .image-file-name {
+  display: none !important;
+}
+
+body[data-view="canvas"] .node-image .image-frame,
+body[data-view="canvas"] .node-model .model-viewer,
+body[data-view="canvas"] .node-loading-image .image-frame {
+  border-radius: 14px;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body[data-view="canvas"] .node-model .model-viewer {
+  background:
+    radial-gradient(circle at 50% 38%, rgba(96, 165, 250, 0.16), transparent 42%),
+    linear-gradient(180deg, #111827 0%, #0f172a 100%) !important;
+}
+
+body[data-view="canvas"] .node-image.selected,
+body[data-view="canvas"] .node-model.selected,
+body[data-view="canvas"] .node-loading-image.selected {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+body[data-view="canvas"] .node-image.selected .image-frame,
+body[data-view="canvas"] .node-model.selected .model-viewer,
+body[data-view="canvas"] .node-loading-image.selected .image-frame {
+  outline: 2px solid rgba(31, 46, 72, 0.22) !important;
+  outline-offset: 0 !important;
+}
+
+body[data-view="canvas"] .resize-handle {
+  width: 12px !important;
+  height: 12px !important;
+  border: 2px solid rgba(255, 255, 255, 0.94) !important;
+  background: rgba(24, 34, 48, 0.78) !important;
+  box-shadow: 0 8px 18px rgba(31, 46, 72, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.28) !important;
+}
+
+body[data-view="canvas"] .node-image .resize-nw,
+body[data-view="canvas"] .node-model .resize-nw,
+body[data-view="canvas"] .node-loading-image .resize-nw,
+body[data-view="canvas"] .node-image-generator .resize-nw {
+  left: -6px !important;
+  top: -6px !important;
+}
+
+body[data-view="canvas"] .node-image .resize-ne,
+body[data-view="canvas"] .node-model .resize-ne,
+body[data-view="canvas"] .node-loading-image .resize-ne,
+body[data-view="canvas"] .node-image-generator .resize-ne {
+  right: -6px !important;
+  top: -6px !important;
+}
+
+body[data-view="canvas"] .node-image .resize-sw,
+body[data-view="canvas"] .node-model .resize-sw,
+body[data-view="canvas"] .node-loading-image .resize-sw,
+body[data-view="canvas"] .node-image-generator .resize-sw {
+  left: -6px !important;
+  bottom: -6px !important;
+}
+
+body[data-view="canvas"] .node-image .resize-se,
+body[data-view="canvas"] .node-model .resize-se,
+body[data-view="canvas"] .node-loading-image .resize-se,
+body[data-view="canvas"] .node-image-generator .resize-se {
+  right: -6px !important;
+  bottom: -6px !important;
+}
