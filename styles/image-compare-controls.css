@@ -1,0 +1,57 @@
+.image-compare-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 6px;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.055);
+}
+
+.image-compare-tabs button,
+.image-compare-titlebar button {
+  min-height: 34px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  color: #111827;
+  background: transparent;
+  font-size: 13px;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+.image-compare-tabs button.active,
+.image-compare-titlebar button {
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.1);
+}
+
+.image-compare-titlebar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  margin-bottom: 12px;
+  color: #697386;
+  font-size: 13px;
+  font-weight: 720;
+}
+
+.image-compare-titlebar span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.image-compare-titlebar span:last-child {
+  text-align: right;
+}
+
+.image-compare-titlebar button {
+  min-width: 84px;
+  transform: none !important;
+  transition: background 0.16s ease, box-shadow 0.16s ease;
+}
+
+.image-compare-titlebar button:active {
+  transform: none !important;
+}

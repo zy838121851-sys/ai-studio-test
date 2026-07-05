@@ -1,0 +1,69 @@
+.image-compare-side-by-side {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  height: min(62vh, 590px);
+  min-height: 320px;
+  padding: 10px;
+}
+
+.image-compare-side-by-side figure {
+  display: block;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.55);
+}
+
+.image-compare-overlay {
+  position: relative;
+  height: min(62vh, 590px);
+  min-height: 320px;
+}
+
+.image-compare-overlay-after {
+  position: absolute;
+  inset: 0;
+  opacity: 0.55;
+}
+
+.image-compare-overlay label {
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  color: #111827;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 14px 32px rgba(15, 23, 42, 0.12);
+}
+
+.image-compare-overlay label span {
+  font-size: 12px;
+  font-weight: 720;
+}
+
+.image-compare-overlay input {
+  flex: 1;
+}
+
+@media (max-width: 720px) {
+  .image-compare-card {
+    width: 96vw;
+    padding: 14px;
+    border-radius: 24px;
+  }
+
+  .image-compare-tabs {
+    overflow-x: auto;
+  }
+
+  .image-compare-side-by-side {
+    grid-template-columns: 1fr;
+  }
+}

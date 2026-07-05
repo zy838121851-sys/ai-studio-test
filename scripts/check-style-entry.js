@@ -12,6 +12,12 @@ const EXPECTED_STYLES_IMPORTS = [
   "./styles/task-log.css",
   "./styles/legacy-split.css"
 ];
+const EXPECTED_IMAGE_COMPARE_IMPORTS = [
+  "./image-compare-shell.css",
+  "./image-compare-controls.css",
+  "./image-compare-slider.css",
+  "./image-compare-modes.css"
+];
 const EXPECTED_TASK_LOG_IMPORTS = [
   "./task-log-shell.css",
   "./task-log-table.css",
@@ -185,6 +191,37 @@ const EXPECTED_TASK_LOG_RESPONSIVE_SELECTORS = [
   "#taskLogPage.task-log-page",
   ".task-log-heading",
   ".task-log-detail-grid"
+];
+const EXPECTED_IMAGE_COMPARE_SELECTORS = [
+  "@import url(\"./image-compare-shell.css\")",
+  "@import url(\"./image-compare-controls.css\")",
+  "@import url(\"./image-compare-slider.css\")",
+  "@import url(\"./image-compare-modes.css\")"
+];
+const EXPECTED_IMAGE_COMPARE_SHELL_SELECTORS = [
+  ".image-compare-modal",
+  ".image-compare-backdrop",
+  ".image-compare-card",
+  ".image-compare-header",
+  ".image-compare-close"
+];
+const EXPECTED_IMAGE_COMPARE_CONTROLS_SELECTORS = [
+  ".image-compare-tabs",
+  ".image-compare-titlebar",
+  ".image-compare-titlebar button"
+];
+const EXPECTED_IMAGE_COMPARE_SLIDER_SELECTORS = [
+  ".image-compare-stage",
+  ".image-compare-slider",
+  ".image-compare-before",
+  ".image-compare-divider",
+  ".image-compare-range"
+];
+const EXPECTED_IMAGE_COMPARE_MODES_SELECTORS = [
+  ".image-compare-side-by-side",
+  ".image-compare-overlay",
+  ".image-compare-overlay-after",
+  "@media (max-width: 720px)"
 ];
 const EXPECTED_NODE_IMPORTS = [
   "./node-base.css",
@@ -1597,6 +1634,7 @@ function checkFileContains(filePath, snippets) {
 }
 
 const stylesImports = parseCssImports("styles.css");
+const imageCompareImports = parseCssImports("styles/image-compare.css");
 const taskLogImports = parseCssImports("styles/task-log.css");
 const workspaceImports = parseCssImports("styles/workspace.css");
 const projectLibraryImports = parseCssImports("styles/features/project-library.css");
@@ -1659,6 +1697,7 @@ const homeShellImports = parseCssImports("styles/features/home-shell.css");
 
 checkIndexStylesheet();
 assertListEqual("styles.css", stylesImports, EXPECTED_STYLES_IMPORTS);
+assertListEqual("styles/image-compare.css", imageCompareImports, EXPECTED_IMAGE_COMPARE_IMPORTS);
 assertListEqual("styles/task-log.css", taskLogImports, EXPECTED_TASK_LOG_IMPORTS);
 assertListEqual("styles/workspace.css", workspaceImports, EXPECTED_WORKSPACE_IMPORTS);
 assertListEqual("styles/features/project-library.css", projectLibraryImports, EXPECTED_PROJECT_LIBRARY_IMPORTS);
@@ -1719,6 +1758,7 @@ assertListEqual("styles/features/home-community.css", homeCommunityImports, EXPE
 assertListEqual("styles/features/home-community-channels.css", homeCommunityChannelImports, EXPECTED_HOME_COMMUNITY_CHANNEL_IMPORTS);
 assertListEqual("styles/features/home-shell.css", homeShellImports, EXPECTED_HOME_SHELL_IMPORTS);
 checkImportedFilesExist(stylesImports, ".");
+checkImportedFilesExist(imageCompareImports, "styles");
 checkImportedFilesExist(taskLogImports, "styles");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(projectLibraryImports, "styles/features");
@@ -1778,6 +1818,11 @@ checkImportedFilesExist(homeCommunityImports, "styles/features");
 checkImportedFilesExist(homeCommunityChannelImports, "styles/features");
 checkImportedFilesExist(homeShellImports, "styles/features");
 checkCssReachability();
+checkFileContains("styles/image-compare.css", EXPECTED_IMAGE_COMPARE_SELECTORS);
+checkFileContains("styles/image-compare-shell.css", EXPECTED_IMAGE_COMPARE_SHELL_SELECTORS);
+checkFileContains("styles/image-compare-controls.css", EXPECTED_IMAGE_COMPARE_CONTROLS_SELECTORS);
+checkFileContains("styles/image-compare-slider.css", EXPECTED_IMAGE_COMPARE_SLIDER_SELECTORS);
+checkFileContains("styles/image-compare-modes.css", EXPECTED_IMAGE_COMPARE_MODES_SELECTORS);
 checkFileContains("styles/task-log-shell.css", EXPECTED_TASK_LOG_SHELL_SELECTORS);
 checkFileContains("styles/task-log-table.css", EXPECTED_TASK_LOG_TABLE_SELECTORS);
 checkFileContains("styles/task-log-modal.css", EXPECTED_TASK_LOG_MODAL_SELECTORS);
