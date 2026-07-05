@@ -36,7 +36,8 @@ const EXPECTED_LEGACY_SPLIT_IMPORTS = [
 ];
 const EXPECTED_LEGACY_BASE_IMPORTS = [];
 const EXPECTED_LEGACY_THEME_SYNC_IMPORTS = [
-  "./legacy-theme-sync-base.css"
+  "./legacy-theme-sync-base.css",
+  "./legacy-theme-sync-surfaces.css"
 ];
 const EXPECTED_LEGACY_CANVAS_IMPORTS = [
   "./legacy-canvas-shell.css",
@@ -213,9 +214,15 @@ const EXPECTED_LEGACY_THEME_SYNC_BASE_SELECTORS = [
   ".theme-orb",
   ".theme-sun"
 ];
-const EXPECTED_LEGACY_THEME_SYNC_SELECTORS = [
+const EXPECTED_LEGACY_THEME_SYNC_SURFACES_SELECTORS = [
   ".project-header",
   ".canvas-context-menu button",
+  ".image-node-toolbar",
+  ".asset-generation-toolbar",
+  ".composer",
+  "#chatModelSelect"
+];
+const EXPECTED_LEGACY_THEME_SYNC_SELECTORS = [
   ".image-edit-popover",
   ".crop-actions:not(.image-expand-actions)",
   ".image-expand-actions",
@@ -599,6 +606,7 @@ checkFileContains("styles/features/assets-pinterest.css", EXPECTED_ASSET_PINTERE
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-base.css", EXPECTED_LEGACY_THEME_SYNC_BASE_SELECTORS);
+checkFileContains("styles/legacy-theme-sync-surfaces.css", EXPECTED_LEGACY_THEME_SYNC_SURFACES_SELECTORS);
 checkFileContains("styles/legacy-theme-sync.css", EXPECTED_LEGACY_THEME_SYNC_SELECTORS);
 checkFileContains("styles/legacy-canvas-shell.css", EXPECTED_LEGACY_CANVAS_SHELL_SELECTORS);
 checkFileContains("styles/legacy-canvas-image-edit.css", EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_SELECTORS);

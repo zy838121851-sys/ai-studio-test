@@ -115,6 +115,7 @@ styles/features/home-shell.css
 
 ```text
 styles/legacy-theme-sync-base.css
+styles/legacy-theme-sync-surfaces.css
 ```
 
 `styles/legacy-canvas.css` currently imports:
@@ -305,8 +306,12 @@ Notes:
   responsive overrides for the home feature submodules.
 - `legacy-theme-sync-base.css` owns root light/dark theme variables, dark canvas
   background, and light/dark theme switch styles.
-- `legacy-theme-sync.css` imports `legacy-theme-sync-base.css`, then keeps the
-  remaining cross-component theme surface synchronization rules.
+- `legacy-theme-sync-surfaces.css` owns the first cross-component theme
+  surface/control synchronization block for canvas chrome, edit controls, asset
+  generation controls, composer, and chat panel surfaces.
+- `legacy-theme-sync.css` imports `legacy-theme-sync-base.css` and
+  `legacy-theme-sync-surfaces.css`, then keeps the remaining cross-component
+  theme synchronization rules.
 - `legacy-canvas-shell.css` owns the first legacy canvas shell block: canvas
   area background, project header/logo, top actions, tool rail, add-node menu,
   canvas context menu, selection action bar, and related mobile selection-bar
@@ -416,6 +421,7 @@ styles/legacy-rail-polish.css
 styles/legacy-light-refinements.css
 styles/legacy-theme-ios.css
 styles/legacy-theme-sync-base.css
+styles/legacy-theme-sync-surfaces.css
 styles/legacy-theme-sync.css
 styles/menu-select-overrides.css
 ```

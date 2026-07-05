@@ -1,0 +1,61 @@
+.project-header,
+.top-actions button,
+.tool-rail,
+.bottom-controls,
+.add-node-menu,
+.canvas-context-menu,
+.image-edit-popover,
+.image-node-toolbar,
+.image-toolbar-menu,
+.crop-actions,
+.image-lightbox figure,
+.image-lightbox-close,
+.upload-choice-bubbles,
+.upload-choice-bubbles button,
+.floating-suggestions button,
+.asset-generation-card,
+.asset-generation-toolbar,
+.node-director,
+.composer,
+.chat-panel,
+.chat-float {
+  border-color: var(--theme-border) !important;
+  color: var(--theme-text);
+  background: var(--theme-surface) !important;
+  box-shadow: var(--theme-shadow) !important;
+  backdrop-filter: blur(24px) saturate(1.45);
+  -webkit-backdrop-filter: blur(24px) saturate(1.45);
+}
+
+.canvas-context-menu button,
+.add-node-menu button,
+.image-toolbar-menu button,
+.image-node-toolbar button,
+.crop-actions button,
+.upload-choice-bubbles button,
+.floating-suggestions button,
+.asset-generation-toolbar button,
+.edit-actions button,
+.edit-actions select,
+.composer-actions button,
+#chatModelSelect {
+  color: var(--theme-text) !important;
+  border-color: var(--theme-hairline) !important;
+  background: var(--theme-surface-deep) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.canvas-context-menu button:hover,
+.add-node-menu button:hover,
+.image-toolbar-menu button:hover,
+.image-node-toolbar button:hover,
+.crop-actions button:hover,
+.upload-choice-bubbles button:hover,
+.floating-suggestions button:hover,
+.asset-generation-toolbar button:hover,
+.edit-actions button:hover,
+.composer-actions button:hover {
+  border-color: color-mix(in srgb, var(--theme-primary) 42%, transparent) !important;
+  background: var(--theme-surface-strong) !important;
+  box-shadow: 0 14px 34px color-mix(in srgb, var(--theme-primary) 16%, transparent) !important;
+}
