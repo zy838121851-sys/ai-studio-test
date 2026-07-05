@@ -519,6 +519,11 @@ const EXPECTED_AUTH_IMPORTS = [
   "./auth-credit-detail.css",
   "./auth-dialog.css"
 ];
+const EXPECTED_AUTH_ACCOUNT_IMPORTS = [
+  "./auth-account-entry.css",
+  "./auth-account-popover.css",
+  "./auth-account-menu.css"
+];
 const EXPECTED_AUTH_CREDIT_DETAIL_IMPORTS = [
   "./auth-credit-detail-shell.css",
   "./auth-credit-detail-profile.css",
@@ -592,11 +597,22 @@ const EXPECTED_AUTH_CREDIT_DETAIL_RESPONSIVE_SELECTORS = [
   "@media (max-width: 760px)"
 ];
 const EXPECTED_AUTH_ACCOUNT_SELECTORS = [
+  "@import url(\"./auth-account-entry.css\")",
+  "@import url(\"./auth-account-popover.css\")",
+  "@import url(\"./auth-account-menu.css\")"
+];
+const EXPECTED_AUTH_ACCOUNT_ENTRY_SELECTORS = [
   ".auth-entry",
   ".auth-entry-button",
-  ".auth-entry.is-authenticated .auth-entry-button",
+  ".auth-entry.is-authenticated .auth-entry-button"
+];
+const EXPECTED_AUTH_ACCOUNT_POPOVER_SELECTORS = [
   ".auth-account-popover",
   ".auth-account-card",
+  ".auth-account-avatar",
+  ".auth-upgrade-button"
+];
+const EXPECTED_AUTH_ACCOUNT_MENU_SELECTORS = [
   ".auth-points-row",
   ".auth-menu-list"
 ];
@@ -1743,6 +1759,7 @@ const legacyCanvasVisualImports = parseCssImports("styles/legacy-canvas-visual.c
 const legacyCanvasVisualShellImports = parseCssImports("styles/legacy-canvas-visual-shell.css");
 const legacyCanvasVisualShapeToolsImports = parseCssImports("styles/legacy-canvas-visual-shape-tools.css");
 const authImports = parseCssImports("styles/features/auth.css");
+const authAccountImports = parseCssImports("styles/features/auth-account.css");
 const authCreditDetailImports = parseCssImports("styles/features/auth-credit-detail.css");
 const authDialogImports = parseCssImports("styles/features/auth-dialog.css");
 const nodeImports = parseCssImports("styles/features/node.css");
@@ -1810,6 +1827,7 @@ assertListEqual("styles/legacy-canvas-visual.css", legacyCanvasVisualImports, EX
 assertListEqual("styles/legacy-canvas-visual-shell.css", legacyCanvasVisualShellImports, EXPECTED_LEGACY_CANVAS_VISUAL_SHELL_IMPORTS);
 assertListEqual("styles/legacy-canvas-visual-shape-tools.css", legacyCanvasVisualShapeToolsImports, EXPECTED_LEGACY_CANVAS_VISUAL_SHAPE_TOOLS_IMPORTS);
 assertListEqual("styles/features/auth.css", authImports, EXPECTED_AUTH_IMPORTS);
+assertListEqual("styles/features/auth-account.css", authAccountImports, EXPECTED_AUTH_ACCOUNT_IMPORTS);
 assertListEqual("styles/features/auth-credit-detail.css", authCreditDetailImports, EXPECTED_AUTH_CREDIT_DETAIL_IMPORTS);
 assertListEqual("styles/features/auth-dialog.css", authDialogImports, EXPECTED_AUTH_DIALOG_IMPORTS);
 assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
@@ -1874,6 +1892,7 @@ checkImportedFilesExist(legacyCanvasVisualImports, "styles");
 checkImportedFilesExist(legacyCanvasVisualShellImports, "styles");
 checkImportedFilesExist(legacyCanvasVisualShapeToolsImports, "styles");
 checkImportedFilesExist(authImports, "styles/features");
+checkImportedFilesExist(authAccountImports, "styles/features");
 checkImportedFilesExist(authCreditDetailImports, "styles/features");
 checkImportedFilesExist(authDialogImports, "styles/features");
 checkImportedFilesExist(nodeImports, "styles/features");
@@ -1925,6 +1944,9 @@ checkFileContains("styles/task-log-modal.css", EXPECTED_TASK_LOG_MODAL_SELECTORS
 checkFileContains("styles/task-log-output.css", EXPECTED_TASK_LOG_OUTPUT_SELECTORS);
 checkFileContains("styles/task-log-responsive.css", EXPECTED_TASK_LOG_RESPONSIVE_SELECTORS);
 checkFileContains("styles/features/auth-account.css", EXPECTED_AUTH_ACCOUNT_SELECTORS);
+checkFileContains("styles/features/auth-account-entry.css", EXPECTED_AUTH_ACCOUNT_ENTRY_SELECTORS);
+checkFileContains("styles/features/auth-account-popover.css", EXPECTED_AUTH_ACCOUNT_POPOVER_SELECTORS);
+checkFileContains("styles/features/auth-account-menu.css", EXPECTED_AUTH_ACCOUNT_MENU_SELECTORS);
 checkFileContains("styles/features/auth-credit-detail.css", EXPECTED_AUTH_CREDIT_DETAIL_SELECTORS);
 checkFileContains("styles/features/auth-credit-detail-shell.css", EXPECTED_AUTH_CREDIT_DETAIL_SHELL_SELECTORS);
 checkFileContains("styles/features/auth-credit-detail-profile.css", EXPECTED_AUTH_CREDIT_DETAIL_PROFILE_SELECTORS);
