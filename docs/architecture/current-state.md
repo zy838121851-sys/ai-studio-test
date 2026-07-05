@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 74 | 13,338 |
-| `scripts` | 90 | 19,306 |
+| `styles` | 76 | 13,340 |
+| `scripts` | 90 | 19,321 |
 
 Largest files in the current source tree:
 
@@ -72,8 +72,8 @@ Largest files in the current source tree:
 | 1,030 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 898 | `scripts/check-prompt-conversation-event-utils.js` |
 | 765 | `src/server/services/ai-job.service.js` |
+| 765 | `scripts/check-style-entry.js` |
 | 760 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
-| 750 | `scripts/check-style-entry.js` |
 | 713 | `src/client/features/canvas/model-viewer.js` |
 | 672 | `styles/legacy-chat.css` |
 | 667 | `src/client/features/canvas/node-controls.js` |
@@ -139,13 +139,20 @@ Post-baseline CSS governance note:
   pin/card thumbnail, selection check, placeholder, metadata, actions, delete,
   and empty-state styles; it is imported by
   `styles/features/assets-pinterest.css`.
-- `styles/features/assets-pinterest.css` owns asset page Pinterest refresh
-  masonry, selection bar, responsive rules, and asset page interaction
-  refinement styles; it imports
+- `styles/features/assets-pinterest-layout.css` owns asset page Pinterest
+  masonry and selection bar styles; it is imported by
+  `styles/features/assets-pinterest.css`.
+- `styles/features/assets-pinterest-responsive.css` owns asset page Pinterest
+  responsive rules and interaction refinement styles; it is imported by
+  `styles/features/assets-pinterest.css`.
+- `styles/features/assets-pinterest.css` is now a pure aggregation entry for
+  asset page Pinterest submodules; it imports
   `styles/features/assets-pinterest-board.css` and
   `styles/features/assets-pinterest-shell.css`, and
   `styles/features/assets-pinterest-board-refresh.css`, and
-  `styles/features/assets-pinterest-pin.css`, and is imported by
+  `styles/features/assets-pinterest-pin.css`, and
+  `styles/features/assets-pinterest-layout.css`, and
+  `styles/features/assets-pinterest-responsive.css`, and is imported by
   `styles/features/assets.css`.
 - `styles/features/assets.css` is now an asset feature CSS aggregation entry for
   asset submodules.
