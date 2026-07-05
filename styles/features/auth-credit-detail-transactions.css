@@ -1,0 +1,74 @@
+.credit-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.credit-card-head h2 {
+  margin: 0;
+}
+
+.credit-card-head span {
+  color: rgba(23, 32, 44, 0.48);
+  font-size: 13px;
+}
+
+.credit-transaction-list {
+  display: grid;
+  gap: 10px;
+}
+
+.credit-transaction-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(17, 24, 39, 0.06);
+}
+
+.credit-transaction-main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.credit-transaction-title {
+  overflow: hidden;
+  color: #17202c;
+  font-size: 14px;
+  font-weight: 760;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.credit-transaction-meta {
+  overflow: hidden;
+  color: rgba(23, 32, 44, 0.46);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.credit-transaction-amount {
+  align-self: center;
+  color: #17202c;
+  font-size: 15px;
+  font-weight: 850;
+}
+
+.credit-transaction-amount.is-positive {
+  color: #168a4a;
+}
+
+.credit-transaction-amount.is-negative {
+  color: #d04444;
+}
+
+.credit-detail-status,
+.credit-empty-card p {
+  margin: 18px 0 0;
+  color: rgba(23, 32, 44, 0.48);
+  font-size: 14px;
+}

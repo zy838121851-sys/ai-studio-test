@@ -1,0 +1,30 @@
+@media (max-width: 760px) {
+  .credit-detail-dialog {
+    padding: 14px;
+  }
+
+  .credit-detail-panel {
+    width: 100%;
+    min-height: calc(100vh - 28px);
+    padding: 42px 22px 28px;
+  }
+
+  .credit-detail-tabs {
+    gap: 18px;
+    overflow-x: auto;
+  }
+
+  .credit-profile-card {
+    grid-template-columns: auto 1fr;
+  }
+
+  .credit-edit-profile {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+
+  .credit-info-list div {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}

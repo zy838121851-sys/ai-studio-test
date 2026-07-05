@@ -1,0 +1,111 @@
+.credit-profile-card,
+.credit-info-card {
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.credit-profile-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  min-height: 116px;
+  padding: 22px 26px;
+}
+
+.credit-profile-avatar {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  place-items: center;
+  border-radius: 999px;
+  color: #fff;
+  background: linear-gradient(135deg, #5a9cff, #3f7df1);
+  font-size: 22px;
+  font-weight: 850;
+}
+
+.credit-profile-main {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.credit-profile-main strong {
+  overflow: hidden;
+  color: #17202c;
+  font-size: 18px;
+  font-weight: 850;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.credit-profile-main > span {
+  overflow: hidden;
+  color: rgba(23, 32, 44, 0.5);
+  font-size: 14px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.credit-copy-id {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  color: rgba(23, 32, 44, 0.46);
+  background: transparent;
+  font-size: 13px;
+  text-align: left;
+}
+
+.credit-copy-id:hover {
+  color: #3f7df1;
+}
+
+.credit-edit-profile {
+  min-height: 36px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 8px;
+  color: #fff;
+  background: #202736;
+  font-size: 14px;
+  font-weight: 780;
+}
+
+.credit-info-card {
+  min-height: 290px;
+  padding: 26px;
+}
+
+.credit-info-card h2 {
+  margin: 0 0 24px;
+  color: #17202c;
+  font-size: 18px;
+  font-weight: 850;
+}
+
+.credit-info-list {
+  display: grid;
+  gap: 17px;
+  margin: 0;
+}
+
+.credit-info-list div {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 24px;
+}
+
+.credit-info-list dt {
+  color: rgba(23, 32, 44, 0.72);
+  font-size: 14px;
+}
+
+.credit-info-list dd {
+  margin: 0;
+  color: #17202c;
+  font-size: 14px;
+  font-weight: 680;
+}

@@ -1,0 +1,91 @@
+.credit-detail-dialog.hidden {
+  display: none;
+}
+
+.credit-detail-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 180;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+}
+
+.credit-detail-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(17, 24, 39, 0.28);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.credit-detail-panel {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  width: min(1280px, calc(100vw - 96px));
+  min-height: min(720px, calc(100vh - 96px));
+  max-height: calc(100vh - 56px);
+  padding: 48px 72px;
+  overflow: auto;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 22px;
+  color: #17202c;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 30px 90px rgba(17, 24, 39, 0.22);
+}
+
+.credit-detail-close {
+  position: absolute;
+  top: 22px;
+  right: 24px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 10px;
+  color: rgba(23, 32, 44, 0.72);
+  background: transparent;
+  font-size: 30px;
+  line-height: 1;
+}
+
+.credit-detail-close:hover {
+  background: rgba(241, 245, 249, 0.95);
+}
+
+.credit-detail-tabs {
+  display: flex;
+  align-items: center;
+  gap: 34px;
+  width: min(860px, 100%);
+  margin: 0 auto 30px;
+}
+
+.credit-detail-tabs button {
+  border: 0;
+  color: rgba(23, 32, 44, 0.52);
+  background: transparent;
+  font-size: 18px;
+  font-weight: 750;
+}
+
+.credit-detail-tabs button.active {
+  color: #17202c;
+}
+
+.credit-detail-content {
+  width: min(860px, 100%);
+  margin: 0 auto;
+}
+
+.credit-detail-tab {
+  display: none;
+}
+
+.credit-detail-tab.active {
+  display: grid;
+  gap: 28px;
+}
