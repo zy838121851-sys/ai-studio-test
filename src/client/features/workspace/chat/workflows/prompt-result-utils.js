@@ -37,6 +37,7 @@ export function resolvePromptGeneratedMediaResult({
   result = {},
   videoModel = false
 } = {}) {
+  const outputCount = getResultUrls(result).length;
   const videoUrls = getResultVideoUrls(result);
   if (videoModel && videoUrls.length) {
     return {
@@ -44,6 +45,7 @@ export function resolvePromptGeneratedMediaResult({
       videoUrls,
       imageUrls: [],
       primaryUrl: videoUrls[0],
+      outputCount,
       missing: false,
       errorMessage: ""
     };
@@ -56,6 +58,7 @@ export function resolvePromptGeneratedMediaResult({
       videoUrls: [],
       imageUrls,
       primaryUrl: imageUrls[0],
+      outputCount,
       missing: false,
       errorMessage: ""
     };
@@ -66,6 +69,7 @@ export function resolvePromptGeneratedMediaResult({
     videoUrls: [],
     imageUrls: [],
     primaryUrl: "",
+    outputCount,
     missing: true,
     errorMessage: videoModel
       ? "Generation completed but no video URL was returned."

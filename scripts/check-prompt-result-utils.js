@@ -74,6 +74,7 @@ const videoMediaResult = resolvePromptGeneratedMediaResult({
 });
 assert(videoMediaResult.generationType === "video", "Prompt generated media result should prefer videos for video models");
 assert(videoMediaResult.primaryUrl === "/uploads/primary.mp4", "Prompt generated media result should preserve primary video URLs");
+assert(videoMediaResult.outputCount === getResultUrls(mixedResult).length, "Prompt generated media result should preserve total output counts");
 assert(JSON.stringify(videoMediaResult.videoUrls) === JSON.stringify(getResultVideoUrls(mixedResult)), "Prompt generated media result should include all video URLs");
 assert(videoMediaResult.imageUrls.length === 0, "Prompt generated media result should not include image URLs for video results");
 assert(videoMediaResult.missing === false, "Prompt generated media result should mark video results as present");
@@ -84,6 +85,7 @@ const imageFallbackMediaResult = resolvePromptGeneratedMediaResult({
 });
 assert(imageFallbackMediaResult.generationType === "image", "Prompt generated media result should preserve image fallback behavior for video models without videos");
 assert(imageFallbackMediaResult.primaryUrl === "/uploads/fallback.png", "Prompt generated media result should expose image fallback primary URLs");
+assert(imageFallbackMediaResult.outputCount === 1, "Prompt generated media result should count image fallback outputs");
 assert(JSON.stringify(imageFallbackMediaResult.imageUrls) === JSON.stringify(["/uploads/fallback.png"]), "Prompt generated media result should include fallback image URLs");
 
 const missingImageMediaResult = resolvePromptGeneratedMediaResult({
@@ -92,6 +94,7 @@ const missingImageMediaResult = resolvePromptGeneratedMediaResult({
 });
 assert(missingImageMediaResult.missing === true, "Prompt generated media result should preserve image-model missing behavior when only video URLs are returned");
 assert(missingImageMediaResult.generationType === "image", "Prompt generated media result should preserve image-model missing type");
+assert(missingImageMediaResult.outputCount === 1, "Prompt generated media result should preserve output counts for missing image-model results");
 assert(missingImageMediaResult.errorMessage === "Generation completed but no image URL was returned.", "Prompt generated media result should preserve image missing error text");
 
 const missingVideoMediaResult = resolvePromptGeneratedMediaResult({
@@ -100,6 +103,7 @@ const missingVideoMediaResult = resolvePromptGeneratedMediaResult({
 });
 assert(missingVideoMediaResult.missing === true, "Prompt generated media result should mark empty video results as missing");
 assert(missingVideoMediaResult.generationType === "video", "Prompt generated media result should preserve video missing type");
+assert(missingVideoMediaResult.outputCount === 0, "Prompt generated media result should count empty video results as zero outputs");
 assert(missingVideoMediaResult.errorMessage === "Generation completed but no video URL was returned.", "Prompt generated media result should preserve video missing error text");
 
 assert(isMidjourneyModel(" midjourney "), "Midjourney model detection should trim whitespace");

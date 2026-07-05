@@ -11,7 +11,6 @@ import {
   buildGeneratedMediaProjectPatch,
   createPromptGeneratedImageNodes,
   createPromptGeneratedVideoNode,
-  getResultUrls,
   resolvePromptGeneratedMediaResult,
   resolvePromptPreviewCount
 } from "./prompt-result-utils.js";
@@ -995,9 +994,10 @@ export function bindPromptSubmit({
       }
       storeAgentGenerateResult(agentDebug, summarizeGenerationResult(finalResult));
       logAgentDebug(agentDebug, "generate.response.final", agentDebug.generateResult);
+      const mediaResult = resolvePromptGeneratedMediaResult({ result: finalResult, videoModel });
       setAgentGenerationStage(agentDebug, "outputPersist", buildAgentOutputStageData({
         jobId: finalResult.jobId || finalResult.job?.id || "",
-        outputCount: getResultUrls(finalResult).length
+        outputCount: mediaResult.outputCount
       }));
       updateAgentDebugPanel(agentDebug);
       const resultModel = resolveGenerationResultModel(finalResult, model);
@@ -1007,7 +1007,6 @@ export function bindPromptSubmit({
       updateChat(progress, "正在整理生成结果...");
       updateAgentDebugPanel(agentDebug);
 
-      const mediaResult = resolvePromptGeneratedMediaResult({ result: finalResult, videoModel });
       if (!mediaResult.missing && mediaResult.generationType === "video") {
         const videoUrls = mediaResult.videoUrls;
         const videoNode = createGeneratedVideoNode({
@@ -1099,7 +1098,7 @@ export function bindPromptSubmit({
       updateThinking(thinking, 5, true);
       setAgentGenerationStage(agentDebug, "done", buildAgentOutputStageData({
         jobId: finalResult.jobId || finalResult.job?.id || "",
-        outputCount: getResultUrls(finalResult).length
+        outputCount: mediaResult.outputCount
       }));
     } catch (error) {
       if (activeChatAgentRunId !== agentDebug.runId) {
