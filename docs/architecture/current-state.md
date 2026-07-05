@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,683 |
 | `src/server` | 80 | 14,430 |
-| `styles` | 121 | 15,366 |
-| `scripts` | 90 | 21,416 |
+| `styles` | 125 | 15,373 |
+| `scripts` | 90 | 21,441 |
 
 Largest files in the current source tree:
 
@@ -68,9 +68,9 @@ Largest files in the current source tree:
 | 1,303 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,294 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,283 | `scripts/check-canvas-menu-actions.js` |
+| 1,132 | `scripts/check-style-entry.js` |
 | 1,121 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,119 | `scripts/check-library-bulk-select.js` |
-| 1,107 | `scripts/check-style-entry.js` |
 | 949 | `scripts/check-prompt-conversation-event-utils.js` |
 | 820 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
 | 811 | `src/server/services/ai-job.service.js` |
@@ -297,9 +297,19 @@ Post-baseline CSS governance note:
   moved out of `styles/legacy-canvas.css`: canvas area background, project
   header/logo, top actions, tool rail, add-node menu, canvas context menu, and
   selection action bar styles.
-- `styles/legacy-canvas-image-edit.css` owns image edit popover and image
-  generator popover control styles that were moved out of
-  `styles/legacy-canvas.css`.
+- `styles/legacy-canvas-image-edit.css` is now a pure aggregation entry for
+  image edit popover, generator select, compact select, and footer/reference
+  styles that were moved out of `styles/legacy-canvas.css`.
+- `styles/legacy-canvas-image-edit-popover.css` owns image edit popover shell,
+  head, reference thumbnails, textarea, base action controls, and
+  edit/generator model/size/count field sizing.
+- `styles/legacy-canvas-image-edit-generator-select.css` owns image generator
+  custom select wrapper, trigger, menu, and option styles.
+- `styles/legacy-canvas-image-edit-compact-select.css` owns compact select
+  sizing and option styles inside the image edit popover.
+- `styles/legacy-canvas-image-edit-footer.css` owns generator select
+  hover/selected state, cancel/send controls, generator reference list/thumbs,
+  expanded panel rows, and responsive edit action overrides.
 - `styles/legacy-canvas-add-node.css` owns add-node menu detail styles and
   canvas-view add-node menu overrides that were moved out of
   `styles/legacy-canvas.css`.

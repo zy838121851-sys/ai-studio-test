@@ -1,0 +1,85 @@
+#imageGeneratorPopover .generator-native-select {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+#imageGeneratorPopover .generator-select-wrap {
+  position: relative;
+  min-width: 0;
+}
+
+#imageGeneratorPopover .generator-select-wrap[data-generator-select-kind="model"] {
+  width: 100%;
+  min-width: 0;
+}
+
+#imageGeneratorPopover .generator-select-wrap[data-generator-select-kind="ratio"] {
+  width: calc(104px * var(--edit-scale));
+}
+
+#imageGeneratorPopover .generator-select-wrap[data-generator-select-kind="count"] {
+  width: calc(76px * var(--edit-scale));
+}
+
+#imageGeneratorPopover .generator-select-trigger {
+  position: relative;
+  width: 100%;
+  padding-right: calc(30px * var(--edit-scale));
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+#imageGeneratorPopover .generator-select-trigger::after {
+  content: "";
+  position: absolute;
+  right: calc(13px * var(--edit-scale));
+  top: 50%;
+  width: calc(7px * var(--edit-scale));
+  height: calc(7px * var(--edit-scale));
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  transform: translateY(-65%) rotate(45deg);
+  opacity: 0.86;
+}
+
+#imageGeneratorPopover .generator-select-menu {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 8px * var(--edit-scale));
+  z-index: 10020;
+  display: none;
+  width: max(100%, calc(156px * var(--edit-scale)));
+  max-height: calc(278px * var(--edit-scale));
+  padding: calc(5px * var(--edit-scale));
+  border: 1px solid rgba(255, 255, 255, 0.84);
+  border-radius: calc(15px * var(--edit-scale));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), rgba(248, 251, 255, 0.82));
+  box-shadow:
+    0 20px 58px rgba(31, 46, 72, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(24px) saturate(1.45);
+  -webkit-backdrop-filter: blur(24px) saturate(1.45);
+  overflow: auto;
+}
+
+#imageGeneratorPopover .generator-select-wrap.open .generator-select-menu {
+  display: grid;
+  gap: calc(4px * var(--edit-scale));
+}
+
+#imageGeneratorPopover .generator-select-option {
+  justify-content: flex-start;
+  width: 100%;
+  min-height: calc(38px * var(--edit-scale));
+  border: 0;
+  border-radius: calc(11px * var(--edit-scale));
+  color: #182230;
+  background: transparent;
+  box-shadow: none;
+  font-size: calc(13px * var(--edit-scale));
+  font-weight: 760;
+  text-align: left;
+}

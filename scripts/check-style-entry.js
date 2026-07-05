@@ -73,6 +73,12 @@ const EXPECTED_LEGACY_CANVAS_IMPORTS = [
   "./legacy-canvas-project-header.css",
   "./legacy-canvas-library.css"
 ];
+const EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_IMPORTS = [
+  "./legacy-canvas-image-edit-popover.css",
+  "./legacy-canvas-image-edit-generator-select.css",
+  "./legacy-canvas-image-edit-compact-select.css",
+  "./legacy-canvas-image-edit-footer.css"
+];
 const EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS = [
   "./legacy-canvas-visual-shape-tools.css",
   "./legacy-canvas-visual-media.css",
@@ -486,9 +492,22 @@ const EXPECTED_LEGACY_CANVAS_SHELL_SELECTORS = [
 const EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_SELECTORS = [
   ".image-edit-popover",
   ".edit-head",
-  ".edit-actions",
+  ".edit-actions"
+];
+const EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_GENERATOR_SELECT_SELECTORS = [
   "#imageGeneratorPopover .generator-select-wrap",
+  "#imageGeneratorPopover .generator-select-menu",
+  "#imageGeneratorPopover .generator-select-option"
+];
+const EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_COMPACT_SELECT_SELECTORS = [
   ".image-edit-popover .compact-select",
+  ".image-edit-popover .compact-select-trigger",
+  ".image-edit-popover .compact-select-option"
+];
+const EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_FOOTER_SELECTORS = [
+  "#imageGeneratorPopover .generator-select-option:hover",
+  ".edit-actions .send",
+  "#imageGeneratorPopover .image-generator-reference-list",
   "#imageGeneratorPopover.generator-panel-expanded"
 ];
 const EXPECTED_LEGACY_CANVAS_ADD_NODE_SELECTORS = [
@@ -931,6 +950,7 @@ const legacyChatImports = parseCssImports("styles/legacy-chat.css");
 const legacyCompactControlsImports = parseCssImports("styles/legacy-compact-controls.css");
 const legacyThemeSyncImports = parseCssImports("styles/legacy-theme-sync.css");
 const legacyCanvasImports = parseCssImports("styles/legacy-canvas.css");
+const legacyCanvasImageEditImports = parseCssImports("styles/legacy-canvas-image-edit.css");
 const legacyCanvasVisualImports = parseCssImports("styles/legacy-canvas-visual.css");
 const authImports = parseCssImports("styles/features/auth.css");
 const nodeImports = parseCssImports("styles/features/node.css");
@@ -959,6 +979,7 @@ assertListEqual("styles/legacy-chat.css", legacyChatImports, EXPECTED_LEGACY_CHA
 assertListEqual("styles/legacy-compact-controls.css", legacyCompactControlsImports, EXPECTED_LEGACY_COMPACT_CONTROLS_IMPORTS);
 assertListEqual("styles/legacy-theme-sync.css", legacyThemeSyncImports, EXPECTED_LEGACY_THEME_SYNC_IMPORTS);
 assertListEqual("styles/legacy-canvas.css", legacyCanvasImports, EXPECTED_LEGACY_CANVAS_IMPORTS);
+assertListEqual("styles/legacy-canvas-image-edit.css", legacyCanvasImageEditImports, EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_IMPORTS);
 assertListEqual("styles/legacy-canvas-visual.css", legacyCanvasVisualImports, EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS);
 assertListEqual("styles/features/auth.css", authImports, EXPECTED_AUTH_IMPORTS);
 assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
@@ -984,6 +1005,7 @@ checkImportedFilesExist(legacyChatImports, "styles");
 checkImportedFilesExist(legacyCompactControlsImports, "styles");
 checkImportedFilesExist(legacyThemeSyncImports, "styles");
 checkImportedFilesExist(legacyCanvasImports, "styles");
+checkImportedFilesExist(legacyCanvasImageEditImports, "styles");
 checkImportedFilesExist(legacyCanvasVisualImports, "styles");
 checkImportedFilesExist(authImports, "styles/features");
 checkImportedFilesExist(nodeImports, "styles/features");
@@ -1033,7 +1055,10 @@ checkFileContains("styles/legacy-theme-sync-model-preference.css", EXPECTED_LEGA
 checkFileContains("styles/legacy-theme-sync-credit-submit.css", EXPECTED_LEGACY_THEME_SYNC_CREDIT_SUBMIT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync.css", EXPECTED_LEGACY_THEME_SYNC_SELECTORS);
 checkFileContains("styles/legacy-canvas-shell.css", EXPECTED_LEGACY_CANVAS_SHELL_SELECTORS);
-checkFileContains("styles/legacy-canvas-image-edit.css", EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_SELECTORS);
+checkFileContains("styles/legacy-canvas-image-edit-popover.css", EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_SELECTORS);
+checkFileContains("styles/legacy-canvas-image-edit-generator-select.css", EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_GENERATOR_SELECT_SELECTORS);
+checkFileContains("styles/legacy-canvas-image-edit-compact-select.css", EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_COMPACT_SELECT_SELECTORS);
+checkFileContains("styles/legacy-canvas-image-edit-footer.css", EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_FOOTER_SELECTORS);
 checkFileContains("styles/legacy-canvas-add-node.css", EXPECTED_LEGACY_CANVAS_ADD_NODE_SELECTORS);
 checkFileContains("styles/legacy-canvas-choice-overlays.css", EXPECTED_LEGACY_CANVAS_CHOICE_OVERLAY_SELECTORS);
 checkFileContains("styles/legacy-canvas-world.css", EXPECTED_LEGACY_CANVAS_WORLD_SELECTORS);

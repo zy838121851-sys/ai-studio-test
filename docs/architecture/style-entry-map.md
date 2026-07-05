@@ -270,6 +270,15 @@ styles/legacy-canvas-project-header.css
 styles/legacy-canvas-library.css
 ```
 
+`styles/legacy-canvas-image-edit.css` currently imports:
+
+```text
+styles/legacy-canvas-image-edit-popover.css
+styles/legacy-canvas-image-edit-generator-select.css
+styles/legacy-canvas-image-edit-compact-select.css
+styles/legacy-canvas-image-edit-footer.css
+```
+
 `styles/legacy-canvas-visual.css` currently imports:
 
 ```text
@@ -617,8 +626,18 @@ Notes:
   area background, project header/logo, top actions, tool rail, add-node menu,
   canvas context menu, selection action bar, and related mobile selection-bar
   overrides.
-- `legacy-canvas-image-edit.css` owns image edit popover and image generator
-  popover control styles.
+- `legacy-canvas-image-edit.css` is now a pure aggregation entry for image edit
+  popover, generator select, compact select, and footer/reference styles.
+- `legacy-canvas-image-edit-popover.css` owns image edit popover shell, head,
+  reference thumbnails, textarea, base action controls, and edit/generator
+  model/size/count field sizing.
+- `legacy-canvas-image-edit-generator-select.css` owns image generator custom
+  select wrapper, trigger, menu, and option styles.
+- `legacy-canvas-image-edit-compact-select.css` owns compact select sizing and
+  option styles inside the image edit popover.
+- `legacy-canvas-image-edit-footer.css` owns generator select hover/selected
+  state, cancel/send controls, generator reference list/thumbs, expanded panel
+  rows, and responsive edit action overrides.
 - `legacy-canvas-add-node.css` owns add-node menu detail styles and canvas-view
   add-node menu overrides.
 - `legacy-canvas-choice-overlays.css` owns canvas viewport cursor states, upload
@@ -747,6 +766,10 @@ styles/legacy-split.css
 styles/legacy-base.css
 styles/legacy-canvas-shell.css
 styles/legacy-canvas-image-edit.css
+styles/legacy-canvas-image-edit-popover.css
+styles/legacy-canvas-image-edit-generator-select.css
+styles/legacy-canvas-image-edit-compact-select.css
+styles/legacy-canvas-image-edit-footer.css
 styles/legacy-canvas-add-node.css
 styles/legacy-canvas-choice-overlays.css
 styles/legacy-canvas-world.css
@@ -890,7 +913,11 @@ Additional caution:
   it also keeps compatibility shims such as
   `legacy-node.css` outside the active import graph, and guards the
   `legacy-canvas.css` imports of `legacy-canvas-shell.css` and
-  `legacy-canvas-image-edit.css`, `legacy-canvas-add-node.css`, and
+  `legacy-canvas-image-edit.css`, the `legacy-canvas-image-edit.css` imports of
+  `legacy-canvas-image-edit-popover.css`,
+  `legacy-canvas-image-edit-generator-select.css`,
+  `legacy-canvas-image-edit-compact-select.css`, and
+  `legacy-canvas-image-edit-footer.css`, `legacy-canvas-add-node.css`, and
   `legacy-canvas-choice-overlays.css`, `legacy-canvas-world.css`, and
   `legacy-canvas-video-generator.css`, and
   `legacy-canvas-project-header.css`, and `legacy-canvas-library.css`, plus
