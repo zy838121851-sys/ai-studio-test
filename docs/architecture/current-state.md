@@ -53,10 +53,10 @@ Current source footprint, excluding `node_modules` and `dist`:
 
 | Area | Files | Lines |
 | --- | ---: | ---: |
-| `src/client` | 299 | 39,417 |
+| `src/client` | 300 | 39,426 |
 | `src/server` | 80 | 14,350 |
 | `styles` | 207 | 15,279 |
-| `scripts` | 91 | 22,050 |
+| `scripts` | 92 | 22,071 |
 
 Largest files in the current source tree:
 
@@ -67,7 +67,7 @@ Largest files in the current source tree:
 | 1,606 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
-| 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
+| 1,294 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,282 | `scripts/check-canvas-menu-actions.js` |
 | 1,120 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,118 | `scripts/check-library-bulk-select.js` |
@@ -610,6 +610,10 @@ Post-baseline CSS governance note:
   normalization for pending-home and selected chat models; the workflow still
   owns DOM synchronization, and `scripts/check-prompt-generation-payload-utils.js`
   guards the extracted model-selection behavior.
+- `image-generator-workflow-constants.js` now owns image generator selectors,
+  default model/ratio/count configuration, and Midjourney output count;
+  `scripts/check-image-generator-workflow-constants.js` guards those static
+  workflow settings without changing generator runtime behavior.
 
 ## Static Reachability Snapshot
 
