@@ -176,6 +176,14 @@ styles/features/home-community.css
 styles/features/home-shell.css
 ```
 
+`styles/features/home-community.css` currently imports:
+
+```text
+styles/features/home-community-channels.css
+styles/features/home-community-feed.css
+styles/features/home-community-inspiration.css
+```
+
 `styles/legacy-chat.css` currently imports:
 
 ```text
@@ -475,9 +483,14 @@ Notes:
   submodules.
 - `features/home-history.css` owns home recent project/history stack, grid,
   card, thumbnail, preview fallback, and delete-control styles.
-- `features/home-community.css` owns home community channels, masonry feed,
-  back-to-top control, inspiration grid, and placeholder sweep animation
-  styles.
+- `features/home-community.css` is now a pure aggregation entry for home
+  community channel, feed, and inspiration submodules.
+- `features/home-community-channels.css` owns home community section, channel
+  shell, channel strip, tone swatches, and channel scroll controls.
+- `features/home-community-feed.css` owns the home masonry feed, placeholder
+  sweep animation, loading state, and back-to-top control.
+- `features/home-community-inspiration.css` owns home inspiration grid and
+  inspiration card styles.
 - `features/home-shell.css` owns home boot skeleton, shell, prompt, upload
   preview, model picker, send control, and home/canvas transition animation
   styles.
@@ -602,6 +615,9 @@ styles/features/chat.css
 styles/features/home.css
 styles/features/home-history.css
 styles/features/home-community.css
+styles/features/home-community-channels.css
+styles/features/home-community-feed.css
+styles/features/home-community-inspiration.css
 styles/features/home-shell.css
 styles/features/node-base.css
 styles/features/node-image-edit.css
@@ -760,7 +776,10 @@ Additional caution:
   in `features/node.css`, migrated project library imports in
   `features/project-library.css`, and migrated project library selectors in
   `features/project-library-shell.css`, `features/project-library-cards.css`,
-  and `features/project-library-page.css`; it also keeps compatibility shims such as
+  and `features/project-library-page.css`, migrated home community imports in
+  `features/home-community.css`, and migrated home community selectors in
+  `features/home-community-channels.css`, `features/home-community-feed.css`,
+  and `features/home-community-inspiration.css`; it also keeps compatibility shims such as
   `legacy-node.css` outside the active import graph, and guards the
   `legacy-canvas.css` imports of `legacy-canvas-shell.css` and
   `legacy-canvas-image-edit.css`, `legacy-canvas-add-node.css`, and

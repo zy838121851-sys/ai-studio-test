@@ -55,7 +55,7 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 101 | 13,257 |
+| `styles` | 104 | 13,260 |
 | `scripts` | 90 | 19,441 |
 
 Largest files in the current source tree:
@@ -109,8 +109,11 @@ Post-baseline CSS governance note:
   `styles/features/node-preview.css`, `styles/features/node.css`,
   `styles/features/project-library-shell.css`,
   `styles/features/project-library-cards.css`, and
-  `styles/features/project-library-page.css` so later feature CSS migrations
-  have a static safety net before visual smoke checks.
+  `styles/features/project-library-page.css`,
+  `styles/features/home-community-channels.css`,
+  `styles/features/home-community-feed.css`, and
+  `styles/features/home-community-inspiration.css` so later feature CSS
+  migrations have a static safety net before visual smoke checks.
   `legacy-node.css` is currently a compatibility shim with no active selector
   ownership and is intentionally outside the active `legacy-split.css` import
   graph.
@@ -209,9 +212,14 @@ Post-baseline CSS governance note:
 - `styles/features/home-history.css` owns home recent project/history stack,
   grid, card, thumbnail, and delete-control styles; it is imported by
   `styles/features/home.css`.
-- `styles/features/home-community.css` owns home community channels, masonry
-  feed, back-to-top control, inspiration grid, and placeholder sweep animation
-  styles; it is imported by `styles/features/home.css`.
+- `styles/features/home-community.css` is now a pure aggregation entry for home
+  community channel, feed, and inspiration submodules.
+- `styles/features/home-community-channels.css` owns home community section,
+  channel shell, channel strip, tone swatches, and channel scroll controls.
+- `styles/features/home-community-feed.css` owns the home masonry feed,
+  placeholder sweep animation, loading state, and back-to-top control.
+- `styles/features/home-community-inspiration.css` owns home inspiration grid
+  and inspiration card styles.
 - `styles/features/home-shell.css` owns home boot skeleton, shell, prompt,
   upload preview, model picker, send control, and home/canvas transition
   animation styles; it is imported by `styles/features/home.css`.

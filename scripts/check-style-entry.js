@@ -136,6 +136,11 @@ const EXPECTED_HOME_IMPORTS = [
   "./home-community.css",
   "./home-shell.css"
 ];
+const EXPECTED_HOME_COMMUNITY_IMPORTS = [
+  "./home-community-channels.css",
+  "./home-community-feed.css",
+  "./home-community-inspiration.css"
+];
 const ALLOWED_UNREACHABLE_CSS = [
   "styles/legacy-node.css"
 ];
@@ -188,14 +193,20 @@ const EXPECTED_HOME_HISTORY_SELECTORS = [
   ".project-preview-fallback"
 ];
 const EXPECTED_HOME_COMMUNITY_SELECTORS = [
+];
+const EXPECTED_HOME_COMMUNITY_CHANNEL_SELECTORS = [
   ".home-community-section",
   ".home-channel-shell",
   ".home-channel-strip",
-  ".home-channel-scroll",
+  ".home-channel-scroll"
+];
+const EXPECTED_HOME_COMMUNITY_FEED_SELECTORS = [
   ".home-masonry-feed",
   ".home-masonry-card",
   "@keyframes masonryPlaceholderSweep",
-  ".home-back-top",
+  ".home-back-top"
+];
+const EXPECTED_HOME_COMMUNITY_INSPIRATION_SELECTORS = [
   ".home-inspiration-grid",
   ".inspiration-card"
 ];
@@ -869,6 +880,7 @@ const nodeImageGeneratorImports = parseCssImports("styles/features/node-image-ge
 const assetImports = parseCssImports("styles/features/assets.css");
 const assetPinterestImports = parseCssImports("styles/features/assets-pinterest.css");
 const homeImports = parseCssImports("styles/features/home.css");
+const homeCommunityImports = parseCssImports("styles/features/home-community.css");
 
 checkIndexStylesheet();
 assertListEqual("styles.css", stylesImports, EXPECTED_STYLES_IMPORTS);
@@ -891,6 +903,7 @@ assertListEqual("styles/features/node-image-generator.css", nodeImageGeneratorIm
 assertListEqual("styles/features/assets.css", assetImports, EXPECTED_ASSET_IMPORTS);
 assertListEqual("styles/features/assets-pinterest.css", assetPinterestImports, EXPECTED_ASSET_PINTEREST_IMPORTS);
 assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
+assertListEqual("styles/features/home-community.css", homeCommunityImports, EXPECTED_HOME_COMMUNITY_IMPORTS);
 checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(projectLibraryImports, "styles/features");
@@ -910,6 +923,7 @@ checkImportedFilesExist(nodeImageGeneratorImports, "styles/features");
 checkImportedFilesExist(assetImports, "styles/features");
 checkImportedFilesExist(assetPinterestImports, "styles/features");
 checkImportedFilesExist(homeImports, "styles/features");
+checkImportedFilesExist(homeCommunityImports, "styles/features");
 checkCssReachability();
 checkFileContains("styles/features/auth-account.css", EXPECTED_AUTH_ACCOUNT_SELECTORS);
 checkFileContains("styles/features/auth-credit-detail.css", EXPECTED_AUTH_CREDIT_DETAIL_SELECTORS);
@@ -954,6 +968,9 @@ checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/home-shell.css", EXPECTED_HOME_SHELL_SELECTORS);
 checkFileContains("styles/features/home-history.css", EXPECTED_HOME_HISTORY_SELECTORS);
 checkFileContains("styles/features/home-community.css", EXPECTED_HOME_COMMUNITY_SELECTORS);
+checkFileContains("styles/features/home-community-channels.css", EXPECTED_HOME_COMMUNITY_CHANNEL_SELECTORS);
+checkFileContains("styles/features/home-community-feed.css", EXPECTED_HOME_COMMUNITY_FEED_SELECTORS);
+checkFileContains("styles/features/home-community-inspiration.css", EXPECTED_HOME_COMMUNITY_INSPIRATION_SELECTORS);
 checkFileContains("styles/features/node-base.css", EXPECTED_NODE_BASE_SELECTORS);
 checkFileContains("styles/features/node-image-edit.css", EXPECTED_NODE_IMAGE_EDIT_SELECTORS);
 checkFileContains("styles/features/node-state.css", EXPECTED_NODE_STATE_SELECTORS);
