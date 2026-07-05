@@ -133,6 +133,7 @@ styles/features/home-shell.css
 ```text
 styles/legacy-chat-shell.css
 styles/legacy-chat-message.css
+styles/legacy-chat-responsive.css
 ```
 
 `styles/legacy-theme-sync.css` currently imports:
@@ -283,6 +284,8 @@ Notes:
   it is imported by `legacy-chat.css`.
 - `legacy-chat-message.css` owns chat message, thinking message, loading
   indicator, and image message styles; it is imported by `legacy-chat.css`.
+- `legacy-chat-responsive.css` owns chat-related responsive override blocks; it
+  is imported by `legacy-chat.css`.
 - `features/auth-account.css` owns auth entry, authenticated avatar button,
   account popover, points row, and account menu styles; it is imported by
   `features/auth.css`.
@@ -511,6 +514,7 @@ styles/legacy-canvas-visual-shell.css
 styles/legacy-canvas-visual.css
 styles/legacy-chat-shell.css
 styles/legacy-chat-message.css
+styles/legacy-chat-responsive.css
 styles/legacy-chat.css
 styles/legacy-node.css
 styles/legacy-overrides.css
@@ -575,6 +579,7 @@ Additional caution:
   migrated asset Pinterest selectors in `features/assets-pinterest.css`,
   migrated chat shell selectors in `legacy-chat-shell.css`,
   migrated chat message selectors in `legacy-chat-message.css`,
+  migrated chat responsive selectors in `legacy-chat-responsive.css`,
   migrated node base selectors in
   `features/node-base.css`,
   migrated image edit selectors in `features/node-image-edit.css`, migrated node

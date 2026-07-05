@@ -1,0 +1,50 @@
+@media (max-width: 1100px) {
+  .app {
+    grid-template-columns: minmax(520px, 1fr) 420px;
+  }
+
+  .empty-state {
+    width: min(460px, calc(100vw - 40px));
+    min-width: 0;
+  }
+
+  .empty-state p {
+    font-size: 18px;
+  }
+
+  .empty-state-actions {
+    gap: 24px;
+    margin-top: 28px;
+    font-size: 16px;
+  }
+
+  .quick-actions {
+    max-width: 460px;
+  }
+}
+
+@media (max-width: 820px) {
+  body {
+    overflow: auto;
+  }
+
+  .app {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .canvas-area {
+    height: 620px;
+  }
+
+  .chat-panel {
+    min-height: 480px;
+  }
+
+  .tool-rail {
+    top: auto;
+    bottom: 70px;
+    transform: none;
+  }
+}

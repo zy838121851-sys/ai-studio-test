@@ -37,7 +37,8 @@ const EXPECTED_LEGACY_SPLIT_IMPORTS = [
 const EXPECTED_LEGACY_BASE_IMPORTS = [];
 const EXPECTED_LEGACY_CHAT_IMPORTS = [
   "./legacy-chat-shell.css",
-  "./legacy-chat-message.css"
+  "./legacy-chat-message.css",
+  "./legacy-chat-responsive.css"
 ];
 const EXPECTED_LEGACY_THEME_SYNC_IMPORTS = [
   "./legacy-theme-sync-base.css",
@@ -572,6 +573,12 @@ const EXPECTED_LEGACY_CHAT_SHELL_SELECTORS = [
   ".suggestions",
   ".chat-log"
 ];
+const EXPECTED_LEGACY_CHAT_RESPONSIVE_SELECTORS = [
+  "@media (max-width: 1100px)",
+  "@media (max-width: 820px)",
+  ".empty-state-actions",
+  ".tool-rail"
+];
 
 const errors = [];
 
@@ -809,6 +816,7 @@ checkFileContains("styles/legacy-node.css", EXPECTED_LEGACY_NODE_SELECTORS);
 checkFileContains("styles/legacy-chat.css", EXPECTED_LEGACY_CHAT_SELECTORS);
 checkFileContains("styles/legacy-chat-message.css", EXPECTED_LEGACY_CHAT_MESSAGE_SELECTORS);
 checkFileContains("styles/legacy-chat-shell.css", EXPECTED_LEGACY_CHAT_SHELL_SELECTORS);
+checkFileContains("styles/legacy-chat-responsive.css", EXPECTED_LEGACY_CHAT_RESPONSIVE_SELECTORS);
 
 if (errors.length > 0) {
   console.error("Style entry check failed:");
