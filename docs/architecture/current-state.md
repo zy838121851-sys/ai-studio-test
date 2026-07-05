@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,350 |
-| `styles` | 160 | 15,254 |
-| `scripts` | 90 | 21,631 |
+| `styles` | 162 | 15,255 |
+| `scripts` | 90 | 21,650 |
 
 Largest files in the current source tree:
 
@@ -65,7 +65,7 @@ Largest files in the current source tree:
 | 1,709 | `scripts/check-api-error-contract.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
-| 1,411 | `scripts/check-style-entry.js` |
+| 1,430 | `scripts/check-style-entry.js` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,282 | `scripts/check-canvas-menu-actions.js` |
@@ -192,8 +192,13 @@ Post-baseline CSS governance note:
 - `styles/features/assets-board.css` owns asset board/list/card/thumb,
   move/delete action, and empty-state styles; it is imported by
   `styles/features/assets.css`.
-- `styles/features/assets-save.css` owns asset save popover and canvas asset
-  board popover styles; it is imported by `styles/features/assets.css`.
+- `styles/features/assets-save.css` is now a pure aggregation entry for asset
+  save popover and canvas asset board popover submodules.
+- `styles/features/assets-save-popover.css` owns the asset save popover shell,
+  title, folder list, tabs, and submit/cancel controls.
+- `styles/features/assets-save-board-popover.css` owns the canvas asset board
+  popover shell, search, section/list, board thumb, and new-board control
+  styles.
 - `styles/features/assets-picker.css` owns asset picker modal and asset preview
   overlay styles; it is imported by `styles/features/assets.css`.
 - `styles/features/assets-canvas-picker.css` owns canvas project picker overlay

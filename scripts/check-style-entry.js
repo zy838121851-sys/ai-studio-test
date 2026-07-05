@@ -192,6 +192,10 @@ const EXPECTED_ASSET_IMPORTS = [
   "./assets-context-menu.css",
   "./assets-pinterest.css"
 ];
+const EXPECTED_ASSET_SAVE_IMPORTS = [
+  "./assets-save-popover.css",
+  "./assets-save-board-popover.css"
+];
 const EXPECTED_ASSET_PAGE_IMPORTS = [
   "./assets-floating-library.css",
   "./assets-page-view.css",
@@ -368,8 +372,18 @@ const EXPECTED_ASSET_BOARD_SELECTORS = [
   ".asset-empty"
 ];
 const EXPECTED_ASSET_SAVE_SELECTORS = [
+  "@import url(\"./assets-save-popover.css\")",
+  "@import url(\"./assets-save-board-popover.css\")"
+];
+const EXPECTED_ASSET_SAVE_POPOVER_SELECTORS = [
   ".asset-save-popover",
+  ".asset-save-tabs",
+  ".asset-save-folders",
+  ".asset-save-actions"
+];
+const EXPECTED_ASSET_SAVE_BOARD_POPOVER_SELECTORS = [
   ".canvas-asset-board-popover",
+  ".asset-save-search",
   ".asset-save-section",
   ".asset-save-new-board"
 ];
@@ -1188,6 +1202,7 @@ const nodeMediaImports = parseCssImports("styles/features/node-media.css");
 const nodeImageGeneratorImports = parseCssImports("styles/features/node-image-generator.css");
 const nodeImageGeneratorBaseImports = parseCssImports("styles/features/node-image-generator-base.css");
 const assetImports = parseCssImports("styles/features/assets.css");
+const assetSaveImports = parseCssImports("styles/features/assets-save.css");
 const assetPageImports = parseCssImports("styles/features/assets-page.css");
 const assetPinterestImports = parseCssImports("styles/features/assets-pinterest.css");
 const homeImports = parseCssImports("styles/features/home.css");
@@ -1226,6 +1241,7 @@ assertListEqual("styles/features/node-media.css", nodeMediaImports, EXPECTED_NOD
 assertListEqual("styles/features/node-image-generator.css", nodeImageGeneratorImports, EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS);
 assertListEqual("styles/features/node-image-generator-base.css", nodeImageGeneratorBaseImports, EXPECTED_NODE_IMAGE_GENERATOR_BASE_IMPORTS);
 assertListEqual("styles/features/assets.css", assetImports, EXPECTED_ASSET_IMPORTS);
+assertListEqual("styles/features/assets-save.css", assetSaveImports, EXPECTED_ASSET_SAVE_IMPORTS);
 assertListEqual("styles/features/assets-page.css", assetPageImports, EXPECTED_ASSET_PAGE_IMPORTS);
 assertListEqual("styles/features/assets-pinterest.css", assetPinterestImports, EXPECTED_ASSET_PINTEREST_IMPORTS);
 assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
@@ -1261,6 +1277,7 @@ checkImportedFilesExist(nodeMediaImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorBaseImports, "styles/features");
 checkImportedFilesExist(assetImports, "styles/features");
+checkImportedFilesExist(assetSaveImports, "styles/features");
 checkImportedFilesExist(assetPageImports, "styles/features");
 checkImportedFilesExist(assetPinterestImports, "styles/features");
 checkImportedFilesExist(homeImports, "styles/features");
@@ -1276,6 +1293,8 @@ checkFileContains("styles/features/assets-page-view.css", EXPECTED_ASSET_PAGE_VI
 checkFileContains("styles/features/assets-page-pinterest-legacy.css", EXPECTED_ASSET_PAGE_PINTEREST_LEGACY_SELECTORS);
 checkFileContains("styles/features/assets-board.css", EXPECTED_ASSET_BOARD_SELECTORS);
 checkFileContains("styles/features/assets-save.css", EXPECTED_ASSET_SAVE_SELECTORS);
+checkFileContains("styles/features/assets-save-popover.css", EXPECTED_ASSET_SAVE_POPOVER_SELECTORS);
+checkFileContains("styles/features/assets-save-board-popover.css", EXPECTED_ASSET_SAVE_BOARD_POPOVER_SELECTORS);
 checkFileContains("styles/features/assets-picker.css", EXPECTED_ASSET_PICKER_SELECTORS);
 checkFileContains("styles/features/assets-canvas-picker.css", EXPECTED_ASSET_CANVAS_PICKER_SELECTORS);
 checkFileContains("styles/features/assets-context-menu.css", EXPECTED_ASSET_CONTEXT_MENU_SELECTORS);
