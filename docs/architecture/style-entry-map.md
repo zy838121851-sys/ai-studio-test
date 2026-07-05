@@ -127,6 +127,7 @@ styles/legacy-canvas-choice-overlays.css
 styles/legacy-canvas-world.css
 styles/legacy-canvas-video-generator.css
 styles/legacy-canvas-project-header.css
+styles/legacy-canvas-library.css
 ```
 
 ## `/styles` and `/assets/styles`
@@ -316,12 +317,13 @@ Notes:
 - `legacy-canvas-project-header.css` owns canvas-view project header, project
   title editing states, save-status badge states, and return-to-content control
   styles.
+- `legacy-canvas-library.css` owns library head styles.
 - `legacy-canvas.css` imports `legacy-canvas-shell.css`,
   `legacy-canvas-image-edit.css`, `legacy-canvas-add-node.css`, and
   `legacy-canvas-choice-overlays.css`, `legacy-canvas-world.css`, and
   `legacy-canvas-video-generator.css`, and
-  `legacy-canvas-project-header.css`, then keeps the remaining library head
-  styles.
+  `legacy-canvas-project-header.css`, and `legacy-canvas-library.css` as a pure
+  aggregation entry.
 - `legacy-assets.css` was emptied after asset library styles moved to
   `styles/features/assets.css`, then removed from the active entry graph and
   deleted after static and check-script verification.
@@ -379,6 +381,7 @@ styles/legacy-canvas-choice-overlays.css
 styles/legacy-canvas-world.css
 styles/legacy-canvas-video-generator.css
 styles/legacy-canvas-project-header.css
+styles/legacy-canvas-library.css
 styles/legacy-canvas.css
 styles/legacy-canvas-visual.css
 styles/legacy-chat.css
@@ -443,7 +446,8 @@ Additional caution:
   `legacy-canvas-image-edit.css`, `legacy-canvas-add-node.css`, and
   `legacy-canvas-choice-overlays.css`, `legacy-canvas-world.css`, and
   `legacy-canvas-video-generator.css`, and
-  `legacy-canvas-project-header.css` plus selectors in the canvas files.
+  `legacy-canvas-project-header.css`, and `legacy-canvas-library.css` plus
+  selectors in the canvas files.
 - Move one feature area at a time from legacy files into a clearer structure.
 - Start with documentation and smoke checks before moving selectors.
 - Prefer feature grouping such as:

@@ -1,0 +1,11 @@
+.library-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.library-head button {
+  color: var(--muted);
+  font-size: 20px;
+}

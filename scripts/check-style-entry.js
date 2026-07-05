@@ -45,7 +45,8 @@ const EXPECTED_LEGACY_CANVAS_IMPORTS = [
   "./legacy-canvas-choice-overlays.css",
   "./legacy-canvas-world.css",
   "./legacy-canvas-video-generator.css",
-  "./legacy-canvas-project-header.css"
+  "./legacy-canvas-project-header.css",
+  "./legacy-canvas-library.css"
 ];
 const EXPECTED_NODE_IMPORTS = [
   "./node-base.css",
@@ -278,9 +279,10 @@ const EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_SELECTORS = [
   "body[data-view=\"canvas\"] .project-header p.is-pending",
   "body[data-view=\"canvas\"] .return-to-content"
 ];
-const EXPECTED_LEGACY_CANVAS_SELECTORS = [
+const EXPECTED_LEGACY_CANVAS_LIBRARY_SELECTORS = [
   ".library-head"
 ];
+const EXPECTED_LEGACY_CANVAS_SELECTORS = [];
 const EXPECTED_LEGACY_NODE_SELECTORS = [];
 const EXPECTED_NODE_BASE_SELECTORS = [
   ".node-card",
@@ -571,6 +573,7 @@ checkFileContains("styles/legacy-canvas-choice-overlays.css", EXPECTED_LEGACY_CA
 checkFileContains("styles/legacy-canvas-world.css", EXPECTED_LEGACY_CANVAS_WORLD_SELECTORS);
 checkFileContains("styles/legacy-canvas-video-generator.css", EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_SELECTORS);
 checkFileContains("styles/legacy-canvas-project-header.css", EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_SELECTORS);
+checkFileContains("styles/legacy-canvas-library.css", EXPECTED_LEGACY_CANVAS_LIBRARY_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/home-shell.css", EXPECTED_HOME_SHELL_SELECTORS);
 checkFileContains("styles/features/home-history.css", EXPECTED_HOME_HISTORY_SELECTORS);

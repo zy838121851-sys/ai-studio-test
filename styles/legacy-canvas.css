@@ -5,15 +5,4 @@
 @import url("./legacy-canvas-world.css");
 @import url("./legacy-canvas-video-generator.css");
 @import url("./legacy-canvas-project-header.css");
-
-.library-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-}
-
-.library-head button {
-  color: var(--muted);
-  font-size: 20px;
-}
+@import url("./legacy-canvas-library.css");
