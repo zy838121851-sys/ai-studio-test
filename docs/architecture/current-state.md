@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,683 |
 | `src/server` | 80 | 14,430 |
-| `styles` | 130 | 15,378 |
-| `scripts` | 90 | 21,483 |
+| `styles` | 133 | 15,382 |
+| `scripts` | 90 | 21,506 |
 
 Largest files in the current source tree:
 
@@ -68,7 +68,7 @@ Largest files in the current source tree:
 | 1,303 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,294 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,283 | `scripts/check-canvas-menu-actions.js` |
-| 1,174 | `scripts/check-style-entry.js` |
+| 1,197 | `scripts/check-style-entry.js` |
 | 1,121 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,119 | `scripts/check-library-bulk-select.js` |
 | 949 | `scripts/check-prompt-conversation-event-utils.js` |
@@ -283,10 +283,16 @@ Post-baseline CSS governance note:
   image-edit compact select, composer compact select, responsive compact
   select, and compact select option state styles that were moved out of
   `styles/legacy-theme-sync.css`.
-- `styles/legacy-theme-sync-model-preference.css` owns model preference menu,
-  chat model menu, image generator model menu, model preference panel, option,
-  tag, and generator select option color-fix theme styles that were moved out
-  of `styles/legacy-theme-sync.css`.
+- `styles/legacy-theme-sync-model-preference.css` is now a pure aggregation
+  entry for model preference menu, panel, and color-fix submodules.
+- `styles/legacy-theme-sync-model-preference-menu.css` owns model preference
+  menu placement, chat model menu sizing, composer/image edit placement, and
+  image generator model menu shell styles.
+- `styles/legacy-theme-sync-model-preference-panel.css` owns model preference
+  panel, header, auto toggle, tabs, list, option, state, description, tag, and
+  empty-state styles.
+- `styles/legacy-theme-sync-model-preference-color-fix.css` owns generator
+  select option and compact select option text color-fix theme styles.
 - `styles/legacy-theme-sync-credit-submit.css` owns credit submit button, cost,
   bolt, number, hidden, and quote-error theme synchronization styles that were
   moved out of `styles/legacy-theme-sync.css`.

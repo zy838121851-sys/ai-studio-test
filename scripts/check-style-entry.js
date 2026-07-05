@@ -63,6 +63,11 @@ const EXPECTED_LEGACY_THEME_SYNC_IMPORTS = [
   "./legacy-theme-sync-model-preference.css",
   "./legacy-theme-sync-credit-submit.css"
 ];
+const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_IMPORTS = [
+  "./legacy-theme-sync-model-preference-menu.css",
+  "./legacy-theme-sync-model-preference-panel.css",
+  "./legacy-theme-sync-model-preference-color-fix.css"
+];
 const EXPECTED_LEGACY_CANVAS_IMPORTS = [
   "./legacy-canvas-shell.css",
   "./legacy-canvas-image-edit.css",
@@ -479,14 +484,26 @@ const EXPECTED_LEGACY_THEME_SYNC_COMPACT_SELECT_SELECTORS = [
   ".composer-actions .compact-select-trigger"
 ];
 const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_SELECTORS = [
+  "@import url(\"./legacy-theme-sync-model-preference-menu.css\")",
+  "@import url(\"./legacy-theme-sync-model-preference-panel.css\")",
+  "@import url(\"./legacy-theme-sync-model-preference-color-fix.css\")"
+];
+const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_MENU_SELECTORS = [
   ".home-model-menu.model-preference-menu",
   ".compact-select-menu.model-preference-menu",
   ".compact-select-menu-portal.model-preference-menu",
   ".chat-model-menu .model-preference-panel",
-  "#imageGeneratorPopover .generator-select-wrap[data-generator-select-kind=\"model\"] .generator-select-menu.model-preference-menu",
+  ".composer-actions .compact-select[data-select-id=\"chatModelSelect\"] .compact-select-menu.model-preference-menu",
+  "#imageGeneratorPopover .generator-select-wrap[data-generator-select-kind=\"model\"] .generator-select-menu.model-preference-menu"
+];
+const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_SELECTORS = [
   ".model-preference-panel",
   ".model-preference-option",
   ".model-preference-tags"
+];
+const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_COLOR_FIX_SELECTORS = [
+  "#imageGeneratorPopover .generator-select-menu .generator-select-option",
+  ".compact-select-menu .compact-select-option"
 ];
 const EXPECTED_LEGACY_CANVAS_SHELL_SELECTORS = [
   "@import url(\"./legacy-canvas-shell-brand.css\")",
@@ -983,6 +1000,7 @@ const legacyBaseImports = parseCssImports("styles/legacy-base.css");
 const legacyChatImports = parseCssImports("styles/legacy-chat.css");
 const legacyCompactControlsImports = parseCssImports("styles/legacy-compact-controls.css");
 const legacyThemeSyncImports = parseCssImports("styles/legacy-theme-sync.css");
+const legacyThemeSyncModelPreferenceImports = parseCssImports("styles/legacy-theme-sync-model-preference.css");
 const legacyCanvasImports = parseCssImports("styles/legacy-canvas.css");
 const legacyCanvasShellImports = parseCssImports("styles/legacy-canvas-shell.css");
 const legacyCanvasImageEditImports = parseCssImports("styles/legacy-canvas-image-edit.css");
@@ -1013,6 +1031,7 @@ assertListEqual("styles/legacy-base.css", legacyBaseImports, EXPECTED_LEGACY_BAS
 assertListEqual("styles/legacy-chat.css", legacyChatImports, EXPECTED_LEGACY_CHAT_IMPORTS);
 assertListEqual("styles/legacy-compact-controls.css", legacyCompactControlsImports, EXPECTED_LEGACY_COMPACT_CONTROLS_IMPORTS);
 assertListEqual("styles/legacy-theme-sync.css", legacyThemeSyncImports, EXPECTED_LEGACY_THEME_SYNC_IMPORTS);
+assertListEqual("styles/legacy-theme-sync-model-preference.css", legacyThemeSyncModelPreferenceImports, EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_IMPORTS);
 assertListEqual("styles/legacy-canvas.css", legacyCanvasImports, EXPECTED_LEGACY_CANVAS_IMPORTS);
 assertListEqual("styles/legacy-canvas-shell.css", legacyCanvasShellImports, EXPECTED_LEGACY_CANVAS_SHELL_IMPORTS);
 assertListEqual("styles/legacy-canvas-image-edit.css", legacyCanvasImageEditImports, EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_IMPORTS);
@@ -1040,6 +1059,7 @@ checkImportedFilesExist(legacySplitImports, "styles");
 checkImportedFilesExist(legacyChatImports, "styles");
 checkImportedFilesExist(legacyCompactControlsImports, "styles");
 checkImportedFilesExist(legacyThemeSyncImports, "styles");
+checkImportedFilesExist(legacyThemeSyncModelPreferenceImports, "styles");
 checkImportedFilesExist(legacyCanvasImports, "styles");
 checkImportedFilesExist(legacyCanvasShellImports, "styles");
 checkImportedFilesExist(legacyCanvasImageEditImports, "styles");
@@ -1089,6 +1109,9 @@ checkFileContains("styles/legacy-theme-sync-media-edit.css", EXPECTED_LEGACY_THE
 checkFileContains("styles/legacy-theme-sync-node-media.css", EXPECTED_LEGACY_THEME_SYNC_NODE_MEDIA_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-compact-select.css", EXPECTED_LEGACY_THEME_SYNC_COMPACT_SELECT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-model-preference.css", EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_SELECTORS);
+checkFileContains("styles/legacy-theme-sync-model-preference-menu.css", EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_MENU_SELECTORS);
+checkFileContains("styles/legacy-theme-sync-model-preference-panel.css", EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_SELECTORS);
+checkFileContains("styles/legacy-theme-sync-model-preference-color-fix.css", EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_COLOR_FIX_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-credit-submit.css", EXPECTED_LEGACY_THEME_SYNC_CREDIT_SUBMIT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync.css", EXPECTED_LEGACY_THEME_SYNC_SELECTORS);
 checkFileContains("styles/legacy-canvas-shell.css", EXPECTED_LEGACY_CANVAS_SHELL_SELECTORS);

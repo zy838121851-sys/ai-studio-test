@@ -257,6 +257,14 @@ styles/legacy-theme-sync-model-preference.css
 styles/legacy-theme-sync-credit-submit.css
 ```
 
+`styles/legacy-theme-sync-model-preference.css` currently imports:
+
+```text
+styles/legacy-theme-sync-model-preference-menu.css
+styles/legacy-theme-sync-model-preference-panel.css
+styles/legacy-theme-sync-model-preference-color-fix.css
+```
+
 `styles/legacy-canvas.css` currently imports:
 
 ```text
@@ -619,9 +627,16 @@ Notes:
 - `legacy-theme-sync-compact-select.css` owns compact select base, image-edit
   compact select, composer compact select, responsive compact select, and
   compact select option state styles.
-- `legacy-theme-sync-model-preference.css` owns model preference menu, chat
-  model menu, image generator model menu, model preference panel, option, tag,
-  and generator select option color-fix theme styles.
+- `legacy-theme-sync-model-preference.css` is now a pure aggregation entry for
+  model preference menu, panel, and color-fix submodules.
+- `legacy-theme-sync-model-preference-menu.css` owns model preference menu
+  placement, chat model menu sizing, composer/image edit placement, and image
+  generator model menu shell styles.
+- `legacy-theme-sync-model-preference-panel.css` owns model preference panel,
+  header, auto toggle, tabs, list, option, state, description, tag, and
+  empty-state styles.
+- `legacy-theme-sync-model-preference-color-fix.css` owns generator select
+  option and compact select option text color-fix theme styles.
 - `legacy-theme-sync-credit-submit.css` owns credit submit button, cost, bolt,
   number, hidden, and quote-error theme synchronization styles.
 - `legacy-theme-sync.css` is now a pure aggregation entry that imports
@@ -827,6 +842,9 @@ styles/legacy-theme-sync-media-edit.css
 styles/legacy-theme-sync-node-media.css
 styles/legacy-theme-sync-compact-select.css
 styles/legacy-theme-sync-model-preference.css
+styles/legacy-theme-sync-model-preference-menu.css
+styles/legacy-theme-sync-model-preference-panel.css
+styles/legacy-theme-sync-model-preference-color-fix.css
 styles/legacy-theme-sync-credit-submit.css
 styles/legacy-theme-sync.css
 styles/menu-select-overrides.css

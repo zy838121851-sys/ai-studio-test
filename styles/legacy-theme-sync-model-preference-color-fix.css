@@ -1,0 +1,21 @@
+#imageGeneratorPopover .generator-select-menu .generator-select-option,
+#imageGeneratorPopover .generator-select-menu .generator-select-option:hover,
+#imageGeneratorPopover .generator-select-menu .generator-select-option:focus-visible,
+#imageGeneratorPopover .generator-select-menu .generator-select-option.selected {
+  color: #182230 !important;
+  -webkit-text-fill-color: #182230;
+}
+
+#imageGeneratorPopover .generator-select-menu .generator-select-option:hover,
+#imageGeneratorPopover .generator-select-menu .generator-select-option:focus-visible,
+#imageGeneratorPopover .generator-select-menu .generator-select-option.selected {
+  background: rgba(74, 144, 226, 0.15) !important;
+  outline: none;
+}
+
+.compact-select-menu .compact-select-option,
+.compact-select-menu .compact-select-option:hover,
+.compact-select-menu .compact-select-option:focus-visible,
+.compact-select-menu .compact-select-option.selected {
+  -webkit-text-fill-color: currentColor;
+}
