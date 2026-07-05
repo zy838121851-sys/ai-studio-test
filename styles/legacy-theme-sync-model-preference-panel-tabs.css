@@ -1,0 +1,35 @@
+.model-preference-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 4px;
+  margin-bottom: 20px;
+  padding: 4px;
+  border-radius: 9px;
+  background: rgba(23, 32, 44, 0.06);
+}
+
+.model-preference-tabs button {
+  display: inline-grid !important;
+  place-items: center;
+  min-width: 0 !important;
+  min-height: 32px !important;
+  padding: 0 12px !important;
+  border: 0 !important;
+  border-radius: 7px !important;
+  color: #17202c !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font-size: 14px !important;
+  font-weight: 820 !important;
+  white-space: nowrap !important;
+}
+
+.model-preference-tabs button.active {
+  background: rgba(255, 255, 255, 0.94) !important;
+  box-shadow: 0 1px 4px rgba(31, 46, 72, 0.08) !important;
+}
+
+.model-preference-tabs button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+}

@@ -92,6 +92,13 @@ const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_IMPORTS = [
   "./legacy-theme-sync-model-preference-panel.css",
   "./legacy-theme-sync-model-preference-color-fix.css"
 ];
+const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_IMPORTS = [
+  "./legacy-theme-sync-model-preference-panel-shell.css",
+  "./legacy-theme-sync-model-preference-panel-tabs.css",
+  "./legacy-theme-sync-model-preference-panel-list.css",
+  "./legacy-theme-sync-model-preference-panel-option.css",
+  "./legacy-theme-sync-model-preference-panel-meta.css"
+];
 const EXPECTED_LEGACY_CANVAS_IMPORTS = [
   "./legacy-canvas-shell.css",
   "./legacy-canvas-image-edit.css",
@@ -1022,9 +1029,38 @@ const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_MENU_SELECTORS = [
   "#imageGeneratorPopover .generator-select-wrap[data-generator-select-kind=\"model\"] .generator-select-menu.model-preference-menu"
 ];
 const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_SELECTORS = [
+  "@import url(\"./legacy-theme-sync-model-preference-panel-shell.css\")",
+  "@import url(\"./legacy-theme-sync-model-preference-panel-tabs.css\")",
+  "@import url(\"./legacy-theme-sync-model-preference-panel-list.css\")",
+  "@import url(\"./legacy-theme-sync-model-preference-panel-option.css\")",
+  "@import url(\"./legacy-theme-sync-model-preference-panel-meta.css\")"
+];
+const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_SHELL_SELECTORS = [
   ".model-preference-panel",
+  ".model-preference-header",
+  ".model-preference-auto"
+];
+const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_TABS_SELECTORS = [
+  ".model-preference-tabs",
+  ".model-preference-tabs button",
+  ".model-preference-tabs button.active"
+];
+const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_LIST_SELECTORS = [
+  ".model-preference-list",
+  ".model-preference-section",
+  ".model-preference-section h4"
+];
+const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_OPTION_SELECTORS = [
   ".model-preference-option",
-  ".model-preference-tags"
+  ".model-preference-icon",
+  ".model-preference-state",
+  ".model-preference-option.selected .model-preference-state"
+];
+const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_META_SELECTORS = [
+  ".model-preference-default",
+  ".model-preference-description",
+  ".model-preference-tags",
+  ".model-preference-empty"
 ];
 const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_COLOR_FIX_SELECTORS = [
   "#imageGeneratorPopover .generator-select-menu .generator-select-option",
@@ -1646,6 +1682,7 @@ const legacyCompactControlsImports = parseCssImports("styles/legacy-compact-cont
 const legacyThemeSyncImports = parseCssImports("styles/legacy-theme-sync.css");
 const legacyThemeSyncNodeMediaImports = parseCssImports("styles/legacy-theme-sync-node-media.css");
 const legacyThemeSyncModelPreferenceImports = parseCssImports("styles/legacy-theme-sync-model-preference.css");
+const legacyThemeSyncModelPreferencePanelImports = parseCssImports("styles/legacy-theme-sync-model-preference-panel.css");
 const legacyCanvasImports = parseCssImports("styles/legacy-canvas.css");
 const legacyCanvasChoiceOverlayImports = parseCssImports("styles/legacy-canvas-choice-overlays.css");
 const legacyCanvasWorldImports = parseCssImports("styles/legacy-canvas-world.css");
@@ -1709,6 +1746,7 @@ assertListEqual("styles/legacy-compact-controls.css", legacyCompactControlsImpor
 assertListEqual("styles/legacy-theme-sync.css", legacyThemeSyncImports, EXPECTED_LEGACY_THEME_SYNC_IMPORTS);
 assertListEqual("styles/legacy-theme-sync-node-media.css", legacyThemeSyncNodeMediaImports, EXPECTED_LEGACY_THEME_SYNC_NODE_MEDIA_IMPORTS);
 assertListEqual("styles/legacy-theme-sync-model-preference.css", legacyThemeSyncModelPreferenceImports, EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_IMPORTS);
+assertListEqual("styles/legacy-theme-sync-model-preference-panel.css", legacyThemeSyncModelPreferencePanelImports, EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_IMPORTS);
 assertListEqual("styles/legacy-canvas.css", legacyCanvasImports, EXPECTED_LEGACY_CANVAS_IMPORTS);
 assertListEqual("styles/legacy-canvas-choice-overlays.css", legacyCanvasChoiceOverlayImports, EXPECTED_LEGACY_CANVAS_CHOICE_OVERLAY_IMPORTS);
 assertListEqual("styles/legacy-canvas-world.css", legacyCanvasWorldImports, EXPECTED_LEGACY_CANVAS_WORLD_IMPORTS);
@@ -1769,6 +1807,7 @@ checkImportedFilesExist(legacyCompactControlsImports, "styles");
 checkImportedFilesExist(legacyThemeSyncImports, "styles");
 checkImportedFilesExist(legacyThemeSyncNodeMediaImports, "styles");
 checkImportedFilesExist(legacyThemeSyncModelPreferenceImports, "styles");
+checkImportedFilesExist(legacyThemeSyncModelPreferencePanelImports, "styles");
 checkImportedFilesExist(legacyCanvasImports, "styles");
 checkImportedFilesExist(legacyCanvasChoiceOverlayImports, "styles");
 checkImportedFilesExist(legacyCanvasWorldImports, "styles");
@@ -1922,6 +1961,11 @@ checkFileContains("styles/legacy-theme-sync-compact-select.css", EXPECTED_LEGACY
 checkFileContains("styles/legacy-theme-sync-model-preference.css", EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-model-preference-menu.css", EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_MENU_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-model-preference-panel.css", EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_SELECTORS);
+checkFileContains("styles/legacy-theme-sync-model-preference-panel-shell.css", EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_SHELL_SELECTORS);
+checkFileContains("styles/legacy-theme-sync-model-preference-panel-tabs.css", EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_TABS_SELECTORS);
+checkFileContains("styles/legacy-theme-sync-model-preference-panel-list.css", EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_LIST_SELECTORS);
+checkFileContains("styles/legacy-theme-sync-model-preference-panel-option.css", EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_OPTION_SELECTORS);
+checkFileContains("styles/legacy-theme-sync-model-preference-panel-meta.css", EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_META_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-model-preference-color-fix.css", EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_COLOR_FIX_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-credit-submit.css", EXPECTED_LEGACY_THEME_SYNC_CREDIT_SUBMIT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync.css", EXPECTED_LEGACY_THEME_SYNC_SELECTORS);

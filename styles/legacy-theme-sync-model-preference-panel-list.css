@@ -1,0 +1,22 @@
+.model-preference-list {
+  display: block;
+  min-height: 0;
+  max-height: min(368px, calc(100vh - 220px));
+  padding: 0 4px 6px 0;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(23, 32, 44, 0.34) transparent;
+}
+
+.model-preference-section {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 12px;
+}
+
+.model-preference-section h4 {
+  margin: 4px 0 6px;
+  color: rgba(23, 32, 44, 0.48);
+  font-size: 13px;
+  font-weight: 800;
+}
