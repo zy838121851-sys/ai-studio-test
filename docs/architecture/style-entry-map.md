@@ -314,6 +314,14 @@ styles/legacy-canvas-world-empty-state.css
 styles/legacy-canvas-world-hints.css
 ```
 
+`styles/legacy-canvas-video-generator.css` currently imports:
+
+```text
+styles/legacy-canvas-video-generator-shell.css
+styles/legacy-canvas-video-generator-reference.css
+styles/legacy-canvas-video-generator-controls.css
+```
+
 `styles/legacy-canvas-shell.css` currently imports:
 
 ```text
@@ -759,9 +767,14 @@ Notes:
 - `legacy-canvas-world-empty-state.css` owns canvas empty state, spark, action,
   and dot styles.
 - `legacy-canvas-world-hints.css` owns hint line and quick action styles.
-- `legacy-canvas-video-generator.css` owns video generator popover, reference
-  list/thumb, model selector, option group, send control, disabled state, and
-  status styles.
+- `legacy-canvas-video-generator.css` is now a pure aggregation entry for video
+  generator shell, reference/tool, and control/status submodules.
+- `legacy-canvas-video-generator-shell.css` owns video generator popover shell,
+  open state, head, and row base layout styles.
+- `legacy-canvas-video-generator-reference.css` owns video generator reference
+  list/thumb and tool button styles.
+- `legacy-canvas-video-generator-controls.css` owns video generator prompt,
+  model selector, option group, send control, disabled state, and status styles.
 - `legacy-canvas-project-header.css` owns canvas-view project header, project
   title editing states, save-status badge states, and return-to-content control
   styles.
@@ -909,6 +922,9 @@ styles/legacy-canvas-world-stage.css
 styles/legacy-canvas-world-empty-state.css
 styles/legacy-canvas-world-hints.css
 styles/legacy-canvas-video-generator.css
+styles/legacy-canvas-video-generator-shell.css
+styles/legacy-canvas-video-generator-reference.css
+styles/legacy-canvas-video-generator-controls.css
 styles/legacy-canvas-project-header.css
 styles/legacy-canvas-library.css
 styles/legacy-canvas.css
@@ -1083,7 +1099,10 @@ Additional caution:
   `legacy-canvas-world-selection.css`, `legacy-canvas-world-stage.css`,
   `legacy-canvas-world-empty-state.css`, and
   `legacy-canvas-world-hints.css`, and
-  `legacy-canvas-video-generator.css`, and
+  `legacy-canvas-video-generator.css` imports of
+  `legacy-canvas-video-generator-shell.css`,
+  `legacy-canvas-video-generator-reference.css`, and
+  `legacy-canvas-video-generator-controls.css`, and
   `legacy-canvas-project-header.css`, and `legacy-canvas-library.css`, plus
   the `legacy-canvas-visual.css` import of
   `legacy-canvas-visual-shape-tools.css` and

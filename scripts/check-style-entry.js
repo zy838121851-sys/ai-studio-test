@@ -102,6 +102,11 @@ const EXPECTED_LEGACY_CANVAS_WORLD_IMPORTS = [
   "./legacy-canvas-world-empty-state.css",
   "./legacy-canvas-world-hints.css"
 ];
+const EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_IMPORTS = [
+  "./legacy-canvas-video-generator-shell.css",
+  "./legacy-canvas-video-generator-reference.css",
+  "./legacy-canvas-video-generator-controls.css"
+];
 const EXPECTED_LEGACY_CANVAS_SHELL_IMPORTS = [
   "./legacy-canvas-shell-brand.css",
   "./legacy-canvas-shell-actions.css",
@@ -701,13 +706,27 @@ const EXPECTED_LEGACY_CANVAS_WORLD_HINTS_SELECTORS = [
   ".quick-actions button:hover"
 ];
 const EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_SELECTORS = [
+  "@import url(\"./legacy-canvas-video-generator-shell.css\")",
+  "@import url(\"./legacy-canvas-video-generator-reference.css\")",
+  "@import url(\"./legacy-canvas-video-generator-controls.css\")"
+];
+const EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_SHELL_SELECTORS = [
   ".video-generator-popover",
   ".video-generator-popover.open",
+  ".video-generator-head",
+  ".video-generator-row"
+];
+const EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_REFERENCE_SELECTORS = [
   ".video-generator-reference-list",
   ".video-generator-reference-thumb",
-  ".video-generator-tool",
+  ".video-generator-reference-thumb img",
+  ".video-generator-tool"
+];
+const EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_CONTROLS_SELECTORS = [
+  ".video-generator-popover textarea",
   ".video-generator-model",
   ".video-generator-group",
+  ".video-generator-popover .send",
   ".video-generator-status"
 ];
 const EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_SELECTORS = [
@@ -1133,6 +1152,7 @@ const legacyThemeSyncModelPreferenceImports = parseCssImports("styles/legacy-the
 const legacyCanvasImports = parseCssImports("styles/legacy-canvas.css");
 const legacyCanvasChoiceOverlayImports = parseCssImports("styles/legacy-canvas-choice-overlays.css");
 const legacyCanvasWorldImports = parseCssImports("styles/legacy-canvas-world.css");
+const legacyCanvasVideoGeneratorImports = parseCssImports("styles/legacy-canvas-video-generator.css");
 const legacyCanvasShellImports = parseCssImports("styles/legacy-canvas-shell.css");
 const legacyCanvasImageEditImports = parseCssImports("styles/legacy-canvas-image-edit.css");
 const legacyCanvasVisualImports = parseCssImports("styles/legacy-canvas-visual.css");
@@ -1169,6 +1189,7 @@ assertListEqual("styles/legacy-theme-sync-model-preference.css", legacyThemeSync
 assertListEqual("styles/legacy-canvas.css", legacyCanvasImports, EXPECTED_LEGACY_CANVAS_IMPORTS);
 assertListEqual("styles/legacy-canvas-choice-overlays.css", legacyCanvasChoiceOverlayImports, EXPECTED_LEGACY_CANVAS_CHOICE_OVERLAY_IMPORTS);
 assertListEqual("styles/legacy-canvas-world.css", legacyCanvasWorldImports, EXPECTED_LEGACY_CANVAS_WORLD_IMPORTS);
+assertListEqual("styles/legacy-canvas-video-generator.css", legacyCanvasVideoGeneratorImports, EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_IMPORTS);
 assertListEqual("styles/legacy-canvas-shell.css", legacyCanvasShellImports, EXPECTED_LEGACY_CANVAS_SHELL_IMPORTS);
 assertListEqual("styles/legacy-canvas-image-edit.css", legacyCanvasImageEditImports, EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_IMPORTS);
 assertListEqual("styles/legacy-canvas-visual.css", legacyCanvasVisualImports, EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS);
@@ -1202,6 +1223,7 @@ checkImportedFilesExist(legacyThemeSyncModelPreferenceImports, "styles");
 checkImportedFilesExist(legacyCanvasImports, "styles");
 checkImportedFilesExist(legacyCanvasChoiceOverlayImports, "styles");
 checkImportedFilesExist(legacyCanvasWorldImports, "styles");
+checkImportedFilesExist(legacyCanvasVideoGeneratorImports, "styles");
 checkImportedFilesExist(legacyCanvasShellImports, "styles");
 checkImportedFilesExist(legacyCanvasImageEditImports, "styles");
 checkImportedFilesExist(legacyCanvasVisualImports, "styles");
@@ -1287,6 +1309,9 @@ checkFileContains("styles/legacy-canvas-world-stage.css", EXPECTED_LEGACY_CANVAS
 checkFileContains("styles/legacy-canvas-world-empty-state.css", EXPECTED_LEGACY_CANVAS_WORLD_EMPTY_STATE_SELECTORS);
 checkFileContains("styles/legacy-canvas-world-hints.css", EXPECTED_LEGACY_CANVAS_WORLD_HINTS_SELECTORS);
 checkFileContains("styles/legacy-canvas-video-generator.css", EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_SELECTORS);
+checkFileContains("styles/legacy-canvas-video-generator-shell.css", EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_SHELL_SELECTORS);
+checkFileContains("styles/legacy-canvas-video-generator-reference.css", EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_REFERENCE_SELECTORS);
+checkFileContains("styles/legacy-canvas-video-generator-controls.css", EXPECTED_LEGACY_CANVAS_VIDEO_GENERATOR_CONTROLS_SELECTORS);
 checkFileContains("styles/legacy-canvas-project-header.css", EXPECTED_LEGACY_CANVAS_PROJECT_HEADER_SELECTORS);
 checkFileContains("styles/legacy-canvas-library.css", EXPECTED_LEGACY_CANVAS_LIBRARY_SELECTORS);
 checkFileContains("styles/legacy-canvas-visual-shape-tools.css", EXPECTED_LEGACY_CANVAS_VISUAL_SHAPE_TOOLS_SELECTORS);
