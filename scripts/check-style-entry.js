@@ -240,6 +240,10 @@ const EXPECTED_ASSET_PINTEREST_PIN_IMPORTS = [
   "./assets-pinterest-pin-actions.css",
   "./assets-pinterest-pin-empty.css"
 ];
+const EXPECTED_ASSET_PINTEREST_RESPONSIVE_IMPORTS = [
+  "./assets-pinterest-responsive-breakpoints.css",
+  "./assets-pinterest-responsive-interactions.css"
+];
 const EXPECTED_HOME_IMPORTS = [
   "./home-history.css",
   "./home-community.css",
@@ -600,8 +604,16 @@ const EXPECTED_ASSET_PINTEREST_PIN_EMPTY_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-pinterest-empty-actions"
 ];
 const EXPECTED_ASSET_PINTEREST_RESPONSIVE_SELECTORS = [
+  "@import url(\"./assets-pinterest-responsive-breakpoints.css\")",
+  "@import url(\"./assets-pinterest-responsive-interactions.css\")"
+];
+const EXPECTED_ASSET_PINTEREST_RESPONSIVE_BREAKPOINTS_SELECTORS = [
   "@media (max-width: 1100px)",
   "@media (max-width: 720px)",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-masonry",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-profile"
+];
+const EXPECTED_ASSET_PINTEREST_RESPONSIVE_INTERACTIONS_SELECTORS = [
   "body[data-view=\"assetsPage\"] .assets-page-view",
   "body[data-view=\"assetsPage\"] .assets-page-view.active",
   "body[data-view=\"assetsPage\"] .asset-pinterest-boards-view",
@@ -1359,6 +1371,7 @@ const assetPinterestBoardImports = parseCssImports("styles/features/assets-pinte
 const assetPinterestShellImports = parseCssImports("styles/features/assets-pinterest-shell.css");
 const assetPinterestBoardRefreshImports = parseCssImports("styles/features/assets-pinterest-board-refresh.css");
 const assetPinterestPinImports = parseCssImports("styles/features/assets-pinterest-pin.css");
+const assetPinterestResponsiveImports = parseCssImports("styles/features/assets-pinterest-responsive.css");
 const homeImports = parseCssImports("styles/features/home.css");
 const homeHistoryImports = parseCssImports("styles/features/home-history.css");
 const homeCommunityImports = parseCssImports("styles/features/home-community.css");
@@ -1406,6 +1419,7 @@ assertListEqual("styles/features/assets-pinterest-board.css", assetPinterestBoar
 assertListEqual("styles/features/assets-pinterest-shell.css", assetPinterestShellImports, EXPECTED_ASSET_PINTEREST_SHELL_IMPORTS);
 assertListEqual("styles/features/assets-pinterest-board-refresh.css", assetPinterestBoardRefreshImports, EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_IMPORTS);
 assertListEqual("styles/features/assets-pinterest-pin.css", assetPinterestPinImports, EXPECTED_ASSET_PINTEREST_PIN_IMPORTS);
+assertListEqual("styles/features/assets-pinterest-responsive.css", assetPinterestResponsiveImports, EXPECTED_ASSET_PINTEREST_RESPONSIVE_IMPORTS);
 assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
 assertListEqual("styles/features/home-history.css", homeHistoryImports, EXPECTED_HOME_HISTORY_IMPORTS);
 assertListEqual("styles/features/home-community.css", homeCommunityImports, EXPECTED_HOME_COMMUNITY_IMPORTS);
@@ -1450,6 +1464,7 @@ checkImportedFilesExist(assetPinterestBoardImports, "styles/features");
 checkImportedFilesExist(assetPinterestShellImports, "styles/features");
 checkImportedFilesExist(assetPinterestBoardRefreshImports, "styles/features");
 checkImportedFilesExist(assetPinterestPinImports, "styles/features");
+checkImportedFilesExist(assetPinterestResponsiveImports, "styles/features");
 checkImportedFilesExist(homeImports, "styles/features");
 checkImportedFilesExist(homeHistoryImports, "styles/features");
 checkImportedFilesExist(homeCommunityImports, "styles/features");
@@ -1500,6 +1515,8 @@ checkFileContains("styles/features/assets-pinterest-pin-actions.css", EXPECTED_A
 checkFileContains("styles/features/assets-pinterest-pin-empty.css", EXPECTED_ASSET_PINTEREST_PIN_EMPTY_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-layout.css", EXPECTED_ASSET_PINTEREST_LAYOUT_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-responsive.css", EXPECTED_ASSET_PINTEREST_RESPONSIVE_SELECTORS);
+checkFileContains("styles/features/assets-pinterest-responsive-breakpoints.css", EXPECTED_ASSET_PINTEREST_RESPONSIVE_BREAKPOINTS_SELECTORS);
+checkFileContains("styles/features/assets-pinterest-responsive-interactions.css", EXPECTED_ASSET_PINTEREST_RESPONSIVE_INTERACTIONS_SELECTORS);
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/legacy-theme-ios.css", EXPECTED_LEGACY_THEME_IOS_SELECTORS);

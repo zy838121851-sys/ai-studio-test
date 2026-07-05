@@ -264,6 +264,13 @@ styles/features/assets-pinterest-pin-actions.css
 styles/features/assets-pinterest-pin-empty.css
 ```
 
+`styles/features/assets-pinterest-responsive.css` currently imports:
+
+```text
+styles/features/assets-pinterest-responsive-breakpoints.css
+styles/features/assets-pinterest-responsive-interactions.css
+```
+
 `styles/features/home.css` currently imports:
 
 ```text
@@ -692,9 +699,14 @@ Notes:
   empty-state mark, copy, and action styles.
 - `features/assets-pinterest-layout.css` owns asset page Pinterest masonry and
   selection bar styles; it is imported by `features/assets-pinterest.css`.
-- `features/assets-pinterest-responsive.css` owns asset page Pinterest
-  responsive rules and interaction refinement styles; it is imported by
-  `features/assets-pinterest.css`.
+- `features/assets-pinterest-responsive.css` is now a pure aggregation entry for
+  asset page Pinterest responsive breakpoints and interaction refinements; it is
+  imported by `features/assets-pinterest.css`.
+- `features/assets-pinterest-responsive-breakpoints.css` owns asset page
+  Pinterest breakpoint rules.
+- `features/assets-pinterest-responsive-interactions.css` owns asset page
+  Pinterest interaction refinement styles and responsive overrides that follow
+  those refinements.
 - `features/assets-pinterest.css` is now a pure aggregation entry for asset
   page Pinterest submodules; it imports
   `features/assets-pinterest-board.css` and
@@ -1017,6 +1029,8 @@ styles/features/assets-pinterest-pin-actions.css
 styles/features/assets-pinterest-pin-empty.css
 styles/features/assets-pinterest-layout.css
 styles/features/assets-pinterest-responsive.css
+styles/features/assets-pinterest-responsive-breakpoints.css
+styles/features/assets-pinterest-responsive-interactions.css
 styles/features/assets-pinterest.css
 styles/features/assets.css
 styles/features/chat.css
@@ -1233,7 +1247,10 @@ Additional caution:
   `features/assets-pinterest-pin-empty.css`,
   migrated asset Pinterest layout selectors in
   `features/assets-pinterest-layout.css`, migrated asset Pinterest responsive
-  selectors in `features/assets-pinterest-responsive.css`,
+  imports in `features/assets-pinterest-responsive.css`, migrated asset
+  Pinterest responsive breakpoint and interaction selectors in
+  `features/assets-pinterest-responsive-breakpoints.css` and
+  `features/assets-pinterest-responsive-interactions.css`,
   migrated asset Pinterest selectors in `features/assets-pinterest.css`,
   migrated chat shell selectors in `legacy-chat-shell.css`,
   migrated chat message selectors in `legacy-chat-message.css`,
