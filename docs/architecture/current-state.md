@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,349 |
-| `styles` | 62 | 15,221 |
-| `scripts` | 90 | 20,864 |
+| `styles` | 63 | 15,221 |
+| `scripts` | 90 | 20,872 |
 
 Largest files in the current source tree:
 
@@ -140,8 +140,12 @@ Post-baseline CSS governance note:
 - `styles/legacy-theme-sync-surfaces.css` owns the first cross-component theme
   surface/control synchronization block for canvas chrome, edit controls, asset
   generation controls, composer, and chat panel surfaces.
-- `styles/legacy-theme-sync.css` now imports the theme sync base and surfaces
-  submodules before the remaining cross-component theme synchronization rules.
+- `styles/legacy-theme-sync-image-edit.css` owns image edit popover and image
+  generator control theme synchronization styles that were moved out of
+  `styles/legacy-theme-sync.css`.
+- `styles/legacy-theme-sync.css` now imports the theme sync base, surfaces, and
+  image edit submodules before the remaining cross-component theme
+  synchronization rules.
 - `styles/legacy-canvas-shell.css` owns the first canvas shell block that was
   moved out of `styles/legacy-canvas.css`: canvas area background, project
   header/logo, top actions, tool rail, add-node menu, canvas context menu, and

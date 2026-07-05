@@ -116,6 +116,7 @@ styles/features/home-shell.css
 ```text
 styles/legacy-theme-sync-base.css
 styles/legacy-theme-sync-surfaces.css
+styles/legacy-theme-sync-image-edit.css
 ```
 
 `styles/legacy-canvas.css` currently imports:
@@ -309,9 +310,11 @@ Notes:
 - `legacy-theme-sync-surfaces.css` owns the first cross-component theme
   surface/control synchronization block for canvas chrome, edit controls, asset
   generation controls, composer, and chat panel surfaces.
-- `legacy-theme-sync.css` imports `legacy-theme-sync-base.css` and
-  `legacy-theme-sync-surfaces.css`, then keeps the remaining cross-component
-  theme synchronization rules.
+- `legacy-theme-sync-image-edit.css` owns image edit popover and image
+  generator control theme synchronization styles.
+- `legacy-theme-sync.css` imports `legacy-theme-sync-base.css`,
+  `legacy-theme-sync-surfaces.css`, and `legacy-theme-sync-image-edit.css`,
+  then keeps the remaining cross-component theme synchronization rules.
 - `legacy-canvas-shell.css` owns the first legacy canvas shell block: canvas
   area background, project header/logo, top actions, tool rail, add-node menu,
   canvas context menu, selection action bar, and related mobile selection-bar
@@ -422,6 +425,7 @@ styles/legacy-light-refinements.css
 styles/legacy-theme-ios.css
 styles/legacy-theme-sync-base.css
 styles/legacy-theme-sync-surfaces.css
+styles/legacy-theme-sync-image-edit.css
 styles/legacy-theme-sync.css
 styles/menu-select-overrides.css
 ```
