@@ -1,0 +1,11 @@
+.home-inspiration-grid {
+  display: grid;
+  grid-auto-rows: 158px;
+  grid-template-columns: repeat(6, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.home-inspiration-grid.feed {
+  grid-auto-rows: 150px;
+  grid-template-columns: repeat(8, minmax(132px, 1fr));
+}

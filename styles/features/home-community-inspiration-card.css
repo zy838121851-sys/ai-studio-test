@@ -1,0 +1,62 @@
+.inspiration-card {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.58);
+  border-radius: 10px;
+  background:
+    radial-gradient(circle at 74% 26%, color-mix(in srgb, var(--art-c) 88%, #fff) 0 14%, transparent 15%),
+    linear-gradient(135deg, var(--art-a), var(--art-b));
+  box-shadow: 0 18px 38px rgba(31, 46, 72, 0.12);
+  isolation: isolate;
+}
+
+.inspiration-card::before {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(150deg, transparent 0 35%, rgba(255, 255, 255, 0.28) 36% 48%, transparent 49%),
+    linear-gradient(0deg, rgba(0, 0, 0, 0.34), transparent 45%);
+  content: "";
+  mix-blend-mode: soft-light;
+}
+
+.inspiration-card::after {
+  position: absolute;
+  right: 10%;
+  bottom: 10%;
+  width: 44%;
+  height: 54%;
+  border-radius: 42% 58% 48% 52%;
+  background:
+    linear-gradient(145deg, color-mix(in srgb, var(--art-c) 65%, transparent), transparent 74%),
+    color-mix(in srgb, var(--art-b) 48%, transparent);
+  content: "";
+  filter: blur(0.2px);
+  opacity: 0.88;
+  transform: rotate(-10deg);
+}
+
+.inspiration-card.wide {
+  grid-column: span 2;
+}
+
+.inspiration-card.tall {
+  grid-row: span 2;
+}
+
+.inspiration-card span {
+  position: absolute;
+  left: 12px;
+  bottom: 10px;
+  z-index: 1;
+  max-width: calc(100% - 24px);
+  overflow: hidden;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.34);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
