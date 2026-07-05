@@ -1,0 +1,36 @@
+.task-log-output-preview {
+  display: grid;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+.task-log-output-item {
+  margin: 0;
+  border: 1px solid #edf0f3;
+  border-radius: 8px;
+  padding: 12px;
+  background: #fbfcfd;
+}
+
+.task-log-output-image,
+.task-log-output-video {
+  display: block;
+  width: 100%;
+  max-height: min(58vh, 560px);
+  border-radius: 8px;
+  background: #111827;
+  object-fit: contain;
+}
+
+.task-log-output-video {
+  min-height: 260px;
+}
+
+.task-log-output-item figcaption {
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.task-log-output-item a {
+  color: #175cd3;
+}

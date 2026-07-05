@@ -1,0 +1,23 @@
+@media (max-width: 900px) {
+  #taskLogPage.task-log-page {
+    width: calc(100vw - 32px);
+    padding-top: 72px;
+  }
+
+  .task-log-heading,
+  .task-log-footer {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .task-log-search,
+  .task-log-control,
+  .task-log-control input,
+  .task-log-control select {
+    width: 100%;
+  }
+
+  .task-log-detail-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

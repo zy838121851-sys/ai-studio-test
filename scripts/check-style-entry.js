@@ -12,6 +12,13 @@ const EXPECTED_STYLES_IMPORTS = [
   "./styles/task-log.css",
   "./styles/legacy-split.css"
 ];
+const EXPECTED_TASK_LOG_IMPORTS = [
+  "./task-log-shell.css",
+  "./task-log-table.css",
+  "./task-log-modal.css",
+  "./task-log-output.css",
+  "./task-log-responsive.css"
+];
 const EXPECTED_WORKSPACE_IMPORTS = [
   "./workspace-layout.css",
   "./features/auth.css",
@@ -136,6 +143,48 @@ const EXPECTED_LEGACY_CANVAS_VISUAL_SHAPE_TOOLS_IMPORTS = [
   "./legacy-canvas-visual-text-editor.css",
   "./legacy-canvas-visual-shape-toolbar.css",
   "./legacy-canvas-visual-text-toolbar.css"
+];
+const EXPECTED_TASK_LOG_SHELL_SELECTORS = [
+  "body[data-view=\"space\"] .profile-view",
+  "#taskLogPage.task-log-page",
+  ".task-log-heading",
+  ".task-log-refresh",
+  ".task-log-panel",
+  ".task-log-toolbar",
+  ".task-log-control"
+];
+const EXPECTED_TASK_LOG_TABLE_SELECTORS = [
+  ".task-log-table-wrap",
+  ".task-log-table",
+  ".task-log-type",
+  ".task-log-task-id",
+  ".task-log-icon-button",
+  ".task-log-status",
+  ".task-log-action",
+  ".task-log-footer",
+  ".task-log-pagination"
+];
+const EXPECTED_TASK_LOG_MODAL_SELECTORS = [
+  ".task-log-modal[hidden]",
+  ".task-log-modal",
+  ".task-log-modal-backdrop",
+  ".task-log-modal-card",
+  ".task-log-detail-body",
+  ".task-log-detail-grid",
+  ".task-log-failure",
+  ".task-log-muted"
+];
+const EXPECTED_TASK_LOG_OUTPUT_SELECTORS = [
+  ".task-log-output-preview",
+  ".task-log-output-item",
+  ".task-log-output-image",
+  ".task-log-output-video"
+];
+const EXPECTED_TASK_LOG_RESPONSIVE_SELECTORS = [
+  "@media (max-width: 900px)",
+  "#taskLogPage.task-log-page",
+  ".task-log-heading",
+  ".task-log-detail-grid"
 ];
 const EXPECTED_NODE_IMPORTS = [
   "./node-base.css",
@@ -1426,6 +1475,7 @@ function checkFileContains(filePath, snippets) {
 }
 
 const stylesImports = parseCssImports("styles.css");
+const taskLogImports = parseCssImports("styles/task-log.css");
 const workspaceImports = parseCssImports("styles/workspace.css");
 const projectLibraryImports = parseCssImports("styles/features/project-library.css");
 const legacySplitImports = parseCssImports("styles/legacy-split.css");
@@ -1482,6 +1532,7 @@ const homeShellImports = parseCssImports("styles/features/home-shell.css");
 
 checkIndexStylesheet();
 assertListEqual("styles.css", stylesImports, EXPECTED_STYLES_IMPORTS);
+assertListEqual("styles/task-log.css", taskLogImports, EXPECTED_TASK_LOG_IMPORTS);
 assertListEqual("styles/workspace.css", workspaceImports, EXPECTED_WORKSPACE_IMPORTS);
 assertListEqual("styles/features/project-library.css", projectLibraryImports, EXPECTED_PROJECT_LIBRARY_IMPORTS);
 assertListEqual("styles/legacy-split.css", legacySplitImports, EXPECTED_LEGACY_SPLIT_IMPORTS);
@@ -1536,6 +1587,7 @@ assertListEqual("styles/features/home-history.css", homeHistoryImports, EXPECTED
 assertListEqual("styles/features/home-community.css", homeCommunityImports, EXPECTED_HOME_COMMUNITY_IMPORTS);
 assertListEqual("styles/features/home-shell.css", homeShellImports, EXPECTED_HOME_SHELL_IMPORTS);
 checkImportedFilesExist(stylesImports, ".");
+checkImportedFilesExist(taskLogImports, "styles");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(projectLibraryImports, "styles/features");
 checkImportedFilesExist(legacySplitImports, "styles");
@@ -1589,6 +1641,11 @@ checkImportedFilesExist(homeHistoryImports, "styles/features");
 checkImportedFilesExist(homeCommunityImports, "styles/features");
 checkImportedFilesExist(homeShellImports, "styles/features");
 checkCssReachability();
+checkFileContains("styles/task-log-shell.css", EXPECTED_TASK_LOG_SHELL_SELECTORS);
+checkFileContains("styles/task-log-table.css", EXPECTED_TASK_LOG_TABLE_SELECTORS);
+checkFileContains("styles/task-log-modal.css", EXPECTED_TASK_LOG_MODAL_SELECTORS);
+checkFileContains("styles/task-log-output.css", EXPECTED_TASK_LOG_OUTPUT_SELECTORS);
+checkFileContains("styles/task-log-responsive.css", EXPECTED_TASK_LOG_RESPONSIVE_SELECTORS);
 checkFileContains("styles/features/auth-account.css", EXPECTED_AUTH_ACCOUNT_SELECTORS);
 checkFileContains("styles/features/auth-credit-detail.css", EXPECTED_AUTH_CREDIT_DETAIL_SELECTORS);
 checkFileContains("styles/features/auth-dialog.css", EXPECTED_AUTH_DIALOG_SELECTORS);

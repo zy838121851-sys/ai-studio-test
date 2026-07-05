@@ -1,0 +1,154 @@
+.task-log-modal[hidden] {
+  display: none;
+}
+
+.task-log-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 240;
+  display: grid;
+  place-items: center;
+  padding: 28px;
+}
+
+.task-log-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.24);
+}
+
+.task-log-modal-card {
+  position: relative;
+  width: min(760px, calc(100vw - 44px));
+  max-height: min(78vh, 760px);
+  border: 1px solid #d8dde4;
+  border-radius: 8px;
+  background: #fff;
+  color: #111827;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.18);
+  overflow: hidden;
+}
+
+.task-log-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px 12px;
+}
+
+.task-log-modal-header p {
+  margin: 0 0 4px;
+  color: #6b7280;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.task-log-modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  letter-spacing: 0;
+}
+
+.task-log-modal-header button {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  color: #4b5563;
+}
+
+.task-log-detail-body {
+  max-height: calc(min(78vh, 760px) - 76px);
+  padding: 0 22px 22px;
+  overflow: auto;
+}
+
+.task-log-detail-section {
+  margin-top: 14px;
+}
+
+.task-log-detail-section h3,
+.task-log-detail-title h3 {
+  margin: 0 0 8px;
+  color: #111827;
+  font-size: 16px;
+}
+
+.task-log-detail-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.task-log-detail-title button,
+.task-log-detail-section > button {
+  min-height: 30px;
+  border: 1px solid #dfe3e8;
+  border-radius: 8px;
+  padding: 0 10px;
+  color: #374151;
+}
+
+.task-log-detail-section code,
+.task-log-detail-section pre {
+  display: block;
+  width: 100%;
+  margin: 0;
+  border-radius: 8px;
+  padding: 12px;
+  background: #f4f5f6;
+  color: #111827;
+  font: 13px/1.5 "SFMono-Regular", Consolas, monospace;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.task-log-detail-section a {
+  display: block;
+  margin-top: 8px;
+  color: #175cd3;
+  word-break: break-all;
+}
+
+.task-log-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.task-log-detail-grid span {
+  min-height: 58px;
+  border: 1px solid #edf0f3;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fbfcfd;
+  color: #111827;
+}
+
+.task-log-detail-grid strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #6b7280;
+  font-size: 12px;
+}
+
+.task-log-failure {
+  color: #b42318 !important;
+}
+
+.task-log-detail-loading,
+.task-log-detail-error {
+  padding: 18px 0;
+  color: #4b5563;
+}
+
+.task-log-detail-error {
+  color: #b42318;
+}
+
+.task-log-muted {
+  margin: 0;
+  color: #6b7280;
+}
