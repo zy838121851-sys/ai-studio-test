@@ -1,0 +1,201 @@
+.agent-ui-blocks {
+  display: grid;
+  gap: 12px;
+  width: min(100%, 540px);
+  max-width: 94%;
+  padding: 0;
+  color: #18202b;
+  background: transparent;
+}
+
+.agent-analysis-card,
+.agent-result-card,
+.agent-task-status,
+.agent-assistant-summary {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+}
+
+.agent-analysis-card {
+  padding: 0;
+  overflow: hidden;
+  background: #f8fafc;
+}
+
+.agent-analysis-card summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 14px;
+  color: #9aa3b2;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  list-style: none;
+}
+
+.agent-analysis-card summary::-webkit-details-marker {
+  display: none;
+}
+
+.agent-analysis-body {
+  display: grid;
+  gap: 10px;
+  padding: 0 14px 14px;
+}
+
+.agent-analysis-body p {
+  margin: 0;
+  color: #2f3a48;
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.agent-analysis-body strong {
+  color: #111827;
+  font-weight: 800;
+}
+
+.agent-analysis-error {
+  color: #8a5a00;
+}
+
+.agent-analysis-pending,
+.agent-prompt-pending {
+  color: #64748b;
+}
+
+.agent-result-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.agent-result-kicker {
+  color: #a0a7b4;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.agent-result-card h3 {
+  margin: 0;
+  color: #111827;
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+.agent-result-media {
+  display: block;
+  overflow: hidden;
+  border-radius: 12px;
+  background: #eef2f7;
+}
+
+.agent-result-placeholder {
+  display: grid;
+  min-height: 180px;
+  place-items: center;
+  color: #64748b;
+  background:
+    linear-gradient(135deg, rgba(241, 245, 249, 0.92), rgba(226, 232, 240, 0.72));
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.agent-result-card.is-failed .agent-result-placeholder {
+  color: #991b1b;
+  background: #fef2f2;
+}
+
+.agent-result-image {
+  display: block;
+  width: 100%;
+  max-height: 420px;
+  object-fit: contain;
+}
+
+.agent-result-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.agent-result-meta span {
+  border-radius: 999px;
+  padding: 4px 8px;
+  color: #475569;
+  background: #f1f5f9;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.agent-prompt-details {
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 8px 10px;
+}
+
+.agent-prompt-card {
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.06);
+}
+
+.agent-prompt-details summary {
+  color: #64748b;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.agent-prompt-details p {
+  margin: 8px 0;
+  color: #334155;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.agent-prompt-details button {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 999px;
+  padding: 5px 10px;
+  color: #111827;
+  background: #fff;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.agent-assistant-summary {
+  margin: 0;
+  padding: 13px 14px;
+  color: #253041;
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.agent-task-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 12px;
+  color: #64748b;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.agent-feedback {
+  display: flex;
+  gap: 6px;
+}
+
+.agent-feedback button {
+  border: 1px solid rgba(15, 23, 42, 0.1);
+  border-radius: 999px;
+  width: 28px;
+  height: 28px;
+  background: #fff;
+  cursor: pointer;
+}
