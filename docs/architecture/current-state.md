@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,683 |
 | `src/server` | 80 | 14,430 |
-| `styles` | 68 | 15,288 |
-| `scripts` | 90 | 21,015 |
+| `styles` | 69 | 15,289 |
+| `scripts` | 90 | 21,023 |
 
 Largest files in the current source tree:
 
@@ -163,10 +163,12 @@ Post-baseline CSS governance note:
   chat model menu, image generator model menu, model preference panel, option,
   tag, and generator select option color-fix theme styles that were moved out
   of `styles/legacy-theme-sync.css`.
-- `styles/legacy-theme-sync.css` now imports the theme sync base, surfaces,
-  image edit, crop expand, media edit, node media, compact select, and model
-  preference submodules before the remaining cross-component theme
-  synchronization rules.
+- `styles/legacy-theme-sync-credit-submit.css` owns credit submit button, cost,
+  bolt, number, hidden, and quote-error theme synchronization styles that were
+  moved out of `styles/legacy-theme-sync.css`.
+- `styles/legacy-theme-sync.css` is now a pure aggregation entry that imports
+  the theme sync base, surfaces, image edit, crop expand, media edit, node
+  media, compact select, model preference, and credit submit submodules.
 - `styles/legacy-canvas-shell.css` owns the first canvas shell block that was
   moved out of `styles/legacy-canvas.css`: canvas area background, project
   header/logo, top actions, tool rail, add-node menu, canvas context menu, and

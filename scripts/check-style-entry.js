@@ -43,7 +43,8 @@ const EXPECTED_LEGACY_THEME_SYNC_IMPORTS = [
   "./legacy-theme-sync-media-edit.css",
   "./legacy-theme-sync-node-media.css",
   "./legacy-theme-sync-compact-select.css",
-  "./legacy-theme-sync-model-preference.css"
+  "./legacy-theme-sync-model-preference.css",
+  "./legacy-theme-sync-credit-submit.css"
 ];
 const EXPECTED_LEGACY_CANVAS_IMPORTS = [
   "./legacy-canvas-shell.css",
@@ -235,9 +236,15 @@ const EXPECTED_LEGACY_THEME_SYNC_IMAGE_EDIT_SELECTORS = [
   "#imageGeneratorPopover .image-generator-reference-thumb",
   "#imageEditCancel"
 ];
-const EXPECTED_LEGACY_THEME_SYNC_SELECTORS = [
+const EXPECTED_LEGACY_THEME_SYNC_SELECTORS = [];
+const EXPECTED_LEGACY_THEME_SYNC_CREDIT_SUBMIT_SELECTORS = [
   ".home-send.credit-submit-button",
-  ".credit-submit-cost"
+  "#imageEditSubmit.credit-submit-button",
+  "#imageGeneratorPopover [data-generator-submit].credit-submit-button",
+  ".composer-actions .send.credit-submit-button",
+  ".credit-submit-cost",
+  ".credit-submit-bolt",
+  ".credit-submit-button.is-credit-quote-error .credit-submit-cost"
 ];
 const EXPECTED_LEGACY_THEME_SYNC_CROP_EXPAND_SELECTORS = [
   ".canvas-context-menu button:first-child",
@@ -668,6 +675,7 @@ checkFileContains("styles/legacy-theme-sync-media-edit.css", EXPECTED_LEGACY_THE
 checkFileContains("styles/legacy-theme-sync-node-media.css", EXPECTED_LEGACY_THEME_SYNC_NODE_MEDIA_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-compact-select.css", EXPECTED_LEGACY_THEME_SYNC_COMPACT_SELECT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-model-preference.css", EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_SELECTORS);
+checkFileContains("styles/legacy-theme-sync-credit-submit.css", EXPECTED_LEGACY_THEME_SYNC_CREDIT_SUBMIT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync.css", EXPECTED_LEGACY_THEME_SYNC_SELECTORS);
 checkFileContains("styles/legacy-canvas-shell.css", EXPECTED_LEGACY_CANVAS_SHELL_SELECTORS);
 checkFileContains("styles/legacy-canvas-image-edit.css", EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_SELECTORS);

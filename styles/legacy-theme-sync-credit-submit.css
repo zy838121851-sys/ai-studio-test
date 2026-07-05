@@ -1,0 +1,93 @@
+.home-send.credit-submit-button,
+#imageEditSubmit.credit-submit-button,
+#imageGeneratorPopover [data-generator-submit].credit-submit-button,
+.composer-actions .send.credit-submit-button {
+  display: inline-grid !important;
+  align-items: center;
+  justify-items: center;
+  justify-content: center;
+  box-sizing: border-box !important;
+  width: auto !important;
+  min-width: 58px;
+  padding: 0 14px !important;
+  border: 0 !important;
+  border-radius: 999px !important;
+  color: #ffffff !important;
+  background: #050505 !important;
+  background-image: none !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2) !important;
+  white-space: nowrap;
+}
+
+.home-send.credit-submit-button {
+  width: 64px !important;
+  height: 52px !important;
+  min-width: 64px;
+  padding-inline: 0 !important;
+  justify-self: center;
+}
+
+#imageEditSubmit.credit-submit-button,
+#imageGeneratorPopover [data-generator-submit].credit-submit-button {
+  height: calc(40px * var(--edit-scale, 1)) !important;
+  min-height: calc(40px * var(--edit-scale, 1)) !important;
+  min-width: calc(58px * var(--edit-scale, 1)) !important;
+  padding-inline: calc(13px * var(--edit-scale, 1)) !important;
+}
+
+.composer-actions .send.credit-submit-button {
+  height: 34px !important;
+  min-height: 34px !important;
+  min-width: 58px;
+  padding-inline: 13px !important;
+}
+
+.credit-submit-cost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 0;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff;
+  font-family: "PingFang SC", "Microsoft YaHei UI", "Microsoft YaHei", Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0;
+}
+
+.credit-submit-bolt {
+  display: inline-grid;
+  place-items: center;
+  width: 9px;
+  height: 12px;
+  color: currentColor;
+  line-height: 0;
+}
+
+.credit-submit-bolt svg {
+  display: block;
+  width: 9px;
+  height: 12px;
+  fill: currentColor;
+}
+
+.credit-submit-number {
+  display: inline-block;
+  min-width: 0;
+}
+
+.credit-submit-cost[hidden] {
+  display: none !important;
+}
+
+.credit-submit-button.is-credit-quote-error .credit-submit-cost {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 11px;
+}
+
+.credit-submit-button.is-credit-quote-error .credit-submit-bolt {
+  display: none;
+}

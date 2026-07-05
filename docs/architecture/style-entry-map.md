@@ -122,6 +122,7 @@ styles/legacy-theme-sync-media-edit.css
 styles/legacy-theme-sync-node-media.css
 styles/legacy-theme-sync-compact-select.css
 styles/legacy-theme-sync-model-preference.css
+styles/legacy-theme-sync-credit-submit.css
 ```
 
 `styles/legacy-canvas.css` currently imports:
@@ -332,13 +333,16 @@ Notes:
 - `legacy-theme-sync-model-preference.css` owns model preference menu, chat
   model menu, image generator model menu, model preference panel, option, tag,
   and generator select option color-fix theme styles.
-- `legacy-theme-sync.css` imports `legacy-theme-sync-base.css`,
+- `legacy-theme-sync-credit-submit.css` owns credit submit button, cost, bolt,
+  number, hidden, and quote-error theme synchronization styles.
+- `legacy-theme-sync.css` is now a pure aggregation entry that imports
+  `legacy-theme-sync-base.css`,
   `legacy-theme-sync-surfaces.css`, `legacy-theme-sync-image-edit.css`, and
   `legacy-theme-sync-crop-expand.css`, and
   `legacy-theme-sync-media-edit.css`, `legacy-theme-sync-node-media.css`, and
   `legacy-theme-sync-compact-select.css`, and
-  `legacy-theme-sync-model-preference.css`, then keeps the remaining
-  cross-component theme synchronization rules.
+  `legacy-theme-sync-model-preference.css`, and
+  `legacy-theme-sync-credit-submit.css`.
 - `legacy-canvas-shell.css` owns the first legacy canvas shell block: canvas
   area background, project header/logo, top actions, tool rail, add-node menu,
   canvas context menu, selection action bar, and related mobile selection-bar
@@ -455,6 +459,7 @@ styles/legacy-theme-sync-media-edit.css
 styles/legacy-theme-sync-node-media.css
 styles/legacy-theme-sync-compact-select.css
 styles/legacy-theme-sync-model-preference.css
+styles/legacy-theme-sync-credit-submit.css
 styles/legacy-theme-sync.css
 styles/menu-select-overrides.css
 ```
