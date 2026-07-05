@@ -425,6 +425,11 @@ const EXPECTED_HOME_SHELL_PROMPT_IMPORTS = [
   "./home-shell-prompt-files.css",
   "./home-shell-prompt-controls.css"
 ];
+const EXPECTED_HOME_SHELL_MODEL_IMPORTS = [
+  "./home-shell-model-picker.css",
+  "./home-shell-model-menu.css",
+  "./home-shell-model-native.css"
+];
 const ALLOWED_UNREACHABLE_CSS = [
   "styles/legacy-node.css"
 ];
@@ -506,8 +511,21 @@ const EXPECTED_HOME_SHELL_PROMPT_CONTROLS_SELECTORS = [
   ".home-plus"
 ];
 const EXPECTED_HOME_SHELL_MODEL_SELECTORS = [
+  "@import url(\"./home-shell-model-picker.css\")",
+  "@import url(\"./home-shell-model-menu.css\")",
+  "@import url(\"./home-shell-model-native.css\")"
+];
+const EXPECTED_HOME_SHELL_MODEL_PICKER_SELECTORS = [
   ".home-model-picker",
+  ".home-model-button",
+  ".home-model-picker.open .home-model-button i"
+];
+const EXPECTED_HOME_SHELL_MODEL_MENU_SELECTORS = [
   ".home-model-menu",
+  ".home-model-option-content",
+  ".home-model-menu button.active"
+];
+const EXPECTED_HOME_SHELL_MODEL_NATIVE_SELECTORS = [
   ".home-model"
 ];
 const EXPECTED_HOME_SHELL_TRANSITION_SELECTORS = [
@@ -1872,6 +1890,7 @@ const homeCommunityImports = parseCssImports("styles/features/home-community.css
 const homeCommunityChannelImports = parseCssImports("styles/features/home-community-channels.css");
 const homeShellImports = parseCssImports("styles/features/home-shell.css");
 const homeShellPromptImports = parseCssImports("styles/features/home-shell-prompt.css");
+const homeShellModelImports = parseCssImports("styles/features/home-shell-model.css");
 
 checkIndexStylesheet();
 assertListEqual("styles.css", stylesImports, EXPECTED_STYLES_IMPORTS);
@@ -1943,6 +1962,7 @@ assertListEqual("styles/features/home-community.css", homeCommunityImports, EXPE
 assertListEqual("styles/features/home-community-channels.css", homeCommunityChannelImports, EXPECTED_HOME_COMMUNITY_CHANNEL_IMPORTS);
 assertListEqual("styles/features/home-shell.css", homeShellImports, EXPECTED_HOME_SHELL_IMPORTS);
 assertListEqual("styles/features/home-shell-prompt.css", homeShellPromptImports, EXPECTED_HOME_SHELL_PROMPT_IMPORTS);
+assertListEqual("styles/features/home-shell-model.css", homeShellModelImports, EXPECTED_HOME_SHELL_MODEL_IMPORTS);
 checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(imageCompareImports, "styles");
 checkImportedFilesExist(taskLogImports, "styles");
@@ -2011,6 +2031,7 @@ checkImportedFilesExist(homeCommunityImports, "styles/features");
 checkImportedFilesExist(homeCommunityChannelImports, "styles/features");
 checkImportedFilesExist(homeShellImports, "styles/features");
 checkImportedFilesExist(homeShellPromptImports, "styles/features");
+checkImportedFilesExist(homeShellModelImports, "styles/features");
 checkCssReachability();
 checkFileContains("styles/image-compare.css", EXPECTED_IMAGE_COMPARE_SELECTORS);
 checkFileContains("styles/image-compare-shell.css", EXPECTED_IMAGE_COMPARE_SHELL_SELECTORS);
@@ -2178,6 +2199,9 @@ checkFileContains("styles/features/home-shell-prompt-form.css", EXPECTED_HOME_SH
 checkFileContains("styles/features/home-shell-prompt-files.css", EXPECTED_HOME_SHELL_PROMPT_FILES_SELECTORS);
 checkFileContains("styles/features/home-shell-prompt-controls.css", EXPECTED_HOME_SHELL_PROMPT_CONTROLS_SELECTORS);
 checkFileContains("styles/features/home-shell-model.css", EXPECTED_HOME_SHELL_MODEL_SELECTORS);
+checkFileContains("styles/features/home-shell-model-picker.css", EXPECTED_HOME_SHELL_MODEL_PICKER_SELECTORS);
+checkFileContains("styles/features/home-shell-model-menu.css", EXPECTED_HOME_SHELL_MODEL_MENU_SELECTORS);
+checkFileContains("styles/features/home-shell-model-native.css", EXPECTED_HOME_SHELL_MODEL_NATIVE_SELECTORS);
 checkFileContains("styles/features/home-shell-transition.css", EXPECTED_HOME_SHELL_TRANSITION_SELECTORS);
 checkFileContains("styles/features/home-history-stack.css", EXPECTED_HOME_HISTORY_SELECTORS);
 checkFileContains("styles/features/home-history-section.css", EXPECTED_HOME_HISTORY_SECTION_SELECTORS);

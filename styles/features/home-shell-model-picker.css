@@ -1,0 +1,53 @@
+.home-model-picker {
+  grid-area: model;
+  position: relative;
+  width: 168px;
+}
+
+.native-model {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.home-model-button {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 14px;
+  align-items: center;
+  justify-items: stretch !important;
+  width: 168px;
+  height: 44px;
+  padding: 0 14px 0 18px;
+  border: 0;
+  border-radius: 999px !important;
+  color: rgba(24, 34, 48, 0.58);
+  background: rgba(247, 249, 252, 0.84);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 10px 24px rgba(31, 46, 72, 0.05);
+  font-size: 14px !important;
+}
+
+.home-model-button span {
+  overflow: hidden;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-model-button i {
+  width: 8px;
+  height: 8px;
+  border-right: 1.8px solid rgba(24, 34, 48, 0.52);
+  border-bottom: 1.8px solid rgba(24, 34, 48, 0.52);
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 0.18s ease;
+}
+
+.home-model-picker.open .home-model-button {
+  color: #17202c;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.home-model-picker.open .home-model-button i {
+  transform: translateY(2px) rotate(225deg);
+}
