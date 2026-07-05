@@ -115,6 +115,7 @@ styles/features/assets-pinterest.css
 styles/features/assets-pinterest-board.css
 styles/features/assets-pinterest-shell.css
 styles/features/assets-pinterest-board-refresh.css
+styles/features/assets-pinterest-pin.css
 ```
 
 `styles/features/home.css` currently imports:
@@ -296,12 +297,16 @@ Notes:
   refresh board grid, board cover count variants, cover cells, create-card,
   board title, and board delete styles; it is imported by
   `features/assets-pinterest.css`.
+- `features/assets-pinterest-pin.css` owns asset page Pinterest pin/card
+  thumbnail, selection check, placeholder, metadata, actions, delete, and
+  empty-state styles; it is imported by `features/assets-pinterest.css`.
 - `features/assets-pinterest.css` owns asset page Pinterest refresh
-  masonry, selection bar, pin/card styles, responsive rules, and asset page
-  interaction refinement styles; it imports
+  masonry, selection bar, responsive rules, and asset page interaction
+  refinement styles; it imports
   `features/assets-pinterest-board.css` and
   `features/assets-pinterest-shell.css`, and
-  `features/assets-pinterest-board-refresh.css`, and is imported by
+  `features/assets-pinterest-board-refresh.css`, and
+  `features/assets-pinterest-pin.css`, and is imported by
   `features/assets.css`.
 - `features/assets.css` is now an asset feature CSS aggregation entry for asset
   submodules.
@@ -443,6 +448,7 @@ styles/features/assets-context-menu.css
 styles/features/assets-pinterest-board.css
 styles/features/assets-pinterest-shell.css
 styles/features/assets-pinterest-board-refresh.css
+styles/features/assets-pinterest-pin.css
 styles/features/assets-pinterest.css
 styles/features/assets.css
 styles/features/chat.css
@@ -538,6 +544,7 @@ Additional caution:
   in `features/assets-pinterest-board.css`, migrated asset Pinterest shell
   selectors in `features/assets-pinterest-shell.css`, migrated asset Pinterest
   board refresh selectors in `features/assets-pinterest-board-refresh.css`,
+  migrated asset Pinterest pin selectors in `features/assets-pinterest-pin.css`,
   migrated asset Pinterest selectors in `features/assets-pinterest.css`,
   migrated node base selectors in
   `features/node-base.css`,

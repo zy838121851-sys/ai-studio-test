@@ -86,7 +86,8 @@ const EXPECTED_ASSET_IMPORTS = [
 const EXPECTED_ASSET_PINTEREST_IMPORTS = [
   "./assets-pinterest-board.css",
   "./assets-pinterest-shell.css",
-  "./assets-pinterest-board-refresh.css"
+  "./assets-pinterest-board-refresh.css",
+  "./assets-pinterest-pin.css"
 ];
 const EXPECTED_HOME_IMPORTS = [
   "./home-history.css",
@@ -242,6 +243,17 @@ const EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-create-card",
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-title",
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-delete"
+];
+const EXPECTED_ASSET_PINTEREST_PIN_SELECTORS = [
+  "body[data-view=\"assetsPage\"] .asset-pinterest-pin.asset-item",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-pin-thumb",
+  "body[data-view=\"assetsPage\"] .asset-card-check",
+  "body[data-view=\"assetsPage\"] .asset-image-placeholder",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-pin-meta",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-pin-actions",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-pin-delete",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-empty",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-empty-actions"
 ];
 const EXPECTED_ASSET_SELECTORS = [];
 const EXPECTED_CHAT_SELECTORS = [
@@ -714,6 +726,7 @@ checkFileContains("styles/features/assets-pinterest.css", EXPECTED_ASSET_PINTERE
 checkFileContains("styles/features/assets-pinterest-shell.css", EXPECTED_ASSET_PINTEREST_SHELL_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-board.css", EXPECTED_ASSET_PINTEREST_BOARD_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-board-refresh.css", EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_SELECTORS);
+checkFileContains("styles/features/assets-pinterest-pin.css", EXPECTED_ASSET_PINTEREST_PIN_SELECTORS);
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-base.css", EXPECTED_LEGACY_THEME_SYNC_BASE_SELECTORS);

@@ -53,33 +53,33 @@ Current source footprint, excluding `node_modules` and `dist`:
 
 | Area | Files | Lines |
 | --- | ---: | ---: |
-| `src/client` | 298 | 39,683 |
-| `src/server` | 80 | 14,430 |
-| `styles` | 73 | 15,295 |
-| `scripts` | 90 | 21,072 |
+| `src/client` | 298 | 36,815 |
+| `src/server` | 80 | 13,381 |
+| `styles` | 74 | 13,338 |
+| `scripts` | 90 | 19,306 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
-| 1,710 | `scripts/check-api-error-contract.js` |
-| 1,608 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
-| 1,480 | `scripts/check-generator-job-recovery.js` |
-| 1,303 | `src/server/services/conversation-orchestrator.service.js` |
-| 1,294 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
-| 1,283 | `scripts/check-canvas-menu-actions.js` |
-| 1,121 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
-| 1,113 | `scripts/check-library-bulk-select.js` |
-| 949 | `scripts/check-prompt-conversation-event-utils.js` |
-| 820 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
-| 811 | `src/server/services/ai-job.service.js` |
-| 782 | `src/client/features/canvas/model-viewer.js` |
-| 780 | `styles/legacy-chat.css` |
-| 769 | `scripts/check-style-entry.js` |
-| 709 | `src/client/features/workspace/asset-library/asset-panel.js` |
-| 706 | `src/server/services/asset.service.js` |
-| 704 | `src/client/features/canvas/node-controls.js` |
-| 702 | `src/client/features/projects/workflows/project-workflow.js` |
+| 1,608 | `scripts/check-api-error-contract.js` |
+| 1,569 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
+| 1,446 | `scripts/check-generator-job-recovery.js` |
+| 1,252 | `src/server/services/conversation-orchestrator.service.js` |
+| 1,214 | `scripts/check-canvas-menu-actions.js` |
+| 1,203 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
+| 1,065 | `scripts/check-library-bulk-select.js` |
+| 1,030 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
+| 898 | `scripts/check-prompt-conversation-event-utils.js` |
+| 765 | `src/server/services/ai-job.service.js` |
+| 760 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
+| 750 | `scripts/check-style-entry.js` |
+| 713 | `src/client/features/canvas/model-viewer.js` |
+| 672 | `styles/legacy-chat.css` |
+| 667 | `src/client/features/canvas/node-controls.js` |
+| 661 | `src/server/services/asset.service.js` |
+| 656 | `src/client/features/workspace/asset-library/asset-panel.js` |
+| 651 | `scripts/check-project-snapshot.js` |
 
 Post-baseline CSS governance note:
 
@@ -135,12 +135,17 @@ Post-baseline CSS governance note:
   Pinterest refresh board grid, board cover count variants, cover cells,
   create-card, board title, and board delete styles; it is imported by
   `styles/features/assets-pinterest.css`.
+- `styles/features/assets-pinterest-pin.css` owns asset page Pinterest
+  pin/card thumbnail, selection check, placeholder, metadata, actions, delete,
+  and empty-state styles; it is imported by
+  `styles/features/assets-pinterest.css`.
 - `styles/features/assets-pinterest.css` owns asset page Pinterest refresh
-  masonry, selection bar, pin/card styles, responsive rules, and asset page
-  interaction refinement styles; it imports
+  masonry, selection bar, responsive rules, and asset page interaction
+  refinement styles; it imports
   `styles/features/assets-pinterest-board.css` and
   `styles/features/assets-pinterest-shell.css`, and
-  `styles/features/assets-pinterest-board-refresh.css`, and is imported by
+  `styles/features/assets-pinterest-board-refresh.css`, and
+  `styles/features/assets-pinterest-pin.css`, and is imported by
   `styles/features/assets.css`.
 - `styles/features/assets.css` is now an asset feature CSS aggregation entry for
   asset submodules.
