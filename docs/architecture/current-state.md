@@ -53,10 +53,10 @@ Current source footprint, excluding `node_modules` and `dist`:
 
 | Area | Files | Lines |
 | --- | ---: | ---: |
-| `src/client` | 300 | 39,426 |
+| `src/client` | 300 | 39,438 |
 | `src/server` | 80 | 14,350 |
 | `styles` | 207 | 15,279 |
-| `scripts` | 92 | 22,071 |
+| `scripts` | 93 | 22,137 |
 
 Largest files in the current source tree:
 
@@ -67,7 +67,7 @@ Largest files in the current source tree:
 | 1,606 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
-| 1,294 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
+| 1,295 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,282 | `scripts/check-canvas-menu-actions.js` |
 | 1,120 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,118 | `scripts/check-library-bulk-select.js` |
@@ -614,6 +614,9 @@ Post-baseline CSS governance note:
   default model/ratio/count configuration, and Midjourney output count;
   `scripts/check-image-generator-workflow-constants.js` guards those static
   workflow settings without changing generator runtime behavior.
+- `image-generator-result-utils.js` now owns image generator completion message
+  formatting alongside result URL parsing; `scripts/check-image-generator-result-utils.js`
+  guards completion messages and image/video result URL behavior.
 
 ## Static Reachability Snapshot
 

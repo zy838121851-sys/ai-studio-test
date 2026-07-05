@@ -8,6 +8,7 @@ import {
   applyGeneratedImageNodeResult,
   applyGeneratedImageNodeSize,
   applyPersistedGeneratedImageNodeResult,
+  buildGeneratorCompletionMessage,
   buildGeneratedImageNodeOptions,
   getMissingGeneratorResultMessage,
   getGeneratorResultTitle,
@@ -621,11 +622,11 @@ export function createImageGeneratorWorkflow({
         window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
       }
       await saveCurrentProjectAfterGeneration?.();
-      addChat("assistant", videoModel
-        ? `Video generation completed.\n${modelUsage}`
-        : (count > 1
-          ? `Image generator completed ${count} results.\n${modelUsage}`
-          : `Image generator completed.\n${modelUsage}`));
+      addChat("assistant", buildGeneratorCompletionMessage({
+        videoModel,
+        count,
+        modelUsage
+      }));
     } catch (error) {
       console.error("[canvas] Image generator failed", error);
       if (previewNodes.length) {

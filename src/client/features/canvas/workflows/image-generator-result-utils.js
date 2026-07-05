@@ -12,6 +12,17 @@ export function getGeneratorResultTitle(index = 0, count = 1) {
     : "Image Generator Result.png";
 }
 
+export function buildGeneratorCompletionMessage({
+  videoModel = false,
+  count = 1,
+  modelUsage = ""
+} = {}) {
+  if (videoModel) return `Video generation completed.\n${modelUsage}`;
+  return count > 1
+    ? `Image generator completed ${count} results.\n${modelUsage}`
+    : `Image generator completed.\n${modelUsage}`;
+}
+
 export function buildGeneratedImageNodeOptions({
   title = "Image Generator Result.png",
   prompt = "",
