@@ -1,0 +1,61 @@
+.auth-dialog.hidden {
+  display: none;
+}
+
+.auth-dialog {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.auth-dialog-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(248, 250, 252, 0.38);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.auth-dialog-panel {
+  position: relative;
+  width: min(360px, calc(100vw - 32px));
+  padding: 24px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 28px 80px rgba(31, 46, 72, 0.16), inset 0 1px rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(24px) saturate(1.18);
+  -webkit-backdrop-filter: blur(24px) saturate(1.18);
+}
+
+.auth-dialog-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  color: rgba(23, 32, 44, 0.58);
+  background: rgba(245, 247, 250, 0.86);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.auth-dialog-panel header p {
+  display: none;
+}
+
+.auth-dialog-panel header h2 {
+  margin: 0 0 14px;
+  color: #17202c;
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-align: center;
+}

@@ -1,0 +1,72 @@
+.auth-alt-heading {
+  margin: 0 0 18px;
+  color: rgba(17, 24, 39, 0.48);
+  font-size: 14px;
+  font-weight: 750;
+  text-align: center;
+}
+
+.auth-icon-methods {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.auth-icon-methods button {
+  display: grid;
+  place-items: center;
+  min-height: 50px;
+  border: 1px solid rgba(17, 24, 39, 0.1);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.9);
+  color: rgba(17, 24, 39, 0.62);
+}
+
+.auth-icon-methods button.active {
+  color: #111827;
+  border-color: rgba(17, 24, 39, 0.2);
+  background: rgba(249, 250, 251, 0.98);
+}
+
+.auth-icon-methods svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.auth-icon-methods button:disabled,
+.auth-wechat-card:disabled,
+.auth-code-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+.auth-mode-switch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+  padding: 5px;
+  margin: 0 0 12px;
+  border-radius: 14px;
+  background: rgba(17, 24, 39, 0.05);
+}
+
+.auth-mode-switch.hidden {
+  display: none;
+}
+
+.auth-mode-switch button {
+  min-height: 36px;
+  border: 0;
+  border-radius: 11px;
+  color: rgba(17, 24, 39, 0.58);
+  background: transparent;
+  font-weight: 850;
+}
+
+.auth-mode-switch button.active {
+  color: #111827;
+  background: #fff;
+  box-shadow: 0 8px 18px rgba(17, 24, 39, 0.08);
+}

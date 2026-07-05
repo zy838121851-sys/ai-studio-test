@@ -1,0 +1,103 @@
+.auth-wechat-panel {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  margin: 2px 0 24px;
+}
+
+.auth-wechat-panel.hidden,
+.auth-form.hidden {
+  display: none;
+}
+
+.auth-wechat-card {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #101827;
+}
+
+.auth-wechat-card strong {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 0;
+}
+
+.auth-wechat-card small {
+  color: rgba(17, 24, 39, 0.56);
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.auth-wechat-qr {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 218px;
+  height: 218px;
+  margin-top: 8px;
+  background:
+    linear-gradient(90deg, #111 10px, transparent 10px) 0 0 / 22px 22px,
+    linear-gradient(#111 10px, transparent 10px) 0 0 / 22px 22px,
+    #fff;
+  box-shadow: inset 0 0 0 10px #fff;
+  overflow: hidden;
+}
+
+.auth-wechat-qr img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #fff;
+}
+
+.auth-wechat-qr img:not([src]) {
+  display: none;
+}
+
+.auth-wechat-qr > span {
+  position: absolute;
+  width: 42px;
+  height: 42px;
+  border: 8px solid #111;
+  background: #fff;
+}
+
+.auth-wechat-qr > span:nth-of-type(1) {
+  top: 16px;
+  left: 16px;
+}
+
+.auth-wechat-qr > span:nth-of-type(2) {
+  top: 16px;
+  right: 16px;
+}
+
+.auth-wechat-qr > span:nth-of-type(3) {
+  bottom: 16px;
+  left: 16px;
+}
+
+.auth-wechat-qr > span:nth-of-type(4) {
+  right: 46px;
+  bottom: 46px;
+  width: 22px;
+  height: 22px;
+  border-width: 6px;
+}
+
+.auth-legal {
+  margin: 0;
+  color: rgba(17, 24, 39, 0.48);
+  font-size: 13px;
+}
+
+.auth-legal a {
+  color: #2563eb;
+  text-decoration: none;
+}

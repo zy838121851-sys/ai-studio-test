@@ -1,0 +1,10 @@
+.auth-menu-list button:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+.auth-menu-icon {
+  color: rgba(23, 32, 44, 0.72);
+  font-size: 17px;
+  line-height: 1;
+}

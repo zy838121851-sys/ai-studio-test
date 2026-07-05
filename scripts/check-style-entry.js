@@ -429,11 +429,44 @@ const EXPECTED_AUTH_IMPORTS = [
   "./auth-credit-detail.css",
   "./auth-dialog.css"
 ];
+const EXPECTED_AUTH_DIALOG_IMPORTS = [
+  "./auth-dialog-menu.css",
+  "./auth-dialog-shell.css",
+  "./auth-dialog-wechat.css",
+  "./auth-dialog-methods.css",
+  "./auth-dialog-form.css"
+];
 const EXPECTED_AUTH_DIALOG_SELECTORS = [
+  "@import url(\"./auth-dialog-menu.css\")",
+  "@import url(\"./auth-dialog-shell.css\")",
+  "@import url(\"./auth-dialog-wechat.css\")",
+  "@import url(\"./auth-dialog-methods.css\")",
+  "@import url(\"./auth-dialog-form.css\")"
+];
+const EXPECTED_AUTH_DIALOG_MENU_SELECTORS = [
+  ".auth-menu-list button:disabled",
+  ".auth-menu-icon"
+];
+const EXPECTED_AUTH_DIALOG_SHELL_SELECTORS = [
   ".auth-dialog",
+  ".auth-dialog-backdrop",
+  ".auth-dialog-panel",
+  ".auth-dialog-close"
+];
+const EXPECTED_AUTH_DIALOG_WECHAT_SELECTORS = [
   ".auth-wechat-panel",
+  ".auth-wechat-card",
+  ".auth-wechat-qr",
+  ".auth-legal"
+];
+const EXPECTED_AUTH_DIALOG_METHODS_SELECTORS = [
   ".auth-icon-methods",
+  ".auth-mode-switch",
+  ".auth-code-button:disabled"
+];
+const EXPECTED_AUTH_DIALOG_FORM_SELECTORS = [
   ".auth-form",
+  ".auth-message",
   ".auth-submit"
 ];
 const EXPECTED_AUTH_CREDIT_DETAIL_SELECTORS = [
@@ -1496,6 +1529,7 @@ const legacyCanvasImageEditImports = parseCssImports("styles/legacy-canvas-image
 const legacyCanvasVisualImports = parseCssImports("styles/legacy-canvas-visual.css");
 const legacyCanvasVisualShapeToolsImports = parseCssImports("styles/legacy-canvas-visual-shape-tools.css");
 const authImports = parseCssImports("styles/features/auth.css");
+const authDialogImports = parseCssImports("styles/features/auth-dialog.css");
 const nodeImports = parseCssImports("styles/features/node.css");
 const nodeImageEditImports = parseCssImports("styles/features/node-image-edit.css");
 const nodeImageToolbarImports = parseCssImports("styles/features/node-image-toolbar.css");
@@ -1553,6 +1587,7 @@ assertListEqual("styles/legacy-canvas-image-edit.css", legacyCanvasImageEditImpo
 assertListEqual("styles/legacy-canvas-visual.css", legacyCanvasVisualImports, EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS);
 assertListEqual("styles/legacy-canvas-visual-shape-tools.css", legacyCanvasVisualShapeToolsImports, EXPECTED_LEGACY_CANVAS_VISUAL_SHAPE_TOOLS_IMPORTS);
 assertListEqual("styles/features/auth.css", authImports, EXPECTED_AUTH_IMPORTS);
+assertListEqual("styles/features/auth-dialog.css", authDialogImports, EXPECTED_AUTH_DIALOG_IMPORTS);
 assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
 assertListEqual("styles/features/node-image-edit.css", nodeImageEditImports, EXPECTED_NODE_IMAGE_EDIT_IMPORTS);
 assertListEqual("styles/features/node-image-toolbar.css", nodeImageToolbarImports, EXPECTED_NODE_IMAGE_TOOLBAR_IMPORTS);
@@ -1607,6 +1642,7 @@ checkImportedFilesExist(legacyCanvasImageEditImports, "styles");
 checkImportedFilesExist(legacyCanvasVisualImports, "styles");
 checkImportedFilesExist(legacyCanvasVisualShapeToolsImports, "styles");
 checkImportedFilesExist(authImports, "styles/features");
+checkImportedFilesExist(authDialogImports, "styles/features");
 checkImportedFilesExist(nodeImports, "styles/features");
 checkImportedFilesExist(nodeImageEditImports, "styles/features");
 checkImportedFilesExist(nodeImageToolbarImports, "styles/features");
@@ -1649,6 +1685,11 @@ checkFileContains("styles/task-log-responsive.css", EXPECTED_TASK_LOG_RESPONSIVE
 checkFileContains("styles/features/auth-account.css", EXPECTED_AUTH_ACCOUNT_SELECTORS);
 checkFileContains("styles/features/auth-credit-detail.css", EXPECTED_AUTH_CREDIT_DETAIL_SELECTORS);
 checkFileContains("styles/features/auth-dialog.css", EXPECTED_AUTH_DIALOG_SELECTORS);
+checkFileContains("styles/features/auth-dialog-menu.css", EXPECTED_AUTH_DIALOG_MENU_SELECTORS);
+checkFileContains("styles/features/auth-dialog-shell.css", EXPECTED_AUTH_DIALOG_SHELL_SELECTORS);
+checkFileContains("styles/features/auth-dialog-wechat.css", EXPECTED_AUTH_DIALOG_WECHAT_SELECTORS);
+checkFileContains("styles/features/auth-dialog-methods.css", EXPECTED_AUTH_DIALOG_METHODS_SELECTORS);
+checkFileContains("styles/features/auth-dialog-form.css", EXPECTED_AUTH_DIALOG_FORM_SELECTORS);
 checkFileContains("styles/features/assets-floating-library.css", EXPECTED_ASSET_PAGE_SELECTORS);
 checkFileContains("styles/features/assets-page-view.css", EXPECTED_ASSET_PAGE_VIEW_SELECTORS);
 checkFileContains("styles/features/assets-page-pinterest-legacy.css", EXPECTED_ASSET_PAGE_PINTEREST_LEGACY_SELECTORS);
