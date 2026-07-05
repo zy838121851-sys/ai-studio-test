@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,350 |
-| `styles` | 178 | 15,267 |
-| `scripts` | 90 | 21,783 |
+| `styles` | 181 | 15,268 |
+| `scripts` | 90 | 21,803 |
 
 Largest files in the current source tree:
 
@@ -64,7 +64,7 @@ Largest files in the current source tree:
 | ---: | --- |
 | 1,709 | `scripts/check-api-error-contract.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
-| 1,563 | `scripts/check-style-entry.js` |
+| 1,583 | `scripts/check-style-entry.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
 | 1,302 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
@@ -256,10 +256,15 @@ Post-baseline CSS governance note:
   Pinterest refresh board grid, board cover count variants, cover cells,
   create-card, board title, and board delete styles; it is imported by
   `styles/features/assets-pinterest.css`.
-- `styles/features/assets-pinterest-pin.css` owns asset page Pinterest
-  pin/card thumbnail, selection check, placeholder, metadata, actions, delete,
-  and empty-state styles; it is imported by
-  `styles/features/assets-pinterest.css`.
+- `styles/features/assets-pinterest-pin.css` is now a pure aggregation entry
+  for asset page Pinterest pin card, action, and empty-state submodules; it is
+  imported by `styles/features/assets-pinterest.css`.
+- `styles/features/assets-pinterest-pin-card.css` owns asset page Pinterest
+  pin/card thumbnail, selection check, placeholder, and metadata styles.
+- `styles/features/assets-pinterest-pin-actions.css` owns asset page Pinterest
+  pin hover actions and delete action styles.
+- `styles/features/assets-pinterest-pin-empty.css` owns asset page Pinterest
+  empty-state mark, copy, and action styles.
 - `styles/features/assets-pinterest-layout.css` owns asset page Pinterest
   masonry and selection bar styles; it is imported by
   `styles/features/assets-pinterest.css`.

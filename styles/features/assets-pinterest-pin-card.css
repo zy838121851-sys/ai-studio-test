@@ -1,0 +1,122 @@
+body[data-view="assetsPage"] .asset-pinterest-pin.asset-item {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  margin: 0 0 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  box-shadow: none;
+  break-inside: avoid;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin.is-selectable {
+  cursor: pointer;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin.selected .asset-pinterest-pin-thumb {
+  box-shadow: 0 18px 42px rgba(77, 156, 255, 0.18), inset 0 0 0 3px rgba(77, 156, 255, 0.6);
+}
+
+body[data-view="assetsPage"] .asset-card-check {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid rgba(17, 24, 39, 0.12);
+  border-radius: 50%;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+  font-size: 12px;
+  font-weight: 860;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin.selected .asset-card-check {
+  background: #4d9cff;
+  border-color: #4d9cff;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin-thumb {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-height: 220px;
+  padding: 0;
+  border: 0;
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(248, 250, 252, 0.92), rgba(238, 242, 247, 0.84));
+  box-shadow: 0 16px 34px rgba(15, 23, 42, 0.08);
+  overflow: hidden;
+  cursor: zoom-in;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin.tall .asset-pinterest-pin-thumb {
+  min-height: 320px;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin.wide .asset-pinterest-pin-thumb {
+  min-height: 250px;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin-thumb img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  object-fit: cover;
+  transition: transform 0.22s ease, filter 0.22s ease;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin:hover .asset-pinterest-pin-thumb img {
+  filter: saturate(1.02) brightness(0.94);
+  transform: scale(1.018);
+}
+
+body[data-view="assetsPage"] .asset-image-placeholder {
+  position: absolute;
+  inset: 0;
+  display: none;
+  place-items: center;
+  color: #7b8495;
+  font-size: 13px;
+  font-weight: 760;
+  letter-spacing: 0.04em;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin-thumb.is-broken .asset-image-placeholder,
+body[data-view="assetsPage"] .asset-pinterest-pin-thumb:not(:has(img)) .asset-image-placeholder {
+  display: grid;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin-meta {
+  margin-top: 10px;
+  padding: 0 4px;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin-meta strong {
+  display: block;
+  overflow: hidden;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 720;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin-meta span {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: #7b8495;
+  font-size: 12px;
+  font-weight: 520;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

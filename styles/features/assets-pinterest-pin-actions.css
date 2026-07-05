@@ -1,0 +1,52 @@
+body[data-view="assetsPage"] .asset-pinterest-pin-actions {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  z-index: 3;
+  display: grid;
+  gap: 7px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin:hover .asset-pinterest-pin-actions {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin-actions button {
+  min-height: 30px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 999px;
+  color: #111827;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+  backdrop-filter: blur(18px);
+  font-size: 12px;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin-actions button:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin-actions .danger {
+  color: #d74735;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin-delete {
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  color: #111827;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.14);
+  backdrop-filter: blur(18px);
+  font-size: 20px;
+}

@@ -1,0 +1,62 @@
+body[data-view="assetsPage"] .asset-pinterest-empty {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  min-height: 300px;
+  padding: 34px;
+  border: 1px solid rgba(17, 24, 39, 0.05);
+  border-radius: 26px;
+  color: #7b8495;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.82)),
+    radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.07), transparent 36%);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.055);
+  text-align: center;
+}
+
+body[data-view="assetsPage"] .asset-empty-mark {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+  background:
+    linear-gradient(90deg, transparent calc(50% - 1px), rgba(17, 24, 39, 0.13) calc(50% - 1px), rgba(17, 24, 39, 0.13) calc(50% + 1px), transparent calc(50% + 1px)),
+    linear-gradient(0deg, transparent calc(50% - 1px), rgba(17, 24, 39, 0.13) calc(50% - 1px), rgba(17, 24, 39, 0.13) calc(50% + 1px), transparent calc(50% + 1px)),
+    rgba(17, 24, 39, 0.045);
+}
+
+body[data-view="assetsPage"] .asset-pinterest-empty strong {
+  color: #111827;
+  font-size: 20px;
+  font-weight: 760;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-empty > span:not(.asset-empty-mark) {
+  max-width: 380px;
+  color: #7b8495;
+  font-size: 14px;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-empty-actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-empty-actions button {
+  min-height: 38px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  color: #111827;
+  background: rgba(17, 24, 39, 0.06);
+  font-size: 13px;
+  font-weight: 720;
+  cursor: pointer;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-empty-actions button:first-child {
+  color: #fff;
+  background: #d74735;
+}

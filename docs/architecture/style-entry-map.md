@@ -240,6 +240,14 @@ styles/features/assets-pinterest-board-masonry-legacy.css
 styles/features/assets-pinterest-board-responsive-legacy.css
 ```
 
+`styles/features/assets-pinterest-pin.css` currently imports:
+
+```text
+styles/features/assets-pinterest-pin-card.css
+styles/features/assets-pinterest-pin-actions.css
+styles/features/assets-pinterest-pin-empty.css
+```
+
 `styles/features/home.css` currently imports:
 
 ```text
@@ -645,9 +653,15 @@ Notes:
   refresh board grid, board cover count variants, cover cells, create-card,
   board title, and board delete styles; it is imported by
   `features/assets-pinterest.css`.
-- `features/assets-pinterest-pin.css` owns asset page Pinterest pin/card
-  thumbnail, selection check, placeholder, metadata, actions, delete, and
-  empty-state styles; it is imported by `features/assets-pinterest.css`.
+- `features/assets-pinterest-pin.css` is now a pure aggregation entry for asset
+  page Pinterest pin card, action, and empty-state submodules; it is imported by
+  `features/assets-pinterest.css`.
+- `features/assets-pinterest-pin-card.css` owns asset page Pinterest pin/card
+  thumbnail, selection check, placeholder, and metadata styles.
+- `features/assets-pinterest-pin-actions.css` owns asset page Pinterest pin
+  hover actions and delete action styles.
+- `features/assets-pinterest-pin-empty.css` owns asset page Pinterest
+  empty-state mark, copy, and action styles.
 - `features/assets-pinterest-layout.css` owns asset page Pinterest masonry and
   selection bar styles; it is imported by `features/assets-pinterest.css`.
 - `features/assets-pinterest-responsive.css` owns asset page Pinterest
@@ -964,6 +978,9 @@ styles/features/assets-pinterest-board-responsive-legacy.css
 styles/features/assets-pinterest-shell.css
 styles/features/assets-pinterest-board-refresh.css
 styles/features/assets-pinterest-pin.css
+styles/features/assets-pinterest-pin-card.css
+styles/features/assets-pinterest-pin-actions.css
+styles/features/assets-pinterest-pin-empty.css
 styles/features/assets-pinterest-layout.css
 styles/features/assets-pinterest-responsive.css
 styles/features/assets-pinterest.css
@@ -1168,7 +1185,11 @@ Additional caution:
   migrated asset Pinterest shell
   selectors in `features/assets-pinterest-shell.css`, migrated asset Pinterest
   board refresh selectors in `features/assets-pinterest-board-refresh.css`,
-  migrated asset Pinterest pin selectors in `features/assets-pinterest-pin.css`,
+  migrated asset Pinterest pin imports in `features/assets-pinterest-pin.css`,
+  migrated asset Pinterest pin card, actions, and empty-state selectors in
+  `features/assets-pinterest-pin-card.css`,
+  `features/assets-pinterest-pin-actions.css`, and
+  `features/assets-pinterest-pin-empty.css`,
   migrated asset Pinterest layout selectors in
   `features/assets-pinterest-layout.css`, migrated asset Pinterest responsive
   selectors in `features/assets-pinterest-responsive.css`,
