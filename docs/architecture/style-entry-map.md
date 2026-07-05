@@ -243,6 +243,15 @@ styles/legacy-compact-tool-rail.css
 styles/legacy-compact-bottom-controls.css
 ```
 
+`styles/legacy-theme-ios.css` currently imports:
+
+```text
+styles/legacy-theme-ios-base.css
+styles/legacy-theme-ios-chrome.css
+styles/legacy-theme-ios-node-media.css
+styles/legacy-theme-ios-chat-composer.css
+```
+
 `styles/legacy-theme-sync.css` currently imports:
 
 ```text
@@ -446,6 +455,18 @@ Notes:
   preview close pseudo-element styles; it is imported by `legacy-chat.css`.
 - `legacy-chat.css` is now a pure aggregation entry for chat shell, message,
   responsive, agent, and composer submodules.
+- `legacy-theme-ios.css` is now a pure aggregation entry for iOS glass theme
+  base, chrome, node/media, and chat/composer submodules.
+- `legacy-theme-ios-base.css` owns iOS glass light-theme variables, page/app
+  background, and canvas background overlays.
+- `legacy-theme-ios-chrome.css` owns iOS glass chrome surfaces and controls for
+  project/header/top actions/tool rail/bottom controls/add-node, context menu,
+  and image-edit surfaces.
+- `legacy-theme-ios-node-media.css` owns iOS glass canvas viewport hints,
+  node/generated/media cards, selected state, labels, 3D/video preview, face,
+  and play styles.
+- `legacy-theme-ios-chat-composer.css` owns iOS glass chat panel, messages,
+  composer/input, chat image preview, and light color-scheme styles.
 - `legacy-compact-project-menu.css` owns compact project header and project
   menu styles; it is imported by `legacy-compact-controls.css`.
 - `legacy-compact-tool-rail.css` owns compact tool rail, rail item, rail button,
@@ -869,6 +890,10 @@ styles/legacy-compact-bottom-controls.css
 styles/legacy-rail-polish.css
 styles/legacy-light-refinements.css
 styles/legacy-theme-ios.css
+styles/legacy-theme-ios-base.css
+styles/legacy-theme-ios-chrome.css
+styles/legacy-theme-ios-node-media.css
+styles/legacy-theme-ios-chat-composer.css
 styles/legacy-theme-sync-base.css
 styles/legacy-theme-sync-surfaces.css
 styles/legacy-theme-sync-image-edit.css
@@ -946,6 +971,11 @@ Additional caution:
   `legacy-compact-tool-rail.css`,
   migrated compact bottom controls selectors in
   `legacy-compact-bottom-controls.css`,
+  iOS theme imports in `legacy-theme-ios.css`, iOS theme base selectors in
+  `legacy-theme-ios-base.css`, iOS theme chrome selectors in
+  `legacy-theme-ios-chrome.css`, iOS theme node/media selectors in
+  `legacy-theme-ios-node-media.css`, and iOS theme chat/composer selectors in
+  `legacy-theme-ios-chat-composer.css`,
   migrated node base selectors in
   `features/node-base.css`,
   migrated image edit imports in `features/node-image-edit.css`, migrated image

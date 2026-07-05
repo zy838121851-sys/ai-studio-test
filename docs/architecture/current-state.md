@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,683 |
 | `src/server` | 80 | 14,430 |
-| `styles` | 140 | 15,391 |
-| `scripts` | 90 | 21,558 |
+| `styles` | 144 | 15,395 |
+| `scripts` | 90 | 21,602 |
 
 Largest files in the current source tree:
 
@@ -68,7 +68,7 @@ Largest files in the current source tree:
 | 1,303 | `src/server/services/conversation-orchestrator.service.js` |
 | 1,294 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
 | 1,283 | `scripts/check-canvas-menu-actions.js` |
-| 1,249 | `scripts/check-style-entry.js` |
+| 1,293 | `scripts/check-style-entry.js` |
 | 1,121 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,119 | `scripts/check-library-bulk-select.js` |
 | 949 | `scripts/check-prompt-conversation-event-utils.js` |
@@ -144,6 +144,18 @@ Post-baseline CSS governance note:
   `styles/legacy-chat.css`.
 - `styles/legacy-chat.css` is now a pure aggregation entry for chat shell,
   message, responsive, agent, and composer submodules.
+- `styles/legacy-theme-ios.css` is now a pure aggregation entry for iOS glass
+  theme base, chrome, node/media, and chat/composer submodules.
+- `styles/legacy-theme-ios-base.css` owns iOS glass light-theme variables,
+  page/app background, and canvas background overlays.
+- `styles/legacy-theme-ios-chrome.css` owns iOS glass chrome surfaces and
+  controls for project/header/top actions/tool rail/bottom controls/add-node,
+  context menu, and image-edit surfaces.
+- `styles/legacy-theme-ios-node-media.css` owns iOS glass canvas viewport
+  hints, node/generated/media cards, selected state, labels, 3D/video preview,
+  face, and play styles.
+- `styles/legacy-theme-ios-chat-composer.css` owns iOS glass chat panel,
+  messages, composer/input, chat image preview, and light color-scheme styles.
 - `styles/legacy-compact-project-menu.css` owns compact project header and
   project menu styles moved out of `styles/legacy-compact-controls.css`; it is
   imported by `styles/legacy-compact-controls.css`.

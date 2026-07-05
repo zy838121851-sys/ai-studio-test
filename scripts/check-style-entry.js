@@ -40,6 +40,12 @@ const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./menu-select-overrides.css"
 ];
 const EXPECTED_LEGACY_BASE_IMPORTS = [];
+const EXPECTED_LEGACY_THEME_IOS_IMPORTS = [
+  "./legacy-theme-ios-base.css",
+  "./legacy-theme-ios-chrome.css",
+  "./legacy-theme-ios-node-media.css",
+  "./legacy-theme-ios-chat-composer.css"
+];
 const EXPECTED_LEGACY_CHAT_IMPORTS = [
   "./legacy-chat-shell.css",
   "./legacy-chat-message.css",
@@ -434,6 +440,36 @@ const EXPECTED_LEGACY_THEME_SYNC_BASE_SELECTORS = [
   ".theme-track",
   ".theme-orb",
   ".theme-sun"
+];
+const EXPECTED_LEGACY_THEME_IOS_SELECTORS = [
+  "@import url(\"./legacy-theme-ios-base.css\")",
+  "@import url(\"./legacy-theme-ios-chrome.css\")",
+  "@import url(\"./legacy-theme-ios-node-media.css\")",
+  "@import url(\"./legacy-theme-ios-chat-composer.css\")"
+];
+const EXPECTED_LEGACY_THEME_IOS_BASE_SELECTORS = [
+  "/* iOS glass light theme */",
+  ":root",
+  "body",
+  ".canvas-area"
+];
+const EXPECTED_LEGACY_THEME_IOS_CHROME_SELECTORS = [
+  ".project-header",
+  ".top-actions button",
+  ".rail-main",
+  ".add-node-menu"
+];
+const EXPECTED_LEGACY_THEME_IOS_NODE_MEDIA_SELECTORS = [
+  ".canvas-viewport",
+  ".node-card",
+  ".node-card.selected",
+  ".video-preview"
+];
+const EXPECTED_LEGACY_THEME_IOS_CHAT_COMPOSER_SELECTORS = [
+  ".chat-panel",
+  ".message.user",
+  ".composer textarea",
+  "input,"
 ];
 const EXPECTED_LEGACY_THEME_SYNC_SURFACES_SELECTORS = [
   ".project-header",
@@ -1036,6 +1072,7 @@ const workspaceImports = parseCssImports("styles/workspace.css");
 const projectLibraryImports = parseCssImports("styles/features/project-library.css");
 const legacySplitImports = parseCssImports("styles/legacy-split.css");
 const legacyBaseImports = parseCssImports("styles/legacy-base.css");
+const legacyThemeIosImports = parseCssImports("styles/legacy-theme-ios.css");
 const legacyChatImports = parseCssImports("styles/legacy-chat.css");
 const legacyCompactControlsImports = parseCssImports("styles/legacy-compact-controls.css");
 const legacyThemeSyncImports = parseCssImports("styles/legacy-theme-sync.css");
@@ -1069,6 +1106,7 @@ assertListEqual("styles/workspace.css", workspaceImports, EXPECTED_WORKSPACE_IMP
 assertListEqual("styles/features/project-library.css", projectLibraryImports, EXPECTED_PROJECT_LIBRARY_IMPORTS);
 assertListEqual("styles/legacy-split.css", legacySplitImports, EXPECTED_LEGACY_SPLIT_IMPORTS);
 assertListEqual("styles/legacy-base.css", legacyBaseImports, EXPECTED_LEGACY_BASE_IMPORTS);
+assertListEqual("styles/legacy-theme-ios.css", legacyThemeIosImports, EXPECTED_LEGACY_THEME_IOS_IMPORTS);
 assertListEqual("styles/legacy-chat.css", legacyChatImports, EXPECTED_LEGACY_CHAT_IMPORTS);
 assertListEqual("styles/legacy-compact-controls.css", legacyCompactControlsImports, EXPECTED_LEGACY_COMPACT_CONTROLS_IMPORTS);
 assertListEqual("styles/legacy-theme-sync.css", legacyThemeSyncImports, EXPECTED_LEGACY_THEME_SYNC_IMPORTS);
@@ -1099,6 +1137,7 @@ checkImportedFilesExist(stylesImports, ".");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(projectLibraryImports, "styles/features");
 checkImportedFilesExist(legacySplitImports, "styles");
+checkImportedFilesExist(legacyThemeIosImports, "styles");
 checkImportedFilesExist(legacyChatImports, "styles");
 checkImportedFilesExist(legacyCompactControlsImports, "styles");
 checkImportedFilesExist(legacyThemeSyncImports, "styles");
@@ -1146,6 +1185,11 @@ checkFileContains("styles/features/assets-pinterest-layout.css", EXPECTED_ASSET_
 checkFileContains("styles/features/assets-pinterest-responsive.css", EXPECTED_ASSET_PINTEREST_RESPONSIVE_SELECTORS);
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
+checkFileContains("styles/legacy-theme-ios.css", EXPECTED_LEGACY_THEME_IOS_SELECTORS);
+checkFileContains("styles/legacy-theme-ios-base.css", EXPECTED_LEGACY_THEME_IOS_BASE_SELECTORS);
+checkFileContains("styles/legacy-theme-ios-chrome.css", EXPECTED_LEGACY_THEME_IOS_CHROME_SELECTORS);
+checkFileContains("styles/legacy-theme-ios-node-media.css", EXPECTED_LEGACY_THEME_IOS_NODE_MEDIA_SELECTORS);
+checkFileContains("styles/legacy-theme-ios-chat-composer.css", EXPECTED_LEGACY_THEME_IOS_CHAT_COMPOSER_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-base.css", EXPECTED_LEGACY_THEME_SYNC_BASE_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-surfaces.css", EXPECTED_LEGACY_THEME_SYNC_SURFACES_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-image-edit.css", EXPECTED_LEGACY_THEME_SYNC_IMAGE_EDIT_SELECTORS);

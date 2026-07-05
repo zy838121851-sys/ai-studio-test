@@ -1,0 +1,44 @@
+/* iOS glass light theme */
+:root {
+  --black: #f6f8fb;
+  --panel: rgba(255, 255, 255, 0.72);
+  --panel-soft: rgba(255, 255, 255, 0.56);
+  --line: rgba(28, 35, 45, 0.12);
+  --line-soft: rgba(28, 35, 45, 0.1);
+  --text: #17202c;
+  --muted: #667085;
+  --soft: #344054;
+  --accent: #0a84ff;
+  --green: #34c759;
+  --yellow: #ffcc00;
+  --pink: #ff2d8d;
+  --glass-bg: rgba(255, 255, 255, 0.68);
+  --glass-bg-strong: rgba(255, 255, 255, 0.84);
+  --glass-border: rgba(255, 255, 255, 0.72);
+  --glass-shadow: 0 24px 70px rgba(31, 46, 72, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+}
+
+body {
+  color: var(--text);
+  background:
+    radial-gradient(circle at 14% 12%, rgba(10, 132, 255, 0.14), transparent 28%),
+    radial-gradient(circle at 78% 18%, rgba(255, 45, 141, 0.1), transparent 24%),
+    linear-gradient(135deg, #f9fbff 0%, #eef4fb 48%, #f8fbff 100%);
+}
+
+.app {
+  background: transparent;
+}
+
+.canvas-area {
+  background:
+    radial-gradient(circle at 18px 18px, rgba(24, 34, 48, 0.12) 1px, transparent 1.5px) 0 0 / 20px 20px,
+    radial-gradient(circle at 10px 10px, rgba(10, 132, 255, 0.13) 0.8px, transparent 1.4px) 0 0 / 80px 80px,
+    linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(237, 244, 252, 0.84));
+}
+
+.canvas-area::after {
+  background:
+    radial-gradient(circle at 40% 35%, rgba(255, 255, 255, 0.16), transparent 22%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.2), transparent 34%, rgba(255, 255, 255, 0.32));
+}

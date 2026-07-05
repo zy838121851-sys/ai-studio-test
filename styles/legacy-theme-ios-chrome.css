@@ -1,0 +1,109 @@
+.project-header,
+.top-actions,
+.tool-rail,
+.bottom-controls,
+.add-node-menu,
+.canvas-context-menu,
+.image-edit-popover,
+.composer,
+.suggestions button,
+.chat-float,
+.image-lightbox-panel {
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(24px) saturate(1.45);
+  -webkit-backdrop-filter: blur(24px) saturate(1.45);
+}
+
+.project-header {
+  padding: 10px 14px;
+  border-radius: 18px;
+}
+
+.project-header h1,
+.library-head strong,
+.add-menu-title,
+.welcome h2,
+.node-card h3 {
+  color: #111827;
+}
+
+.project-header p,
+.hello,
+.chat-log,
+.bottom-controls span,
+.composer textarea::placeholder,
+.node-card p {
+  color: var(--muted);
+}
+
+.logo-mark {
+  filter: drop-shadow(0 8px 18px rgba(10, 132, 255, 0.24));
+}
+
+.top-actions button,
+.rail-btn,
+.bottom-controls button,
+.window-actions button,
+.composer-actions button,
+.library-head button,
+.add-node-menu button,
+.canvas-context-menu button,
+.edit-actions button,
+.edit-actions select,
+#chatModelSelect {
+  color: #263445;
+}
+
+.top-actions button,
+.rail-btn,
+.composer-actions button,
+#chatModelSelect,
+.quick-actions button,
+.edit-actions button,
+.edit-actions select,
+.message.assistant {
+  border: 1px solid rgba(255, 255, 255, 0.68);
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(18px) saturate(1.35);
+  -webkit-backdrop-filter: blur(18px) saturate(1.35);
+}
+
+.top-actions button:hover,
+.rail-btn:hover,
+.rail-btn.active,
+.quick-actions button:hover,
+.suggestions button:hover,
+.composer-actions button:hover {
+  color: #0b1220;
+  border-color: rgba(10, 132, 255, 0.38);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 14px 34px rgba(10, 132, 255, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.rail-main,
+.composer-actions .send,
+.spark-btn,
+#imageEditSubmit,
+.asset-generation-submit {
+  color: #ffffff;
+  background: linear-gradient(135deg, #0a84ff, #5ac8fa);
+  box-shadow: 0 14px 28px rgba(10, 132, 255, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.44);
+}
+
+.rail-separator {
+  background: rgba(28, 35, 45, 0.12);
+}
+
+.rail-btn.jump {
+  color: #ffffff;
+  background: linear-gradient(135deg, #8e8e93, #5e6a78);
+}
+
+.add-node-menu,
+.canvas-context-menu,
+.image-edit-popover {
+  background: rgba(250, 252, 255, 0.78);
+}

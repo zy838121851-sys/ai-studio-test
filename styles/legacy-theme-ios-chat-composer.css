@@ -1,0 +1,54 @@
+.chat-panel {
+  color: var(--text);
+  border-left: 1px solid rgba(255, 255, 255, 0.7);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(248, 251, 255, 0.68));
+  box-shadow: -24px 0 70px rgba(31, 46, 72, 0.12);
+  backdrop-filter: blur(28px) saturate(1.5);
+  -webkit-backdrop-filter: blur(28px) saturate(1.5);
+}
+
+.welcome {
+  color: var(--text);
+}
+
+.suggestions button {
+  color: #344054;
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.message.assistant {
+  color: #1d2939;
+}
+
+.message.user {
+  color: #ffffff;
+  background: linear-gradient(135deg, #0a84ff, #5ac8fa);
+  box-shadow: 0 12px 30px rgba(10, 132, 255, 0.2);
+}
+
+.composer textarea,
+#imageEditPrompt,
+.asset-generation-input {
+  color: #17202c;
+  background: transparent;
+}
+
+.composer {
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.chat-image-preview button {
+  background: rgba(255, 255, 255, 0.64);
+}
+
+.chat-image-preview span {
+  color: #ffffff;
+  background: rgba(10, 132, 255, 0.9);
+}
+
+input,
+select,
+textarea {
+  color-scheme: light;
+}
