@@ -55,14 +55,14 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,385 |
 | `src/server` | 80 | 14,350 |
-| `styles` | 202 | 15,277 |
-| `scripts` | 90 | 21,963 |
+| `styles` | 204 | 15,278 |
+| `scripts` | 90 | 21,978 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
-| 1,743 | `scripts/check-style-entry.js` |
+| 1,758 | `scripts/check-style-entry.js` |
 | 1,709 | `scripts/check-api-error-contract.js` |
 | 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
 | 1,479 | `scripts/check-generator-job-recovery.js` |
@@ -256,8 +256,12 @@ Post-baseline CSS governance note:
   picker overlay shell, backdrop, and card styles.
 - `styles/features/assets-canvas-picker-shell-head.css` owns canvas project
   picker header, close control, and list container styles.
-- `styles/features/assets-canvas-picker-projects.css` owns canvas project picker
-  project row, thumbnail, metadata, active/hover, and badge styles.
+- `styles/features/assets-canvas-picker-projects.css` is now a pure aggregation
+  entry for canvas project picker row/thumb and metadata/badge submodules.
+- `styles/features/assets-canvas-picker-projects-row.css` owns canvas project
+  picker project row, thumbnail, active, and hover styles.
+- `styles/features/assets-canvas-picker-projects-meta.css` owns canvas project
+  picker metadata and badge styles.
 - `styles/features/assets-context-menu.css` owns asset page card context menu
   styles; it is imported by `styles/features/assets.css`.
 - `styles/features/assets-pinterest-board.css` is now a pure aggregation entry

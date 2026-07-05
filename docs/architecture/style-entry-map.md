@@ -246,6 +246,13 @@ styles/features/assets-canvas-picker-shell-frame.css
 styles/features/assets-canvas-picker-shell-head.css
 ```
 
+`styles/features/assets-canvas-picker-projects.css` currently imports:
+
+```text
+styles/features/assets-canvas-picker-projects-row.css
+styles/features/assets-canvas-picker-projects-meta.css
+```
+
 `styles/features/assets-page.css` currently imports:
 
 ```text
@@ -721,8 +728,12 @@ Notes:
   overlay shell, backdrop, and card styles.
 - `features/assets-canvas-picker-shell-head.css` owns canvas project picker
   header, close control, and list container styles.
-- `features/assets-canvas-picker-projects.css` owns canvas project picker
-  project row, thumbnail, metadata, active/hover, and badge styles.
+- `features/assets-canvas-picker-projects.css` is now a pure aggregation entry
+  for canvas project picker row/thumb and metadata/badge submodules.
+- `features/assets-canvas-picker-projects-row.css` owns canvas project picker
+  project row, thumbnail, active, and hover styles.
+- `features/assets-canvas-picker-projects-meta.css` owns canvas project picker
+  metadata and badge styles.
 - `features/assets-context-menu.css` owns asset page card context menu styles;
   it is imported by `features/assets.css`.
 - `features/assets-pinterest-board.css` is now a pure aggregation entry for the
@@ -1090,6 +1101,8 @@ styles/features/assets-canvas-picker-shell.css
 styles/features/assets-canvas-picker-shell-frame.css
 styles/features/assets-canvas-picker-shell-head.css
 styles/features/assets-canvas-picker-projects.css
+styles/features/assets-canvas-picker-projects-row.css
+styles/features/assets-canvas-picker-projects-meta.css
 styles/features/assets-context-menu.css
 styles/features/assets-pinterest-board.css
 styles/features/assets-pinterest-board-shell-legacy.css
@@ -1319,7 +1332,10 @@ Additional caution:
   picker shell frame and header selectors in
   `features/assets-canvas-picker-shell-frame.css` and
   `features/assets-canvas-picker-shell-head.css`, migrated canvas asset picker
-  project row selectors in `features/assets-canvas-picker-projects.css`, migrated asset context menu selectors in
+  project imports in `features/assets-canvas-picker-projects.css`, migrated
+  canvas asset picker project row and metadata selectors in
+  `features/assets-canvas-picker-projects-row.css` and
+  `features/assets-canvas-picker-projects-meta.css`, migrated asset context menu selectors in
   `features/assets-context-menu.css`, migrated asset Pinterest board imports in
   `features/assets-pinterest-board.css`, migrated first Pinterest shell selectors
   in `features/assets-pinterest-board-shell-legacy.css`, migrated first Pinterest

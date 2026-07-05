@@ -1,0 +1,33 @@
+.asset-canvas-picker-meta {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+}
+
+.asset-canvas-picker-meta strong,
+.asset-canvas-picker-meta small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asset-canvas-picker-meta strong {
+  font-size: 14px;
+  font-weight: 820;
+}
+
+.asset-canvas-picker-meta small {
+  color: #7b8493;
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.asset-canvas-picker-project em {
+  padding: 5px 8px;
+  border-radius: 999px;
+  color: #2563eb;
+  background: rgba(37, 99, 235, 0.1);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 820;
+}
