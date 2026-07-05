@@ -238,6 +238,12 @@ const EXPECTED_NODE_MEDIA_IMPORTS = [
   "./node-media-video.css",
   "./node-media-frame.css"
 ];
+const EXPECTED_NODE_PREVIEW_IMPORTS = [
+  "./node-preview-media.css",
+  "./node-preview-model.css",
+  "./node-preview-cube-video.css",
+  "./node-preview-bottom-controls.css"
+];
 const EXPECTED_ASSET_IMPORTS = [
   "./assets-page.css",
   "./assets-board.css",
@@ -1349,14 +1355,30 @@ const EXPECTED_NODE_IMAGE_GENERATOR_INLINE_EDIT_SELECTORS = [
   "@media (max-width: 760px)"
 ];
 const EXPECTED_NODE_PREVIEW_SELECTORS = [
+  "@import url(\"./node-preview-media.css\")",
+  "@import url(\"./node-preview-model.css\")",
+  "@import url(\"./node-preview-cube-video.css\")",
+  "@import url(\"./node-preview-bottom-controls.css\")"
+];
+const EXPECTED_NODE_PREVIEW_MEDIA_SELECTORS = [
   ".media-preview",
+  ".image-preview",
+  ".video-file-preview"
+];
+const EXPECTED_NODE_PREVIEW_MODEL_SELECTORS = [
   ".model-preview",
   ".model-viewer",
-  ".model-viewer-mode-toggle",
+  ".model-viewer-mode-toggle"
+];
+const EXPECTED_NODE_PREVIEW_CUBE_VIDEO_SELECTORS = [
   ".cube-scene",
   ".video-preview",
-  ".bottom-controls",
   "@keyframes spinCube"
+];
+const EXPECTED_NODE_PREVIEW_BOTTOM_CONTROLS_SELECTORS = [
+  ".bottom-controls",
+  ".bottom-controls button",
+  ".bottom-controls input"
 ];
 const EXPECTED_NODE_SELECTORS = [];
 const EXPECTED_LEGACY_CHAT_SELECTORS = [];
@@ -1605,6 +1627,7 @@ const nodeImageToolbarMenuImports = parseCssImports("styles/features/node-image-
 const nodeImagePanelsImports = parseCssImports("styles/features/node-image-panels.css");
 const nodeStackImports = parseCssImports("styles/features/node-stack.css");
 const nodeMediaImports = parseCssImports("styles/features/node-media.css");
+const nodePreviewImports = parseCssImports("styles/features/node-preview.css");
 const nodeImageGeneratorImports = parseCssImports("styles/features/node-image-generator.css");
 const nodeImageGeneratorBaseImports = parseCssImports("styles/features/node-image-generator-base.css");
 const assetImports = parseCssImports("styles/features/assets.css");
@@ -1666,6 +1689,7 @@ assertListEqual("styles/features/node-image-toolbar-menu.css", nodeImageToolbarM
 assertListEqual("styles/features/node-image-panels.css", nodeImagePanelsImports, EXPECTED_NODE_IMAGE_PANELS_IMPORTS);
 assertListEqual("styles/features/node-stack.css", nodeStackImports, EXPECTED_NODE_STACK_IMPORTS);
 assertListEqual("styles/features/node-media.css", nodeMediaImports, EXPECTED_NODE_MEDIA_IMPORTS);
+assertListEqual("styles/features/node-preview.css", nodePreviewImports, EXPECTED_NODE_PREVIEW_IMPORTS);
 assertListEqual("styles/features/node-image-generator.css", nodeImageGeneratorImports, EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS);
 assertListEqual("styles/features/node-image-generator-base.css", nodeImageGeneratorBaseImports, EXPECTED_NODE_IMAGE_GENERATOR_BASE_IMPORTS);
 assertListEqual("styles/features/assets.css", assetImports, EXPECTED_ASSET_IMPORTS);
@@ -1724,6 +1748,7 @@ checkImportedFilesExist(nodeImageToolbarMenuImports, "styles/features");
 checkImportedFilesExist(nodeImagePanelsImports, "styles/features");
 checkImportedFilesExist(nodeStackImports, "styles/features");
 checkImportedFilesExist(nodeMediaImports, "styles/features");
+checkImportedFilesExist(nodePreviewImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorBaseImports, "styles/features");
 checkImportedFilesExist(assetImports, "styles/features");
@@ -1937,6 +1962,10 @@ checkFileContains("styles/features/node-image-generator-panel.css", EXPECTED_NOD
 checkFileContains("styles/features/node-image-generator-glass.css", EXPECTED_NODE_IMAGE_GENERATOR_GLASS_SELECTORS);
 checkFileContains("styles/features/node-image-generator-inline-edit.css", EXPECTED_NODE_IMAGE_GENERATOR_INLINE_EDIT_SELECTORS);
 checkFileContains("styles/features/node-preview.css", EXPECTED_NODE_PREVIEW_SELECTORS);
+checkFileContains("styles/features/node-preview-media.css", EXPECTED_NODE_PREVIEW_MEDIA_SELECTORS);
+checkFileContains("styles/features/node-preview-model.css", EXPECTED_NODE_PREVIEW_MODEL_SELECTORS);
+checkFileContains("styles/features/node-preview-cube-video.css", EXPECTED_NODE_PREVIEW_CUBE_VIDEO_SELECTORS);
+checkFileContains("styles/features/node-preview-bottom-controls.css", EXPECTED_NODE_PREVIEW_BOTTOM_CONTROLS_SELECTORS);
 checkFileContains("styles/features/node.css", EXPECTED_NODE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
 checkFileContains("styles/features/project-library-shell.css", EXPECTED_PROJECT_LIBRARY_SHELL_SELECTORS);

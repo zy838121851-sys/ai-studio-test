@@ -1,0 +1,28 @@
+.bottom-controls {
+  position: absolute;
+  left: 16px;
+  bottom: 14px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 42px;
+  padding: 0 12px;
+  border-radius: 13px;
+}
+
+.bottom-controls button {
+  color: #c6cbd1;
+  font-size: 17px;
+}
+
+.bottom-controls input {
+  width: 88px;
+  accent-color: #e6edf4;
+}
+
+.bottom-controls span {
+  min-width: 42px;
+  color: var(--muted);
+  font-size: 12px;
+}
