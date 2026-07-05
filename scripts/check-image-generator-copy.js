@@ -16,6 +16,13 @@ const workflow = read("src/client/features/canvas/workflows/image-generator-work
 const previewJobUtils = read("src/client/features/canvas/workflows/image-generator-preview-job-utils.js");
 
 [
+  "鍥惧儚",
+  "澶辫触"
+].forEach((text) => {
+  assert(!workflow.includes(text), `image generator workflow copy must not contain mojibake: ${text}`);
+});
+
+[
   "正在等待第 ${index + 1}/${count} 张结果",
   "正在生成第 ${index + 1}/${count} 张",
   "正在恢复生成结果...",

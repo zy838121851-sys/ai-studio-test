@@ -630,6 +630,9 @@ Post-baseline CSS governance note:
 - `image-generator-result-utils.js` now owns image generator completion message
   formatting alongside result URL parsing; `scripts/check-image-generator-result-utils.js`
   guards completion messages and image/video result URL behavior.
+- `scripts/check-image-generator-copy.js` now also guards the image generator
+  preview-failure chat copy against known mojibake so failed preview recovery
+  keeps returning the same readable error format as the normal failure branch.
 - `image-generator-job-polling-utils.js` now owns the image generator async job
   polling loop; `scripts/check-image-generator-job-polling-utils.js` guards
   success, rate-limit, missing-URL retry, failure, and timeout behavior.

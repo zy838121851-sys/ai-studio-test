@@ -624,7 +624,7 @@ export function createImageGeneratorWorkflow({
           .filter((previewNode) => previewNode?.isConnected)
           .forEach((previewNode) => markGeneratorPreviewFailed(previewNode, error));
         if (firstSuccessfulNode) selectNode(firstSuccessfulNode);
-        addChat("assistant", `鍥惧儚鐢熸垚澶辫触锛?{error.message}`);
+        addChat("assistant", `图像生成失败：${error.message}`);
         return;
       }
       node.classList.add("generation-failed");
