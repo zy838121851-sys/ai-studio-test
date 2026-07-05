@@ -1,8 +1,8 @@
 # AI Studio SaaS 架构治理 PRD
 
-更新日期：2026-07-03
+更新日期：2026-07-05
 
-本文档是 AI Studio 长期架构治理的主路线图。它的用途不是记录一次短期修复，而是作为 Codex 后续较长时间自动执行治理任务时的决策依据、阶段边界、验收标准和风险控制规则。
+本文档是 AI Studio 长期架构治理的主路线图。它不是一次短期修复记录，而是 Codex 后续较长时间自动执行治理任务时的决策依据、阶段边界、验收标准和风险控制规则。
 
 核心目标：把 AI Studio 从“可运行的单体原型”治理成“适合 SaaS 发布、长期维护、可持续扩展的现代化单体架构”。
 
@@ -14,7 +14,7 @@
 
 - 不直接切 Next.js / React / Vue。
 - 不重写整个项目。
-- 不新增产品功能。
+- 不新增产品功能，除非用户明确要求。
 - 不改变现有 UI 视觉。
 - 不改变现有交互。
 - 不新增依赖，除非未来有单独批准。
@@ -42,7 +42,7 @@
 - 顺手改文案、布局、按钮、弹窗、流程。
 - 以“重构”为名改变保存、生成、上传、登录、项目库、素材库、画布行为。
 - 一次同时做前端拆分、CSS 迁移、后端 provider、文档删除和功能调整。
-- 在没有检查覆盖时迁移强 DOM 副作用逻辑。
+- 在没有检查覆盖时迁移带 DOM 副作用的逻辑。
 
 ## 2. 当前基线
 
@@ -73,29 +73,29 @@
   - 不保存 `loading-image` / `node-loading-image` / `generation-frame` 临时生成预览。
   - 同源 `/uploads/...` 媒体地址归一为稳定相对路径。
   - 旧快照打开后可自动修复。
-  - 服务端快照 sanitizer 做兜底。
+  - 服务端 snapshot sanitizer 做兜底。
 - 多个前端大 workflow 已开始拆分：
-  - prompt workflow
-  - image generator workflow
-  - video generator workflow
-  - asset library runtime
-  - project workflow
+  - prompt workflow；
+  - image generator workflow；
+  - video generator workflow；
+  - asset library runtime；
+  - project workflow。
 - 后端已开始形成 provider/service 边界：
-  - storage
-  - job queue
-  - billing
-  - audit
-  - rate limit
-  - request context
-  - route request helpers
-  - HTTP error helpers
+  - storage；
+  - job queue；
+  - billing；
+  - audit；
+  - rate limit；
+  - request context；
+  - route request helpers；
+  - HTTP error helpers。
 
 ### 2.3 当前主要风险
 
 仍然存在：
 
 - 前端大文件仍偏重。
-- CSS 仍高度 legacy 和全局 cascade。
+- CSS 仍高度依赖 legacy 和全局 cascade。
 - `index.html` 仍承载较多静态 template。
 - 多个治理文档是阶段性地图，长期会变成文档债。
 - CSP 仍较宽松。
@@ -156,7 +156,7 @@ src/client/
   lib/
 ```
 
-目标不是强制一次性迁移到这个形态，而是每次治理让真实调用关系更接近这个形态。
+目标不是强制一次性迁移到这个形态，而是每次治理都让真实调用关系更接近这个形态。
 
 ### 3.2 后端目标结构
 
@@ -271,10 +271,10 @@ CSS 治理必须以视觉不变为前提。没有 smoke 证据时，不做大段
 后续任务：
 
 1. 检查所有持久化 JSON：
-   - project snapshot
-   - conversation metadata
-   - asset metadata
-   - ai job output
+   - project snapshot；
+   - conversation metadata；
+   - asset metadata；
+   - ai job output。
 2. 确认所有本地绝对 URL 都不会被长期保存。
 3. 对上传文件、生成结果、缩略图建立统一 URL 规则。
 4. 增强 database integrity / orphan file 检查。
@@ -300,10 +300,10 @@ CSS 治理必须以视觉不变为前提。没有 smoke 证据时，不做大段
 任务：
 
 1. 固定启动路径：
-   - `app.js`
-   - `src/client/main.js`
-   - `src/client/core/app-init.js`
-   - workspace mount/runtime
+   - `app.js`；
+   - `src/client/main.js`；
+   - `src/client/core/app-init.js`；
+   - workspace mount/runtime。
 2. 清理纯 forwarding modules。
 3. 检查 workspace runtime dependency groups。
 4. 只在有 reachability 证据时删除不可达文件。
@@ -334,26 +334,26 @@ CSS 治理必须以视觉不变为前提。没有 smoke 证据时，不做大段
 优先任务队列：
 
 1. 纯数据构造：
-   - conversation payload
-   - generation payload
-   - debug summary
-   - project patch
-   - result node options
+   - conversation payload；
+   - generation payload；
+   - debug summary；
+   - project patch；
+   - result node options。
 2. 状态判断：
-   - generation intent
-   - tool event
-   - stream completion
-   - retryable error
-   - autosave condition
+   - generation intent；
+   - tool event；
+   - stream completion；
+   - retryable error；
+   - autosave condition。
 3. 子流程拆分：
-   - conversation run
-   - stream runner
-   - history workflow
-   - popover lifecycle
-   - attachment restore
+   - conversation run；
+   - stream runner；
+   - history workflow；
+   - popover lifecycle；
+   - attachment restore。
 4. DOM 拆分：
-   - 只有在对应检查覆盖后再拆。
-   - 不改变 markup。
+   - 只有在对应检查覆盖后再拆；
+   - 不改变 markup；
    - 不改变 selector。
 
 每轮规则：
@@ -413,11 +413,11 @@ CSS 治理必须以视觉不变为前提。没有 smoke 证据时，不做大段
 任务：
 
 1. video generator workflow 继续拆分：
-   - payload
-   - job polling
-   - preview node
-   - reference utils
-   - form state
+   - payload；
+   - job polling；
+   - preview node；
+   - reference utils；
+   - form state。
 2. model viewer workflow 保持 lazy import。
 3. 任何新增重型能力必须延迟加载。
 4. build budget 中单独监控 heavy chunks。
@@ -439,19 +439,19 @@ CSS 治理必须以视觉不变为前提。没有 smoke 证据时，不做大段
 优先任务：
 
 1. 静态地图：
-   - action registry
-   - menu command
-   - node selection
-   - clipboard
-   - layout alignment
+   - action registry；
+   - menu command；
+   - node selection；
+   - clipboard；
+   - layout alignment。
 2. 抽纯工具：
-   - clipboard snapshot
-   - layout calculations
-   - alignment calculation
-   - bounds calculation
-   - menu enable/disable 判断
+   - clipboard snapshot；
+   - layout calculations；
+   - alignment calculation；
+   - bounds calculation；
+   - menu enable/disable 判断。
 3. 后拆 DOM 绑定：
-   - 需要 selector evidence。
+   - 需要 selector evidence；
    - 需要 smoke 检查。
 
 不做：
@@ -486,7 +486,7 @@ Assets 后续任务：
 
 - 收敛 asset-library runtime。
 - 统一 asset URL、thumbnail、metadata 规则。
-- 为未来对象存储保持 provider 边界。
+- 为未来对象存储保留 provider 边界。
 
 Task Log 后续任务：
 
@@ -512,14 +512,14 @@ Task Log 后续任务：
 执行顺序：
 
 1. 先增强 CSS 检查：
-   - entry imports
-   - MIME/static asset
-   - selector presence
-   - critical layout class
+   - entry imports；
+   - MIME/static asset；
+   - selector presence；
+   - critical layout class。
 2. 再选一个低风险 feature：
-   - task-log
-   - auth dialog
-   - project library
+   - task-log；
+   - auth dialog；
+   - project library。
 3. 每次只移动一小组样式。
 4. 每次保留原 selector 行为。
 5. 视觉检查后再删除旧规则。
@@ -617,7 +617,7 @@ BillingProvider：
 AuditLogger：
 
 - 覆盖登录、上传、生成、保存、删除、计费变化。
-- 先 local，再预留外部日志。
+- 先有 local，再预留外部日志。
 - 不影响用户流程。
 
 验收：
@@ -637,14 +637,14 @@ AuditLogger：
 
 范围：
 
-- auth
-- projects
-- assets
-- uploads
-- credits
-- conversations
-- AI jobs
-- protected uploads
+- auth；
+- projects；
+- assets；
+- uploads；
+- credits；
+- conversations；
+- AI jobs；
+- protected uploads。
 
 任务：
 
@@ -821,7 +821,7 @@ task-log 文档处理：
 
 ## 5. 自动执行规则
 
-当 Codex 根据本 PRD 自动继续工作时，按以下规则选择下一步：
+当 Codex 根据本 PRD 自动继续工作时，按以下规则选择下一步。
 
 ### 5.1 优先级顺序
 
@@ -858,11 +858,11 @@ task-log 文档处理：
 - `npm run build` 通过。
 - commit 只包含本轮相关文件。
 - final 输出包含：
-  - 修改文件
-  - 是否改变行为
-  - 风险
-  - 回滚方式
-  - 下一步建议
+  - 修改文件；
+  - 是否改变行为；
+  - 风险；
+  - 回滚方式；
+  - 下一步建议。
 
 ### 5.4 何时暂停
 
@@ -913,7 +913,7 @@ task-log 文档处理：
 
 在没有新的用户指令时，建议按这个顺序继续：
 
-1. 提交本 PRD 更新。
+1. 修复和提交本 PRD 的 UTF-8 编码。
 2. 继续 `prompt-workflow.js` 纯逻辑拆分。
 3. 继续 `image-generator-workflow.js` 收尾拆分。
 4. 静态梳理 `canvas-menu-actions.js`，优先抽纯工具。
