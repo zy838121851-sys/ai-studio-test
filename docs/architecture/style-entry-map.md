@@ -97,6 +97,13 @@ styles/features/node-image-generator.css
 styles/features/node-preview.css
 ```
 
+`styles/features/node-image-generator.css` currently imports:
+
+```text
+styles/features/node-image-generator-base.css
+styles/features/node-image-generator-inline-edit.css
+```
+
 `styles/features/assets.css` currently imports:
 
 ```text
@@ -384,8 +391,13 @@ Notes:
   video file preview styles.
 - `features/node-generation.css` owns temporary generation preview frame and
   shimmer animation styles.
-- `features/node-image-generator.css` owns image generator node frame/panel
-  styles and tail-end node generator inline edit controls.
+- `features/node-image-generator-base.css` owns image generator node, stage,
+  frame, result, panel, reference, textarea, submit, and drop-active styles.
+- `features/node-image-generator-inline-edit.css` owns image generator inline
+  edit popover, edit action grid, inline submit, and responsive edit action
+  styles.
+- `features/node-image-generator.css` is now a pure aggregation entry for image
+  generator base and inline edit submodules.
 - `features/node-preview.css` owns media/model/video preview helper, cube
   preview, and bottom control styles.
 - `features/node.css` is now a feature CSS aggregation entry for node
@@ -520,6 +532,8 @@ styles/features/node-director.css
 styles/features/node-media.css
 styles/features/node-generation.css
 styles/features/node-image-generator.css
+styles/features/node-image-generator-base.css
+styles/features/node-image-generator-inline-edit.css
 styles/features/node-preview.css
 styles/features/node.css
 styles/features/project-library.css
@@ -631,9 +645,10 @@ Additional caution:
   `features/node-stack.css`, migrated director selectors in
   `features/node-director.css`, migrated media node selectors in
   `features/node-media.css`, migrated generation preview selectors in
-  `features/node-generation.css`, migrated image generator selectors in
-  `features/node-image-generator.css`, migrated preview selectors in
-  `features/node-preview.css`, and the node aggregation entry in
+  `features/node-generation.css`, migrated image generator base selectors in
+  `features/node-image-generator-base.css`, image generator inline edit
+  selectors in `features/node-image-generator-inline-edit.css`, migrated
+  preview selectors in `features/node-preview.css`, and the node aggregation entry in
   `features/node.css`; it also keeps compatibility shims such as
   `legacy-node.css` outside the active import graph, and guards the
   `legacy-canvas.css` imports of `legacy-canvas-shell.css` and

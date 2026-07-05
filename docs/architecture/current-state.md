@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 36,815 |
 | `src/server` | 80 | 13,381 |
-| `styles` | 84 | 13,348 |
-| `scripts` | 90 | 19,417 |
+| `styles` | 86 | 13,350 |
+| `scripts` | 90 | 19,431 |
 
 Largest files in the current source tree:
 
@@ -71,7 +71,7 @@ Largest files in the current source tree:
 | 1,065 | `scripts/check-library-bulk-select.js` |
 | 1,030 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 898 | `scripts/check-prompt-conversation-event-utils.js` |
-| 861 | `scripts/check-style-entry.js` |
+| 875 | `scripts/check-style-entry.js` |
 | 765 | `src/server/services/ai-job.service.js` |
 | 760 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
 | 713 | `src/client/features/canvas/model-viewer.js` |
@@ -302,8 +302,14 @@ Post-baseline CSS governance note:
   frame, and video file preview styles.
 - `styles/features/node-generation.css` owns temporary generation preview frame
   and shimmer animation styles.
-- `styles/features/node-image-generator.css` owns image generator node
-  frame/panel styles and tail-end node generator inline edit controls.
+- `styles/features/node-image-generator-base.css` owns image generator node,
+  stage, frame, result, panel, reference, textarea, submit, and drop-active
+  styles moved out of `styles/features/node-image-generator.css`.
+- `styles/features/node-image-generator-inline-edit.css` owns image generator
+  inline edit popover, edit action grid, inline submit, and responsive edit
+  action styles moved out of `styles/features/node-image-generator.css`.
+- `styles/features/node-image-generator.css` is now a pure aggregation entry
+  for image generator base and inline edit submodules.
 - `styles/features/node-preview.css` owns media/model/video preview helper,
   cube preview, and bottom control styles.
 - `styles/features/node.css` is now a feature CSS aggregation entry for node

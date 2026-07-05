@@ -86,6 +86,10 @@ const EXPECTED_NODE_IMPORTS = [
   "./node-image-generator.css",
   "./node-preview.css"
 ];
+const EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS = [
+  "./node-image-generator-base.css",
+  "./node-image-generator-inline-edit.css"
+];
 const EXPECTED_ASSET_IMPORTS = [
   "./assets-page.css",
   "./assets-board.css",
@@ -538,12 +542,18 @@ const EXPECTED_NODE_GENERATION_SELECTORS = [
   ".generation-failed .generation-frame",
   "@keyframes shimmerPreview"
 ];
-const EXPECTED_NODE_IMAGE_GENERATOR_SELECTORS = [
+const EXPECTED_NODE_IMAGE_GENERATOR_BASE_SELECTORS = [
   ".node-image-generator",
   ".image-generator-frame",
   ".image-generator-panel",
+  ".image-generator-stage",
+  ".image-generator-submit"
+];
+const EXPECTED_NODE_IMAGE_GENERATOR_INLINE_EDIT_SELECTORS = [
   ".image-generator-panel.image-edit-popover-inline",
-  ".image-generator-bottom.edit-actions"
+  ".image-generator-bottom.edit-actions",
+  ".image-generator-submit.send",
+  "@media (max-width: 760px)"
 ];
 const EXPECTED_NODE_PREVIEW_SELECTORS = [
   ".media-preview",
@@ -782,6 +792,7 @@ const legacyCanvasImports = parseCssImports("styles/legacy-canvas.css");
 const legacyCanvasVisualImports = parseCssImports("styles/legacy-canvas-visual.css");
 const authImports = parseCssImports("styles/features/auth.css");
 const nodeImports = parseCssImports("styles/features/node.css");
+const nodeImageGeneratorImports = parseCssImports("styles/features/node-image-generator.css");
 const assetImports = parseCssImports("styles/features/assets.css");
 const assetPinterestImports = parseCssImports("styles/features/assets-pinterest.css");
 const homeImports = parseCssImports("styles/features/home.css");
@@ -798,6 +809,7 @@ assertListEqual("styles/legacy-canvas.css", legacyCanvasImports, EXPECTED_LEGACY
 assertListEqual("styles/legacy-canvas-visual.css", legacyCanvasVisualImports, EXPECTED_LEGACY_CANVAS_VISUAL_IMPORTS);
 assertListEqual("styles/features/auth.css", authImports, EXPECTED_AUTH_IMPORTS);
 assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
+assertListEqual("styles/features/node-image-generator.css", nodeImageGeneratorImports, EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS);
 assertListEqual("styles/features/assets.css", assetImports, EXPECTED_ASSET_IMPORTS);
 assertListEqual("styles/features/assets-pinterest.css", assetPinterestImports, EXPECTED_ASSET_PINTEREST_IMPORTS);
 assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
@@ -811,6 +823,7 @@ checkImportedFilesExist(legacyCanvasImports, "styles");
 checkImportedFilesExist(legacyCanvasVisualImports, "styles");
 checkImportedFilesExist(authImports, "styles/features");
 checkImportedFilesExist(nodeImports, "styles/features");
+checkImportedFilesExist(nodeImageGeneratorImports, "styles/features");
 checkImportedFilesExist(assetImports, "styles/features");
 checkImportedFilesExist(assetPinterestImports, "styles/features");
 checkImportedFilesExist(homeImports, "styles/features");
@@ -866,7 +879,8 @@ checkFileContains("styles/features/node-stack.css", EXPECTED_NODE_STACK_SELECTOR
 checkFileContains("styles/features/node-director.css", EXPECTED_NODE_DIRECTOR_SELECTORS);
 checkFileContains("styles/features/node-media.css", EXPECTED_NODE_MEDIA_SELECTORS);
 checkFileContains("styles/features/node-generation.css", EXPECTED_NODE_GENERATION_SELECTORS);
-checkFileContains("styles/features/node-image-generator.css", EXPECTED_NODE_IMAGE_GENERATOR_SELECTORS);
+checkFileContains("styles/features/node-image-generator-base.css", EXPECTED_NODE_IMAGE_GENERATOR_BASE_SELECTORS);
+checkFileContains("styles/features/node-image-generator-inline-edit.css", EXPECTED_NODE_IMAGE_GENERATOR_INLINE_EDIT_SELECTORS);
 checkFileContains("styles/features/node-preview.css", EXPECTED_NODE_PREVIEW_SELECTORS);
 checkFileContains("styles/features/node.css", EXPECTED_NODE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
