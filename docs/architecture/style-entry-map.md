@@ -115,6 +115,14 @@ styles/features/node-image-generator-base.css
 styles/features/node-image-generator-inline-edit.css
 ```
 
+`styles/features/node-image-generator-base.css` currently imports:
+
+```text
+styles/features/node-image-generator-shell.css
+styles/features/node-image-generator-panel.css
+styles/features/node-image-generator-glass.css
+```
+
 `styles/features/node-image-toolbar.css` currently imports:
 
 ```text
@@ -502,8 +510,17 @@ Notes:
   image filename, image frame, and image drag suppression styles.
 - `features/node-generation.css` owns temporary generation preview frame and
   shimmer animation styles.
-- `features/node-image-generator-base.css` owns image generator node, stage,
-  frame, result, panel, reference, textarea, submit, and drop-active styles.
+- `features/node-image-generator-base.css` is now a pure aggregation entry for
+  image generator shell, panel, and light glass override styles.
+- `features/node-image-generator-shell.css` owns base image generator node,
+  head, frame, result, loading, initial panel, textarea, action, and drop-active
+  styles.
+- `features/node-image-generator-panel.css` owns refreshed image generator
+  panel layout, reference list, model/cancel controls, submit button, and
+  disabled states.
+- `features/node-image-generator-glass.css` owns the light glass visual
+  alignment overrides for the image generator node, frame, panel, controls, and
+  drop-active state.
 - `features/node-image-generator-inline-edit.css` owns image generator inline
   edit popover, edit action grid, inline submit, and responsive edit action
   styles.
@@ -696,6 +713,9 @@ styles/features/node-media-frame.css
 styles/features/node-generation.css
 styles/features/node-image-generator.css
 styles/features/node-image-generator-base.css
+styles/features/node-image-generator-shell.css
+styles/features/node-image-generator-panel.css
+styles/features/node-image-generator-glass.css
 styles/features/node-image-generator-inline-edit.css
 styles/features/node-preview.css
 styles/features/node.css
@@ -827,8 +847,11 @@ Additional caution:
   `features/node-media-shell.css`, migrated video media selectors in
   `features/node-media-video.css`, migrated media frame selectors in
   `features/node-media-frame.css`, migrated generation preview selectors in
-  `features/node-generation.css`, migrated image generator base selectors in
-  `features/node-image-generator-base.css`, image generator inline edit
+  `features/node-generation.css`, migrated image generator base imports in
+  `features/node-image-generator-base.css`, image generator shell selectors in
+  `features/node-image-generator-shell.css`, image generator panel selectors in
+  `features/node-image-generator-panel.css`, image generator glass override
+  selectors in `features/node-image-generator-glass.css`, image generator inline edit
   selectors in `features/node-image-generator-inline-edit.css`, migrated
   preview selectors in `features/node-preview.css`, the node aggregation entry
   in `features/node.css`, migrated project library imports in

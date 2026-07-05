@@ -96,6 +96,11 @@ const EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS = [
   "./node-image-generator-base.css",
   "./node-image-generator-inline-edit.css"
 ];
+const EXPECTED_NODE_IMAGE_GENERATOR_BASE_IMPORTS = [
+  "./node-image-generator-shell.css",
+  "./node-image-generator-panel.css",
+  "./node-image-generator-glass.css"
+];
 const EXPECTED_NODE_IMAGE_TOOLBAR_IMPORTS = [
   "./node-image-toolbar-base.css",
   "./node-image-toolbar-upscale.css",
@@ -663,7 +668,16 @@ const EXPECTED_NODE_GENERATION_SELECTORS = [
 const EXPECTED_NODE_IMAGE_GENERATOR_BASE_SELECTORS = [
   ".node-image-generator",
   ".image-generator-frame",
-  ".image-generator-panel",
+  ".image-generator-panel"
+];
+const EXPECTED_NODE_IMAGE_GENERATOR_PANEL_SELECTORS = [
+  ".image-generator-panel-top",
+  ".image-generator-reference-list",
+  ".image-generator-bottom",
+  ".image-generator-submit"
+];
+const EXPECTED_NODE_IMAGE_GENERATOR_GLASS_SELECTORS = [
+  ".image-generator-title-icon",
   ".image-generator-stage",
   ".image-generator-submit"
 ];
@@ -916,6 +930,7 @@ const nodeImagePanelsImports = parseCssImports("styles/features/node-image-panel
 const nodeStackImports = parseCssImports("styles/features/node-stack.css");
 const nodeMediaImports = parseCssImports("styles/features/node-media.css");
 const nodeImageGeneratorImports = parseCssImports("styles/features/node-image-generator.css");
+const nodeImageGeneratorBaseImports = parseCssImports("styles/features/node-image-generator-base.css");
 const assetImports = parseCssImports("styles/features/assets.css");
 const assetPageImports = parseCssImports("styles/features/assets-page.css");
 const assetPinterestImports = parseCssImports("styles/features/assets-pinterest.css");
@@ -942,6 +957,7 @@ assertListEqual("styles/features/node-image-panels.css", nodeImagePanelsImports,
 assertListEqual("styles/features/node-stack.css", nodeStackImports, EXPECTED_NODE_STACK_IMPORTS);
 assertListEqual("styles/features/node-media.css", nodeMediaImports, EXPECTED_NODE_MEDIA_IMPORTS);
 assertListEqual("styles/features/node-image-generator.css", nodeImageGeneratorImports, EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS);
+assertListEqual("styles/features/node-image-generator-base.css", nodeImageGeneratorBaseImports, EXPECTED_NODE_IMAGE_GENERATOR_BASE_IMPORTS);
 assertListEqual("styles/features/assets.css", assetImports, EXPECTED_ASSET_IMPORTS);
 assertListEqual("styles/features/assets-page.css", assetPageImports, EXPECTED_ASSET_PAGE_IMPORTS);
 assertListEqual("styles/features/assets-pinterest.css", assetPinterestImports, EXPECTED_ASSET_PINTEREST_IMPORTS);
@@ -965,6 +981,7 @@ checkImportedFilesExist(nodeImagePanelsImports, "styles/features");
 checkImportedFilesExist(nodeStackImports, "styles/features");
 checkImportedFilesExist(nodeMediaImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorImports, "styles/features");
+checkImportedFilesExist(nodeImageGeneratorBaseImports, "styles/features");
 checkImportedFilesExist(assetImports, "styles/features");
 checkImportedFilesExist(assetPageImports, "styles/features");
 checkImportedFilesExist(assetPinterestImports, "styles/features");
@@ -1043,7 +1060,9 @@ checkFileContains("styles/features/node-media-shell.css", EXPECTED_NODE_MEDIA_SH
 checkFileContains("styles/features/node-media-video.css", EXPECTED_NODE_MEDIA_VIDEO_SELECTORS);
 checkFileContains("styles/features/node-media-frame.css", EXPECTED_NODE_MEDIA_FRAME_SELECTORS);
 checkFileContains("styles/features/node-generation.css", EXPECTED_NODE_GENERATION_SELECTORS);
-checkFileContains("styles/features/node-image-generator-base.css", EXPECTED_NODE_IMAGE_GENERATOR_BASE_SELECTORS);
+checkFileContains("styles/features/node-image-generator-shell.css", EXPECTED_NODE_IMAGE_GENERATOR_BASE_SELECTORS);
+checkFileContains("styles/features/node-image-generator-panel.css", EXPECTED_NODE_IMAGE_GENERATOR_PANEL_SELECTORS);
+checkFileContains("styles/features/node-image-generator-glass.css", EXPECTED_NODE_IMAGE_GENERATOR_GLASS_SELECTORS);
 checkFileContains("styles/features/node-image-generator-inline-edit.css", EXPECTED_NODE_IMAGE_GENERATOR_INLINE_EDIT_SELECTORS);
 checkFileContains("styles/features/node-preview.css", EXPECTED_NODE_PREVIEW_SELECTORS);
 checkFileContains("styles/features/node.css", EXPECTED_NODE_SELECTORS);

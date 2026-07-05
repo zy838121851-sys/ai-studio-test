@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,683 |
 | `src/server` | 80 | 14,430 |
-| `styles` | 115 | 15,355 |
-| `scripts` | 90 | 21,383 |
+| `styles` | 118 | 15,360 |
+| `scripts` | 90 | 21,402 |
 
 Largest files in the current source tree:
 
@@ -70,7 +70,7 @@ Largest files in the current source tree:
 | 1,283 | `scripts/check-canvas-menu-actions.js` |
 | 1,121 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
 | 1,119 | `scripts/check-library-bulk-select.js` |
-| 1,074 | `scripts/check-style-entry.js` |
+| 1,093 | `scripts/check-style-entry.js` |
 | 949 | `scripts/check-prompt-conversation-event-utils.js` |
 | 820 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
 | 811 | `src/server/services/ai-job.service.js` |
@@ -385,9 +385,17 @@ Post-baseline CSS governance note:
   image filename, image frame, and image drag suppression styles.
 - `styles/features/node-generation.css` owns temporary generation preview frame
   and shimmer animation styles.
-- `styles/features/node-image-generator-base.css` owns image generator node,
-  stage, frame, result, panel, reference, textarea, submit, and drop-active
-  styles moved out of `styles/features/node-image-generator.css`.
+- `styles/features/node-image-generator-base.css` is now a pure aggregation
+  entry for image generator shell, panel, and light glass override styles.
+- `styles/features/node-image-generator-shell.css` owns base image generator
+  node, head, frame, result, loading, initial panel, textarea, action, and
+  drop-active styles.
+- `styles/features/node-image-generator-panel.css` owns refreshed image
+  generator panel layout, reference list, model/cancel controls, submit button,
+  and disabled states.
+- `styles/features/node-image-generator-glass.css` owns the light glass visual
+  alignment overrides for the image generator node, frame, panel, controls, and
+  drop-active state.
 - `styles/features/node-image-generator-inline-edit.css` owns image generator
   inline edit popover, edit action grid, inline submit, and responsive edit
   action styles moved out of `styles/features/node-image-generator.css`.
