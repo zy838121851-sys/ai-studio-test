@@ -53,33 +53,33 @@ Current source footprint, excluding `node_modules` and `dist`:
 
 | Area | Files | Lines |
 | --- | ---: | ---: |
-| `src/client` | 298 | 39,683 |
-| `src/server` | 80 | 14,430 |
-| `styles` | 144 | 15,395 |
-| `scripts` | 90 | 21,602 |
+| `src/client` | 298 | 39,385 |
+| `src/server` | 80 | 14,350 |
+| `styles` | 149 | 15,252 |
+| `scripts` | 90 | 21,553 |
 
 Largest files in the current source tree:
 
 | Lines | Path |
 | ---: | --- |
-| 1,710 | `scripts/check-api-error-contract.js` |
-| 1,608 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
-| 1,480 | `scripts/check-generator-job-recovery.js` |
-| 1,303 | `src/server/services/conversation-orchestrator.service.js` |
-| 1,294 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
-| 1,283 | `scripts/check-canvas-menu-actions.js` |
-| 1,293 | `scripts/check-style-entry.js` |
-| 1,121 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
-| 1,119 | `scripts/check-library-bulk-select.js` |
-| 949 | `scripts/check-prompt-conversation-event-utils.js` |
-| 820 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
-| 811 | `src/server/services/ai-job.service.js` |
-| 782 | `src/client/features/canvas/model-viewer.js` |
-| 709 | `src/client/features/workspace/asset-library/asset-panel.js` |
-| 706 | `src/server/services/asset.service.js` |
-| 704 | `src/client/features/canvas/node-controls.js` |
-| 702 | `src/client/features/projects/workflows/project-workflow.js` |
-| 676 | `scripts/check-project-snapshot.js` |
+| 1,709 | `scripts/check-api-error-contract.js` |
+| 1,607 | `src/client/features/workspace/chat/workflows/prompt-workflow.js` |
+| 1,479 | `scripts/check-generator-job-recovery.js` |
+| 1,333 | `scripts/check-style-entry.js` |
+| 1,302 | `src/server/services/conversation-orchestrator.service.js` |
+| 1,293 | `src/client/features/canvas/workflows/image-generator-workflow.js` |
+| 1,282 | `scripts/check-canvas-menu-actions.js` |
+| 1,120 | `src/client/features/canvas/workflows/canvas-menu-actions.js` |
+| 1,118 | `scripts/check-library-bulk-select.js` |
+| 948 | `scripts/check-prompt-conversation-event-utils.js` |
+| 819 | `src/client/features/workspace/asset-library/asset-library-runtime.js` |
+| 810 | `src/server/services/ai-job.service.js` |
+| 781 | `src/client/features/canvas/model-viewer.js` |
+| 708 | `src/client/features/workspace/asset-library/asset-panel.js` |
+| 705 | `src/server/services/asset.service.js` |
+| 703 | `src/client/features/canvas/node-controls.js` |
+| 701 | `src/client/features/projects/workflows/project-workflow.js` |
+| 675 | `scripts/check-project-snapshot.js` |
 
 Post-baseline CSS governance note:
 
@@ -345,9 +345,20 @@ Post-baseline CSS governance note:
 - `styles/legacy-canvas-add-node.css` owns add-node menu detail styles and
   canvas-view add-node menu overrides that were moved out of
   `styles/legacy-canvas.css`.
-- `styles/legacy-canvas-choice-overlays.css` owns canvas viewport cursor states,
-  upload choice bubbles, generation choice overlay, floating suggestions, and
-  their related keyframes.
+- `styles/legacy-canvas-choice-overlays.css` is now a pure aggregation entry
+  for canvas viewport cursor states, upload choice bubbles, generation choice
+  overlay, floating suggestions, and related keyframe submodules.
+- `styles/legacy-canvas-choice-viewport.css` owns canvas viewport positioning
+  and cursor state styles.
+- `styles/legacy-canvas-choice-upload.css` owns upload choosing blur state,
+  upload choice bubbles, drag/drop hover state, and upload drag-live copy
+  pseudo-element styles.
+- `styles/legacy-canvas-choice-generation.css` owns generation choice overlay,
+  close button, stage, and generated choice image presentation styles.
+- `styles/legacy-canvas-choice-floating-suggestions.css` owns floating
+  suggestion placement, card states, text, and running-state styles.
+- `styles/legacy-canvas-choice-keyframes.css` owns the related choice overlay
+  animations.
 - `styles/legacy-canvas-world.css` owns canvas selection box, canvas world,
   empty state, hint line, and quick action styles that were moved out of
   `styles/legacy-canvas.css`.

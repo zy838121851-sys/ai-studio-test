@@ -1,0 +1,77 @@
+.floating-suggestions {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.floating-suggestions button {
+  position: absolute;
+  display: grid;
+  gap: 6px;
+  width: 172px;
+  min-height: 74px;
+  padding: 14px 16px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 22px;
+  color: #f6f8fb;
+  background:
+    radial-gradient(circle at 24% 10%, rgba(255, 255, 255, 0.16), transparent 36%),
+    rgba(22, 24, 28, 0.62);
+  backdrop-filter: blur(22px) saturate(130%);
+  -webkit-backdrop-filter: blur(22px) saturate(130%);
+  box-shadow: 0 18px 46px rgba(0, 0, 0, 0.38);
+  pointer-events: auto;
+  text-align: left;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease, background 0.16s ease;
+  animation: suggestionPop 0.32s ease both;
+}
+
+.floating-suggestions button:nth-child(1) {
+  left: -120px;
+  top: 10%;
+}
+
+.floating-suggestions button:nth-child(2) {
+  right: -130px;
+  top: 20%;
+  animation-delay: 0.04s;
+}
+
+.floating-suggestions button:nth-child(3) {
+  left: -105px;
+  bottom: 14%;
+  animation-delay: 0.08s;
+}
+
+.floating-suggestions button:nth-child(4) {
+  right: -118px;
+  bottom: 12%;
+  animation-delay: 0.12s;
+}
+
+.floating-suggestions button:hover {
+  border-color: rgba(245, 247, 250, 0.58);
+  background:
+    radial-gradient(circle at 24% 10%, rgba(255, 255, 255, 0.22), transparent 38%),
+    rgba(42, 44, 48, 0.74);
+  box-shadow:
+    0 24px 56px rgba(0, 0, 0, 0.42),
+    0 0 26px rgba(245, 247, 250, 0.24);
+  transform: translateY(-4px);
+}
+
+.floating-suggestions small {
+  color: rgba(245, 247, 250, 0.58);
+  font-style: italic;
+  font-size: 13px;
+}
+
+.floating-suggestions span {
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.floating-suggestions button.running {
+  cursor: wait;
+  opacity: 0.7;
+}

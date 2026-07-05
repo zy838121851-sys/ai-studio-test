@@ -295,6 +295,16 @@ styles/legacy-canvas-project-header.css
 styles/legacy-canvas-library.css
 ```
 
+`styles/legacy-canvas-choice-overlays.css` currently imports:
+
+```text
+styles/legacy-canvas-choice-viewport.css
+styles/legacy-canvas-choice-upload.css
+styles/legacy-canvas-choice-generation.css
+styles/legacy-canvas-choice-floating-suggestions.css
+styles/legacy-canvas-choice-keyframes.css
+```
+
 `styles/legacy-canvas-shell.css` currently imports:
 
 ```text
@@ -718,9 +728,20 @@ Notes:
   rows, and responsive edit action overrides.
 - `legacy-canvas-add-node.css` owns add-node menu detail styles and canvas-view
   add-node menu overrides.
-- `legacy-canvas-choice-overlays.css` owns canvas viewport cursor states, upload
-  choice bubbles, generation choice overlay, floating suggestions, and related
-  keyframes.
+- `legacy-canvas-choice-overlays.css` is now a pure aggregation entry for
+  canvas viewport cursor states, upload choice bubbles, generation choice
+  overlay, floating suggestions, and related keyframe submodules.
+- `legacy-canvas-choice-viewport.css` owns canvas viewport positioning and
+  cursor state styles.
+- `legacy-canvas-choice-upload.css` owns upload choosing blur state, upload
+  choice bubbles, drag/drop hover state, and upload drag-live copy
+  pseudo-element styles.
+- `legacy-canvas-choice-generation.css` owns generation choice overlay, close
+  button, stage, and generated choice image presentation styles.
+- `legacy-canvas-choice-floating-suggestions.css` owns floating suggestion
+  placement, card states, text, and running-state styles.
+- `legacy-canvas-choice-keyframes.css` owns the related choice overlay
+  animations.
 - `legacy-canvas-world.css` owns canvas selection box, canvas world, empty
   state, hint line, and quick action styles.
 - `legacy-canvas-video-generator.css` owns video generator popover, reference
@@ -862,6 +883,11 @@ styles/legacy-canvas-image-edit-compact-select.css
 styles/legacy-canvas-image-edit-footer.css
 styles/legacy-canvas-add-node.css
 styles/legacy-canvas-choice-overlays.css
+styles/legacy-canvas-choice-viewport.css
+styles/legacy-canvas-choice-upload.css
+styles/legacy-canvas-choice-generation.css
+styles/legacy-canvas-choice-floating-suggestions.css
+styles/legacy-canvas-choice-keyframes.css
 styles/legacy-canvas-world.css
 styles/legacy-canvas-video-generator.css
 styles/legacy-canvas-project-header.css
@@ -1030,7 +1056,11 @@ Additional caution:
   `legacy-canvas-image-edit-generator-select.css`,
   `legacy-canvas-image-edit-compact-select.css`, and
   `legacy-canvas-image-edit-footer.css`, `legacy-canvas-add-node.css`, and
-  `legacy-canvas-choice-overlays.css`, `legacy-canvas-world.css`, and
+  `legacy-canvas-choice-overlays.css` imports of
+  `legacy-canvas-choice-viewport.css`, `legacy-canvas-choice-upload.css`,
+  `legacy-canvas-choice-generation.css`,
+  `legacy-canvas-choice-floating-suggestions.css`, and
+  `legacy-canvas-choice-keyframes.css`, `legacy-canvas-world.css`, and
   `legacy-canvas-video-generator.css`, and
   `legacy-canvas-project-header.css`, and `legacy-canvas-library.css`, plus
   the `legacy-canvas-visual.css` import of

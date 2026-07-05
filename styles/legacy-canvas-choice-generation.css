@@ -1,0 +1,55 @@
+.generation-choice-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 58;
+  display: none;
+  place-items: center;
+  padding: 48px;
+  background: rgba(0, 0, 0, 0.42);
+  backdrop-filter: blur(18px) saturate(120%);
+  -webkit-backdrop-filter: blur(18px) saturate(120%);
+  opacity: 0;
+  transition: opacity 0.22s ease;
+}
+
+.generation-choice-overlay.open {
+  display: grid;
+  opacity: 1;
+  animation: overlayFade 0.22s ease both;
+}
+
+.generation-choice-close {
+  position: absolute;
+  right: 28px;
+  top: 24px;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 50%;
+  color: #f5f7fa;
+  background: rgba(24, 24, 24, 0.52);
+  backdrop-filter: blur(16px);
+  font-size: 22px;
+}
+
+.generation-choice-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  max-width: min(78vw, 980px);
+  max-height: 78vh;
+}
+
+.generation-choice-image {
+  display: block;
+  max-width: min(54vw, 660px);
+  max-height: 70vh;
+  border-radius: 28px;
+  object-fit: contain;
+  box-shadow:
+    0 34px 90px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 255, 255, 0.12);
+  animation: imageFloatIn 0.34s ease both;
+}

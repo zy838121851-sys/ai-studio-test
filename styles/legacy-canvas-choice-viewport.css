@@ -1,0 +1,15 @@
+.canvas-viewport {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  cursor: grab;
+}
+
+.canvas-viewport.dragging {
+  cursor: grabbing;
+}
+
+.canvas-viewport.selecting {
+  cursor: crosshair;
+}
