@@ -55,8 +55,8 @@ Current source footprint, excluding `node_modules` and `dist`:
 | --- | ---: | ---: |
 | `src/client` | 298 | 39,683 |
 | `src/server` | 80 | 14,430 |
-| `styles` | 67 | 15,287 |
-| `scripts` | 90 | 21,002 |
+| `styles` | 68 | 15,288 |
+| `scripts` | 90 | 21,015 |
 
 Largest files in the current source tree:
 
@@ -159,9 +159,14 @@ Post-baseline CSS governance note:
   image-edit compact select, composer compact select, responsive compact
   select, and compact select option state styles that were moved out of
   `styles/legacy-theme-sync.css`.
+- `styles/legacy-theme-sync-model-preference.css` owns model preference menu,
+  chat model menu, image generator model menu, model preference panel, option,
+  tag, and generator select option color-fix theme styles that were moved out
+  of `styles/legacy-theme-sync.css`.
 - `styles/legacy-theme-sync.css` now imports the theme sync base, surfaces,
-  image edit, crop expand, media edit, node media, and compact select
-  submodules before the remaining cross-component theme synchronization rules.
+  image edit, crop expand, media edit, node media, compact select, and model
+  preference submodules before the remaining cross-component theme
+  synchronization rules.
 - `styles/legacy-canvas-shell.css` owns the first canvas shell block that was
   moved out of `styles/legacy-canvas.css`: canvas area background, project
   header/logo, top actions, tool rail, add-node menu, canvas context menu, and

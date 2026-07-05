@@ -42,7 +42,8 @@ const EXPECTED_LEGACY_THEME_SYNC_IMPORTS = [
   "./legacy-theme-sync-crop-expand.css",
   "./legacy-theme-sync-media-edit.css",
   "./legacy-theme-sync-node-media.css",
-  "./legacy-theme-sync-compact-select.css"
+  "./legacy-theme-sync-compact-select.css",
+  "./legacy-theme-sync-model-preference.css"
 ];
 const EXPECTED_LEGACY_CANVAS_IMPORTS = [
   "./legacy-canvas-shell.css",
@@ -235,7 +236,8 @@ const EXPECTED_LEGACY_THEME_SYNC_IMAGE_EDIT_SELECTORS = [
   "#imageEditCancel"
 ];
 const EXPECTED_LEGACY_THEME_SYNC_SELECTORS = [
-  ".home-model-menu.model-preference-menu"
+  ".home-send.credit-submit-button",
+  ".credit-submit-cost"
 ];
 const EXPECTED_LEGACY_THEME_SYNC_CROP_EXPAND_SELECTORS = [
   ".canvas-context-menu button:first-child",
@@ -270,6 +272,16 @@ const EXPECTED_LEGACY_THEME_SYNC_COMPACT_SELECT_SELECTORS = [
   ".compact-select-option",
   ".image-edit-popover .compact-select-trigger",
   ".composer-actions .compact-select-trigger"
+];
+const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_SELECTORS = [
+  ".home-model-menu.model-preference-menu",
+  ".compact-select-menu.model-preference-menu",
+  ".compact-select-menu-portal.model-preference-menu",
+  ".chat-model-menu .model-preference-panel",
+  "#imageGeneratorPopover .generator-select-wrap[data-generator-select-kind=\"model\"] .generator-select-menu.model-preference-menu",
+  ".model-preference-panel",
+  ".model-preference-option",
+  ".model-preference-tags"
 ];
 const EXPECTED_LEGACY_CANVAS_SHELL_SELECTORS = [
   ".canvas-area",
@@ -655,6 +667,7 @@ checkFileContains("styles/legacy-theme-sync-crop-expand.css", EXPECTED_LEGACY_TH
 checkFileContains("styles/legacy-theme-sync-media-edit.css", EXPECTED_LEGACY_THEME_SYNC_MEDIA_EDIT_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-node-media.css", EXPECTED_LEGACY_THEME_SYNC_NODE_MEDIA_SELECTORS);
 checkFileContains("styles/legacy-theme-sync-compact-select.css", EXPECTED_LEGACY_THEME_SYNC_COMPACT_SELECT_SELECTORS);
+checkFileContains("styles/legacy-theme-sync-model-preference.css", EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_SELECTORS);
 checkFileContains("styles/legacy-theme-sync.css", EXPECTED_LEGACY_THEME_SYNC_SELECTORS);
 checkFileContains("styles/legacy-canvas-shell.css", EXPECTED_LEGACY_CANVAS_SHELL_SELECTORS);
 checkFileContains("styles/legacy-canvas-image-edit.css", EXPECTED_LEGACY_CANVAS_IMAGE_EDIT_SELECTORS);
