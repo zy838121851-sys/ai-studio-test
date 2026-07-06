@@ -1,0 +1,10 @@
+.home-history-card:hover .home-history-delete,
+.home-history-delete:focus-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.home-history-delete:hover {
+  background: rgba(17, 24, 39, 0.78);
+}

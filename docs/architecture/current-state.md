@@ -377,6 +377,14 @@ Post-baseline CSS governance note:
   button shell and create-card sizing styles.
 - `styles/features/home-history-cards-base-state.css` owns history card
   removing and hover states.
+- `styles/features/home-history-cards-delete.css` is now a pure aggregation
+  entry for history card delete base, state, and icon submodules.
+- `styles/features/home-history-cards-delete-base.css` owns the history card
+  delete button shell styles.
+- `styles/features/home-history-cards-delete-state.css` owns the history card
+  delete reveal, focus, and hover states.
+- `styles/features/home-history-cards-delete-icon.css` owns the history card
+  delete icon drawing styles.
 - `styles/features/home-history-cards-preview.css` is now a pure aggregation
   entry for card preview shell, fallback, and image state submodules.
 - `styles/features/home-history-cards-preview-shell.css` owns the history card
