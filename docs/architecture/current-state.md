@@ -446,8 +446,17 @@ Post-baseline CSS governance note:
   project library shell, cards, and page-view override styles.
 - `styles/features/project-library-shell.css` owns project library shell, title,
   grid, header, selection bar, and empty-state styles.
-- `styles/features/project-library-cards.css` owns project library board, card,
-  selection check, new-card, thumbnail, and base responsive styles.
+- `styles/features/project-library-cards.css` is now a pure aggregation entry
+  for project library card base, selection, content, and responsive submodules.
+- `styles/features/project-library-cards-selection.css` is now a pure
+  aggregation entry for project library card selection state, checkbox, and
+  hover submodules.
+- `styles/features/project-library-cards-selection-state.css` owns selectable
+  and selected project library card state styles.
+- `styles/features/project-library-cards-selection-check.css` owns project
+  library card checkbox control and checked-state styles.
+- `styles/features/project-library-cards-selection-hover.css` owns project
+  library card hover and selected-hover styles.
 - `styles/features/project-library-page.css` owns `body[data-view="library"]`
   project library page overrides, mobile overrides, and library entry
   animation.

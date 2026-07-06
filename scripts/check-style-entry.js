@@ -680,6 +680,11 @@ const EXPECTED_PROJECT_LIBRARY_CARDS_IMPORTS = [
   "./project-library-cards-content.css",
   "./project-library-cards-responsive.css"
 ];
+const EXPECTED_PROJECT_LIBRARY_CARDS_SELECTION_IMPORTS = [
+  "./project-library-cards-selection-state.css",
+  "./project-library-cards-selection-check.css",
+  "./project-library-cards-selection-hover.css"
+];
 const EXPECTED_PROJECT_LIBRARY_SHELL_SELECTORS = [
   "@import url(\"./project-library-shell-layout.css\")",
   "@import url(\"./project-library-shell-header.css\")",
@@ -715,9 +720,21 @@ const EXPECTED_PROJECT_LIBRARY_CARDS_BASE_SELECTORS = [
   ".library-small-card"
 ];
 const EXPECTED_PROJECT_LIBRARY_CARDS_SELECTION_SELECTORS = [
-  ".library-card-check",
+  "@import url(\"./project-library-cards-selection-state.css\")",
+  "@import url(\"./project-library-cards-selection-check.css\")",
+  "@import url(\"./project-library-cards-selection-hover.css\")"
+];
+const EXPECTED_PROJECT_LIBRARY_CARDS_SELECTION_STATE_SELECTORS = [
   ".library-small-card.selected",
+  ".library-small-card.is-selectable > button:not(.library-card-check)"
+];
+const EXPECTED_PROJECT_LIBRARY_CARDS_SELECTION_CHECK_SELECTORS = [
+  ".library-card-check",
   ".library-small-card.selected .library-card-check"
+];
+const EXPECTED_PROJECT_LIBRARY_CARDS_SELECTION_HOVER_SELECTORS = [
+  ".library-small-card > button:not(.library-card-check):hover",
+  ".library-small-card.selected > button:not(.library-card-check):hover"
 ];
 const EXPECTED_PROJECT_LIBRARY_CARDS_CONTENT_SELECTORS = [
   ".library-new-card",
@@ -2798,6 +2815,7 @@ const workspaceImports = parseCssImports("styles/workspace.css");
 const projectLibraryImports = parseCssImports("styles/features/project-library.css");
 const projectLibraryShellImports = parseCssImports("styles/features/project-library-shell.css");
 const projectLibraryCardsImports = parseCssImports("styles/features/project-library-cards.css");
+const projectLibraryCardsSelectionImports = parseCssImports("styles/features/project-library-cards-selection.css");
 const projectLibraryPageImports = parseCssImports("styles/features/project-library-page.css");
 const chatImports = parseCssImports("styles/features/chat.css");
 const legacySplitImports = parseCssImports("styles/legacy-split.css");
@@ -2913,6 +2931,7 @@ assertListEqual("styles/workspace.css", workspaceImports, EXPECTED_WORKSPACE_IMP
 assertListEqual("styles/features/project-library.css", projectLibraryImports, EXPECTED_PROJECT_LIBRARY_IMPORTS);
 assertListEqual("styles/features/project-library-shell.css", projectLibraryShellImports, EXPECTED_PROJECT_LIBRARY_SHELL_IMPORTS);
 assertListEqual("styles/features/project-library-cards.css", projectLibraryCardsImports, EXPECTED_PROJECT_LIBRARY_CARDS_IMPORTS);
+assertListEqual("styles/features/project-library-cards-selection.css", projectLibraryCardsSelectionImports, EXPECTED_PROJECT_LIBRARY_CARDS_SELECTION_IMPORTS);
 assertListEqual("styles/features/project-library-page.css", projectLibraryPageImports, EXPECTED_PROJECT_LIBRARY_PAGE_IMPORTS);
 assertListEqual("styles/features/chat.css", chatImports, EXPECTED_CHAT_IMPORTS);
 assertListEqual("styles/legacy-split.css", legacySplitImports, EXPECTED_LEGACY_SPLIT_IMPORTS);
@@ -3026,6 +3045,7 @@ checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(projectLibraryImports, "styles/features");
 checkImportedFilesExist(projectLibraryShellImports, "styles/features");
 checkImportedFilesExist(projectLibraryCardsImports, "styles/features");
+checkImportedFilesExist(projectLibraryCardsSelectionImports, "styles/features");
 checkImportedFilesExist(projectLibraryPageImports, "styles/features");
 checkImportedFilesExist(chatImports, "styles/features");
 checkImportedFilesExist(legacySplitImports, "styles");
@@ -3500,6 +3520,9 @@ checkFileContains("styles/features/project-library-shell-empty.css", EXPECTED_PR
 checkFileContains("styles/features/project-library-cards.css", EXPECTED_PROJECT_LIBRARY_CARDS_SELECTORS);
 checkFileContains("styles/features/project-library-cards-base.css", EXPECTED_PROJECT_LIBRARY_CARDS_BASE_SELECTORS);
 checkFileContains("styles/features/project-library-cards-selection.css", EXPECTED_PROJECT_LIBRARY_CARDS_SELECTION_SELECTORS);
+checkFileContains("styles/features/project-library-cards-selection-state.css", EXPECTED_PROJECT_LIBRARY_CARDS_SELECTION_STATE_SELECTORS);
+checkFileContains("styles/features/project-library-cards-selection-check.css", EXPECTED_PROJECT_LIBRARY_CARDS_SELECTION_CHECK_SELECTORS);
+checkFileContains("styles/features/project-library-cards-selection-hover.css", EXPECTED_PROJECT_LIBRARY_CARDS_SELECTION_HOVER_SELECTORS);
 checkFileContains("styles/features/project-library-cards-content.css", EXPECTED_PROJECT_LIBRARY_CARDS_CONTENT_SELECTORS);
 checkFileContains("styles/features/project-library-cards-responsive.css", EXPECTED_PROJECT_LIBRARY_CARDS_RESPONSIVE_SELECTORS);
 checkFileContains("styles/features/project-library-page.css", EXPECTED_PROJECT_LIBRARY_PAGE_SELECTORS);

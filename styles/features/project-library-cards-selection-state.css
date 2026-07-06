@@ -1,0 +1,14 @@
+.library-small-card.selected {
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.library-small-card.is-selectable > button:not(.library-card-check) {
+  cursor: pointer;
+}
+
+.library-small-card.selected > button:not(.library-card-check) {
+  border-color: rgba(77, 156, 255, 0.54);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 16px 42px rgba(31, 46, 72, 0.055), inset 0 1px rgba(255, 255, 255, 0.94);
+}
