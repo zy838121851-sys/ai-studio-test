@@ -274,6 +274,11 @@ const EXPECTED_NODE_IMAGE_EDIT_IMPORTS = [
   "./node-image-crop.css",
   "./node-image-expand.css"
 ];
+const EXPECTED_NODE_IMAGE_CROP_IMPORTS = [
+  "./node-image-crop-overlay.css",
+  "./node-image-crop-handles.css",
+  "./node-image-crop-actions.css"
+];
 const EXPECTED_NODE_IMAGE_TOOLBAR_IMPORTS = [
   "./node-image-toolbar-base.css",
   "./node-image-toolbar-upscale.css",
@@ -1484,9 +1489,35 @@ const EXPECTED_NODE_IMAGE_EDIT_SELECTORS = [
   ".node-image.expanding"
 ];
 const EXPECTED_NODE_IMAGE_CROP_SELECTORS = [
+  "@import url(\"./node-image-crop-overlay.css\")",
+  "@import url(\"./node-image-crop-handles.css\")",
+  "@import url(\"./node-image-crop-actions.css\")"
+];
+const EXPECTED_NODE_IMAGE_CROP_OVERLAY_SELECTORS = [
+  ".node-image.cropping .image-frame",
   ".node-crop-layer",
   ".crop-box",
-  ".crop-actions"
+  ".crop-box::before"
+];
+const EXPECTED_NODE_IMAGE_CROP_HANDLES_SELECTORS = [
+  ".crop-corner",
+  ".crop-edge",
+  ".crop-nw",
+  ".crop-ne",
+  ".crop-sw",
+  ".crop-se",
+  ".crop-n",
+  ".crop-s",
+  ".crop-w",
+  ".crop-e"
+];
+const EXPECTED_NODE_IMAGE_CROP_ACTIONS_SELECTORS = [
+  ".crop-actions",
+  ".crop-actions button",
+  ".crop-actions button[data-crop-action=\"cancel\"]",
+  ".crop-actions button[data-crop-ratio]",
+  ".crop-actions button[data-crop-action=\"reset\"]",
+  ".crop-actions .crop-confirm"
 ];
 const EXPECTED_NODE_IMAGE_EXPAND_SELECTORS = [
   ".image-expand-box",
@@ -1902,6 +1933,7 @@ const authDialogImports = parseCssImports("styles/features/auth-dialog.css");
 const nodeImports = parseCssImports("styles/features/node.css");
 const nodeBaseImports = parseCssImports("styles/features/node-base.css");
 const nodeImageEditImports = parseCssImports("styles/features/node-image-edit.css");
+const nodeImageCropImports = parseCssImports("styles/features/node-image-crop.css");
 const nodeImageToolbarImports = parseCssImports("styles/features/node-image-toolbar.css");
 const nodeImageToolbarMenuImports = parseCssImports("styles/features/node-image-toolbar-menu.css");
 const nodeImagePanelsImports = parseCssImports("styles/features/node-image-panels.css");
@@ -1977,6 +2009,7 @@ assertListEqual("styles/features/auth-dialog.css", authDialogImports, EXPECTED_A
 assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
 assertListEqual("styles/features/node-base.css", nodeBaseImports, EXPECTED_NODE_BASE_IMPORTS);
 assertListEqual("styles/features/node-image-edit.css", nodeImageEditImports, EXPECTED_NODE_IMAGE_EDIT_IMPORTS);
+assertListEqual("styles/features/node-image-crop.css", nodeImageCropImports, EXPECTED_NODE_IMAGE_CROP_IMPORTS);
 assertListEqual("styles/features/node-image-toolbar.css", nodeImageToolbarImports, EXPECTED_NODE_IMAGE_TOOLBAR_IMPORTS);
 assertListEqual("styles/features/node-image-toolbar-menu.css", nodeImageToolbarMenuImports, EXPECTED_NODE_IMAGE_TOOLBAR_MENU_IMPORTS);
 assertListEqual("styles/features/node-image-panels.css", nodeImagePanelsImports, EXPECTED_NODE_IMAGE_PANELS_IMPORTS);
@@ -2049,6 +2082,7 @@ checkImportedFilesExist(authDialogImports, "styles/features");
 checkImportedFilesExist(nodeImports, "styles/features");
 checkImportedFilesExist(nodeBaseImports, "styles/features");
 checkImportedFilesExist(nodeImageEditImports, "styles/features");
+checkImportedFilesExist(nodeImageCropImports, "styles/features");
 checkImportedFilesExist(nodeImageToolbarImports, "styles/features");
 checkImportedFilesExist(nodeImageToolbarMenuImports, "styles/features");
 checkImportedFilesExist(nodeImagePanelsImports, "styles/features");
@@ -2284,6 +2318,9 @@ checkFileContains("styles/features/node-base-resize.css", EXPECTED_NODE_BASE_RES
 checkFileContains("styles/features/node-base-actions.css", EXPECTED_NODE_BASE_ACTIONS_SELECTORS);
 checkFileContains("styles/features/node-image-edit-state.css", EXPECTED_NODE_IMAGE_EDIT_SELECTORS);
 checkFileContains("styles/features/node-image-crop.css", EXPECTED_NODE_IMAGE_CROP_SELECTORS);
+checkFileContains("styles/features/node-image-crop-overlay.css", EXPECTED_NODE_IMAGE_CROP_OVERLAY_SELECTORS);
+checkFileContains("styles/features/node-image-crop-handles.css", EXPECTED_NODE_IMAGE_CROP_HANDLES_SELECTORS);
+checkFileContains("styles/features/node-image-crop-actions.css", EXPECTED_NODE_IMAGE_CROP_ACTIONS_SELECTORS);
 checkFileContains("styles/features/node-image-expand.css", EXPECTED_NODE_IMAGE_EXPAND_SELECTORS);
 checkFileContains("styles/features/node-state.css", EXPECTED_NODE_STATE_SELECTORS);
 checkFileContains("styles/features/node-image-toolbar-base.css", EXPECTED_NODE_IMAGE_TOOLBAR_BASE_SELECTORS);

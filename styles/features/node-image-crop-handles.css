@@ -1,0 +1,72 @@
+.crop-corner,
+.crop-edge {
+  position: absolute;
+  background: #fff;
+}
+
+.crop-corner {
+  width: 30px;
+  height: 4px;
+}
+
+.crop-nw {
+  left: -2px;
+  top: -2px;
+  cursor: nwse-resize;
+}
+
+.crop-ne {
+  right: -2px;
+  top: -2px;
+  cursor: nesw-resize;
+}
+
+.crop-sw {
+  left: -2px;
+  bottom: -2px;
+  cursor: nesw-resize;
+}
+
+.crop-se {
+  right: -2px;
+  bottom: -2px;
+  cursor: nwse-resize;
+}
+
+.crop-edge {
+  opacity: 0.9;
+}
+
+.crop-n,
+.crop-s {
+  left: 50%;
+  width: 36px;
+  height: 4px;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+
+.crop-n {
+  top: -2px;
+}
+
+.crop-s {
+  bottom: -2px;
+}
+
+.crop-w,
+.crop-e {
+  top: 50%;
+  width: 4px;
+  height: 36px;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+
+.crop-w {
+  left: -2px;
+}
+
+.crop-e {
+  right: -2px;
+}

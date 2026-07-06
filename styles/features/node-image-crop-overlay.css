@@ -1,0 +1,35 @@
+.node-image.cropping .image-frame {
+  position: relative;
+  outline: 2px solid rgba(127, 200, 255, 0.6);
+  outline-offset: 0;
+  box-shadow:
+    0 0 0 9999px rgba(0, 0, 0, 0.26),
+    0 28px 96px rgba(0, 0, 0, 0.55);
+}
+
+.node-crop-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  pointer-events: auto;
+}
+
+.crop-box {
+  position: absolute;
+  cursor: move;
+  box-shadow: 0 0 0 9999px rgba(7, 13, 18, 0.58);
+  outline: 3px solid rgba(255, 255, 255, 0.96);
+  outline-offset: -1px;
+}
+
+.crop-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.36)) 0 33.333% / 100% 1px no-repeat,
+    linear-gradient(rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.36)) 0 66.666% / 100% 1px no-repeat,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.36)) 33.333% 0 / 1px 100% no-repeat,
+    linear-gradient(90deg, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.36)) 66.666% 0 / 1px 100% no-repeat;
+  pointer-events: none;
+}
