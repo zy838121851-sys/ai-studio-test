@@ -1,0 +1,70 @@
+.expand-corner,
+.expand-edge {
+  position: absolute;
+  z-index: 2;
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(127, 200, 255, 0.95);
+}
+
+.expand-corner {
+  width: 30px;
+  height: 4px;
+}
+
+.expand-nw {
+  left: -2px;
+  top: -2px;
+  cursor: nwse-resize;
+}
+
+.expand-ne {
+  right: -2px;
+  top: -2px;
+  cursor: nesw-resize;
+}
+
+.expand-sw {
+  left: -2px;
+  bottom: -2px;
+  cursor: nesw-resize;
+}
+
+.expand-se {
+  right: -2px;
+  bottom: -2px;
+  cursor: nwse-resize;
+}
+
+.expand-n,
+.expand-s {
+  left: 50%;
+  width: 36px;
+  height: 4px;
+  transform: translateX(-50%);
+  cursor: ns-resize;
+}
+
+.expand-n {
+  top: -2px;
+}
+
+.expand-s {
+  bottom: -2px;
+}
+
+.expand-w,
+.expand-e {
+  top: 50%;
+  width: 4px;
+  height: 36px;
+  transform: translateY(-50%);
+  cursor: ew-resize;
+}
+
+.expand-w {
+  left: -2px;
+}
+
+.expand-e {
+  right: -2px;
+}

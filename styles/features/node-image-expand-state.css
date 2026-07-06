@@ -1,0 +1,11 @@
+.image-expand-box.is-confirming {
+  cursor: progress;
+}
+
+.image-expand-box.is-confirming .image-expand-actions {
+  cursor: default;
+}
+
+.image-expand-box.is-confirming .image-expand-actions .crop-confirm {
+  flex-basis: 136px;
+}

@@ -279,6 +279,12 @@ const EXPECTED_NODE_IMAGE_CROP_IMPORTS = [
   "./node-image-crop-handles.css",
   "./node-image-crop-actions.css"
 ];
+const EXPECTED_NODE_IMAGE_EXPAND_IMPORTS = [
+  "./node-image-expand-overlay.css",
+  "./node-image-expand-handles.css",
+  "./node-image-expand-actions.css",
+  "./node-image-expand-state.css"
+];
 const EXPECTED_NODE_IMAGE_TOOLBAR_IMPORTS = [
   "./node-image-toolbar-base.css",
   "./node-image-toolbar-upscale.css",
@@ -1520,11 +1526,40 @@ const EXPECTED_NODE_IMAGE_CROP_ACTIONS_SELECTORS = [
   ".crop-actions .crop-confirm"
 ];
 const EXPECTED_NODE_IMAGE_EXPAND_SELECTORS = [
+  "@import url(\"./node-image-expand-overlay.css\")",
+  "@import url(\"./node-image-expand-handles.css\")",
+  "@import url(\"./node-image-expand-actions.css\")",
+  "@import url(\"./node-image-expand-state.css\")"
+];
+const EXPECTED_NODE_IMAGE_EXPAND_OVERLAY_SELECTORS = [
   ".image-expand-box",
-  ".image-expand-source",
+  ".image-expand-source"
+];
+const EXPECTED_NODE_IMAGE_EXPAND_HANDLES_SELECTORS = [
+  ".expand-corner",
+  ".expand-edge",
+  ".expand-nw",
+  ".expand-ne",
+  ".expand-sw",
+  ".expand-se",
+  ".expand-n",
+  ".expand-s",
+  ".expand-w",
+  ".expand-e"
+];
+const EXPECTED_NODE_IMAGE_EXPAND_ACTIONS_SELECTORS = [
   ".image-expand-actions",
   ".image-expand-prompt-field",
-  ".image-expand-action-row"
+  ".image-expand-prompt-field textarea",
+  ".image-expand-action-row",
+  ".image-expand-action-row .image-expand-action-divider",
+  ".image-expand-action-row button[data-expand-action=\"cancel\"]",
+  ".image-expand-action-row button[data-expand-action=\"reset\"]"
+];
+const EXPECTED_NODE_IMAGE_EXPAND_STATE_SELECTORS = [
+  ".image-expand-box.is-confirming",
+  ".image-expand-box.is-confirming .image-expand-actions",
+  ".image-expand-box.is-confirming .image-expand-actions .crop-confirm"
 ];
 const EXPECTED_NODE_STATE_SELECTORS = [
   ".node-card.node-zoomed",
@@ -1934,6 +1969,7 @@ const nodeImports = parseCssImports("styles/features/node.css");
 const nodeBaseImports = parseCssImports("styles/features/node-base.css");
 const nodeImageEditImports = parseCssImports("styles/features/node-image-edit.css");
 const nodeImageCropImports = parseCssImports("styles/features/node-image-crop.css");
+const nodeImageExpandImports = parseCssImports("styles/features/node-image-expand.css");
 const nodeImageToolbarImports = parseCssImports("styles/features/node-image-toolbar.css");
 const nodeImageToolbarMenuImports = parseCssImports("styles/features/node-image-toolbar-menu.css");
 const nodeImagePanelsImports = parseCssImports("styles/features/node-image-panels.css");
@@ -2010,6 +2046,7 @@ assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
 assertListEqual("styles/features/node-base.css", nodeBaseImports, EXPECTED_NODE_BASE_IMPORTS);
 assertListEqual("styles/features/node-image-edit.css", nodeImageEditImports, EXPECTED_NODE_IMAGE_EDIT_IMPORTS);
 assertListEqual("styles/features/node-image-crop.css", nodeImageCropImports, EXPECTED_NODE_IMAGE_CROP_IMPORTS);
+assertListEqual("styles/features/node-image-expand.css", nodeImageExpandImports, EXPECTED_NODE_IMAGE_EXPAND_IMPORTS);
 assertListEqual("styles/features/node-image-toolbar.css", nodeImageToolbarImports, EXPECTED_NODE_IMAGE_TOOLBAR_IMPORTS);
 assertListEqual("styles/features/node-image-toolbar-menu.css", nodeImageToolbarMenuImports, EXPECTED_NODE_IMAGE_TOOLBAR_MENU_IMPORTS);
 assertListEqual("styles/features/node-image-panels.css", nodeImagePanelsImports, EXPECTED_NODE_IMAGE_PANELS_IMPORTS);
@@ -2083,6 +2120,7 @@ checkImportedFilesExist(nodeImports, "styles/features");
 checkImportedFilesExist(nodeBaseImports, "styles/features");
 checkImportedFilesExist(nodeImageEditImports, "styles/features");
 checkImportedFilesExist(nodeImageCropImports, "styles/features");
+checkImportedFilesExist(nodeImageExpandImports, "styles/features");
 checkImportedFilesExist(nodeImageToolbarImports, "styles/features");
 checkImportedFilesExist(nodeImageToolbarMenuImports, "styles/features");
 checkImportedFilesExist(nodeImagePanelsImports, "styles/features");
@@ -2322,6 +2360,10 @@ checkFileContains("styles/features/node-image-crop-overlay.css", EXPECTED_NODE_I
 checkFileContains("styles/features/node-image-crop-handles.css", EXPECTED_NODE_IMAGE_CROP_HANDLES_SELECTORS);
 checkFileContains("styles/features/node-image-crop-actions.css", EXPECTED_NODE_IMAGE_CROP_ACTIONS_SELECTORS);
 checkFileContains("styles/features/node-image-expand.css", EXPECTED_NODE_IMAGE_EXPAND_SELECTORS);
+checkFileContains("styles/features/node-image-expand-overlay.css", EXPECTED_NODE_IMAGE_EXPAND_OVERLAY_SELECTORS);
+checkFileContains("styles/features/node-image-expand-handles.css", EXPECTED_NODE_IMAGE_EXPAND_HANDLES_SELECTORS);
+checkFileContains("styles/features/node-image-expand-actions.css", EXPECTED_NODE_IMAGE_EXPAND_ACTIONS_SELECTORS);
+checkFileContains("styles/features/node-image-expand-state.css", EXPECTED_NODE_IMAGE_EXPAND_STATE_SELECTORS);
 checkFileContains("styles/features/node-state.css", EXPECTED_NODE_STATE_SELECTORS);
 checkFileContains("styles/features/node-image-toolbar-base.css", EXPECTED_NODE_IMAGE_TOOLBAR_BASE_SELECTORS);
 checkFileContains("styles/features/node-image-toolbar-upscale.css", EXPECTED_NODE_IMAGE_TOOLBAR_UPSCALE_SELECTORS);

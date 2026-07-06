@@ -1,0 +1,30 @@
+.image-expand-box {
+  position: absolute;
+  z-index: 86;
+  min-width: 96px;
+  min-height: 96px;
+  cursor: move;
+  outline: 3px solid rgba(127, 200, 255, 0.95);
+  outline-offset: -1px;
+  background:
+    linear-gradient(rgba(127, 200, 255, 0.2), rgba(127, 200, 255, 0.2)) 0 33.333% / 100% 1px no-repeat,
+    linear-gradient(rgba(127, 200, 255, 0.2), rgba(127, 200, 255, 0.2)) 0 66.666% / 100% 1px no-repeat,
+    linear-gradient(90deg, rgba(127, 200, 255, 0.2), rgba(127, 200, 255, 0.2)) 33.333% 0 / 1px 100% no-repeat,
+    linear-gradient(90deg, rgba(127, 200, 255, 0.2), rgba(127, 200, 255, 0.2)) 66.666% 0 / 1px 100% no-repeat,
+    rgba(127, 200, 255, 0.08);
+  box-shadow:
+    0 0 0 9999px rgba(7, 13, 18, 0.28),
+    0 24px 72px rgba(15, 23, 42, 0.24);
+  pointer-events: auto;
+}
+
+.image-expand-source {
+  position: absolute;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow:
+    inset 0 0 0 2px rgba(15, 23, 42, 0.12),
+    0 0 0 1px rgba(15, 23, 42, 0.18);
+  pointer-events: none;
+}
