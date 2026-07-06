@@ -359,6 +359,11 @@ const EXPECTED_NODE_IMAGE_PANELS_IMPORTS = [
   "./node-image-text-panel.css",
   "./node-image-lightbox.css"
 ];
+const EXPECTED_NODE_IMAGE_TEXT_PANEL_IMPORTS = [
+  "./node-image-text-panel-shell.css",
+  "./node-image-text-panel-list.css",
+  "./node-image-text-panel-footer.css"
+];
 const EXPECTED_NODE_STACK_IMPORTS = [
   "./node-stack-base.css",
   "./node-stack-tray.css"
@@ -1761,9 +1766,24 @@ const EXPECTED_NODE_IMAGE_TOOLBAR_SAVEBAR_SUBMIT_SELECTORS = [
   ".canvas-asset-save-submit.is-saved"
 ];
 const EXPECTED_NODE_IMAGE_TEXT_PANEL_SELECTORS = [
+  "@import url(\"./node-image-text-panel-shell.css\")",
+  "@import url(\"./node-image-text-panel-list.css\")",
+  "@import url(\"./node-image-text-panel-footer.css\")"
+];
+const EXPECTED_NODE_IMAGE_TEXT_PANEL_SHELL_SELECTORS = [
   ".image-text-panel",
-  ".image-text-status",
+  ".image-text-panel.open",
+  ".image-text-panel header",
+  ".image-text-status"
+];
+const EXPECTED_NODE_IMAGE_TEXT_PANEL_LIST_SELECTORS = [
   ".image-text-list"
+];
+const EXPECTED_NODE_IMAGE_TEXT_PANEL_FOOTER_SELECTORS = [
+  ".image-text-panel footer",
+  ".image-text-panel footer button",
+  ".image-text-panel footer [data-text-edit-apply]",
+  ".image-text-panel.loading footer [data-text-edit-apply]"
 ];
 const EXPECTED_NODE_IMAGE_LIGHTBOX_SELECTORS = [
   ".image-lightbox",
@@ -2257,6 +2277,7 @@ const nodeImageToolbarMenuUpscaleImports = parseCssImports("styles/features/node
 const nodeImageToolbarMenuDarkImports = parseCssImports("styles/features/node-image-toolbar-menu-dark.css");
 const nodeImageToolbarSavebarImports = parseCssImports("styles/features/node-image-toolbar-savebar.css");
 const nodeImagePanelsImports = parseCssImports("styles/features/node-image-panels.css");
+const nodeImageTextPanelImports = parseCssImports("styles/features/node-image-text-panel.css");
 const nodeStackImports = parseCssImports("styles/features/node-stack.css");
 const nodeMediaImports = parseCssImports("styles/features/node-media.css");
 const nodePreviewImports = parseCssImports("styles/features/node-preview.css");
@@ -2343,6 +2364,7 @@ assertListEqual("styles/features/node-image-toolbar-menu-upscale.css", nodeImage
 assertListEqual("styles/features/node-image-toolbar-menu-dark.css", nodeImageToolbarMenuDarkImports, EXPECTED_NODE_IMAGE_TOOLBAR_MENU_DARK_IMPORTS);
 assertListEqual("styles/features/node-image-toolbar-savebar.css", nodeImageToolbarSavebarImports, EXPECTED_NODE_IMAGE_TOOLBAR_SAVEBAR_IMPORTS);
 assertListEqual("styles/features/node-image-panels.css", nodeImagePanelsImports, EXPECTED_NODE_IMAGE_PANELS_IMPORTS);
+assertListEqual("styles/features/node-image-text-panel.css", nodeImageTextPanelImports, EXPECTED_NODE_IMAGE_TEXT_PANEL_IMPORTS);
 assertListEqual("styles/features/node-stack.css", nodeStackImports, EXPECTED_NODE_STACK_IMPORTS);
 assertListEqual("styles/features/node-media.css", nodeMediaImports, EXPECTED_NODE_MEDIA_IMPORTS);
 assertListEqual("styles/features/node-preview.css", nodePreviewImports, EXPECTED_NODE_PREVIEW_IMPORTS);
@@ -2426,6 +2448,7 @@ checkImportedFilesExist(nodeImageToolbarMenuUpscaleImports, "styles/features");
 checkImportedFilesExist(nodeImageToolbarMenuDarkImports, "styles/features");
 checkImportedFilesExist(nodeImageToolbarSavebarImports, "styles/features");
 checkImportedFilesExist(nodeImagePanelsImports, "styles/features");
+checkImportedFilesExist(nodeImageTextPanelImports, "styles/features");
 checkImportedFilesExist(nodeStackImports, "styles/features");
 checkImportedFilesExist(nodeMediaImports, "styles/features");
 checkImportedFilesExist(nodePreviewImports, "styles/features");
@@ -2699,6 +2722,9 @@ checkFileContains("styles/features/node-image-toolbar-savebar-shell.css", EXPECT
 checkFileContains("styles/features/node-image-toolbar-savebar-board.css", EXPECTED_NODE_IMAGE_TOOLBAR_SAVEBAR_BOARD_SELECTORS);
 checkFileContains("styles/features/node-image-toolbar-savebar-submit.css", EXPECTED_NODE_IMAGE_TOOLBAR_SAVEBAR_SUBMIT_SELECTORS);
 checkFileContains("styles/features/node-image-text-panel.css", EXPECTED_NODE_IMAGE_TEXT_PANEL_SELECTORS);
+checkFileContains("styles/features/node-image-text-panel-shell.css", EXPECTED_NODE_IMAGE_TEXT_PANEL_SHELL_SELECTORS);
+checkFileContains("styles/features/node-image-text-panel-list.css", EXPECTED_NODE_IMAGE_TEXT_PANEL_LIST_SELECTORS);
+checkFileContains("styles/features/node-image-text-panel-footer.css", EXPECTED_NODE_IMAGE_TEXT_PANEL_FOOTER_SELECTORS);
 checkFileContains("styles/features/node-image-lightbox.css", EXPECTED_NODE_IMAGE_LIGHTBOX_SELECTORS);
 checkFileContains("styles/features/node-stack-base.css", EXPECTED_NODE_STACK_BASE_SELECTORS);
 checkFileContains("styles/features/node-stack-tray.css", EXPECTED_NODE_STACK_TRAY_SELECTORS);

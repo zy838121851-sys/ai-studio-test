@@ -1,0 +1,51 @@
+.image-text-panel {
+  position: absolute;
+  z-index: 36;
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(28, 35, 45, 0.12);
+  border-radius: 16px;
+  color: #17202c;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 24px 70px rgba(31, 46, 72, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(24px) saturate(1.35);
+  -webkit-backdrop-filter: blur(24px) saturate(1.35);
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+
+.image-text-panel.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.image-text-panel header,
+.image-text-panel footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.image-text-panel header strong {
+  flex: 1;
+  font-size: 15px;
+}
+
+.image-text-panel header button {
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 999px;
+  color: #667085;
+  background: rgba(24, 34, 48, 0.06);
+}
+
+.image-text-status {
+  color: #667085;
+  font-size: 12px;
+  line-height: 1.45;
+}

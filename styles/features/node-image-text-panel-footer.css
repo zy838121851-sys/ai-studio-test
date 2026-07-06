@@ -1,0 +1,23 @@
+.image-text-panel footer {
+  justify-content: flex-end;
+}
+
+.image-text-panel footer button {
+  height: 38px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 10px;
+  color: #17202c;
+  background: rgba(24, 34, 48, 0.07);
+  font-weight: 700;
+}
+
+.image-text-panel footer [data-text-edit-apply] {
+  color: #ffffff;
+  background: linear-gradient(135deg, #4d8fff, #5ac8fa);
+}
+
+.image-text-panel.loading footer [data-text-edit-apply] {
+  opacity: 0.55;
+  pointer-events: none;
+}

@@ -1,0 +1,24 @@
+.image-text-list {
+  display: grid;
+  gap: 8px;
+  max-height: 300px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.image-text-list input {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(28, 35, 45, 0.14);
+  border-radius: 9px;
+  color: #17202c;
+  background: rgba(255, 255, 255, 0.86);
+  font: inherit;
+  outline: none;
+}
+
+.image-text-list input:focus {
+  border-color: rgba(77, 143, 255, 0.7);
+  box-shadow: 0 0 0 3px rgba(77, 143, 255, 0.12);
+}
