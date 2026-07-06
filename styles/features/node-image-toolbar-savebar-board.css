@@ -1,0 +1,40 @@
+.canvas-asset-board-select,
+.canvas-asset-save-submit {
+  border: 0;
+  min-height: 34px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.canvas-asset-board-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 136px;
+  padding: 0 11px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 12px;
+  color: #fff;
+  background: rgba(17, 24, 39, 0.18);
+  backdrop-filter: blur(16px) saturate(1.18);
+  -webkit-backdrop-filter: blur(16px) saturate(1.18);
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.16);
+}
+
+.canvas-asset-board-select span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.canvas-asset-board-select svg {
+  flex: 0 0 auto;
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

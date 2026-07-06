@@ -1,0 +1,43 @@
+.canvas-asset-save-submit {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  min-width: 36px;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  color: rgba(255, 255, 255, 0.96);
+  font-size: 34px;
+  font-weight: 520;
+  line-height: 1;
+  text-shadow: 0 2px 12px rgba(15, 23, 42, 0.32);
+  background: transparent;
+  box-shadow: none;
+}
+
+.canvas-asset-save-submit:hover {
+  color: #fff;
+  background: transparent;
+  transform: scale(1.05);
+}
+
+.canvas-asset-save-submit.is-saved {
+  min-width: 36px;
+  font-size: 34px;
+  color: #e23b32;
+  text-shadow: 0 6px 18px rgba(226, 59, 50, 0.28);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.canvas-asset-save-submit.is-saved:hover {
+  color: #d9342d;
+  background: transparent;
+}
+
+.canvas-asset-save-submit:disabled {
+  cursor: wait;
+  opacity: 0.78;
+}
