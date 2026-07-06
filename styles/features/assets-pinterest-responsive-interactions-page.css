@@ -1,0 +1,19 @@
+/* Asset page interaction refinements */
+body[data-view="assetsPage"] .assets-page-view,
+body[data-view="assetsPage"] .simple-page-shell,
+body[data-view="assetsPage"] .assets-page-list {
+  overflow-x: hidden;
+}
+
+body[data-view="assetsPage"],
+body[data-view="assetsPage"] .app {
+  height: 100vh;
+  overflow: hidden;
+}
+
+body[data-view="assetsPage"] .assets-page-view.active {
+  display: block;
+  height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}

@@ -1,0 +1,22 @@
+body[data-view="assetsPage"] .asset-pinterest-pin-actions {
+  display: none;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin-delete {
+  position: absolute;
+  z-index: 4;
+  display: grid;
+  place-items: center;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+  transform: scale(0.92);
+  transition: opacity 0.16s ease, transform 0.16s ease, background 0.16s ease;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin:hover .asset-pinterest-pin-delete {
+  opacity: 1;
+  pointer-events: auto;
+  transform: scale(1);
+}

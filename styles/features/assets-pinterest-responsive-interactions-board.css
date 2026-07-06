@@ -1,0 +1,42 @@
+body[data-view="assetsPage"] .asset-pinterest-shell {
+  min-height: max-content;
+  padding-bottom: 120px;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-stats {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+body[data-view="assetsPage"] .asset-pinterest-boards-view,
+body[data-view="assetsPage"] .asset-pinterest-assets {
+  min-height: 0;
+  padding-bottom: 64px;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-board-grid {
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  align-items: start;
+  gap: 30px 22px;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-board-tile {
+  isolation: isolate;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-board-cover-large {
+  min-width: 0;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-board-cover-large img.asset-board-cover-cell {
+  display: block;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-board-title {
+  width: 100%;
+  margin-top: 12px;
+  padding: 0 2px;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
