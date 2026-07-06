@@ -515,6 +515,11 @@ const EXPECTED_ASSET_PINTEREST_PIN_IMPORTS = [
   "./assets-pinterest-pin-actions.css",
   "./assets-pinterest-pin-empty.css"
 ];
+const EXPECTED_ASSET_PINTEREST_PIN_CARD_IMPORTS = [
+  "./assets-pinterest-pin-card-shell.css",
+  "./assets-pinterest-pin-card-thumb.css",
+  "./assets-pinterest-pin-card-meta.css"
+];
 const EXPECTED_ASSET_PINTEREST_RESPONSIVE_IMPORTS = [
   "./assets-pinterest-responsive-breakpoints.css",
   "./assets-pinterest-responsive-interactions.css"
@@ -1243,10 +1248,21 @@ const EXPECTED_ASSET_PINTEREST_PIN_SELECTORS = [
   "@import url(\"./assets-pinterest-pin-empty.css\")"
 ];
 const EXPECTED_ASSET_PINTEREST_PIN_CARD_SELECTORS = [
+  "@import url(\"./assets-pinterest-pin-card-shell.css\")",
+  "@import url(\"./assets-pinterest-pin-card-thumb.css\")",
+  "@import url(\"./assets-pinterest-pin-card-meta.css\")"
+];
+const EXPECTED_ASSET_PINTEREST_PIN_CARD_SHELL_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-pinterest-pin.asset-item",
-  "body[data-view=\"assetsPage\"] .asset-pinterest-pin-thumb",
   "body[data-view=\"assetsPage\"] .asset-card-check",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-pin.selected .asset-card-check"
+];
+const EXPECTED_ASSET_PINTEREST_PIN_CARD_THUMB_SELECTORS = [
+  "body[data-view=\"assetsPage\"] .asset-pinterest-pin-thumb",
   "body[data-view=\"assetsPage\"] .asset-image-placeholder",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-pin-thumb.is-broken .asset-image-placeholder"
+];
+const EXPECTED_ASSET_PINTEREST_PIN_CARD_META_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-pinterest-pin-meta"
 ];
 const EXPECTED_ASSET_PINTEREST_PIN_ACTIONS_SELECTORS = [
@@ -2580,6 +2596,7 @@ const assetPinterestBoardTilesLegacyImports = parseCssImports("styles/features/a
 const assetPinterestShellImports = parseCssImports("styles/features/assets-pinterest-shell.css");
 const assetPinterestBoardRefreshImports = parseCssImports("styles/features/assets-pinterest-board-refresh.css");
 const assetPinterestPinImports = parseCssImports("styles/features/assets-pinterest-pin.css");
+const assetPinterestPinCardImports = parseCssImports("styles/features/assets-pinterest-pin-card.css");
 const assetPinterestResponsiveImports = parseCssImports("styles/features/assets-pinterest-responsive.css");
 const homeImports = parseCssImports("styles/features/home.css");
 const homeHistoryImports = parseCssImports("styles/features/home-history.css");
@@ -2678,6 +2695,7 @@ assertListEqual("styles/features/assets-pinterest-board-tiles-legacy.css", asset
 assertListEqual("styles/features/assets-pinterest-shell.css", assetPinterestShellImports, EXPECTED_ASSET_PINTEREST_SHELL_IMPORTS);
 assertListEqual("styles/features/assets-pinterest-board-refresh.css", assetPinterestBoardRefreshImports, EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_IMPORTS);
 assertListEqual("styles/features/assets-pinterest-pin.css", assetPinterestPinImports, EXPECTED_ASSET_PINTEREST_PIN_IMPORTS);
+assertListEqual("styles/features/assets-pinterest-pin-card.css", assetPinterestPinCardImports, EXPECTED_ASSET_PINTEREST_PIN_CARD_IMPORTS);
 assertListEqual("styles/features/assets-pinterest-responsive.css", assetPinterestResponsiveImports, EXPECTED_ASSET_PINTEREST_RESPONSIVE_IMPORTS);
 assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
 assertListEqual("styles/features/home-history.css", homeHistoryImports, EXPECTED_HOME_HISTORY_IMPORTS);
@@ -2773,6 +2791,7 @@ checkImportedFilesExist(assetPinterestBoardTilesLegacyImports, "styles/features"
 checkImportedFilesExist(assetPinterestShellImports, "styles/features");
 checkImportedFilesExist(assetPinterestBoardRefreshImports, "styles/features");
 checkImportedFilesExist(assetPinterestPinImports, "styles/features");
+checkImportedFilesExist(assetPinterestPinCardImports, "styles/features");
 checkImportedFilesExist(assetPinterestResponsiveImports, "styles/features");
 checkImportedFilesExist(homeImports, "styles/features");
 checkImportedFilesExist(homeHistoryImports, "styles/features");
@@ -2870,6 +2889,9 @@ checkFileContains("styles/features/assets-pinterest-board-refresh-create.css", E
 checkFileContains("styles/features/assets-pinterest-board-refresh-meta.css", EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_META_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-pin.css", EXPECTED_ASSET_PINTEREST_PIN_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-pin-card.css", EXPECTED_ASSET_PINTEREST_PIN_CARD_SELECTORS);
+checkFileContains("styles/features/assets-pinterest-pin-card-shell.css", EXPECTED_ASSET_PINTEREST_PIN_CARD_SHELL_SELECTORS);
+checkFileContains("styles/features/assets-pinterest-pin-card-thumb.css", EXPECTED_ASSET_PINTEREST_PIN_CARD_THUMB_SELECTORS);
+checkFileContains("styles/features/assets-pinterest-pin-card-meta.css", EXPECTED_ASSET_PINTEREST_PIN_CARD_META_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-pin-actions.css", EXPECTED_ASSET_PINTEREST_PIN_ACTIONS_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-pin-empty.css", EXPECTED_ASSET_PINTEREST_PIN_EMPTY_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-layout.css", EXPECTED_ASSET_PINTEREST_LAYOUT_SELECTORS);

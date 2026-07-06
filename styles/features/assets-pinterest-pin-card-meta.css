@@ -1,0 +1,25 @@
+body[data-view="assetsPage"] .asset-pinterest-pin-meta {
+  margin-top: 10px;
+  padding: 0 4px;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin-meta strong {
+  display: block;
+  overflow: hidden;
+  color: #111827;
+  font-size: 14px;
+  font-weight: 720;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-pin-meta span {
+  display: block;
+  margin-top: 3px;
+  overflow: hidden;
+  color: #7b8495;
+  font-size: 12px;
+  font-weight: 520;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
