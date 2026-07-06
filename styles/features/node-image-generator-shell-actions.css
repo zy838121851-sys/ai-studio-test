@@ -1,0 +1,26 @@
+.image-generator-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.image-generator-actions button {
+  min-height: 36px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 999px;
+  color: #17202c;
+  background: rgba(226, 232, 240, 0.86);
+  font-weight: 800;
+}
+
+.image-generator-actions [data-generator-submit] {
+  color: #fff;
+  background: #2563eb;
+}
+
+.image-generator-actions button:disabled {
+  opacity: 0.56;
+  cursor: wait;
+}

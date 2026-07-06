@@ -1,0 +1,60 @@
+.image-generator-frame {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  aspect-ratio: 1;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(66, 148, 255, 0.64);
+  border-radius: 0;
+  background: #d8ebff;
+}
+
+.node-image-generator.selected .image-generator-frame {
+  outline: 2px solid rgba(31, 46, 72, 0.22);
+  outline-offset: 0;
+}
+
+.image-generator-placeholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  color: rgba(66, 148, 255, 0.22);
+}
+
+.image-generator-placeholder svg {
+  width: 136px;
+  height: 136px;
+  fill: currentColor;
+}
+
+.image-generator-result {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-user-drag: none;
+}
+
+.image-generator-loading {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  color: #17202c;
+  background: rgba(216, 235, 255, 0.72);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.image-generator-loading[hidden],
+.image-generator-result[hidden],
+.image-generator-placeholder[hidden] {
+  display: none;
+}

@@ -1,0 +1,5 @@
+.node-image-generator.generator-drop-active .image-generator-frame {
+  border-color: rgba(37, 99, 235, 0.9);
+  background: #cfe5ff;
+  outline: 3px solid rgba(37, 99, 235, 0.18);
+}

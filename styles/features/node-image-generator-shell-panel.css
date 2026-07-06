@@ -1,0 +1,41 @@
+.image-generator-panel {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 14px;
+  border: 1px solid rgba(214, 220, 230, 0.72);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 16px 42px rgba(31, 46, 72, 0.12);
+  backdrop-filter: blur(16px) saturate(1.08);
+  -webkit-backdrop-filter: blur(16px) saturate(1.08);
+}
+
+.image-generator-reference {
+  color: #64748b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.has-generator-reference .image-generator-reference {
+  color: #2563eb;
+}
+
+.image-generator-panel textarea {
+  width: 100%;
+  min-height: 64px;
+  resize: vertical;
+  padding: 12px 14px;
+  border: 1px solid rgba(203, 213, 225, 0.86);
+  border-radius: 16px;
+  color: #17202c;
+  background: rgba(255, 255, 255, 0.92);
+  font: inherit;
+  line-height: 1.45;
+  outline: none;
+}
+
+.image-generator-panel textarea:focus {
+  border-color: rgba(99, 102, 241, 0.52);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}

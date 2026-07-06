@@ -1,0 +1,22 @@
+.image-generator-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 0 0 6px;
+  color: #8b96a6;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.image-generator-head strong {
+  color: #17202c;
+  font-size: 16px;
+}
+
+.image-generator-head span {
+  color: #9aa5b5;
+  font-size: 16px;
+  font-weight: 700;
+}
