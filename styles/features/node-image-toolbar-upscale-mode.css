@@ -1,0 +1,18 @@
+.image-toolbar-upscale-controls {
+  display: none;
+  align-items: center;
+  gap: 6px;
+}
+
+.image-node-toolbar.mode-upscale .image-toolbar-main,
+.image-node-toolbar.mode-upscale .image-toolbar-menu {
+  display: none;
+}
+
+.image-node-toolbar.mode-upscale .image-toolbar-upscale-controls {
+  display: flex;
+}
+
+.image-node-toolbar .image-toolbar-upscale-controls button {
+  min-width: 58px;
+}

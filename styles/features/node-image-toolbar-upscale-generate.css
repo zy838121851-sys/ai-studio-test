@@ -1,0 +1,7 @@
+.image-node-toolbar .image-toolbar-upscale-controls .image-toolbar-generate {
+  min-width: 72px;
+  color: #fff !important;
+  border-color: transparent !important;
+  background: linear-gradient(135deg, #2f6bff, #50b7ff) !important;
+  box-shadow: 0 14px 32px rgba(47, 107, 255, 0.24) !important;
+}
