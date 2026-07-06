@@ -1,0 +1,30 @@
+.image-generator-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  overflow: visible;
+}
+
+.image-generator-frame {
+  height: 100%;
+  border: 1px solid rgba(148, 163, 184, 0.34);
+  border-radius: 10px;
+  background:
+    linear-gradient(180deg, rgba(248, 251, 255, 0.82), rgba(241, 246, 252, 0.78));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.86),
+    0 18px 48px rgba(31, 46, 72, 0.08);
+}
+
+.node-image-generator.selected .image-generator-frame {
+  outline: 2px solid rgba(31, 46, 72, 0.24);
+}
+
+.image-generator-placeholder {
+  color: rgba(100, 116, 139, 0.18);
+}
+
+.image-generator-placeholder svg {
+  width: 118px;
+  height: 118px;
+}

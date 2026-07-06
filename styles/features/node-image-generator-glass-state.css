@@ -1,0 +1,14 @@
+.image-generator-submit {
+  width: 46px;
+  height: 46px;
+  flex-basis: 46px;
+  background: #4f97ed;
+  box-shadow: 0 14px 30px rgba(79, 151, 237, 0.28);
+}
+
+.node-image-generator.generator-drop-active .image-generator-frame {
+  border-color: rgba(79, 151, 237, 0.54);
+  background:
+    linear-gradient(180deg, rgba(239, 246, 255, 0.92), rgba(229, 240, 255, 0.82));
+  outline: 3px solid rgba(79, 151, 237, 0.14);
+}

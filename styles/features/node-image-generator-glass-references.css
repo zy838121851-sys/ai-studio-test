@@ -1,0 +1,18 @@
+.image-generator-reference-thumb,
+.image-generator-add-reference {
+  width: 50px;
+  height: 50px;
+  flex-basis: 50px;
+  border-radius: 15px;
+  background: #20242a;
+  box-shadow: 0 12px 24px rgba(31, 46, 72, 0.16);
+}
+
+.image-generator-add-reference {
+  font-size: 21px;
+}
+
+.image-generator-expand-panel {
+  color: #b8c0cb;
+  font-size: 17px;
+}

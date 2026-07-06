@@ -1,0 +1,13 @@
+.image-generator-panel {
+  min-height: 250px;
+  margin-top: 12px;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.86);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow:
+    0 24px 74px rgba(31, 46, 72, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(28px) saturate(1.45);
+  -webkit-backdrop-filter: blur(28px) saturate(1.45);
+}

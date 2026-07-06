@@ -1,0 +1,24 @@
+.image-generator-panel textarea {
+  min-height: 108px;
+  color: #182230;
+  font-size: 17px;
+}
+
+.image-generator-bottom select,
+.image-generator-cancel {
+  min-height: 42px;
+  border-color: rgba(214, 220, 230, 0.9);
+  border-radius: 13px;
+  color: #182230;
+  background: rgba(247, 250, 255, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.76);
+}
+
+.image-generator-bottom [data-generator-model] {
+  min-width: 258px;
+}
+
+.image-generator-cancel {
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.62);
+}

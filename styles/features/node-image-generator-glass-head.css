@@ -1,0 +1,37 @@
+/* Image generator: align with the light glass canvas controls. */
+.node-image-generator {
+  color: #182230;
+}
+
+.image-generator-head {
+  justify-content: flex-start;
+  gap: 9px;
+  margin: 0 0 8px;
+}
+
+.image-generator-title-icon {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  border-radius: 5px;
+  color: #fff !important;
+  background: #20242a;
+  font-size: 11px !important;
+  line-height: 1;
+}
+
+.image-generator-head strong {
+  color: #182230;
+  font-size: 17px;
+  font-weight: 850;
+  letter-spacing: 0;
+}
+
+.image-generator-head > span:last-child {
+  margin-left: auto;
+  color: #98a2b3;
+  font-size: 15px;
+  font-weight: 800;
+}
