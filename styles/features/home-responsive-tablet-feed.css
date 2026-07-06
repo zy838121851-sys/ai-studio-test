@@ -1,0 +1,11 @@
+@media (max-width: 1100px) {
+  .home-inspiration-grid,
+  .home-inspiration-grid.feed {
+    grid-auto-rows: 142px;
+    grid-template-columns: repeat(4, minmax(120px, 1fr));
+  }
+
+  .home-masonry-feed {
+    column-count: 3;
+  }
+}

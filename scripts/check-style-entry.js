@@ -554,6 +554,11 @@ const EXPECTED_HOME_IMPORTS = [
   "./home-responsive-tablet.css",
   "./home-responsive-mobile.css"
 ];
+const EXPECTED_HOME_RESPONSIVE_TABLET_IMPORTS = [
+  "./home-responsive-tablet-history.css",
+  "./home-responsive-tablet-community.css",
+  "./home-responsive-tablet-feed.css"
+];
 const EXPECTED_HOME_RESPONSIVE_MOBILE_IMPORTS = [
   "./home-responsive-mobile-history.css",
   "./home-responsive-mobile-community.css",
@@ -733,10 +738,23 @@ const EXPECTED_HOME_SELECTORS = [
   "@import url(\"./home-responsive-mobile.css\")"
 ];
 const EXPECTED_HOME_RESPONSIVE_TABLET_SELECTORS = [
+  "@import url(\"./home-responsive-tablet-history.css\")",
+  "@import url(\"./home-responsive-tablet-community.css\")",
+  "@import url(\"./home-responsive-tablet-feed.css\")"
+];
+const EXPECTED_HOME_RESPONSIVE_TABLET_HISTORY_SELECTORS = [
   "@media (max-width: 1100px)",
   ".home-history",
+  ".home-history-grid"
+];
+const EXPECTED_HOME_RESPONSIVE_TABLET_COMMUNITY_SELECTORS = [
+  "@media (max-width: 1100px)",
   ".home-community-section",
-  ".home-inspiration-grid",
+  ".home-channel-shell::before"
+];
+const EXPECTED_HOME_RESPONSIVE_TABLET_FEED_SELECTORS = [
+  "@media (max-width: 1100px)",
+  ".home-inspiration-grid.feed",
   ".home-masonry-feed"
 ];
 const EXPECTED_HOME_RESPONSIVE_MOBILE_SELECTORS = [
@@ -2757,6 +2775,7 @@ const assetPinterestPinCardImports = parseCssImports("styles/features/assets-pin
 const assetPinterestResponsiveImports = parseCssImports("styles/features/assets-pinterest-responsive.css");
 const assetPinterestResponsiveInteractionsImports = parseCssImports("styles/features/assets-pinterest-responsive-interactions.css");
 const homeImports = parseCssImports("styles/features/home.css");
+const homeResponsiveTabletImports = parseCssImports("styles/features/home-responsive-tablet.css");
 const homeResponsiveMobileImports = parseCssImports("styles/features/home-responsive-mobile.css");
 const homeHistoryImports = parseCssImports("styles/features/home-history.css");
 const homeHistoryStackImports = parseCssImports("styles/features/home-history-stack.css");
@@ -2864,6 +2883,7 @@ assertListEqual("styles/features/assets-pinterest-pin-card.css", assetPinterestP
 assertListEqual("styles/features/assets-pinterest-responsive.css", assetPinterestResponsiveImports, EXPECTED_ASSET_PINTEREST_RESPONSIVE_IMPORTS);
 assertListEqual("styles/features/assets-pinterest-responsive-interactions.css", assetPinterestResponsiveInteractionsImports, EXPECTED_ASSET_PINTEREST_RESPONSIVE_INTERACTIONS_IMPORTS);
 assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
+assertListEqual("styles/features/home-responsive-tablet.css", homeResponsiveTabletImports, EXPECTED_HOME_RESPONSIVE_TABLET_IMPORTS);
 assertListEqual("styles/features/home-responsive-mobile.css", homeResponsiveMobileImports, EXPECTED_HOME_RESPONSIVE_MOBILE_IMPORTS);
 assertListEqual("styles/features/home-history.css", homeHistoryImports, EXPECTED_HOME_HISTORY_IMPORTS);
 assertListEqual("styles/features/home-history-stack.css", homeHistoryStackImports, EXPECTED_HOME_HISTORY_STACK_IMPORTS);
@@ -2968,6 +2988,7 @@ checkImportedFilesExist(assetPinterestPinCardImports, "styles/features");
 checkImportedFilesExist(assetPinterestResponsiveImports, "styles/features");
 checkImportedFilesExist(assetPinterestResponsiveInteractionsImports, "styles/features");
 checkImportedFilesExist(homeImports, "styles/features");
+checkImportedFilesExist(homeResponsiveTabletImports, "styles/features");
 checkImportedFilesExist(homeResponsiveMobileImports, "styles/features");
 checkImportedFilesExist(homeHistoryImports, "styles/features");
 checkImportedFilesExist(homeHistoryStackImports, "styles/features");
@@ -3163,6 +3184,9 @@ checkFileContains("styles/legacy-canvas-visual-shell-home-menu.css", EXPECTED_LE
 checkFileContains("styles/legacy-canvas-visual-shell-simple-page.css", EXPECTED_LEGACY_CANVAS_VISUAL_SHELL_SIMPLE_PAGE_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
 checkFileContains("styles/features/home-responsive-tablet.css", EXPECTED_HOME_RESPONSIVE_TABLET_SELECTORS);
+checkFileContains("styles/features/home-responsive-tablet-history.css", EXPECTED_HOME_RESPONSIVE_TABLET_HISTORY_SELECTORS);
+checkFileContains("styles/features/home-responsive-tablet-community.css", EXPECTED_HOME_RESPONSIVE_TABLET_COMMUNITY_SELECTORS);
+checkFileContains("styles/features/home-responsive-tablet-feed.css", EXPECTED_HOME_RESPONSIVE_TABLET_FEED_SELECTORS);
 checkFileContains("styles/features/home-responsive-mobile.css", EXPECTED_HOME_RESPONSIVE_MOBILE_SELECTORS);
 checkFileContains("styles/features/home-responsive-mobile-history.css", EXPECTED_HOME_RESPONSIVE_MOBILE_HISTORY_SELECTORS);
 checkFileContains("styles/features/home-responsive-mobile-community.css", EXPECTED_HOME_RESPONSIVE_MOBILE_COMMUNITY_SELECTORS);

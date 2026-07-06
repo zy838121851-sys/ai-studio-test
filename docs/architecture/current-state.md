@@ -354,6 +354,14 @@ Post-baseline CSS governance note:
   project/history section title and action overrides.
 - `styles/features/home-history-cards.css` owns home history grid, card,
   thumbnail, preview fallback, create-card, and delete-control styles.
+- `styles/features/home-responsive-tablet.css` is now a pure aggregation entry
+  for tablet home responsive overrides.
+- `styles/features/home-responsive-tablet-history.css` owns tablet home history
+  section and history grid overrides.
+- `styles/features/home-responsive-tablet-community.css` owns tablet community
+  section and channel shell overrides.
+- `styles/features/home-responsive-tablet-feed.css` owns tablet inspiration grid
+  and masonry feed overrides.
 - `styles/features/home-responsive-mobile.css` is now a pure aggregation entry
   for mobile home responsive overrides.
 - `styles/features/home-responsive-mobile-history.css` owns mobile home stage,
