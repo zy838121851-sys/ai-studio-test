@@ -1,0 +1,5 @@
+.node-image.selected .image-node-toolbar {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0) scale(var(--canvas-control-scale, 1));
+}
