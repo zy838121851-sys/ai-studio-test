@@ -1,0 +1,33 @@
+.generation-content {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  padding: 18px;
+  text-align: center;
+}
+
+.generation-spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(255, 255, 255, 0.18);
+  border-top-color: #dfefff;
+  border-radius: 50%;
+  animation: spinLoading 0.8s linear infinite;
+}
+
+.generation-frame strong {
+  color: #edf4fb;
+  font-size: 14px;
+}
+
+.generation-frame span {
+  max-width: 78%;
+  color: #aeb7c2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11px;
+}

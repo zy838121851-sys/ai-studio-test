@@ -406,6 +406,12 @@ const EXPECTED_NODE_MEDIA_FRAME_IMPORTS = [
   "./node-media-frame-file-name.css",
   "./node-media-frame-image.css"
 ];
+const EXPECTED_NODE_GENERATION_IMPORTS = [
+  "./node-generation-frame.css",
+  "./node-generation-content.css",
+  "./node-generation-state.css",
+  "./node-generation-keyframes.css"
+];
 const EXPECTED_NODE_PREVIEW_IMPORTS = [
   "./node-preview-media.css",
   "./node-preview-model.css",
@@ -1947,10 +1953,26 @@ const EXPECTED_NODE_MEDIA_FRAME_IMAGE_SELECTORS = [
   ".image-frame img"
 ];
 const EXPECTED_NODE_GENERATION_SELECTORS = [
+  "@import url(\"./node-generation-frame.css\")",
+  "@import url(\"./node-generation-content.css\")",
+  "@import url(\"./node-generation-state.css\")",
+  "@import url(\"./node-generation-keyframes.css\")"
+];
+const EXPECTED_NODE_GENERATION_FRAME_SELECTORS = [
   ".generation-frame",
+  ".generation-frame::before"
+];
+const EXPECTED_NODE_GENERATION_CONTENT_SELECTORS = [
   ".generation-content",
   ".generation-spinner",
+  ".generation-frame strong",
+  ".generation-frame span"
+];
+const EXPECTED_NODE_GENERATION_STATE_SELECTORS = [
   ".generation-failed .generation-frame",
+  ".generation-failed .generation-spinner"
+];
+const EXPECTED_NODE_GENERATION_KEYFRAMES_SELECTORS = [
   "@keyframes shimmerPreview"
 ];
 const EXPECTED_NODE_IMAGE_GENERATOR_BASE_SELECTORS = [
@@ -2409,6 +2431,7 @@ const nodeMediaImports = parseCssImports("styles/features/node-media.css");
 const nodeMediaShellImports = parseCssImports("styles/features/node-media-shell.css");
 const nodeMediaVideoImports = parseCssImports("styles/features/node-media-video.css");
 const nodeMediaFrameImports = parseCssImports("styles/features/node-media-frame.css");
+const nodeGenerationImports = parseCssImports("styles/features/node-generation.css");
 const nodePreviewImports = parseCssImports("styles/features/node-preview.css");
 const nodeImageGeneratorImports = parseCssImports("styles/features/node-image-generator.css");
 const nodeImageGeneratorBaseImports = parseCssImports("styles/features/node-image-generator-base.css");
@@ -2502,6 +2525,7 @@ assertListEqual("styles/features/node-media.css", nodeMediaImports, EXPECTED_NOD
 assertListEqual("styles/features/node-media-shell.css", nodeMediaShellImports, EXPECTED_NODE_MEDIA_SHELL_IMPORTS);
 assertListEqual("styles/features/node-media-video.css", nodeMediaVideoImports, EXPECTED_NODE_MEDIA_VIDEO_IMPORTS);
 assertListEqual("styles/features/node-media-frame.css", nodeMediaFrameImports, EXPECTED_NODE_MEDIA_FRAME_IMPORTS);
+assertListEqual("styles/features/node-generation.css", nodeGenerationImports, EXPECTED_NODE_GENERATION_IMPORTS);
 assertListEqual("styles/features/node-preview.css", nodePreviewImports, EXPECTED_NODE_PREVIEW_IMPORTS);
 assertListEqual("styles/features/node-image-generator.css", nodeImageGeneratorImports, EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS);
 assertListEqual("styles/features/node-image-generator-base.css", nodeImageGeneratorBaseImports, EXPECTED_NODE_IMAGE_GENERATOR_BASE_IMPORTS);
@@ -2592,6 +2616,7 @@ checkImportedFilesExist(nodeMediaImports, "styles/features");
 checkImportedFilesExist(nodeMediaShellImports, "styles/features");
 checkImportedFilesExist(nodeMediaVideoImports, "styles/features");
 checkImportedFilesExist(nodeMediaFrameImports, "styles/features");
+checkImportedFilesExist(nodeGenerationImports, "styles/features");
 checkImportedFilesExist(nodePreviewImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorBaseImports, "styles/features");
@@ -2895,6 +2920,10 @@ checkFileContains("styles/features/node-media-frame-selected.css", EXPECTED_NODE
 checkFileContains("styles/features/node-media-frame-file-name.css", EXPECTED_NODE_MEDIA_FRAME_FILE_NAME_SELECTORS);
 checkFileContains("styles/features/node-media-frame-image.css", EXPECTED_NODE_MEDIA_FRAME_IMAGE_SELECTORS);
 checkFileContains("styles/features/node-generation.css", EXPECTED_NODE_GENERATION_SELECTORS);
+checkFileContains("styles/features/node-generation-frame.css", EXPECTED_NODE_GENERATION_FRAME_SELECTORS);
+checkFileContains("styles/features/node-generation-content.css", EXPECTED_NODE_GENERATION_CONTENT_SELECTORS);
+checkFileContains("styles/features/node-generation-state.css", EXPECTED_NODE_GENERATION_STATE_SELECTORS);
+checkFileContains("styles/features/node-generation-keyframes.css", EXPECTED_NODE_GENERATION_KEYFRAMES_SELECTORS);
 checkFileContains("styles/features/node-image-generator-shell.css", EXPECTED_NODE_IMAGE_GENERATOR_BASE_SELECTORS);
 checkFileContains("styles/features/node-image-generator-shell-node.css", EXPECTED_NODE_IMAGE_GENERATOR_SHELL_NODE_SELECTORS);
 checkFileContains("styles/features/node-image-generator-shell-head.css", EXPECTED_NODE_IMAGE_GENERATOR_SHELL_HEAD_SELECTORS);
