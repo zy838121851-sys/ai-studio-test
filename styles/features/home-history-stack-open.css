@@ -1,0 +1,38 @@
+.home-history-open {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.46);
+  box-shadow: 0 14px 34px rgba(31, 46, 72, 0.08), inset 0 1px rgba(255, 255, 255, 0.98);
+  backdrop-filter: blur(18px) saturate(1.18);
+  -webkit-backdrop-filter: blur(18px) saturate(1.18);
+  opacity: 0;
+  transform: translateX(-50%) translateY(8px);
+  transition: opacity 0.22s ease, transform 0.22s ease, background 0.22s ease;
+}
+
+.home-history-open::before {
+  width: 10px;
+  height: 10px;
+  border-top: 2px solid rgba(23, 32, 44, 0.5);
+  border-left: 2px solid rgba(23, 32, 44, 0.5);
+  content: "";
+  transform: translateY(3px) rotate(45deg);
+}
+
+.home-history-trigger:hover .home-history-open {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.home-history-trigger:hover .home-history-stack i:first-child {
+  box-shadow:
+    0 24px 54px rgba(31, 46, 72, 0.1),
+    inset 0 1px rgba(255, 255, 255, 0.98);
+}

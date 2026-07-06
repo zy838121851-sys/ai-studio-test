@@ -1,0 +1,45 @@
+.home-history-stack {
+  position: relative;
+  width: min(420px, 72vw);
+  height: 76px;
+  transform: translateY(4px);
+}
+
+.home-history-stack i {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  display: block;
+  width: calc(100% - var(--home-stack-index) * 46px);
+  height: 62px;
+  overflow: hidden;
+  border: 1px solid rgba(17, 24, 39, 0.075);
+  border-radius: 15px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(250, 252, 255, 0.9));
+  box-shadow:
+    0 22px 56px rgba(31, 46, 72, 0.11),
+    inset 0 1px rgba(255, 255, 255, 0.98);
+  opacity: calc(0.98 - var(--home-stack-index) * 0.18);
+  transform:
+    translateX(-50%)
+    translateY(calc(var(--home-stack-index) * -17px))
+    translateZ(calc(var(--home-stack-index) * -28px))
+    scale(calc(1 - var(--home-stack-index) * 0.045));
+}
+
+.home-history-stack img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.1) brightness(1.14);
+  opacity: 0.26;
+}
+
+.home-history-stack b {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: rgba(23, 32, 44, 0.42);
+  font-weight: 900;
+}

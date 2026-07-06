@@ -559,6 +559,11 @@ const EXPECTED_HOME_HISTORY_IMPORTS = [
   "./home-history-section.css",
   "./home-history-cards.css"
 ];
+const EXPECTED_HOME_HISTORY_STACK_IMPORTS = [
+  "./home-history-stack-shell.css",
+  "./home-history-stack-preview.css",
+  "./home-history-stack-open.css"
+];
 const EXPECTED_HOME_HISTORY_CARDS_IMPORTS = [
   "./home-history-cards-base.css",
   "./home-history-cards-delete.css",
@@ -779,9 +784,20 @@ const EXPECTED_HOME_SHELL_TRANSITION_SELECTORS = [
   "@keyframes chatEnterSoft"
 ];
 const EXPECTED_HOME_HISTORY_SELECTORS = [
+  "@import url(\"./home-history-stack-shell.css\")",
+  "@import url(\"./home-history-stack-preview.css\")",
+  "@import url(\"./home-history-stack-open.css\")"
+];
+const EXPECTED_HOME_HISTORY_STACK_SHELL_SELECTORS = [
   ".home-history",
-  ".home-history-trigger",
+  ".home-history-trigger"
+];
+const EXPECTED_HOME_HISTORY_STACK_PREVIEW_SELECTORS = [
   ".home-history-stack",
+  ".home-history-stack i",
+  ".home-history-stack img"
+];
+const EXPECTED_HOME_HISTORY_STACK_OPEN_SELECTORS = [
   ".home-history-open"
 ];
 const EXPECTED_HOME_HISTORY_SECTION_SELECTORS = [
@@ -2689,6 +2705,7 @@ const assetPinterestResponsiveImports = parseCssImports("styles/features/assets-
 const assetPinterestResponsiveInteractionsImports = parseCssImports("styles/features/assets-pinterest-responsive-interactions.css");
 const homeImports = parseCssImports("styles/features/home.css");
 const homeHistoryImports = parseCssImports("styles/features/home-history.css");
+const homeHistoryStackImports = parseCssImports("styles/features/home-history-stack.css");
 const homeHistoryCardsImports = parseCssImports("styles/features/home-history-cards.css");
 const homeCommunityImports = parseCssImports("styles/features/home-community.css");
 const homeCommunityChannelImports = parseCssImports("styles/features/home-community-channels.css");
@@ -2792,6 +2809,7 @@ assertListEqual("styles/features/assets-pinterest-responsive.css", assetPinteres
 assertListEqual("styles/features/assets-pinterest-responsive-interactions.css", assetPinterestResponsiveInteractionsImports, EXPECTED_ASSET_PINTEREST_RESPONSIVE_INTERACTIONS_IMPORTS);
 assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
 assertListEqual("styles/features/home-history.css", homeHistoryImports, EXPECTED_HOME_HISTORY_IMPORTS);
+assertListEqual("styles/features/home-history-stack.css", homeHistoryStackImports, EXPECTED_HOME_HISTORY_STACK_IMPORTS);
 assertListEqual("styles/features/home-history-cards.css", homeHistoryCardsImports, EXPECTED_HOME_HISTORY_CARDS_IMPORTS);
 assertListEqual("styles/features/home-community.css", homeCommunityImports, EXPECTED_HOME_COMMUNITY_IMPORTS);
 assertListEqual("styles/features/home-community-channels.css", homeCommunityChannelImports, EXPECTED_HOME_COMMUNITY_CHANNEL_IMPORTS);
@@ -2892,6 +2910,7 @@ checkImportedFilesExist(assetPinterestResponsiveImports, "styles/features");
 checkImportedFilesExist(assetPinterestResponsiveInteractionsImports, "styles/features");
 checkImportedFilesExist(homeImports, "styles/features");
 checkImportedFilesExist(homeHistoryImports, "styles/features");
+checkImportedFilesExist(homeHistoryStackImports, "styles/features");
 checkImportedFilesExist(homeHistoryCardsImports, "styles/features");
 checkImportedFilesExist(homeCommunityImports, "styles/features");
 checkImportedFilesExist(homeCommunityChannelImports, "styles/features");
@@ -3096,6 +3115,9 @@ checkFileContains("styles/features/home-shell-model-menu.css", EXPECTED_HOME_SHE
 checkFileContains("styles/features/home-shell-model-native.css", EXPECTED_HOME_SHELL_MODEL_NATIVE_SELECTORS);
 checkFileContains("styles/features/home-shell-transition.css", EXPECTED_HOME_SHELL_TRANSITION_SELECTORS);
 checkFileContains("styles/features/home-history-stack.css", EXPECTED_HOME_HISTORY_SELECTORS);
+checkFileContains("styles/features/home-history-stack-shell.css", EXPECTED_HOME_HISTORY_STACK_SHELL_SELECTORS);
+checkFileContains("styles/features/home-history-stack-preview.css", EXPECTED_HOME_HISTORY_STACK_PREVIEW_SELECTORS);
+checkFileContains("styles/features/home-history-stack-open.css", EXPECTED_HOME_HISTORY_STACK_OPEN_SELECTORS);
 checkFileContains("styles/features/home-history-section.css", EXPECTED_HOME_HISTORY_SECTION_SELECTORS);
 checkFileContains("styles/features/home-history-cards.css", EXPECTED_HOME_HISTORY_CARD_SELECTORS);
 checkFileContains("styles/features/home-history-cards-base.css", EXPECTED_HOME_HISTORY_CARD_BASE_SELECTORS);
