@@ -373,6 +373,12 @@ const EXPECTED_NODE_STACK_IMPORTS = [
   "./node-stack-base.css",
   "./node-stack-tray.css"
 ];
+const EXPECTED_NODE_STACK_BASE_IMPORTS = [
+  "./node-stack-base-hidden.css",
+  "./node-stack-base-depth.css",
+  "./node-stack-base-drop.css",
+  "./node-stack-base-toggle.css"
+];
 const EXPECTED_NODE_MEDIA_IMPORTS = [
   "./node-media-shell.css",
   "./node-media-video.css",
@@ -1809,9 +1815,23 @@ const EXPECTED_NODE_IMAGE_LIGHTBOX_CLOSE_SELECTORS = [
   ".image-lightbox-close"
 ];
 const EXPECTED_NODE_STACK_BASE_SELECTORS = [
-  ".node-card.stack-member-hidden",
+  "@import url(\"./node-stack-base-hidden.css\")",
+  "@import url(\"./node-stack-base-depth.css\")",
+  "@import url(\"./node-stack-base-drop.css\")",
+  "@import url(\"./node-stack-base-toggle.css\")"
+];
+const EXPECTED_NODE_STACK_BASE_HIDDEN_SELECTORS = [
+  ".node-card.stack-member-hidden"
+];
+const EXPECTED_NODE_STACK_BASE_DEPTH_SELECTORS = [
   ".node-card.has-stack::after",
+  ".node-card.has-stack::before"
+];
+const EXPECTED_NODE_STACK_BASE_DROP_SELECTORS = [
   ".node-card.stack-drop-target",
+  ".node-card.stack-drop-target::after"
+];
+const EXPECTED_NODE_STACK_BASE_TOGGLE_SELECTORS = [
   ".stack-toggle"
 ];
 const EXPECTED_NODE_STACK_TRAY_SELECTORS = [
@@ -2299,6 +2319,7 @@ const nodeImagePanelsImports = parseCssImports("styles/features/node-image-panel
 const nodeImageTextPanelImports = parseCssImports("styles/features/node-image-text-panel.css");
 const nodeImageLightboxImports = parseCssImports("styles/features/node-image-lightbox.css");
 const nodeStackImports = parseCssImports("styles/features/node-stack.css");
+const nodeStackBaseImports = parseCssImports("styles/features/node-stack-base.css");
 const nodeMediaImports = parseCssImports("styles/features/node-media.css");
 const nodePreviewImports = parseCssImports("styles/features/node-preview.css");
 const nodeImageGeneratorImports = parseCssImports("styles/features/node-image-generator.css");
@@ -2387,6 +2408,7 @@ assertListEqual("styles/features/node-image-panels.css", nodeImagePanelsImports,
 assertListEqual("styles/features/node-image-text-panel.css", nodeImageTextPanelImports, EXPECTED_NODE_IMAGE_TEXT_PANEL_IMPORTS);
 assertListEqual("styles/features/node-image-lightbox.css", nodeImageLightboxImports, EXPECTED_NODE_IMAGE_LIGHTBOX_IMPORTS);
 assertListEqual("styles/features/node-stack.css", nodeStackImports, EXPECTED_NODE_STACK_IMPORTS);
+assertListEqual("styles/features/node-stack-base.css", nodeStackBaseImports, EXPECTED_NODE_STACK_BASE_IMPORTS);
 assertListEqual("styles/features/node-media.css", nodeMediaImports, EXPECTED_NODE_MEDIA_IMPORTS);
 assertListEqual("styles/features/node-preview.css", nodePreviewImports, EXPECTED_NODE_PREVIEW_IMPORTS);
 assertListEqual("styles/features/node-image-generator.css", nodeImageGeneratorImports, EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS);
@@ -2472,6 +2494,7 @@ checkImportedFilesExist(nodeImagePanelsImports, "styles/features");
 checkImportedFilesExist(nodeImageTextPanelImports, "styles/features");
 checkImportedFilesExist(nodeImageLightboxImports, "styles/features");
 checkImportedFilesExist(nodeStackImports, "styles/features");
+checkImportedFilesExist(nodeStackBaseImports, "styles/features");
 checkImportedFilesExist(nodeMediaImports, "styles/features");
 checkImportedFilesExist(nodePreviewImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorImports, "styles/features");
@@ -2752,6 +2775,10 @@ checkFileContains("styles/features/node-image-lightbox-overlay.css", EXPECTED_NO
 checkFileContains("styles/features/node-image-lightbox-figure.css", EXPECTED_NODE_IMAGE_LIGHTBOX_FIGURE_SELECTORS);
 checkFileContains("styles/features/node-image-lightbox-close.css", EXPECTED_NODE_IMAGE_LIGHTBOX_CLOSE_SELECTORS);
 checkFileContains("styles/features/node-stack-base.css", EXPECTED_NODE_STACK_BASE_SELECTORS);
+checkFileContains("styles/features/node-stack-base-hidden.css", EXPECTED_NODE_STACK_BASE_HIDDEN_SELECTORS);
+checkFileContains("styles/features/node-stack-base-depth.css", EXPECTED_NODE_STACK_BASE_DEPTH_SELECTORS);
+checkFileContains("styles/features/node-stack-base-drop.css", EXPECTED_NODE_STACK_BASE_DROP_SELECTORS);
+checkFileContains("styles/features/node-stack-base-toggle.css", EXPECTED_NODE_STACK_BASE_TOGGLE_SELECTORS);
 checkFileContains("styles/features/node-stack-tray.css", EXPECTED_NODE_STACK_TRAY_SELECTORS);
 checkFileContains("styles/features/node-director.css", EXPECTED_NODE_DIRECTOR_SELECTORS);
 checkFileContains("styles/features/node-media-shell.css", EXPECTED_NODE_MEDIA_SHELL_SELECTORS);

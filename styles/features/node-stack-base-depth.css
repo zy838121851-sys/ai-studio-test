@@ -1,0 +1,19 @@
+.node-card.has-stack::after {
+  position: absolute;
+  inset: 9px -9px -9px 9px;
+  z-index: -1;
+  border: 1px solid rgba(200, 214, 230, 0.5);
+  border-radius: inherit;
+  background: rgba(245, 247, 250, 0.2);
+  content: "";
+}
+
+.node-card.has-stack::before {
+  position: absolute;
+  inset: 17px -17px -17px 17px;
+  z-index: -2;
+  border: 1px solid rgba(200, 214, 230, 0.28);
+  border-radius: inherit;
+  background: rgba(245, 247, 250, 0.12);
+  content: "";
+}
