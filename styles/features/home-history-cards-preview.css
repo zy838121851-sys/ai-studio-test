@@ -1,43 +1,5 @@
-.home-history-thumb {
-  position: relative;
-  display: grid;
-  aspect-ratio: 16 / 9.2;
-  overflow: hidden;
-  place-items: center;
-  border-radius: 8px;
-  background: #f1f1f2;
-}
+@import url("./home-history-cards-preview-shell.css");
 
-.home-history-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
+@import url("./home-history-cards-preview-fallback.css");
 
-.home-history-thumb b,
-.project-preview-fallback {
-  color: #4f8cff;
-  font-size: 24px;
-  font-weight: 900;
-}
-
-.project-preview-fallback {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  display: grid;
-  place-items: center;
-  background: #f1f1f2;
-  pointer-events: none;
-}
-
-.project-preview-image {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  display: block;
-}
-
-.project-preview-image[hidden] {
-  display: none !important;
-}
+@import url("./home-history-cards-preview-image.css");

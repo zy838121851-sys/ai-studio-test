@@ -377,6 +377,14 @@ Post-baseline CSS governance note:
   button shell and create-card sizing styles.
 - `styles/features/home-history-cards-base-state.css` owns history card
   removing and hover states.
+- `styles/features/home-history-cards-preview.css` is now a pure aggregation
+  entry for card preview shell, fallback, and image state submodules.
+- `styles/features/home-history-cards-preview-shell.css` owns the history card
+  thumbnail shell and thumbnail image fit styles.
+- `styles/features/home-history-cards-preview-fallback.css` owns history card
+  preview fallback icon/text styles.
+- `styles/features/home-history-cards-preview-image.css` owns project preview
+  image positioning and hidden state styles.
 - `styles/features/home-responsive-tablet.css` is now a pure aggregation entry
   for tablet home responsive overrides.
 - `styles/features/home-responsive-tablet-history.css` owns tablet home history

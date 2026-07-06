@@ -604,6 +604,11 @@ const EXPECTED_HOME_HISTORY_CARDS_BASE_IMPORTS = [
   "./home-history-cards-base-shell.css",
   "./home-history-cards-base-state.css"
 ];
+const EXPECTED_HOME_HISTORY_CARDS_PREVIEW_IMPORTS = [
+  "./home-history-cards-preview-shell.css",
+  "./home-history-cards-preview-fallback.css",
+  "./home-history-cards-preview-image.css"
+];
 const EXPECTED_HOME_COMMUNITY_IMPORTS = [
   "./home-community-channels.css",
   "./home-community-feed.css",
@@ -937,10 +942,21 @@ const EXPECTED_HOME_HISTORY_CARD_DELETE_SELECTORS = [
   ".home-history-delete span::after"
 ];
 const EXPECTED_HOME_HISTORY_CARD_PREVIEW_SELECTORS = [
+  "@import url(\"./home-history-cards-preview-shell.css\")",
+  "@import url(\"./home-history-cards-preview-fallback.css\")",
+  "@import url(\"./home-history-cards-preview-image.css\")"
+];
+const EXPECTED_HOME_HISTORY_CARD_PREVIEW_SHELL_SELECTORS = [
   ".home-history-thumb",
-  ".project-preview-image",
-  ".project-preview-image[hidden]",
+  ".home-history-thumb img"
+];
+const EXPECTED_HOME_HISTORY_CARD_PREVIEW_FALLBACK_SELECTORS = [
+  ".home-history-thumb b,",
   ".project-preview-fallback"
+];
+const EXPECTED_HOME_HISTORY_CARD_PREVIEW_IMAGE_SELECTORS = [
+  ".project-preview-image",
+  ".project-preview-image[hidden]"
 ];
 const EXPECTED_HOME_HISTORY_CARD_META_SELECTORS = [
   ".home-history-card.is-create .home-history-thumb",
@@ -2830,6 +2846,7 @@ const homeHistorySectionImports = parseCssImports("styles/features/home-history-
 const homeHistorySectionHeadImports = parseCssImports("styles/features/home-history-section-head.css");
 const homeHistoryCardsImports = parseCssImports("styles/features/home-history-cards.css");
 const homeHistoryCardsBaseImports = parseCssImports("styles/features/home-history-cards-base.css");
+const homeHistoryCardsPreviewImports = parseCssImports("styles/features/home-history-cards-preview.css");
 const homeCommunityImports = parseCssImports("styles/features/home-community.css");
 const homeCommunityChannelImports = parseCssImports("styles/features/home-community-channels.css");
 const homeCommunityChannelStripImports = parseCssImports("styles/features/home-community-channels-strip.css");
@@ -2941,6 +2958,7 @@ assertListEqual("styles/features/home-history-section.css", homeHistorySectionIm
 assertListEqual("styles/features/home-history-section-head.css", homeHistorySectionHeadImports, EXPECTED_HOME_HISTORY_SECTION_HEAD_IMPORTS);
 assertListEqual("styles/features/home-history-cards.css", homeHistoryCardsImports, EXPECTED_HOME_HISTORY_CARDS_IMPORTS);
 assertListEqual("styles/features/home-history-cards-base.css", homeHistoryCardsBaseImports, EXPECTED_HOME_HISTORY_CARDS_BASE_IMPORTS);
+assertListEqual("styles/features/home-history-cards-preview.css", homeHistoryCardsPreviewImports, EXPECTED_HOME_HISTORY_CARDS_PREVIEW_IMPORTS);
 assertListEqual("styles/features/home-community.css", homeCommunityImports, EXPECTED_HOME_COMMUNITY_IMPORTS);
 assertListEqual("styles/features/home-community-channels.css", homeCommunityChannelImports, EXPECTED_HOME_COMMUNITY_CHANNEL_IMPORTS);
 assertListEqual("styles/features/home-community-channels-strip.css", homeCommunityChannelStripImports, EXPECTED_HOME_COMMUNITY_CHANNEL_STRIP_IMPORTS);
@@ -3277,6 +3295,9 @@ checkFileContains("styles/features/home-history-cards-base-shell.css", EXPECTED_
 checkFileContains("styles/features/home-history-cards-base-state.css", EXPECTED_HOME_HISTORY_CARD_BASE_STATE_SELECTORS);
 checkFileContains("styles/features/home-history-cards-delete.css", EXPECTED_HOME_HISTORY_CARD_DELETE_SELECTORS);
 checkFileContains("styles/features/home-history-cards-preview.css", EXPECTED_HOME_HISTORY_CARD_PREVIEW_SELECTORS);
+checkFileContains("styles/features/home-history-cards-preview-shell.css", EXPECTED_HOME_HISTORY_CARD_PREVIEW_SHELL_SELECTORS);
+checkFileContains("styles/features/home-history-cards-preview-fallback.css", EXPECTED_HOME_HISTORY_CARD_PREVIEW_FALLBACK_SELECTORS);
+checkFileContains("styles/features/home-history-cards-preview-image.css", EXPECTED_HOME_HISTORY_CARD_PREVIEW_IMAGE_SELECTORS);
 checkFileContains("styles/features/home-history-cards-meta.css", EXPECTED_HOME_HISTORY_CARD_META_SELECTORS);
 checkFileContains("styles/features/home-community.css", EXPECTED_HOME_COMMUNITY_SELECTORS);
 checkFileContains("styles/features/home-community-channels.css", EXPECTED_HOME_COMMUNITY_CHANNEL_SELECTORS);
