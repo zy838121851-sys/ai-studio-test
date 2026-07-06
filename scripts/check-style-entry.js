@@ -269,6 +269,13 @@ const EXPECTED_NODE_IMAGE_GENERATOR_BASE_IMPORTS = [
   "./node-image-generator-panel.css",
   "./node-image-generator-glass.css"
 ];
+const EXPECTED_NODE_IMAGE_GENERATOR_PANEL_IMPORTS = [
+  "./node-image-generator-panel-shell.css",
+  "./node-image-generator-panel-references.css",
+  "./node-image-generator-panel-textarea.css",
+  "./node-image-generator-panel-controls.css",
+  "./node-image-generator-panel-actions.css"
+];
 const EXPECTED_NODE_IMAGE_GENERATOR_SHELL_IMPORTS = [
   "./node-image-generator-shell-node.css",
   "./node-image-generator-shell-head.css",
@@ -1726,10 +1733,41 @@ const EXPECTED_NODE_IMAGE_GENERATOR_SHELL_DROP_SELECTORS = [
   ".node-image-generator.generator-drop-active .image-generator-frame"
 ];
 const EXPECTED_NODE_IMAGE_GENERATOR_PANEL_SELECTORS = [
+  "@import url(\"./node-image-generator-panel-shell.css\")",
+  "@import url(\"./node-image-generator-panel-references.css\")",
+  "@import url(\"./node-image-generator-panel-textarea.css\")",
+  "@import url(\"./node-image-generator-panel-controls.css\")",
+  "@import url(\"./node-image-generator-panel-actions.css\")"
+];
+const EXPECTED_NODE_IMAGE_GENERATOR_PANEL_SHELL_SELECTORS = [
+  ".image-generator-panel",
   ".image-generator-panel-top",
+  ".image-generator-bottom"
+];
+const EXPECTED_NODE_IMAGE_GENERATOR_PANEL_REFERENCES_SELECTORS = [
   ".image-generator-reference-list",
+  ".image-generator-reference-thumb",
+  ".image-generator-add-reference",
+  ".image-generator-reference-thumb img",
+  ".image-generator-expand-panel"
+];
+const EXPECTED_NODE_IMAGE_GENERATOR_PANEL_TEXTAREA_SELECTORS = [
+  ".image-generator-panel textarea",
+  ".generator-panel-expanded .image-generator-panel textarea",
+  ".image-generator-panel textarea:focus",
+  ".image-generator-panel textarea::placeholder"
+];
+const EXPECTED_NODE_IMAGE_GENERATOR_PANEL_CONTROLS_SELECTORS = [
   ".image-generator-bottom",
-  ".image-generator-submit"
+  ".image-generator-bottom select",
+  ".image-generator-bottom [data-generator-model]",
+  ".image-generator-cancel"
+];
+const EXPECTED_NODE_IMAGE_GENERATOR_PANEL_ACTIONS_SELECTORS = [
+  ".image-generator-submit",
+  ".image-generator-bottom button:disabled",
+  ".image-generator-bottom select:disabled",
+  ".image-generator-add-reference:disabled"
 ];
 const EXPECTED_NODE_IMAGE_GENERATOR_GLASS_SELECTORS = [
   "@import url(\"./node-image-generator-glass-head.css\")",
@@ -2100,6 +2138,7 @@ const nodeMediaImports = parseCssImports("styles/features/node-media.css");
 const nodePreviewImports = parseCssImports("styles/features/node-preview.css");
 const nodeImageGeneratorImports = parseCssImports("styles/features/node-image-generator.css");
 const nodeImageGeneratorBaseImports = parseCssImports("styles/features/node-image-generator-base.css");
+const nodeImageGeneratorPanelImports = parseCssImports("styles/features/node-image-generator-panel.css");
 const nodeImageGeneratorShellImports = parseCssImports("styles/features/node-image-generator-shell.css");
 const nodeImageGeneratorGlassImports = parseCssImports("styles/features/node-image-generator-glass.css");
 const nodeImageGeneratorInlineEditImports = parseCssImports("styles/features/node-image-generator-inline-edit.css");
@@ -2180,6 +2219,7 @@ assertListEqual("styles/features/node-media.css", nodeMediaImports, EXPECTED_NOD
 assertListEqual("styles/features/node-preview.css", nodePreviewImports, EXPECTED_NODE_PREVIEW_IMPORTS);
 assertListEqual("styles/features/node-image-generator.css", nodeImageGeneratorImports, EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS);
 assertListEqual("styles/features/node-image-generator-base.css", nodeImageGeneratorBaseImports, EXPECTED_NODE_IMAGE_GENERATOR_BASE_IMPORTS);
+assertListEqual("styles/features/node-image-generator-panel.css", nodeImageGeneratorPanelImports, EXPECTED_NODE_IMAGE_GENERATOR_PANEL_IMPORTS);
 assertListEqual("styles/features/node-image-generator-shell.css", nodeImageGeneratorShellImports, EXPECTED_NODE_IMAGE_GENERATOR_SHELL_IMPORTS);
 assertListEqual("styles/features/node-image-generator-glass.css", nodeImageGeneratorGlassImports, EXPECTED_NODE_IMAGE_GENERATOR_GLASS_IMPORTS);
 assertListEqual("styles/features/node-image-generator-inline-edit.css", nodeImageGeneratorInlineEditImports, EXPECTED_NODE_IMAGE_GENERATOR_INLINE_EDIT_IMPORTS);
@@ -2257,6 +2297,7 @@ checkImportedFilesExist(nodeMediaImports, "styles/features");
 checkImportedFilesExist(nodePreviewImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorBaseImports, "styles/features");
+checkImportedFilesExist(nodeImageGeneratorPanelImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorShellImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorGlassImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorInlineEditImports, "styles/features");
@@ -2521,6 +2562,11 @@ checkFileContains("styles/features/node-image-generator-shell-panel.css", EXPECT
 checkFileContains("styles/features/node-image-generator-shell-actions.css", EXPECTED_NODE_IMAGE_GENERATOR_SHELL_ACTIONS_SELECTORS);
 checkFileContains("styles/features/node-image-generator-shell-drop.css", EXPECTED_NODE_IMAGE_GENERATOR_SHELL_DROP_SELECTORS);
 checkFileContains("styles/features/node-image-generator-panel.css", EXPECTED_NODE_IMAGE_GENERATOR_PANEL_SELECTORS);
+checkFileContains("styles/features/node-image-generator-panel-shell.css", EXPECTED_NODE_IMAGE_GENERATOR_PANEL_SHELL_SELECTORS);
+checkFileContains("styles/features/node-image-generator-panel-references.css", EXPECTED_NODE_IMAGE_GENERATOR_PANEL_REFERENCES_SELECTORS);
+checkFileContains("styles/features/node-image-generator-panel-textarea.css", EXPECTED_NODE_IMAGE_GENERATOR_PANEL_TEXTAREA_SELECTORS);
+checkFileContains("styles/features/node-image-generator-panel-controls.css", EXPECTED_NODE_IMAGE_GENERATOR_PANEL_CONTROLS_SELECTORS);
+checkFileContains("styles/features/node-image-generator-panel-actions.css", EXPECTED_NODE_IMAGE_GENERATOR_PANEL_ACTIONS_SELECTORS);
 checkFileContains("styles/features/node-image-generator-glass.css", EXPECTED_NODE_IMAGE_GENERATOR_GLASS_SELECTORS);
 checkFileContains("styles/features/node-image-generator-glass-head.css", EXPECTED_NODE_IMAGE_GENERATOR_GLASS_HEAD_SELECTORS);
 checkFileContains("styles/features/node-image-generator-glass-stage.css", EXPECTED_NODE_IMAGE_GENERATOR_GLASS_STAGE_SELECTORS);

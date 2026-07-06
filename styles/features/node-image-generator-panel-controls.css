@@ -1,0 +1,30 @@
+.image-generator-bottom {
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+.image-generator-bottom select,
+.image-generator-cancel {
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid rgba(214, 220, 230, 0.84);
+  border-radius: 14px;
+  color: #17202c;
+  background: rgba(248, 250, 252, 0.96);
+  font: inherit;
+  font-size: 15px;
+}
+
+.image-generator-bottom select {
+  min-width: 112px;
+}
+
+.image-generator-bottom [data-generator-model] {
+  min-width: 268px;
+}
+
+.image-generator-cancel {
+  border: 0;
+  background: rgba(248, 250, 252, 0.98);
+}
