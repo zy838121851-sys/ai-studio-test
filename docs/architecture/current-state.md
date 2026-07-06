@@ -367,8 +367,16 @@ Post-baseline CSS governance note:
   navigation pill styles.
 - `styles/features/home-history-section-head-action.css` owns the recent
   project/history section title and action overrides.
-- `styles/features/home-history-cards.css` owns home history grid, card,
-  thumbnail, preview fallback, create-card, and delete-control styles.
+- `styles/features/home-history-cards.css` is now a pure aggregation entry for
+  home history card base, delete, preview, and metadata submodules.
+- `styles/features/home-history-cards-base.css` is now a pure aggregation entry
+  for card grid/layout, shell, and state submodules.
+- `styles/features/home-history-cards-base-layout.css` owns the history card
+  grid and card positioning styles.
+- `styles/features/home-history-cards-base-shell.css` owns the history card
+  button shell and create-card sizing styles.
+- `styles/features/home-history-cards-base-state.css` owns history card
+  removing and hover states.
 - `styles/features/home-responsive-tablet.css` is now a pure aggregation entry
   for tablet home responsive overrides.
 - `styles/features/home-responsive-tablet-history.css` owns tablet home history
