@@ -1,0 +1,18 @@
+.home-history-card strong {
+  overflow: hidden;
+  color: #17202c;
+  font-size: 16px;
+  font-weight: 900;
+  letter-spacing: 0;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-history-card small {
+  overflow: hidden;
+  color: rgba(23, 32, 44, 0.42);
+  font-size: 12px;
+  line-height: 1.25;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

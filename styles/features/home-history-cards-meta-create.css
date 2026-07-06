@@ -1,0 +1,17 @@
+.home-history-card.is-create .home-history-thumb {
+  gap: 18px;
+  height: 100%;
+  aspect-ratio: auto;
+}
+
+.home-history-card.is-create .home-history-thumb strong {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.home-history-create-icon {
+  color: #111827;
+  font-size: 28px;
+  font-weight: 500;
+  line-height: 1;
+}

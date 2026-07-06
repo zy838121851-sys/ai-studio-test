@@ -393,6 +393,12 @@ Post-baseline CSS governance note:
   preview fallback icon/text styles.
 - `styles/features/home-history-cards-preview-image.css` owns project preview
   image positioning and hidden state styles.
+- `styles/features/home-history-cards-meta.css` is now a pure aggregation entry
+  for create-card metadata and project card text submodules.
+- `styles/features/home-history-cards-meta-create.css` owns create-card thumb
+  text and icon styles.
+- `styles/features/home-history-cards-meta-text.css` owns project card title and
+  date text truncation styles.
 - `styles/features/home-responsive-tablet.css` is now a pure aggregation entry
   for tablet home responsive overrides.
 - `styles/features/home-responsive-tablet-history.css` owns tablet home history
