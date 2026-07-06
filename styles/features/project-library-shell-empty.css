@@ -1,0 +1,30 @@
+.project-empty {
+  display: grid;
+  gap: 14px;
+  min-height: 260px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.74);
+  border-radius: 28px;
+  color: #17202c;
+  background: rgba(255, 255, 255, 0.58);
+  box-shadow: 0 24px 70px rgba(89, 111, 139, 0.16), inset 0 1px rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+.project-empty span {
+  color: #4d9cff;
+  font-size: 34px;
+}
+
+.project-empty strong {
+  color: currentColor;
+  font-size: 34px;
+  letter-spacing: 0;
+}
+
+.project-empty small {
+  margin: 2px 0 0;
+  color: rgba(23, 32, 44, 0.58);
+  line-height: 1.5;
+}

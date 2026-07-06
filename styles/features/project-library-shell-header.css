@@ -1,0 +1,37 @@
+.library-page-header {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 2px 18px;
+  width: min(1340px, calc(100vw - 220px));
+  margin: 0 auto 24px;
+}
+
+.library-page-header span {
+  color: rgba(23, 32, 44, 0.42);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.library-page-header strong {
+  color: #17202c;
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: 0;
+}
+
+.library-page-header small {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  align-self: center;
+  min-width: 78px;
+  padding: 8px 14px;
+  border: 1px solid rgba(17, 24, 39, 0.06);
+  border-radius: 999px;
+  color: rgba(23, 32, 44, 0.54);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 12px 30px rgba(31, 46, 72, 0.07), inset 0 1px rgba(255, 255, 255, 0.9);
+  text-align: center;
+}

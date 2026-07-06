@@ -443,6 +443,12 @@ const ALLOWED_UNREACHABLE_CSS = [
 ];
 const EXPECTED_PROJECT_LIBRARY_SELECTORS = [
 ];
+const EXPECTED_PROJECT_LIBRARY_SHELL_IMPORTS = [
+  "./project-library-shell-layout.css",
+  "./project-library-shell-header.css",
+  "./project-library-shell-selection.css",
+  "./project-library-shell-empty.css"
+];
 const EXPECTED_PROJECT_LIBRARY_CARDS_IMPORTS = [
   "./project-library-cards-base.css",
   "./project-library-cards-selection.css",
@@ -450,11 +456,26 @@ const EXPECTED_PROJECT_LIBRARY_CARDS_IMPORTS = [
   "./project-library-cards-responsive.css"
 ];
 const EXPECTED_PROJECT_LIBRARY_SHELL_SELECTORS = [
+  "@import url(\"./project-library-shell-layout.css\")",
+  "@import url(\"./project-library-shell-header.css\")",
+  "@import url(\"./project-library-shell-selection.css\")",
+  "@import url(\"./project-library-shell-empty.css\")"
+];
+const EXPECTED_PROJECT_LIBRARY_SHELL_LAYOUT_SELECTORS = [
   ".library-shell",
   ".library-title",
-  ".project-grid",
+  ".project-grid"
+];
+const EXPECTED_PROJECT_LIBRARY_SHELL_HEADER_SELECTORS = [
   ".library-page-header",
+  ".library-page-header small"
+];
+const EXPECTED_PROJECT_LIBRARY_SHELL_SELECTION_SELECTORS = [
   ".library-selection-bar",
+  ".library-select-toggle.active",
+  ".library-selection-bar button.danger"
+];
+const EXPECTED_PROJECT_LIBRARY_SHELL_EMPTY_SELECTORS = [
   ".project-empty"
 ];
 const EXPECTED_PROJECT_LIBRARY_CARDS_SELECTORS = [
@@ -1852,6 +1873,7 @@ const imageCompareImports = parseCssImports("styles/image-compare.css");
 const taskLogImports = parseCssImports("styles/task-log.css");
 const workspaceImports = parseCssImports("styles/workspace.css");
 const projectLibraryImports = parseCssImports("styles/features/project-library.css");
+const projectLibraryShellImports = parseCssImports("styles/features/project-library-shell.css");
 const projectLibraryCardsImports = parseCssImports("styles/features/project-library-cards.css");
 const legacySplitImports = parseCssImports("styles/legacy-split.css");
 const legacyBaseImports = parseCssImports("styles/legacy-base.css");
@@ -1926,6 +1948,7 @@ assertListEqual("styles/image-compare.css", imageCompareImports, EXPECTED_IMAGE_
 assertListEqual("styles/task-log.css", taskLogImports, EXPECTED_TASK_LOG_IMPORTS);
 assertListEqual("styles/workspace.css", workspaceImports, EXPECTED_WORKSPACE_IMPORTS);
 assertListEqual("styles/features/project-library.css", projectLibraryImports, EXPECTED_PROJECT_LIBRARY_IMPORTS);
+assertListEqual("styles/features/project-library-shell.css", projectLibraryShellImports, EXPECTED_PROJECT_LIBRARY_SHELL_IMPORTS);
 assertListEqual("styles/features/project-library-cards.css", projectLibraryCardsImports, EXPECTED_PROJECT_LIBRARY_CARDS_IMPORTS);
 assertListEqual("styles/legacy-split.css", legacySplitImports, EXPECTED_LEGACY_SPLIT_IMPORTS);
 assertListEqual("styles/legacy-base.css", legacyBaseImports, EXPECTED_LEGACY_BASE_IMPORTS);
@@ -1998,6 +2021,7 @@ checkImportedFilesExist(imageCompareImports, "styles");
 checkImportedFilesExist(taskLogImports, "styles");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(projectLibraryImports, "styles/features");
+checkImportedFilesExist(projectLibraryShellImports, "styles/features");
 checkImportedFilesExist(projectLibraryCardsImports, "styles/features");
 checkImportedFilesExist(legacySplitImports, "styles");
 checkImportedFilesExist(legacyThemeIosImports, "styles");
@@ -2291,6 +2315,10 @@ checkFileContains("styles/features/node-preview-bottom-controls.css", EXPECTED_N
 checkFileContains("styles/features/node.css", EXPECTED_NODE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);
 checkFileContains("styles/features/project-library-shell.css", EXPECTED_PROJECT_LIBRARY_SHELL_SELECTORS);
+checkFileContains("styles/features/project-library-shell-layout.css", EXPECTED_PROJECT_LIBRARY_SHELL_LAYOUT_SELECTORS);
+checkFileContains("styles/features/project-library-shell-header.css", EXPECTED_PROJECT_LIBRARY_SHELL_HEADER_SELECTORS);
+checkFileContains("styles/features/project-library-shell-selection.css", EXPECTED_PROJECT_LIBRARY_SHELL_SELECTION_SELECTORS);
+checkFileContains("styles/features/project-library-shell-empty.css", EXPECTED_PROJECT_LIBRARY_SHELL_EMPTY_SELECTORS);
 checkFileContains("styles/features/project-library-cards.css", EXPECTED_PROJECT_LIBRARY_CARDS_SELECTORS);
 checkFileContains("styles/features/project-library-cards-base.css", EXPECTED_PROJECT_LIBRARY_CARDS_BASE_SELECTORS);
 checkFileContains("styles/features/project-library-cards-selection.css", EXPECTED_PROJECT_LIBRARY_CARDS_SELECTION_SELECTORS);
