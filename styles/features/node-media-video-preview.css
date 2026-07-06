@@ -1,0 +1,17 @@
+.node-video .video-file-preview {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  margin: 0;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #050505;
+  box-shadow: none;
+  object-fit: contain;
+  vertical-align: top;
+}
+
+.node-video.selected .video-file-preview {
+  outline: 0;
+}

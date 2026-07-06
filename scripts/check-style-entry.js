@@ -390,6 +390,11 @@ const EXPECTED_NODE_MEDIA_IMPORTS = [
   "./node-media-video.css",
   "./node-media-frame.css"
 ];
+const EXPECTED_NODE_MEDIA_VIDEO_IMPORTS = [
+  "./node-media-video-shell.css",
+  "./node-media-video-hidden-text.css",
+  "./node-media-video-preview.css"
+];
 const EXPECTED_NODE_PREVIEW_IMPORTS = [
   "./node-preview-media.css",
   "./node-preview-model.css",
@@ -1876,9 +1881,22 @@ const EXPECTED_NODE_MEDIA_SHELL_SELECTORS = [
   ".node-loading-image"
 ];
 const EXPECTED_NODE_MEDIA_VIDEO_SELECTORS = [
+  "@import url(\"./node-media-video-shell.css\")",
+  "@import url(\"./node-media-video-hidden-text.css\")",
+  "@import url(\"./node-media-video-preview.css\")"
+];
+const EXPECTED_NODE_MEDIA_VIDEO_SHELL_SELECTORS = [
   ".node-video",
-  ".video-file-preview",
   ".node-video.selected"
+];
+const EXPECTED_NODE_MEDIA_VIDEO_HIDDEN_TEXT_SELECTORS = [
+  ".node-video .node-label",
+  ".node-video h3",
+  ".node-video p"
+];
+const EXPECTED_NODE_MEDIA_VIDEO_PREVIEW_SELECTORS = [
+  ".node-video .video-file-preview",
+  ".node-video.selected .video-file-preview"
 ];
 const EXPECTED_NODE_MEDIA_FRAME_SELECTORS = [
   ".image-frame",
@@ -2345,6 +2363,7 @@ const nodeStackImports = parseCssImports("styles/features/node-stack.css");
 const nodeStackBaseImports = parseCssImports("styles/features/node-stack-base.css");
 const nodeStackTrayImports = parseCssImports("styles/features/node-stack-tray.css");
 const nodeMediaImports = parseCssImports("styles/features/node-media.css");
+const nodeMediaVideoImports = parseCssImports("styles/features/node-media-video.css");
 const nodePreviewImports = parseCssImports("styles/features/node-preview.css");
 const nodeImageGeneratorImports = parseCssImports("styles/features/node-image-generator.css");
 const nodeImageGeneratorBaseImports = parseCssImports("styles/features/node-image-generator-base.css");
@@ -2435,6 +2454,7 @@ assertListEqual("styles/features/node-stack.css", nodeStackImports, EXPECTED_NOD
 assertListEqual("styles/features/node-stack-base.css", nodeStackBaseImports, EXPECTED_NODE_STACK_BASE_IMPORTS);
 assertListEqual("styles/features/node-stack-tray.css", nodeStackTrayImports, EXPECTED_NODE_STACK_TRAY_IMPORTS);
 assertListEqual("styles/features/node-media.css", nodeMediaImports, EXPECTED_NODE_MEDIA_IMPORTS);
+assertListEqual("styles/features/node-media-video.css", nodeMediaVideoImports, EXPECTED_NODE_MEDIA_VIDEO_IMPORTS);
 assertListEqual("styles/features/node-preview.css", nodePreviewImports, EXPECTED_NODE_PREVIEW_IMPORTS);
 assertListEqual("styles/features/node-image-generator.css", nodeImageGeneratorImports, EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS);
 assertListEqual("styles/features/node-image-generator-base.css", nodeImageGeneratorBaseImports, EXPECTED_NODE_IMAGE_GENERATOR_BASE_IMPORTS);
@@ -2522,6 +2542,7 @@ checkImportedFilesExist(nodeStackImports, "styles/features");
 checkImportedFilesExist(nodeStackBaseImports, "styles/features");
 checkImportedFilesExist(nodeStackTrayImports, "styles/features");
 checkImportedFilesExist(nodeMediaImports, "styles/features");
+checkImportedFilesExist(nodeMediaVideoImports, "styles/features");
 checkImportedFilesExist(nodePreviewImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorBaseImports, "styles/features");
@@ -2813,6 +2834,9 @@ checkFileContains("styles/features/node-stack-tray-meta.css", EXPECTED_NODE_STAC
 checkFileContains("styles/features/node-director.css", EXPECTED_NODE_DIRECTOR_SELECTORS);
 checkFileContains("styles/features/node-media-shell.css", EXPECTED_NODE_MEDIA_SHELL_SELECTORS);
 checkFileContains("styles/features/node-media-video.css", EXPECTED_NODE_MEDIA_VIDEO_SELECTORS);
+checkFileContains("styles/features/node-media-video-shell.css", EXPECTED_NODE_MEDIA_VIDEO_SHELL_SELECTORS);
+checkFileContains("styles/features/node-media-video-hidden-text.css", EXPECTED_NODE_MEDIA_VIDEO_HIDDEN_TEXT_SELECTORS);
+checkFileContains("styles/features/node-media-video-preview.css", EXPECTED_NODE_MEDIA_VIDEO_PREVIEW_SELECTORS);
 checkFileContains("styles/features/node-media-frame.css", EXPECTED_NODE_MEDIA_FRAME_SELECTORS);
 checkFileContains("styles/features/node-generation.css", EXPECTED_NODE_GENERATION_SELECTORS);
 checkFileContains("styles/features/node-image-generator-shell.css", EXPECTED_NODE_IMAGE_GENERATOR_BASE_SELECTORS);

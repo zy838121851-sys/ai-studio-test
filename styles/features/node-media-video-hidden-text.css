@@ -1,0 +1,5 @@
+.node-video .node-label,
+.node-video h3,
+.node-video p {
+  display: none !important;
+}

@@ -1,0 +1,18 @@
+.node-video {
+  display: block;
+  width: 320px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  color: #d8d8d8;
+  background: transparent;
+  box-shadow: none;
+  line-height: 0;
+}
+
+.node-video.selected {
+  border-color: transparent;
+  box-shadow: none;
+  outline: 2px solid rgba(10, 132, 255, 0.72);
+  outline-offset: 0;
+}
