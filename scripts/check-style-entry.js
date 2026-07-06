@@ -43,6 +43,11 @@ const EXPECTED_PROJECT_LIBRARY_PAGE_IMPORTS = [
   "./project-library-page-card-content.css",
   "./project-library-page-responsive.css"
 ];
+const EXPECTED_CHAT_IMPORTS = [
+  "./chat-history-popover-shell.css",
+  "./chat-history-popover-list.css",
+  "./chat-history-popover-item.css"
+];
 const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./legacy-base.css",
   "./features/assets.css",
@@ -1554,11 +1559,23 @@ const EXPECTED_ASSET_PINTEREST_RESPONSIVE_INTERACTIONS_BREAKPOINTS_SELECTORS = [
 ];
 const EXPECTED_ASSET_SELECTORS = [];
 const EXPECTED_CHAT_SELECTORS = [
+  "@import url(\"./chat-history-popover-shell.css\")",
+  "@import url(\"./chat-history-popover-list.css\")",
+  "@import url(\"./chat-history-popover-item.css\")"
+];
+const EXPECTED_CHAT_HISTORY_POPOVER_SHELL_SELECTORS = [
   ".conversation-history-popover",
   ".conversation-history-popover[hidden]",
+  ".conversation-history-popover strong"
+];
+const EXPECTED_CHAT_HISTORY_POPOVER_LIST_SELECTORS = [
   ".conversation-history-list",
-  ".conversation-history-item",
   ".conversation-history-empty"
+];
+const EXPECTED_CHAT_HISTORY_POPOVER_ITEM_SELECTORS = [
+  ".conversation-history-item",
+  ".conversation-history-item:hover",
+  ".conversation-history-item small"
 ];
 const EXPECTED_LEGACY_THEME_SYNC_BASE_SELECTORS = [
   "body[data-theme=\"light\"]",
@@ -2782,6 +2799,7 @@ const projectLibraryImports = parseCssImports("styles/features/project-library.c
 const projectLibraryShellImports = parseCssImports("styles/features/project-library-shell.css");
 const projectLibraryCardsImports = parseCssImports("styles/features/project-library-cards.css");
 const projectLibraryPageImports = parseCssImports("styles/features/project-library-page.css");
+const chatImports = parseCssImports("styles/features/chat.css");
 const legacySplitImports = parseCssImports("styles/legacy-split.css");
 const legacyBaseImports = parseCssImports("styles/legacy-base.css");
 const legacyThemeIosImports = parseCssImports("styles/legacy-theme-ios.css");
@@ -2896,6 +2914,7 @@ assertListEqual("styles/features/project-library.css", projectLibraryImports, EX
 assertListEqual("styles/features/project-library-shell.css", projectLibraryShellImports, EXPECTED_PROJECT_LIBRARY_SHELL_IMPORTS);
 assertListEqual("styles/features/project-library-cards.css", projectLibraryCardsImports, EXPECTED_PROJECT_LIBRARY_CARDS_IMPORTS);
 assertListEqual("styles/features/project-library-page.css", projectLibraryPageImports, EXPECTED_PROJECT_LIBRARY_PAGE_IMPORTS);
+assertListEqual("styles/features/chat.css", chatImports, EXPECTED_CHAT_IMPORTS);
 assertListEqual("styles/legacy-split.css", legacySplitImports, EXPECTED_LEGACY_SPLIT_IMPORTS);
 assertListEqual("styles/legacy-base.css", legacyBaseImports, EXPECTED_LEGACY_BASE_IMPORTS);
 assertListEqual("styles/legacy-theme-ios.css", legacyThemeIosImports, EXPECTED_LEGACY_THEME_IOS_IMPORTS);
@@ -3008,6 +3027,7 @@ checkImportedFilesExist(projectLibraryImports, "styles/features");
 checkImportedFilesExist(projectLibraryShellImports, "styles/features");
 checkImportedFilesExist(projectLibraryCardsImports, "styles/features");
 checkImportedFilesExist(projectLibraryPageImports, "styles/features");
+checkImportedFilesExist(chatImports, "styles/features");
 checkImportedFilesExist(legacySplitImports, "styles");
 checkImportedFilesExist(legacyThemeIosImports, "styles");
 checkImportedFilesExist(legacyChatImports, "styles");
@@ -3217,6 +3237,9 @@ checkFileContains("styles/features/assets-pinterest-responsive-interactions-pin.
 checkFileContains("styles/features/assets-pinterest-responsive-interactions-breakpoints.css", EXPECTED_ASSET_PINTEREST_RESPONSIVE_INTERACTIONS_BREAKPOINTS_SELECTORS);
 checkFileContains("styles/features/assets.css", EXPECTED_ASSET_SELECTORS);
 checkFileContains("styles/features/chat.css", EXPECTED_CHAT_SELECTORS);
+checkFileContains("styles/features/chat-history-popover-shell.css", EXPECTED_CHAT_HISTORY_POPOVER_SHELL_SELECTORS);
+checkFileContains("styles/features/chat-history-popover-list.css", EXPECTED_CHAT_HISTORY_POPOVER_LIST_SELECTORS);
+checkFileContains("styles/features/chat-history-popover-item.css", EXPECTED_CHAT_HISTORY_POPOVER_ITEM_SELECTORS);
 checkFileContains("styles/legacy-theme-ios.css", EXPECTED_LEGACY_THEME_IOS_SELECTORS);
 checkFileContains("styles/legacy-theme-ios-base.css", EXPECTED_LEGACY_THEME_IOS_BASE_SELECTORS);
 checkFileContains("styles/legacy-theme-ios-chrome.css", EXPECTED_LEGACY_THEME_IOS_CHROME_SELECTORS);

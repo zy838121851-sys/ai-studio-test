@@ -121,9 +121,14 @@ Post-baseline CSS governance note:
   `legacy-node.css` is currently a compatibility shim with no active selector
   ownership and is intentionally outside the active `legacy-split.css` import
   graph.
-- `styles/features/chat.css` now owns the conversation history popover styles
-  that were moved out of `styles/legacy-chat.css`; the selector guard tracks
-  the migrated chat rules in their feature file.
+- `styles/features/chat.css` is now a pure aggregation entry for conversation
+  history popover shell, list, and item submodules.
+- `styles/features/chat-history-popover-shell.css` owns conversation history
+  popover shell, hidden state, and heading styles.
+- `styles/features/chat-history-popover-list.css` owns conversation history
+  list and empty-state text styles.
+- `styles/features/chat-history-popover-item.css` owns conversation history
+  item, active/hover state, metadata, and truncation styles.
 - `styles/legacy-chat-shell.css` owns chat panel shell, floating chat button,
   agent debug panel, window actions, welcome/suggestions, and chat log shell
   styles that were moved out of `styles/legacy-chat.css`; it is imported by

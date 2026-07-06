@@ -1,0 +1,26 @@
+.conversation-history-popover {
+  position: fixed;
+  z-index: 2400;
+  width: min(320px, calc(100vw - 32px));
+  max-height: min(420px, calc(100vh - 48px));
+  padding: 10px;
+  border: 1px solid rgba(31, 46, 72, 0.1);
+  border-radius: 14px;
+  color: #17202c;
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 24px 68px rgba(31, 46, 72, 0.18), inset 0 1px rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(22px) saturate(1.22);
+  -webkit-backdrop-filter: blur(22px) saturate(1.22);
+  overflow: auto;
+}
+
+.conversation-history-popover[hidden] {
+  display: none;
+}
+
+.conversation-history-popover strong {
+  display: block;
+  margin: 4px 6px 10px;
+  font-size: 14px;
+  font-weight: 850;
+}

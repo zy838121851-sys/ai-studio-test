@@ -1,0 +1,10 @@
+.conversation-history-list {
+  display: grid;
+  gap: 6px;
+}
+
+.conversation-history-empty {
+  color: rgba(23, 32, 44, 0.54);
+  font-size: 12px;
+  line-height: 1.35;
+}
