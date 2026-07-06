@@ -340,8 +340,12 @@ Post-baseline CSS governance note:
   by `styles/features/home.css`.
 - `styles/features/home-history-stack.css` owns the home recent project/history
   stack, trigger, layered thumbnails, and open affordance styles.
-- `styles/features/home-history-section.css` owns home history section header
-  and section navigation styles.
+- `styles/features/home-history-section.css` is now a pure aggregation entry for
+  home history section layout and head/navigation submodules.
+- `styles/features/home-history-section-layout.css` owns the home history
+  section positioning and sizing rules.
+- `styles/features/home-history-section-head.css` owns home section heading,
+  navigation, and history section action styles.
 - `styles/features/home-history-cards.css` owns home history grid, card,
   thumbnail, preview fallback, create-card, and delete-control styles.
 - `styles/features/home-community.css` is now a pure aggregation entry for home

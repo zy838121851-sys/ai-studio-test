@@ -1,0 +1,11 @@
+.home-history {
+  position: relative;
+  left: auto;
+  bottom: auto;
+  align-self: stretch;
+  z-index: 1;
+  width: min(1480px, calc(100vw - 240px));
+  max-width: none;
+  margin: clamp(120px, 16vh, 170px) auto 0;
+  transform: none;
+}

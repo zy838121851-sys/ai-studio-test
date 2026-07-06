@@ -564,6 +564,10 @@ const EXPECTED_HOME_HISTORY_STACK_IMPORTS = [
   "./home-history-stack-preview.css",
   "./home-history-stack-open.css"
 ];
+const EXPECTED_HOME_HISTORY_SECTION_IMPORTS = [
+  "./home-history-section-layout.css",
+  "./home-history-section-head.css"
+];
 const EXPECTED_HOME_HISTORY_CARDS_IMPORTS = [
   "./home-history-cards-base.css",
   "./home-history-cards-delete.css",
@@ -801,6 +805,13 @@ const EXPECTED_HOME_HISTORY_STACK_OPEN_SELECTORS = [
   ".home-history-open"
 ];
 const EXPECTED_HOME_HISTORY_SECTION_SELECTORS = [
+  "@import url(\"./home-history-section-layout.css\")",
+  "@import url(\"./home-history-section-head.css\")"
+];
+const EXPECTED_HOME_HISTORY_SECTION_LAYOUT_SELECTORS = [
+  ".home-history"
+];
+const EXPECTED_HOME_HISTORY_SECTION_HEAD_SELECTORS = [
   ".home-section-head",
   ".home-section-head.compact",
   ".home-history .home-section-head strong"
@@ -2706,6 +2717,7 @@ const assetPinterestResponsiveInteractionsImports = parseCssImports("styles/feat
 const homeImports = parseCssImports("styles/features/home.css");
 const homeHistoryImports = parseCssImports("styles/features/home-history.css");
 const homeHistoryStackImports = parseCssImports("styles/features/home-history-stack.css");
+const homeHistorySectionImports = parseCssImports("styles/features/home-history-section.css");
 const homeHistoryCardsImports = parseCssImports("styles/features/home-history-cards.css");
 const homeCommunityImports = parseCssImports("styles/features/home-community.css");
 const homeCommunityChannelImports = parseCssImports("styles/features/home-community-channels.css");
@@ -2810,6 +2822,7 @@ assertListEqual("styles/features/assets-pinterest-responsive-interactions.css", 
 assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
 assertListEqual("styles/features/home-history.css", homeHistoryImports, EXPECTED_HOME_HISTORY_IMPORTS);
 assertListEqual("styles/features/home-history-stack.css", homeHistoryStackImports, EXPECTED_HOME_HISTORY_STACK_IMPORTS);
+assertListEqual("styles/features/home-history-section.css", homeHistorySectionImports, EXPECTED_HOME_HISTORY_SECTION_IMPORTS);
 assertListEqual("styles/features/home-history-cards.css", homeHistoryCardsImports, EXPECTED_HOME_HISTORY_CARDS_IMPORTS);
 assertListEqual("styles/features/home-community.css", homeCommunityImports, EXPECTED_HOME_COMMUNITY_IMPORTS);
 assertListEqual("styles/features/home-community-channels.css", homeCommunityChannelImports, EXPECTED_HOME_COMMUNITY_CHANNEL_IMPORTS);
@@ -2911,6 +2924,7 @@ checkImportedFilesExist(assetPinterestResponsiveInteractionsImports, "styles/fea
 checkImportedFilesExist(homeImports, "styles/features");
 checkImportedFilesExist(homeHistoryImports, "styles/features");
 checkImportedFilesExist(homeHistoryStackImports, "styles/features");
+checkImportedFilesExist(homeHistorySectionImports, "styles/features");
 checkImportedFilesExist(homeHistoryCardsImports, "styles/features");
 checkImportedFilesExist(homeCommunityImports, "styles/features");
 checkImportedFilesExist(homeCommunityChannelImports, "styles/features");
@@ -3119,6 +3133,8 @@ checkFileContains("styles/features/home-history-stack-shell.css", EXPECTED_HOME_
 checkFileContains("styles/features/home-history-stack-preview.css", EXPECTED_HOME_HISTORY_STACK_PREVIEW_SELECTORS);
 checkFileContains("styles/features/home-history-stack-open.css", EXPECTED_HOME_HISTORY_STACK_OPEN_SELECTORS);
 checkFileContains("styles/features/home-history-section.css", EXPECTED_HOME_HISTORY_SECTION_SELECTORS);
+checkFileContains("styles/features/home-history-section-layout.css", EXPECTED_HOME_HISTORY_SECTION_LAYOUT_SELECTORS);
+checkFileContains("styles/features/home-history-section-head.css", EXPECTED_HOME_HISTORY_SECTION_HEAD_SELECTORS);
 checkFileContains("styles/features/home-history-cards.css", EXPECTED_HOME_HISTORY_CARD_SELECTORS);
 checkFileContains("styles/features/home-history-cards-base.css", EXPECTED_HOME_HISTORY_CARD_BASE_SELECTORS);
 checkFileContains("styles/features/home-history-cards-delete.css", EXPECTED_HOME_HISTORY_CARD_DELETE_SELECTORS);
