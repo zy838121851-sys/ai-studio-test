@@ -349,6 +349,12 @@ Post-baseline CSS governance note:
   image presentation styles.
 - `styles/features/home-history-stack-preview-empty.css` owns the stack preview
   empty placeholder styles.
+- `styles/features/home-history-stack-open.css` is now a pure aggregation entry
+  for stack open affordance base and hover-state submodules.
+- `styles/features/home-history-stack-open-base.css` owns the stack open pill
+  and chevron styles.
+- `styles/features/home-history-stack-open-state.css` owns the stack open hover
+  reveal and first-thumbnail hover polish styles.
 - `styles/features/home-history-section.css` is now a pure aggregation entry for
   home history section layout and head/navigation submodules.
 - `styles/features/home-history-section-layout.css` owns the home history

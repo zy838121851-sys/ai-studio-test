@@ -580,6 +580,10 @@ const EXPECTED_HOME_HISTORY_STACK_PREVIEW_IMPORTS = [
   "./home-history-stack-preview-media.css",
   "./home-history-stack-preview-empty.css"
 ];
+const EXPECTED_HOME_HISTORY_STACK_OPEN_IMPORTS = [
+  "./home-history-stack-open-base.css",
+  "./home-history-stack-open-state.css"
+];
 const EXPECTED_HOME_HISTORY_SECTION_IMPORTS = [
   "./home-history-section-layout.css",
   "./home-history-section-head.css"
@@ -866,7 +870,16 @@ const EXPECTED_HOME_HISTORY_STACK_PREVIEW_EMPTY_SELECTORS = [
   ".home-history-stack b"
 ];
 const EXPECTED_HOME_HISTORY_STACK_OPEN_SELECTORS = [
-  ".home-history-open"
+  "@import url(\"./home-history-stack-open-base.css\")",
+  "@import url(\"./home-history-stack-open-state.css\")"
+];
+const EXPECTED_HOME_HISTORY_STACK_OPEN_BASE_SELECTORS = [
+  ".home-history-open",
+  ".home-history-open::before"
+];
+const EXPECTED_HOME_HISTORY_STACK_OPEN_STATE_SELECTORS = [
+  ".home-history-trigger:hover .home-history-open",
+  ".home-history-trigger:hover .home-history-stack i:first-child"
 ];
 const EXPECTED_HOME_HISTORY_SECTION_SELECTORS = [
   "@import url(\"./home-history-section-layout.css\")",
@@ -2795,6 +2808,7 @@ const homeResponsiveMobileImports = parseCssImports("styles/features/home-respon
 const homeHistoryImports = parseCssImports("styles/features/home-history.css");
 const homeHistoryStackImports = parseCssImports("styles/features/home-history-stack.css");
 const homeHistoryStackPreviewImports = parseCssImports("styles/features/home-history-stack-preview.css");
+const homeHistoryStackOpenImports = parseCssImports("styles/features/home-history-stack-open.css");
 const homeHistorySectionImports = parseCssImports("styles/features/home-history-section.css");
 const homeHistorySectionHeadImports = parseCssImports("styles/features/home-history-section-head.css");
 const homeHistoryCardsImports = parseCssImports("styles/features/home-history-cards.css");
@@ -2904,6 +2918,7 @@ assertListEqual("styles/features/home-responsive-mobile.css", homeResponsiveMobi
 assertListEqual("styles/features/home-history.css", homeHistoryImports, EXPECTED_HOME_HISTORY_IMPORTS);
 assertListEqual("styles/features/home-history-stack.css", homeHistoryStackImports, EXPECTED_HOME_HISTORY_STACK_IMPORTS);
 assertListEqual("styles/features/home-history-stack-preview.css", homeHistoryStackPreviewImports, EXPECTED_HOME_HISTORY_STACK_PREVIEW_IMPORTS);
+assertListEqual("styles/features/home-history-stack-open.css", homeHistoryStackOpenImports, EXPECTED_HOME_HISTORY_STACK_OPEN_IMPORTS);
 assertListEqual("styles/features/home-history-section.css", homeHistorySectionImports, EXPECTED_HOME_HISTORY_SECTION_IMPORTS);
 assertListEqual("styles/features/home-history-section-head.css", homeHistorySectionHeadImports, EXPECTED_HOME_HISTORY_SECTION_HEAD_IMPORTS);
 assertListEqual("styles/features/home-history-cards.css", homeHistoryCardsImports, EXPECTED_HOME_HISTORY_CARDS_IMPORTS);
@@ -3228,6 +3243,8 @@ checkFileContains("styles/features/home-history-stack-preview-shell.css", EXPECT
 checkFileContains("styles/features/home-history-stack-preview-media.css", EXPECTED_HOME_HISTORY_STACK_PREVIEW_MEDIA_SELECTORS);
 checkFileContains("styles/features/home-history-stack-preview-empty.css", EXPECTED_HOME_HISTORY_STACK_PREVIEW_EMPTY_SELECTORS);
 checkFileContains("styles/features/home-history-stack-open.css", EXPECTED_HOME_HISTORY_STACK_OPEN_SELECTORS);
+checkFileContains("styles/features/home-history-stack-open-base.css", EXPECTED_HOME_HISTORY_STACK_OPEN_BASE_SELECTORS);
+checkFileContains("styles/features/home-history-stack-open-state.css", EXPECTED_HOME_HISTORY_STACK_OPEN_STATE_SELECTORS);
 checkFileContains("styles/features/home-history-section.css", EXPECTED_HOME_HISTORY_SECTION_SELECTORS);
 checkFileContains("styles/features/home-history-section-layout.css", EXPECTED_HOME_HISTORY_SECTION_LAYOUT_SELECTORS);
 checkFileContains("styles/features/home-history-section-head.css", EXPECTED_HOME_HISTORY_SECTION_HEAD_SELECTORS);
