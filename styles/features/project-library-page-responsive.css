@@ -1,0 +1,25 @@
+@media (max-width: 900px) {
+  body[data-view="library"] .library-shell {
+    width: min(100%, calc(100vw - 36px));
+    padding-top: 76px;
+  }
+
+  body[data-view="library"] .project-card-board {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 16px;
+  }
+
+  body[data-view="library"] .library-new-card,
+  body[data-view="library"] .library-small-card > button:not(.library-card-check) {
+    min-height: 240px;
+  }
+}
+
+@keyframes librarySlideUp {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

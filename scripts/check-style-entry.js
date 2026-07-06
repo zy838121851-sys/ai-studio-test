@@ -36,6 +36,13 @@ const EXPECTED_PROJECT_LIBRARY_IMPORTS = [
   "./project-library-cards.css",
   "./project-library-page.css"
 ];
+const EXPECTED_PROJECT_LIBRARY_PAGE_IMPORTS = [
+  "./project-library-page-layout.css",
+  "./project-library-page-cards.css",
+  "./project-library-page-new-card.css",
+  "./project-library-page-card-content.css",
+  "./project-library-page-responsive.css"
+];
 const EXPECTED_LEGACY_SPLIT_IMPORTS = [
   "./legacy-base.css",
   "./features/assets.css",
@@ -623,7 +630,40 @@ const EXPECTED_PROJECT_LIBRARY_CARDS_RESPONSIVE_SELECTORS = [
   "@media (max-width: 1200px)"
 ];
 const EXPECTED_PROJECT_LIBRARY_PAGE_SELECTORS = [
+  "@import url(\"./project-library-page-layout.css\")",
+  "@import url(\"./project-library-page-cards.css\")",
+  "@import url(\"./project-library-page-new-card.css\")",
+  "@import url(\"./project-library-page-card-content.css\")",
+  "@import url(\"./project-library-page-responsive.css\")"
+];
+const EXPECTED_PROJECT_LIBRARY_PAGE_LAYOUT_SELECTORS = [
+  "body[data-view=\"library\"] .library-nav",
+  "body[data-view=\"library\"] .library-shell",
+  "body[data-view=\"library\"] .project-grid.mode-grid",
+  "body[data-view=\"library\"] .library-page-header",
+  "body[data-view=\"library\"] .library-selection-bar",
   "body[data-view=\"library\"] .project-card-board"
+];
+const EXPECTED_PROJECT_LIBRARY_PAGE_CARDS_SELECTORS = [
+  "body[data-view=\"library\"] .library-new-card,",
+  "body[data-view=\"library\"] .library-small-card.selected > button:not(.library-card-check)",
+  "body[data-view=\"library\"] .library-small-card.selected > button:not(.library-card-check):hover"
+];
+const EXPECTED_PROJECT_LIBRARY_PAGE_NEW_CARD_SELECTORS = [
+  "body[data-view=\"library\"] .library-new-card",
+  "body[data-view=\"library\"] .library-new-card span",
+  "body[data-view=\"library\"] .library-new-card strong",
+  "body[data-view=\"library\"] .library-new-card small"
+];
+const EXPECTED_PROJECT_LIBRARY_PAGE_CARD_CONTENT_SELECTORS = [
+  "body[data-view=\"library\"] .library-small-card div",
+  "body[data-view=\"library\"] .library-small-card strong",
+  "body[data-view=\"library\"] .library-small-card small"
+];
+const EXPECTED_PROJECT_LIBRARY_PAGE_RESPONSIVE_SELECTORS = [
+  "@media (max-width: 900px)",
+  "body[data-view=\"library\"] .project-card-board",
+  "@keyframes librarySlideUp"
 ];
 const EXPECTED_HOME_SELECTORS = [
   "@media (max-width: 1100px)",
@@ -2412,6 +2452,7 @@ const workspaceImports = parseCssImports("styles/workspace.css");
 const projectLibraryImports = parseCssImports("styles/features/project-library.css");
 const projectLibraryShellImports = parseCssImports("styles/features/project-library-shell.css");
 const projectLibraryCardsImports = parseCssImports("styles/features/project-library-cards.css");
+const projectLibraryPageImports = parseCssImports("styles/features/project-library-page.css");
 const legacySplitImports = parseCssImports("styles/legacy-split.css");
 const legacyBaseImports = parseCssImports("styles/legacy-base.css");
 const legacyThemeIosImports = parseCssImports("styles/legacy-theme-ios.css");
@@ -2507,6 +2548,7 @@ assertListEqual("styles/workspace.css", workspaceImports, EXPECTED_WORKSPACE_IMP
 assertListEqual("styles/features/project-library.css", projectLibraryImports, EXPECTED_PROJECT_LIBRARY_IMPORTS);
 assertListEqual("styles/features/project-library-shell.css", projectLibraryShellImports, EXPECTED_PROJECT_LIBRARY_SHELL_IMPORTS);
 assertListEqual("styles/features/project-library-cards.css", projectLibraryCardsImports, EXPECTED_PROJECT_LIBRARY_CARDS_IMPORTS);
+assertListEqual("styles/features/project-library-page.css", projectLibraryPageImports, EXPECTED_PROJECT_LIBRARY_PAGE_IMPORTS);
 assertListEqual("styles/legacy-split.css", legacySplitImports, EXPECTED_LEGACY_SPLIT_IMPORTS);
 assertListEqual("styles/legacy-base.css", legacyBaseImports, EXPECTED_LEGACY_BASE_IMPORTS);
 assertListEqual("styles/legacy-theme-ios.css", legacyThemeIosImports, EXPECTED_LEGACY_THEME_IOS_IMPORTS);
@@ -2600,6 +2642,7 @@ checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(projectLibraryImports, "styles/features");
 checkImportedFilesExist(projectLibraryShellImports, "styles/features");
 checkImportedFilesExist(projectLibraryCardsImports, "styles/features");
+checkImportedFilesExist(projectLibraryPageImports, "styles/features");
 checkImportedFilesExist(legacySplitImports, "styles");
 checkImportedFilesExist(legacyThemeIosImports, "styles");
 checkImportedFilesExist(legacyChatImports, "styles");
@@ -3002,6 +3045,11 @@ checkFileContains("styles/features/project-library-cards-selection.css", EXPECTE
 checkFileContains("styles/features/project-library-cards-content.css", EXPECTED_PROJECT_LIBRARY_CARDS_CONTENT_SELECTORS);
 checkFileContains("styles/features/project-library-cards-responsive.css", EXPECTED_PROJECT_LIBRARY_CARDS_RESPONSIVE_SELECTORS);
 checkFileContains("styles/features/project-library-page.css", EXPECTED_PROJECT_LIBRARY_PAGE_SELECTORS);
+checkFileContains("styles/features/project-library-page-layout.css", EXPECTED_PROJECT_LIBRARY_PAGE_LAYOUT_SELECTORS);
+checkFileContains("styles/features/project-library-page-cards.css", EXPECTED_PROJECT_LIBRARY_PAGE_CARDS_SELECTORS);
+checkFileContains("styles/features/project-library-page-new-card.css", EXPECTED_PROJECT_LIBRARY_PAGE_NEW_CARD_SELECTORS);
+checkFileContains("styles/features/project-library-page-card-content.css", EXPECTED_PROJECT_LIBRARY_PAGE_CARD_CONTENT_SELECTORS);
+checkFileContains("styles/features/project-library-page-responsive.css", EXPECTED_PROJECT_LIBRARY_PAGE_RESPONSIVE_SELECTORS);
 checkFileContains("styles/legacy-canvas.css", EXPECTED_LEGACY_CANVAS_SELECTORS);
 checkFileContains("styles/legacy-canvas-visual.css", EXPECTED_LEGACY_CANVAS_VISUAL_SELECTORS);
 checkFileContains("styles/legacy-node.css", EXPECTED_LEGACY_NODE_SELECTORS);

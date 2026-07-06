@@ -1,0 +1,17 @@
+body[data-view="library"] .library-small-card div {
+  aspect-ratio: 4 / 3;
+  border-radius: 15px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.74), rgba(238, 242, 247, 0.94));
+}
+
+body[data-view="library"] .library-small-card strong {
+  margin: 4px 6px 0;
+  font-size: 18px;
+  font-weight: 760;
+}
+
+body[data-view="library"] .library-small-card small {
+  margin: -6px 6px 0;
+  font-size: 13px;
+}

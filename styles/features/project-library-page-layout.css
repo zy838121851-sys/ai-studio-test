@@ -1,0 +1,42 @@
+body[data-view="library"] .library-nav {
+  gap: 0;
+}
+
+body[data-view="library"] .library-shell {
+  width: min(1480px, calc(100vw - 180px));
+  padding-top: clamp(84px, 9vh, 118px);
+}
+
+body[data-view="library"] .project-grid.mode-grid {
+  min-height: auto;
+  padding: 0 0 120px;
+}
+
+body[data-view="library"] .library-page-header {
+  width: 100%;
+  margin: 0 0 28px;
+}
+
+body[data-view="library"] .library-page-header strong {
+  font-size: clamp(30px, 3vw, 42px);
+  font-weight: 780;
+}
+
+body[data-view="library"] .library-page-header small {
+  padding: 9px 16px;
+  color: rgba(23, 32, 44, 0.58);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+body[data-view="library"] .library-selection-bar {
+  width: 100%;
+  margin: -12px 0 22px;
+}
+
+body[data-view="library"] .project-card-board {
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 22px;
+  width: 100%;
+  margin: 0;
+  align-items: start;
+}
