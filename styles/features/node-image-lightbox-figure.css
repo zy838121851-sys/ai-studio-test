@@ -1,0 +1,41 @@
+.image-lightbox figure {
+  display: grid;
+  gap: 0;
+  justify-items: center;
+  max-width: min(1180px, 88vw);
+  max-height: 88vh;
+  margin: 0;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  transform: scale(0.96) translateY(12px);
+  transition: transform 0.24s ease;
+}
+
+.image-lightbox.open figure {
+  transform: scale(1) translateY(0);
+}
+
+.image-lightbox img {
+  display: block;
+  max-width: min(1180px, 88vw);
+  max-height: 78vh;
+  border-radius: 24px;
+  object-fit: contain;
+  background: transparent;
+  box-shadow:
+    0 42px 120px rgba(0, 0, 0, 0.62),
+    0 0 0 1px rgba(255, 255, 255, 0.16);
+}
+
+.image-lightbox figcaption {
+  display: none;
+  max-width: min(880px, 78vw);
+  overflow: hidden;
+  color: rgba(245, 247, 250, 0.78);
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}

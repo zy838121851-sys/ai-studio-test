@@ -364,6 +364,11 @@ const EXPECTED_NODE_IMAGE_TEXT_PANEL_IMPORTS = [
   "./node-image-text-panel-list.css",
   "./node-image-text-panel-footer.css"
 ];
+const EXPECTED_NODE_IMAGE_LIGHTBOX_IMPORTS = [
+  "./node-image-lightbox-overlay.css",
+  "./node-image-lightbox-figure.css",
+  "./node-image-lightbox-close.css"
+];
 const EXPECTED_NODE_STACK_IMPORTS = [
   "./node-stack-base.css",
   "./node-stack-tray.css"
@@ -1786,7 +1791,21 @@ const EXPECTED_NODE_IMAGE_TEXT_PANEL_FOOTER_SELECTORS = [
   ".image-text-panel.loading footer [data-text-edit-apply]"
 ];
 const EXPECTED_NODE_IMAGE_LIGHTBOX_SELECTORS = [
+  "@import url(\"./node-image-lightbox-overlay.css\")",
+  "@import url(\"./node-image-lightbox-figure.css\")",
+  "@import url(\"./node-image-lightbox-close.css\")"
+];
+const EXPECTED_NODE_IMAGE_LIGHTBOX_OVERLAY_SELECTORS = [
   ".image-lightbox",
+  ".image-lightbox.open"
+];
+const EXPECTED_NODE_IMAGE_LIGHTBOX_FIGURE_SELECTORS = [
+  ".image-lightbox figure",
+  ".image-lightbox.open figure",
+  ".image-lightbox img",
+  ".image-lightbox figcaption"
+];
+const EXPECTED_NODE_IMAGE_LIGHTBOX_CLOSE_SELECTORS = [
   ".image-lightbox-close"
 ];
 const EXPECTED_NODE_STACK_BASE_SELECTORS = [
@@ -2278,6 +2297,7 @@ const nodeImageToolbarMenuDarkImports = parseCssImports("styles/features/node-im
 const nodeImageToolbarSavebarImports = parseCssImports("styles/features/node-image-toolbar-savebar.css");
 const nodeImagePanelsImports = parseCssImports("styles/features/node-image-panels.css");
 const nodeImageTextPanelImports = parseCssImports("styles/features/node-image-text-panel.css");
+const nodeImageLightboxImports = parseCssImports("styles/features/node-image-lightbox.css");
 const nodeStackImports = parseCssImports("styles/features/node-stack.css");
 const nodeMediaImports = parseCssImports("styles/features/node-media.css");
 const nodePreviewImports = parseCssImports("styles/features/node-preview.css");
@@ -2365,6 +2385,7 @@ assertListEqual("styles/features/node-image-toolbar-menu-dark.css", nodeImageToo
 assertListEqual("styles/features/node-image-toolbar-savebar.css", nodeImageToolbarSavebarImports, EXPECTED_NODE_IMAGE_TOOLBAR_SAVEBAR_IMPORTS);
 assertListEqual("styles/features/node-image-panels.css", nodeImagePanelsImports, EXPECTED_NODE_IMAGE_PANELS_IMPORTS);
 assertListEqual("styles/features/node-image-text-panel.css", nodeImageTextPanelImports, EXPECTED_NODE_IMAGE_TEXT_PANEL_IMPORTS);
+assertListEqual("styles/features/node-image-lightbox.css", nodeImageLightboxImports, EXPECTED_NODE_IMAGE_LIGHTBOX_IMPORTS);
 assertListEqual("styles/features/node-stack.css", nodeStackImports, EXPECTED_NODE_STACK_IMPORTS);
 assertListEqual("styles/features/node-media.css", nodeMediaImports, EXPECTED_NODE_MEDIA_IMPORTS);
 assertListEqual("styles/features/node-preview.css", nodePreviewImports, EXPECTED_NODE_PREVIEW_IMPORTS);
@@ -2449,6 +2470,7 @@ checkImportedFilesExist(nodeImageToolbarMenuDarkImports, "styles/features");
 checkImportedFilesExist(nodeImageToolbarSavebarImports, "styles/features");
 checkImportedFilesExist(nodeImagePanelsImports, "styles/features");
 checkImportedFilesExist(nodeImageTextPanelImports, "styles/features");
+checkImportedFilesExist(nodeImageLightboxImports, "styles/features");
 checkImportedFilesExist(nodeStackImports, "styles/features");
 checkImportedFilesExist(nodeMediaImports, "styles/features");
 checkImportedFilesExist(nodePreviewImports, "styles/features");
@@ -2726,6 +2748,9 @@ checkFileContains("styles/features/node-image-text-panel-shell.css", EXPECTED_NO
 checkFileContains("styles/features/node-image-text-panel-list.css", EXPECTED_NODE_IMAGE_TEXT_PANEL_LIST_SELECTORS);
 checkFileContains("styles/features/node-image-text-panel-footer.css", EXPECTED_NODE_IMAGE_TEXT_PANEL_FOOTER_SELECTORS);
 checkFileContains("styles/features/node-image-lightbox.css", EXPECTED_NODE_IMAGE_LIGHTBOX_SELECTORS);
+checkFileContains("styles/features/node-image-lightbox-overlay.css", EXPECTED_NODE_IMAGE_LIGHTBOX_OVERLAY_SELECTORS);
+checkFileContains("styles/features/node-image-lightbox-figure.css", EXPECTED_NODE_IMAGE_LIGHTBOX_FIGURE_SELECTORS);
+checkFileContains("styles/features/node-image-lightbox-close.css", EXPECTED_NODE_IMAGE_LIGHTBOX_CLOSE_SELECTORS);
 checkFileContains("styles/features/node-stack-base.css", EXPECTED_NODE_STACK_BASE_SELECTORS);
 checkFileContains("styles/features/node-stack-tray.css", EXPECTED_NODE_STACK_TRAY_SELECTORS);
 checkFileContains("styles/features/node-director.css", EXPECTED_NODE_DIRECTOR_SELECTORS);
