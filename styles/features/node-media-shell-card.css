@@ -1,0 +1,11 @@
+.node-image,
+.node-model,
+.node-loading-image {
+  width: 320px;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  color: #d8d8d8;
+  background: transparent;
+  box-shadow: none;
+}

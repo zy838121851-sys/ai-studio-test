@@ -1,0 +1,6 @@
+.node-image.selected,
+.node-model.selected,
+.node-loading-image.selected {
+  border-color: transparent;
+  box-shadow: none;
+}

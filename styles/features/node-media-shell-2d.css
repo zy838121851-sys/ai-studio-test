@@ -1,0 +1,5 @@
+.node-2d {
+  background:
+    radial-gradient(circle at 82% 20%, rgba(127, 200, 255, 0.42), transparent 30%),
+    linear-gradient(135deg, #f7fafc, #dff5ef);
+}

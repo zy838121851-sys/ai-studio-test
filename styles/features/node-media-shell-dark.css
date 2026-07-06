@@ -1,0 +1,11 @@
+.node-3d,
+.node-video {
+  color: #f6f8fb;
+  background: #17191d;
+}
+
+.node-3d p,
+.node-video p,
+.node-model p {
+  color: #bac4ce;
+}

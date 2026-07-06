@@ -390,6 +390,12 @@ const EXPECTED_NODE_MEDIA_IMPORTS = [
   "./node-media-video.css",
   "./node-media-frame.css"
 ];
+const EXPECTED_NODE_MEDIA_SHELL_IMPORTS = [
+  "./node-media-shell-2d.css",
+  "./node-media-shell-dark.css",
+  "./node-media-shell-card.css",
+  "./node-media-shell-selected.css"
+];
 const EXPECTED_NODE_MEDIA_VIDEO_IMPORTS = [
   "./node-media-video-shell.css",
   "./node-media-video-hidden-text.css",
@@ -1880,10 +1886,30 @@ const EXPECTED_NODE_DIRECTOR_SELECTORS = [
   ".director-tile"
 ];
 const EXPECTED_NODE_MEDIA_SHELL_SELECTORS = [
-  ".node-2d",
+  "@import url(\"./node-media-shell-2d.css\")",
+  "@import url(\"./node-media-shell-dark.css\")",
+  "@import url(\"./node-media-shell-card.css\")",
+  "@import url(\"./node-media-shell-selected.css\")"
+];
+const EXPECTED_NODE_MEDIA_SHELL_2D_SELECTORS = [
+  ".node-2d"
+];
+const EXPECTED_NODE_MEDIA_SHELL_DARK_SELECTORS = [
+  ".node-3d",
+  ".node-video",
+  ".node-3d p",
+  ".node-video p",
+  ".node-model p"
+];
+const EXPECTED_NODE_MEDIA_SHELL_CARD_SELECTORS = [
   ".node-image",
   ".node-model",
   ".node-loading-image"
+];
+const EXPECTED_NODE_MEDIA_SHELL_SELECTED_SELECTORS = [
+  ".node-image.selected",
+  ".node-model.selected",
+  ".node-loading-image.selected"
 ];
 const EXPECTED_NODE_MEDIA_VIDEO_SELECTORS = [
   "@import url(\"./node-media-video-shell.css\")",
@@ -2380,6 +2406,7 @@ const nodeStackImports = parseCssImports("styles/features/node-stack.css");
 const nodeStackBaseImports = parseCssImports("styles/features/node-stack-base.css");
 const nodeStackTrayImports = parseCssImports("styles/features/node-stack-tray.css");
 const nodeMediaImports = parseCssImports("styles/features/node-media.css");
+const nodeMediaShellImports = parseCssImports("styles/features/node-media-shell.css");
 const nodeMediaVideoImports = parseCssImports("styles/features/node-media-video.css");
 const nodeMediaFrameImports = parseCssImports("styles/features/node-media-frame.css");
 const nodePreviewImports = parseCssImports("styles/features/node-preview.css");
@@ -2472,6 +2499,7 @@ assertListEqual("styles/features/node-stack.css", nodeStackImports, EXPECTED_NOD
 assertListEqual("styles/features/node-stack-base.css", nodeStackBaseImports, EXPECTED_NODE_STACK_BASE_IMPORTS);
 assertListEqual("styles/features/node-stack-tray.css", nodeStackTrayImports, EXPECTED_NODE_STACK_TRAY_IMPORTS);
 assertListEqual("styles/features/node-media.css", nodeMediaImports, EXPECTED_NODE_MEDIA_IMPORTS);
+assertListEqual("styles/features/node-media-shell.css", nodeMediaShellImports, EXPECTED_NODE_MEDIA_SHELL_IMPORTS);
 assertListEqual("styles/features/node-media-video.css", nodeMediaVideoImports, EXPECTED_NODE_MEDIA_VIDEO_IMPORTS);
 assertListEqual("styles/features/node-media-frame.css", nodeMediaFrameImports, EXPECTED_NODE_MEDIA_FRAME_IMPORTS);
 assertListEqual("styles/features/node-preview.css", nodePreviewImports, EXPECTED_NODE_PREVIEW_IMPORTS);
@@ -2561,6 +2589,7 @@ checkImportedFilesExist(nodeStackImports, "styles/features");
 checkImportedFilesExist(nodeStackBaseImports, "styles/features");
 checkImportedFilesExist(nodeStackTrayImports, "styles/features");
 checkImportedFilesExist(nodeMediaImports, "styles/features");
+checkImportedFilesExist(nodeMediaShellImports, "styles/features");
 checkImportedFilesExist(nodeMediaVideoImports, "styles/features");
 checkImportedFilesExist(nodeMediaFrameImports, "styles/features");
 checkImportedFilesExist(nodePreviewImports, "styles/features");
@@ -2853,6 +2882,10 @@ checkFileContains("styles/features/node-stack-tray-thumb.css", EXPECTED_NODE_STA
 checkFileContains("styles/features/node-stack-tray-meta.css", EXPECTED_NODE_STACK_TRAY_META_SELECTORS);
 checkFileContains("styles/features/node-director.css", EXPECTED_NODE_DIRECTOR_SELECTORS);
 checkFileContains("styles/features/node-media-shell.css", EXPECTED_NODE_MEDIA_SHELL_SELECTORS);
+checkFileContains("styles/features/node-media-shell-2d.css", EXPECTED_NODE_MEDIA_SHELL_2D_SELECTORS);
+checkFileContains("styles/features/node-media-shell-dark.css", EXPECTED_NODE_MEDIA_SHELL_DARK_SELECTORS);
+checkFileContains("styles/features/node-media-shell-card.css", EXPECTED_NODE_MEDIA_SHELL_CARD_SELECTORS);
+checkFileContains("styles/features/node-media-shell-selected.css", EXPECTED_NODE_MEDIA_SHELL_SELECTED_SELECTORS);
 checkFileContains("styles/features/node-media-video.css", EXPECTED_NODE_MEDIA_VIDEO_SELECTORS);
 checkFileContains("styles/features/node-media-video-shell.css", EXPECTED_NODE_MEDIA_VIDEO_SHELL_SELECTORS);
 checkFileContains("styles/features/node-media-video-hidden-text.css", EXPECTED_NODE_MEDIA_VIDEO_HIDDEN_TEXT_SELECTORS);
