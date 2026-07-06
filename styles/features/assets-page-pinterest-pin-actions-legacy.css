@@ -1,0 +1,26 @@
+.asset-pinterest-pin-actions {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  top: 10px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.16s ease;
+}
+
+.asset-pinterest-pin:hover .asset-pinterest-pin-actions {
+  opacity: 1;
+}
+
+.asset-pinterest-pin-actions button {
+  min-height: 30px;
+  border: 0;
+  border-radius: 999px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+}

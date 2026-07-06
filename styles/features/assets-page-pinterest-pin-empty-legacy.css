@@ -1,0 +1,13 @@
+.asset-pinterest-empty {
+  display: grid;
+  place-items: center;
+  min-height: 220px;
+  border-radius: 18px;
+  color: #6b7280;
+  background: #f5f5f3;
+}
+
+.asset-pinterest-empty strong,
+.asset-pinterest-empty span {
+  display: block;
+}

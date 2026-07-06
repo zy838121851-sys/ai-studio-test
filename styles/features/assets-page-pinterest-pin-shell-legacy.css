@@ -1,0 +1,17 @@
+.asset-pinterest-masonry {
+  columns: 6 180px;
+  column-gap: 18px;
+}
+
+.asset-pinterest-pin.asset-item {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  margin: 0 0 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: transparent;
+  cursor: default;
+  break-inside: avoid;
+}
