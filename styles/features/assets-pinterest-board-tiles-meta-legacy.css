@@ -1,0 +1,62 @@
+.asset-pinterest-board-title {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  padding: 0;
+  border: 0;
+  color: #111827;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.asset-pinterest-board-title strong,
+.asset-pinterest-board-title span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asset-pinterest-board-title strong {
+  font-size: 20px;
+  font-weight: 950;
+  line-height: 1.2;
+}
+
+.asset-pinterest-board-title span {
+  margin-top: 5px;
+  color: #4b5563;
+  font-size: 13px;
+}
+
+.asset-pinterest-board-delete {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  color: #111827;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.14);
+  font-size: 19px;
+  font-weight: 800;
+  line-height: 1;
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 0.16s ease, transform 0.16s ease, background 0.16s ease;
+}
+
+.asset-pinterest-board-tile:hover .asset-pinterest-board-delete {
+  opacity: 1;
+}
+
+.asset-pinterest-board-delete:hover {
+  background: #fff;
+  transform: scale(1.04);
+}

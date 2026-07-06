@@ -1,0 +1,76 @@
+.asset-pinterest-board-cover-large {
+  position: relative;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  width: 100%;
+  aspect-ratio: 1.52;
+  padding: 0;
+  border: 0;
+  border-radius: 14px;
+  background: #c4c6c0;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.asset-pinterest-board-cover-large::before,
+.asset-pinterest-board-cover-large::after {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.22);
+  content: "";
+}
+
+.asset-pinterest-board-cover-large::before {
+  left: 66%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+
+.asset-pinterest-board-cover-large::after {
+  right: 0;
+  top: 50%;
+  width: 34%;
+  height: 1px;
+}
+
+.asset-pinterest-board-cover-large img {
+  grid-row: 1 / span 2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.asset-pinterest-board-cover-large > span:not(:only-child) {
+  display: block;
+  min-width: 0;
+  min-height: 0;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.26), rgba(255, 255, 255, 0.04)),
+    rgba(17, 24, 39, 0.06);
+}
+
+.asset-pinterest-board-cover-large > span:only-child {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  min-width: 58px;
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 14px;
+  color: #111827;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 12px 30px rgba(17, 24, 39, 0.12);
+  font-size: 15px;
+  font-weight: 850;
+  transform: translate(-50%, -50%);
+}
+
+.asset-pinterest-board-create-tile .asset-pinterest-board-cover-large {
+  background:
+    linear-gradient(90deg, transparent calc(50% - 0.5px), rgba(255, 255, 255, 0.22) calc(50% - 0.5px), rgba(255, 255, 255, 0.22) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+    linear-gradient(0deg, transparent calc(50% - 0.5px), rgba(255, 255, 255, 0.22) calc(50% - 0.5px), rgba(255, 255, 255, 0.22) calc(50% + 0.5px), transparent calc(50% + 0.5px)),
+    #c4c6c0;
+}
