@@ -1,0 +1,15 @@
+body[data-view="assetsPage"] .asset-pinterest-board-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 26px 18px;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-board-tile {
+  position: relative;
+  min-width: 0;
+  transition: transform 0.18s ease;
+}
+
+body[data-view="assetsPage"] .asset-pinterest-board-tile:hover {
+  transform: translateY(-3px);
+}

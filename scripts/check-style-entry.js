@@ -521,6 +521,12 @@ const EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_IMPORTS = [
   "./assets-pinterest-board-refresh-create.css",
   "./assets-pinterest-board-refresh-meta.css"
 ];
+const EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_GRID_IMPORTS = [
+  "./assets-pinterest-board-refresh-grid-layout.css",
+  "./assets-pinterest-board-refresh-grid-cover.css",
+  "./assets-pinterest-board-refresh-grid-cells.css",
+  "./assets-pinterest-board-refresh-grid-empty.css"
+];
 const EXPECTED_ASSET_PINTEREST_PIN_IMPORTS = [
   "./assets-pinterest-pin-card.css",
   "./assets-pinterest-pin-actions.css",
@@ -1270,10 +1276,26 @@ const EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_SELECTORS = [
   "@import url(\"./assets-pinterest-board-refresh-meta.css\")"
 ];
 const EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_GRID_SELECTORS = [
+  "@import url(\"./assets-pinterest-board-refresh-grid-layout.css\")",
+  "@import url(\"./assets-pinterest-board-refresh-grid-cover.css\")",
+  "@import url(\"./assets-pinterest-board-refresh-grid-cells.css\")",
+  "@import url(\"./assets-pinterest-board-refresh-grid-empty.css\")"
+];
+const EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_GRID_LAYOUT_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-grid",
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-tile",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-board-tile:hover"
+];
+const EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_GRID_COVER_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-cover-large",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-board-cover-large.has-cover-count-1",
+  "body[data-view=\"assetsPage\"] .asset-pinterest-board-cover-large::before"
+];
+const EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_GRID_CELLS_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-board-cover-cell"
+];
+const EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_GRID_EMPTY_SELECTORS = [
+  "body[data-view=\"assetsPage\"] .asset-pinterest-board-cover-large.is-empty"
 ];
 const EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_CREATE_SELECTORS = [
   "body[data-view=\"assetsPage\"] .asset-pinterest-board-create-card",
@@ -2638,6 +2660,7 @@ const assetPinterestBoardImports = parseCssImports("styles/features/assets-pinte
 const assetPinterestBoardTilesLegacyImports = parseCssImports("styles/features/assets-pinterest-board-tiles-legacy.css");
 const assetPinterestShellImports = parseCssImports("styles/features/assets-pinterest-shell.css");
 const assetPinterestBoardRefreshImports = parseCssImports("styles/features/assets-pinterest-board-refresh.css");
+const assetPinterestBoardRefreshGridImports = parseCssImports("styles/features/assets-pinterest-board-refresh-grid.css");
 const assetPinterestPinImports = parseCssImports("styles/features/assets-pinterest-pin.css");
 const assetPinterestPinCardImports = parseCssImports("styles/features/assets-pinterest-pin-card.css");
 const assetPinterestResponsiveImports = parseCssImports("styles/features/assets-pinterest-responsive.css");
@@ -2739,6 +2762,7 @@ assertListEqual("styles/features/assets-pinterest-board.css", assetPinterestBoar
 assertListEqual("styles/features/assets-pinterest-board-tiles-legacy.css", assetPinterestBoardTilesLegacyImports, EXPECTED_ASSET_PINTEREST_BOARD_TILES_LEGACY_IMPORTS);
 assertListEqual("styles/features/assets-pinterest-shell.css", assetPinterestShellImports, EXPECTED_ASSET_PINTEREST_SHELL_IMPORTS);
 assertListEqual("styles/features/assets-pinterest-board-refresh.css", assetPinterestBoardRefreshImports, EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_IMPORTS);
+assertListEqual("styles/features/assets-pinterest-board-refresh-grid.css", assetPinterestBoardRefreshGridImports, EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_GRID_IMPORTS);
 assertListEqual("styles/features/assets-pinterest-pin.css", assetPinterestPinImports, EXPECTED_ASSET_PINTEREST_PIN_IMPORTS);
 assertListEqual("styles/features/assets-pinterest-pin-card.css", assetPinterestPinCardImports, EXPECTED_ASSET_PINTEREST_PIN_CARD_IMPORTS);
 assertListEqual("styles/features/assets-pinterest-responsive.css", assetPinterestResponsiveImports, EXPECTED_ASSET_PINTEREST_RESPONSIVE_IMPORTS);
@@ -2837,6 +2861,7 @@ checkImportedFilesExist(assetPinterestBoardImports, "styles/features");
 checkImportedFilesExist(assetPinterestBoardTilesLegacyImports, "styles/features");
 checkImportedFilesExist(assetPinterestShellImports, "styles/features");
 checkImportedFilesExist(assetPinterestBoardRefreshImports, "styles/features");
+checkImportedFilesExist(assetPinterestBoardRefreshGridImports, "styles/features");
 checkImportedFilesExist(assetPinterestPinImports, "styles/features");
 checkImportedFilesExist(assetPinterestPinCardImports, "styles/features");
 checkImportedFilesExist(assetPinterestResponsiveImports, "styles/features");
@@ -2939,6 +2964,10 @@ checkFileContains("styles/features/assets-pinterest-board-masonry-legacy.css", E
 checkFileContains("styles/features/assets-pinterest-board-responsive-legacy.css", EXPECTED_ASSET_PINTEREST_BOARD_RESPONSIVE_LEGACY_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-board-refresh.css", EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-board-refresh-grid.css", EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_GRID_SELECTORS);
+checkFileContains("styles/features/assets-pinterest-board-refresh-grid-layout.css", EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_GRID_LAYOUT_SELECTORS);
+checkFileContains("styles/features/assets-pinterest-board-refresh-grid-cover.css", EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_GRID_COVER_SELECTORS);
+checkFileContains("styles/features/assets-pinterest-board-refresh-grid-cells.css", EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_GRID_CELLS_SELECTORS);
+checkFileContains("styles/features/assets-pinterest-board-refresh-grid-empty.css", EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_GRID_EMPTY_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-board-refresh-create.css", EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_CREATE_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-board-refresh-meta.css", EXPECTED_ASSET_PINTEREST_BOARD_REFRESH_META_SELECTORS);
 checkFileContains("styles/features/assets-pinterest-pin.css", EXPECTED_ASSET_PINTEREST_PIN_SELECTORS);
