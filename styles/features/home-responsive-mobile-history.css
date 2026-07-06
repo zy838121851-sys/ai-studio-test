@@ -1,0 +1,15 @@
+@media (max-width: 760px) {
+  .home-stage {
+    min-height: auto;
+    padding: 96px 16px 36px;
+  }
+
+  .home-history {
+    width: auto;
+    margin: 24px 16px 0;
+  }
+
+  .home-history-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -354,6 +354,16 @@ Post-baseline CSS governance note:
   project/history section title and action overrides.
 - `styles/features/home-history-cards.css` owns home history grid, card,
   thumbnail, preview fallback, create-card, and delete-control styles.
+- `styles/features/home-responsive-mobile.css` is now a pure aggregation entry
+  for mobile home responsive overrides.
+- `styles/features/home-responsive-mobile-history.css` owns mobile home stage,
+  history section, and history grid overrides.
+- `styles/features/home-responsive-mobile-community.css` owns mobile community,
+  channel strip, section head, and back-to-top overrides.
+- `styles/features/home-responsive-mobile-feed.css` owns mobile inspiration grid
+  and masonry feed overrides.
+- `styles/features/home-responsive-mobile-prompt.css` owns mobile home prompt
+  and model picker visibility overrides.
 - `styles/features/home-community.css` is now a pure aggregation entry for home
   community channel, feed, and inspiration submodules.
 - `styles/features/home-community-channels.css` owns home community section,

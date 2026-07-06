@@ -1,0 +1,25 @@
+@media (max-width: 760px) {
+  .home-inspiration-grid,
+  .home-inspiration-grid.feed {
+    grid-auto-rows: 132px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .home-masonry-feed {
+    column-count: 2;
+    column-gap: 10px;
+  }
+
+  .home-masonry-card {
+    margin-bottom: 10px;
+    border-radius: 9px;
+  }
+
+  .inspiration-card.wide {
+    grid-column: span 2;
+  }
+
+  .inspiration-card.tall {
+    grid-row: span 1;
+  }
+}

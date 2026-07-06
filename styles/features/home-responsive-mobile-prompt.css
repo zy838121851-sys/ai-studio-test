@@ -1,0 +1,23 @@
+@media (max-width: 760px) {
+  .home-prompt {
+    grid-template-areas: "plus input send";
+    grid-template-columns: 34px minmax(0, 1fr) 46px;
+    width: calc(100vw - 32px);
+  }
+
+  .home-prompt.has-files {
+    grid-template-areas:
+      "preview preview preview"
+      "plus input send";
+    width: calc(100vw - 32px);
+    min-height: 230px;
+  }
+
+  .home-model {
+    display: none !important;
+  }
+
+  .home-model-picker {
+    display: none;
+  }
+}
