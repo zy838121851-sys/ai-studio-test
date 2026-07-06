@@ -1,0 +1,22 @@
+.image-node-toolbar .image-toolbar-menu .upscale-option-main {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 5px;
+}
+
+.image-node-toolbar .image-toolbar-menu strong {
+  width: auto;
+  font-size: 21px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.image-node-toolbar .image-toolbar-menu small {
+  margin: 0;
+  color: rgba(75, 85, 99, 0.68) !important;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+}

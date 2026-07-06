@@ -326,6 +326,12 @@ const EXPECTED_NODE_IMAGE_TOOLBAR_MENU_IMPORTS = [
   "./node-image-toolbar-menu-upscale.css",
   "./node-image-toolbar-menu-dark.css"
 ];
+const EXPECTED_NODE_IMAGE_TOOLBAR_MENU_UPSCALE_IMPORTS = [
+  "./node-image-toolbar-menu-upscale-card.css",
+  "./node-image-toolbar-menu-upscale-hover.css",
+  "./node-image-toolbar-menu-upscale-content.css",
+  "./node-image-toolbar-menu-upscale-badge.css"
+];
 const EXPECTED_NODE_IMAGE_PANELS_IMPORTS = [
   "./node-image-text-panel.css",
   "./node-image-lightbox.css"
@@ -1628,8 +1634,26 @@ const EXPECTED_NODE_IMAGE_TOOLBAR_MENU_SURFACE_SELECTORS = [
   ".image-node-toolbar.menu-open .image-toolbar-menu"
 ];
 const EXPECTED_NODE_IMAGE_TOOLBAR_MENU_UPSCALE_SELECTORS = [
+  "@import url(\"./node-image-toolbar-menu-upscale-card.css\")",
+  "@import url(\"./node-image-toolbar-menu-upscale-hover.css\")",
+  "@import url(\"./node-image-toolbar-menu-upscale-content.css\")",
+  "@import url(\"./node-image-toolbar-menu-upscale-badge.css\")"
+];
+const EXPECTED_NODE_IMAGE_TOOLBAR_MENU_UPSCALE_CARD_SELECTORS = [
   ".image-toolbar-upscale-option",
+  ".image-toolbar-upscale-option::after",
+  ".image-toolbar-upscale-option.is-premium"
+];
+const EXPECTED_NODE_IMAGE_TOOLBAR_MENU_UPSCALE_HOVER_SELECTORS = [
+  ".image-node-toolbar .image-toolbar-menu button:hover",
+  ".image-toolbar-upscale-option:hover"
+];
+const EXPECTED_NODE_IMAGE_TOOLBAR_MENU_UPSCALE_CONTENT_SELECTORS = [
   ".upscale-option-main",
+  ".image-node-toolbar .image-toolbar-menu strong",
+  ".image-node-toolbar .image-toolbar-menu small"
+];
+const EXPECTED_NODE_IMAGE_TOOLBAR_MENU_UPSCALE_BADGE_SELECTORS = [
   ".image-node-toolbar .image-toolbar-menu em"
 ];
 const EXPECTED_NODE_IMAGE_TOOLBAR_MENU_DARK_SELECTORS = [
@@ -2132,6 +2156,7 @@ const nodeImageCropImports = parseCssImports("styles/features/node-image-crop.cs
 const nodeImageExpandImports = parseCssImports("styles/features/node-image-expand.css");
 const nodeImageToolbarImports = parseCssImports("styles/features/node-image-toolbar.css");
 const nodeImageToolbarMenuImports = parseCssImports("styles/features/node-image-toolbar-menu.css");
+const nodeImageToolbarMenuUpscaleImports = parseCssImports("styles/features/node-image-toolbar-menu-upscale.css");
 const nodeImagePanelsImports = parseCssImports("styles/features/node-image-panels.css");
 const nodeStackImports = parseCssImports("styles/features/node-stack.css");
 const nodeMediaImports = parseCssImports("styles/features/node-media.css");
@@ -2213,6 +2238,7 @@ assertListEqual("styles/features/node-image-crop.css", nodeImageCropImports, EXP
 assertListEqual("styles/features/node-image-expand.css", nodeImageExpandImports, EXPECTED_NODE_IMAGE_EXPAND_IMPORTS);
 assertListEqual("styles/features/node-image-toolbar.css", nodeImageToolbarImports, EXPECTED_NODE_IMAGE_TOOLBAR_IMPORTS);
 assertListEqual("styles/features/node-image-toolbar-menu.css", nodeImageToolbarMenuImports, EXPECTED_NODE_IMAGE_TOOLBAR_MENU_IMPORTS);
+assertListEqual("styles/features/node-image-toolbar-menu-upscale.css", nodeImageToolbarMenuUpscaleImports, EXPECTED_NODE_IMAGE_TOOLBAR_MENU_UPSCALE_IMPORTS);
 assertListEqual("styles/features/node-image-panels.css", nodeImagePanelsImports, EXPECTED_NODE_IMAGE_PANELS_IMPORTS);
 assertListEqual("styles/features/node-stack.css", nodeStackImports, EXPECTED_NODE_STACK_IMPORTS);
 assertListEqual("styles/features/node-media.css", nodeMediaImports, EXPECTED_NODE_MEDIA_IMPORTS);
@@ -2291,6 +2317,7 @@ checkImportedFilesExist(nodeImageCropImports, "styles/features");
 checkImportedFilesExist(nodeImageExpandImports, "styles/features");
 checkImportedFilesExist(nodeImageToolbarImports, "styles/features");
 checkImportedFilesExist(nodeImageToolbarMenuImports, "styles/features");
+checkImportedFilesExist(nodeImageToolbarMenuUpscaleImports, "styles/features");
 checkImportedFilesExist(nodeImagePanelsImports, "styles/features");
 checkImportedFilesExist(nodeStackImports, "styles/features");
 checkImportedFilesExist(nodeMediaImports, "styles/features");
@@ -2543,6 +2570,10 @@ checkFileContains("styles/features/node-image-toolbar-menu.css", EXPECTED_NODE_I
 checkFileContains("styles/features/node-image-toolbar-menu-base.css", EXPECTED_NODE_IMAGE_TOOLBAR_MENU_BASE_SELECTORS);
 checkFileContains("styles/features/node-image-toolbar-menu-surface.css", EXPECTED_NODE_IMAGE_TOOLBAR_MENU_SURFACE_SELECTORS);
 checkFileContains("styles/features/node-image-toolbar-menu-upscale.css", EXPECTED_NODE_IMAGE_TOOLBAR_MENU_UPSCALE_SELECTORS);
+checkFileContains("styles/features/node-image-toolbar-menu-upscale-card.css", EXPECTED_NODE_IMAGE_TOOLBAR_MENU_UPSCALE_CARD_SELECTORS);
+checkFileContains("styles/features/node-image-toolbar-menu-upscale-hover.css", EXPECTED_NODE_IMAGE_TOOLBAR_MENU_UPSCALE_HOVER_SELECTORS);
+checkFileContains("styles/features/node-image-toolbar-menu-upscale-content.css", EXPECTED_NODE_IMAGE_TOOLBAR_MENU_UPSCALE_CONTENT_SELECTORS);
+checkFileContains("styles/features/node-image-toolbar-menu-upscale-badge.css", EXPECTED_NODE_IMAGE_TOOLBAR_MENU_UPSCALE_BADGE_SELECTORS);
 checkFileContains("styles/features/node-image-toolbar-menu-dark.css", EXPECTED_NODE_IMAGE_TOOLBAR_MENU_DARK_SELECTORS);
 checkFileContains("styles/features/node-image-toolbar-savebar.css", EXPECTED_NODE_IMAGE_TOOLBAR_SAVEBAR_SELECTORS);
 checkFileContains("styles/features/node-image-text-panel.css", EXPECTED_NODE_IMAGE_TEXT_PANEL_SELECTORS);
