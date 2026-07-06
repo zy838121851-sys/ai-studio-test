@@ -1,0 +1,24 @@
+.home-section-head nav {
+  display: inline-flex;
+  gap: 6px;
+  padding: 5px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 16px 36px rgba(31, 46, 72, 0.08), inset 0 1px rgba(255, 255, 255, 0.94);
+}
+
+.home-section-head nav button {
+  min-height: 32px;
+  padding: 0 14px;
+  border: 0;
+  color: rgba(23, 32, 44, 0.62);
+  background: transparent;
+  box-shadow: none;
+}
+
+.home-section-head nav button.active {
+  color: #fff;
+  background: #111827;
+  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.16);
+}

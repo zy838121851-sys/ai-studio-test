@@ -1,0 +1,43 @@
+.home-section-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.home-section-head.compact {
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+.home-section-head span {
+  display: block;
+  margin-bottom: 4px;
+  color: rgba(23, 32, 44, 0.48);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.home-section-head strong {
+  display: block;
+  color: #17202c;
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 0;
+  line-height: 1.1;
+}
+
+.home-section-head button {
+  min-height: 36px;
+  padding: 0 15px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 999px;
+  color: rgba(23, 32, 44, 0.72);
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 0 12px 30px rgba(31, 46, 72, 0.08), inset 0 1px rgba(255, 255, 255, 0.96);
+  font-size: 13px;
+  font-weight: 800;
+}

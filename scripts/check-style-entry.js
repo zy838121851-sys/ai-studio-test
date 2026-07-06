@@ -568,6 +568,11 @@ const EXPECTED_HOME_HISTORY_SECTION_IMPORTS = [
   "./home-history-section-layout.css",
   "./home-history-section-head.css"
 ];
+const EXPECTED_HOME_HISTORY_SECTION_HEAD_IMPORTS = [
+  "./home-history-section-head-base.css",
+  "./home-history-section-head-nav.css",
+  "./home-history-section-head-action.css"
+];
 const EXPECTED_HOME_HISTORY_CARDS_IMPORTS = [
   "./home-history-cards-base.css",
   "./home-history-cards-delete.css",
@@ -812,8 +817,19 @@ const EXPECTED_HOME_HISTORY_SECTION_LAYOUT_SELECTORS = [
   ".home-history"
 ];
 const EXPECTED_HOME_HISTORY_SECTION_HEAD_SELECTORS = [
+  "@import url(\"./home-history-section-head-base.css\")",
+  "@import url(\"./home-history-section-head-nav.css\")",
+  "@import url(\"./home-history-section-head-action.css\")"
+];
+const EXPECTED_HOME_HISTORY_SECTION_HEAD_BASE_SELECTORS = [
   ".home-section-head",
-  ".home-section-head.compact",
+  ".home-section-head.compact"
+];
+const EXPECTED_HOME_HISTORY_SECTION_HEAD_NAV_SELECTORS = [
+  ".home-section-head nav",
+  ".home-section-head nav button.active"
+];
+const EXPECTED_HOME_HISTORY_SECTION_HEAD_ACTION_SELECTORS = [
   ".home-history .home-section-head strong"
 ];
 const EXPECTED_HOME_HISTORY_CARD_SELECTORS = [
@@ -2718,6 +2734,7 @@ const homeImports = parseCssImports("styles/features/home.css");
 const homeHistoryImports = parseCssImports("styles/features/home-history.css");
 const homeHistoryStackImports = parseCssImports("styles/features/home-history-stack.css");
 const homeHistorySectionImports = parseCssImports("styles/features/home-history-section.css");
+const homeHistorySectionHeadImports = parseCssImports("styles/features/home-history-section-head.css");
 const homeHistoryCardsImports = parseCssImports("styles/features/home-history-cards.css");
 const homeCommunityImports = parseCssImports("styles/features/home-community.css");
 const homeCommunityChannelImports = parseCssImports("styles/features/home-community-channels.css");
@@ -2823,6 +2840,7 @@ assertListEqual("styles/features/home.css", homeImports, EXPECTED_HOME_IMPORTS);
 assertListEqual("styles/features/home-history.css", homeHistoryImports, EXPECTED_HOME_HISTORY_IMPORTS);
 assertListEqual("styles/features/home-history-stack.css", homeHistoryStackImports, EXPECTED_HOME_HISTORY_STACK_IMPORTS);
 assertListEqual("styles/features/home-history-section.css", homeHistorySectionImports, EXPECTED_HOME_HISTORY_SECTION_IMPORTS);
+assertListEqual("styles/features/home-history-section-head.css", homeHistorySectionHeadImports, EXPECTED_HOME_HISTORY_SECTION_HEAD_IMPORTS);
 assertListEqual("styles/features/home-history-cards.css", homeHistoryCardsImports, EXPECTED_HOME_HISTORY_CARDS_IMPORTS);
 assertListEqual("styles/features/home-community.css", homeCommunityImports, EXPECTED_HOME_COMMUNITY_IMPORTS);
 assertListEqual("styles/features/home-community-channels.css", homeCommunityChannelImports, EXPECTED_HOME_COMMUNITY_CHANNEL_IMPORTS);
@@ -2925,6 +2943,7 @@ checkImportedFilesExist(homeImports, "styles/features");
 checkImportedFilesExist(homeHistoryImports, "styles/features");
 checkImportedFilesExist(homeHistoryStackImports, "styles/features");
 checkImportedFilesExist(homeHistorySectionImports, "styles/features");
+checkImportedFilesExist(homeHistorySectionHeadImports, "styles/features");
 checkImportedFilesExist(homeHistoryCardsImports, "styles/features");
 checkImportedFilesExist(homeCommunityImports, "styles/features");
 checkImportedFilesExist(homeCommunityChannelImports, "styles/features");
@@ -3135,6 +3154,9 @@ checkFileContains("styles/features/home-history-stack-open.css", EXPECTED_HOME_H
 checkFileContains("styles/features/home-history-section.css", EXPECTED_HOME_HISTORY_SECTION_SELECTORS);
 checkFileContains("styles/features/home-history-section-layout.css", EXPECTED_HOME_HISTORY_SECTION_LAYOUT_SELECTORS);
 checkFileContains("styles/features/home-history-section-head.css", EXPECTED_HOME_HISTORY_SECTION_HEAD_SELECTORS);
+checkFileContains("styles/features/home-history-section-head-base.css", EXPECTED_HOME_HISTORY_SECTION_HEAD_BASE_SELECTORS);
+checkFileContains("styles/features/home-history-section-head-nav.css", EXPECTED_HOME_HISTORY_SECTION_HEAD_NAV_SELECTORS);
+checkFileContains("styles/features/home-history-section-head-action.css", EXPECTED_HOME_HISTORY_SECTION_HEAD_ACTION_SELECTORS);
 checkFileContains("styles/features/home-history-cards.css", EXPECTED_HOME_HISTORY_CARD_SELECTORS);
 checkFileContains("styles/features/home-history-cards-base.css", EXPECTED_HOME_HISTORY_CARD_BASE_SELECTORS);
 checkFileContains("styles/features/home-history-cards-delete.css", EXPECTED_HOME_HISTORY_CARD_DELETE_SELECTORS);

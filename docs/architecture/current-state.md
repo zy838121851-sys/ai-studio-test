@@ -344,8 +344,14 @@ Post-baseline CSS governance note:
   home history section layout and head/navigation submodules.
 - `styles/features/home-history-section-layout.css` owns the home history
   section positioning and sizing rules.
-- `styles/features/home-history-section-head.css` owns home section heading,
-  navigation, and history section action styles.
+- `styles/features/home-history-section-head.css` is now a pure aggregation
+  entry for home section heading, navigation, and history action submodules.
+- `styles/features/home-history-section-head-base.css` owns the shared home
+  section head layout, label, title, and generic button styles.
+- `styles/features/home-history-section-head-nav.css` owns home section
+  navigation pill styles.
+- `styles/features/home-history-section-head-action.css` owns the recent
+  project/history section title and action overrides.
 - `styles/features/home-history-cards.css` owns home history grid, card,
   thumbnail, preview fallback, create-card, and delete-control styles.
 - `styles/features/home-community.css` is now a pure aggregation entry for home

@@ -1,0 +1,28 @@
+.home-history .home-section-head strong {
+  color: #17202c;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.home-history .home-section-head button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: auto;
+  padding: 0;
+  border: 0;
+  color: rgba(23, 32, 44, 0.46);
+  background: transparent;
+  box-shadow: none;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.home-history .home-section-head button span {
+  margin: 0;
+  color: currentColor;
+  font-size: 18px;
+  font-weight: 400;
+  line-height: 1;
+  text-transform: none;
+}
