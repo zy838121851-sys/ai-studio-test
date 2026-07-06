@@ -1,0 +1,28 @@
+.image-generator-panel textarea {
+  width: 100%;
+  min-height: 104px;
+  padding: 4px 2px;
+  resize: none;
+  border: 0;
+  border-radius: 0;
+  color: #182230;
+  background: transparent;
+  box-shadow: none;
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.45;
+  outline: 0;
+}
+
+.generator-panel-expanded .image-generator-panel textarea {
+  min-height: 190px;
+}
+
+.image-generator-panel textarea:focus {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.image-generator-panel textarea::placeholder {
+  color: #8b95a6;
+}

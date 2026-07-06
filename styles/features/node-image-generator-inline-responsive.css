@@ -1,0 +1,10 @@
+@media (max-width: 760px) {
+  .image-generator-bottom.edit-actions {
+    grid-template-columns: minmax(0, 1fr) 94px 72px;
+  }
+
+  .image-generator-bottom.edit-actions .image-generator-cancel,
+  .image-generator-bottom.edit-actions .image-generator-submit {
+    grid-row: 2;
+  }
+}
