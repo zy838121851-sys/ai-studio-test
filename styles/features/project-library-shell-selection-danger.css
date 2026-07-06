@@ -1,0 +1,16 @@
+.library-selection-bar button.danger {
+  border-color: rgba(215, 71, 53, 0.2);
+  color: #cf3f2e;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.library-selection-bar button.danger:hover {
+  background: #d74735;
+  color: #fff;
+}
+
+.library-selection-bar button:disabled {
+  opacity: 0.42;
+  cursor: not-allowed;
+  box-shadow: none;
+}

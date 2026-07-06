@@ -445,7 +445,16 @@ Post-baseline CSS governance note:
 - `styles/features/project-library.css` is now a pure aggregation entry for
   project library shell, cards, and page-view override styles.
 - `styles/features/project-library-shell.css` owns project library shell, title,
-  grid, header, selection bar, and empty-state styles.
+  grid, header, selection bar aggregation, and empty-state styles.
+- `styles/features/project-library-shell-selection.css` is now a pure
+  aggregation entry for project library selection bar, button, and danger-state
+  submodules.
+- `styles/features/project-library-shell-selection-bar.css` owns project
+  library selection bar layout, count label, and action group styles.
+- `styles/features/project-library-shell-selection-button.css` owns project
+  library selection toggle and shared action button styles.
+- `styles/features/project-library-shell-selection-danger.css` owns project
+  library dangerous action and disabled button states.
 - `styles/features/project-library-cards.css` is now a pure aggregation entry
   for project library card base, selection, content, and responsive submodules.
 - `styles/features/project-library-cards-selection.css` is now a pure

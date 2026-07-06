@@ -674,6 +674,11 @@ const EXPECTED_PROJECT_LIBRARY_SHELL_IMPORTS = [
   "./project-library-shell-selection.css",
   "./project-library-shell-empty.css"
 ];
+const EXPECTED_PROJECT_LIBRARY_SHELL_SELECTION_IMPORTS = [
+  "./project-library-shell-selection-bar.css",
+  "./project-library-shell-selection-button.css",
+  "./project-library-shell-selection-danger.css"
+];
 const EXPECTED_PROJECT_LIBRARY_CARDS_IMPORTS = [
   "./project-library-cards-base.css",
   "./project-library-cards-selection.css",
@@ -701,9 +706,22 @@ const EXPECTED_PROJECT_LIBRARY_SHELL_HEADER_SELECTORS = [
   ".library-page-header small"
 ];
 const EXPECTED_PROJECT_LIBRARY_SHELL_SELECTION_SELECTORS = [
+  "@import url(\"./project-library-shell-selection-bar.css\")",
+  "@import url(\"./project-library-shell-selection-button.css\")",
+  "@import url(\"./project-library-shell-selection-danger.css\")"
+];
+const EXPECTED_PROJECT_LIBRARY_SHELL_SELECTION_BAR_SELECTORS = [
   ".library-selection-bar",
-  ".library-select-toggle.active",
-  ".library-selection-bar button.danger"
+  ".library-selection-bar strong",
+  ".library-selection-bar > div"
+];
+const EXPECTED_PROJECT_LIBRARY_SHELL_SELECTION_BUTTON_SELECTORS = [
+  ".library-select-toggle,",
+  ".library-select-toggle.active"
+];
+const EXPECTED_PROJECT_LIBRARY_SHELL_SELECTION_DANGER_SELECTORS = [
+  ".library-selection-bar button.danger",
+  ".library-selection-bar button:disabled"
 ];
 const EXPECTED_PROJECT_LIBRARY_SHELL_EMPTY_SELECTORS = [
   ".project-empty"
@@ -2814,6 +2832,7 @@ const taskLogImports = parseCssImports("styles/task-log.css");
 const workspaceImports = parseCssImports("styles/workspace.css");
 const projectLibraryImports = parseCssImports("styles/features/project-library.css");
 const projectLibraryShellImports = parseCssImports("styles/features/project-library-shell.css");
+const projectLibraryShellSelectionImports = parseCssImports("styles/features/project-library-shell-selection.css");
 const projectLibraryCardsImports = parseCssImports("styles/features/project-library-cards.css");
 const projectLibraryCardsSelectionImports = parseCssImports("styles/features/project-library-cards-selection.css");
 const projectLibraryPageImports = parseCssImports("styles/features/project-library-page.css");
@@ -2930,6 +2949,7 @@ assertListEqual("styles/task-log.css", taskLogImports, EXPECTED_TASK_LOG_IMPORTS
 assertListEqual("styles/workspace.css", workspaceImports, EXPECTED_WORKSPACE_IMPORTS);
 assertListEqual("styles/features/project-library.css", projectLibraryImports, EXPECTED_PROJECT_LIBRARY_IMPORTS);
 assertListEqual("styles/features/project-library-shell.css", projectLibraryShellImports, EXPECTED_PROJECT_LIBRARY_SHELL_IMPORTS);
+assertListEqual("styles/features/project-library-shell-selection.css", projectLibraryShellSelectionImports, EXPECTED_PROJECT_LIBRARY_SHELL_SELECTION_IMPORTS);
 assertListEqual("styles/features/project-library-cards.css", projectLibraryCardsImports, EXPECTED_PROJECT_LIBRARY_CARDS_IMPORTS);
 assertListEqual("styles/features/project-library-cards-selection.css", projectLibraryCardsSelectionImports, EXPECTED_PROJECT_LIBRARY_CARDS_SELECTION_IMPORTS);
 assertListEqual("styles/features/project-library-page.css", projectLibraryPageImports, EXPECTED_PROJECT_LIBRARY_PAGE_IMPORTS);
@@ -3044,6 +3064,7 @@ checkImportedFilesExist(taskLogImports, "styles");
 checkImportedFilesExist(workspaceImports, "styles");
 checkImportedFilesExist(projectLibraryImports, "styles/features");
 checkImportedFilesExist(projectLibraryShellImports, "styles/features");
+checkImportedFilesExist(projectLibraryShellSelectionImports, "styles/features");
 checkImportedFilesExist(projectLibraryCardsImports, "styles/features");
 checkImportedFilesExist(projectLibraryCardsSelectionImports, "styles/features");
 checkImportedFilesExist(projectLibraryPageImports, "styles/features");
@@ -3516,6 +3537,9 @@ checkFileContains("styles/features/project-library-shell.css", EXPECTED_PROJECT_
 checkFileContains("styles/features/project-library-shell-layout.css", EXPECTED_PROJECT_LIBRARY_SHELL_LAYOUT_SELECTORS);
 checkFileContains("styles/features/project-library-shell-header.css", EXPECTED_PROJECT_LIBRARY_SHELL_HEADER_SELECTORS);
 checkFileContains("styles/features/project-library-shell-selection.css", EXPECTED_PROJECT_LIBRARY_SHELL_SELECTION_SELECTORS);
+checkFileContains("styles/features/project-library-shell-selection-bar.css", EXPECTED_PROJECT_LIBRARY_SHELL_SELECTION_BAR_SELECTORS);
+checkFileContains("styles/features/project-library-shell-selection-button.css", EXPECTED_PROJECT_LIBRARY_SHELL_SELECTION_BUTTON_SELECTORS);
+checkFileContains("styles/features/project-library-shell-selection-danger.css", EXPECTED_PROJECT_LIBRARY_SHELL_SELECTION_DANGER_SELECTORS);
 checkFileContains("styles/features/project-library-shell-empty.css", EXPECTED_PROJECT_LIBRARY_SHELL_EMPTY_SELECTORS);
 checkFileContains("styles/features/project-library-cards.css", EXPECTED_PROJECT_LIBRARY_CARDS_SELECTORS);
 checkFileContains("styles/features/project-library-cards-base.css", EXPECTED_PROJECT_LIBRARY_CARDS_BASE_SELECTORS);

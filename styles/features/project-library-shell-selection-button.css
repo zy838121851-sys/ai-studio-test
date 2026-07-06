@@ -1,0 +1,20 @@
+.library-select-toggle,
+.library-selection-bar button {
+  min-height: 30px;
+  padding: 0 12px;
+  border: 1px solid rgba(17, 24, 39, 0.08);
+  border-radius: 999px;
+  color: #17202c;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 8px 22px rgba(31, 46, 72, 0.06), inset 0 1px rgba(255, 255, 255, 0.9);
+  font-size: 12px;
+  font-weight: 760;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.library-select-toggle.active,
+.library-selection-bar button:hover {
+  background: #17202c;
+  color: #fff;
+}

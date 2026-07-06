@@ -1,0 +1,26 @@
+.library-selection-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  width: min(1340px, calc(100vw - 220px));
+  margin: -8px auto 22px;
+  min-height: 36px;
+}
+
+.library-selection-bar strong {
+  min-height: 30px;
+  padding: 0 10px;
+  border: 1px solid rgba(17, 24, 39, 0.06);
+  border-radius: 999px;
+  color: rgba(23, 32, 44, 0.68);
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 30px;
+}
+
+.library-selection-bar > div {
+  display: flex;
+  gap: 6px;
+}
