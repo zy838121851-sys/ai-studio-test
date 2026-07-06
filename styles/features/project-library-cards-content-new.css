@@ -1,0 +1,21 @@
+.library-new-card {
+  place-items: center;
+  align-content: center;
+  min-height: 238px;
+  background: rgba(255, 255, 255, 0.86);
+}
+
+.library-new-card span {
+  font-size: 34px;
+  line-height: 1;
+}
+
+.library-new-card strong {
+  font-size: 17px;
+}
+
+.library-new-card small {
+  color: rgba(23, 32, 44, 0.42);
+  font-size: 12px;
+  font-weight: 700;
+}

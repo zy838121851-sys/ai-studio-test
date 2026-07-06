@@ -1,0 +1,14 @@
+.library-small-card strong {
+  display: block;
+  margin: 0 4px;
+  color: #17202c;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.library-small-card small {
+  margin: -10px 4px 0;
+  color: rgba(23, 32, 44, 0.46);
+  font-size: 12px;
+}

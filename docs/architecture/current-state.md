@@ -466,6 +466,14 @@ Post-baseline CSS governance note:
   library card checkbox control and checked-state styles.
 - `styles/features/project-library-cards-selection-hover.css` owns project
   library card hover and selected-hover styles.
+- `styles/features/project-library-cards-content.css` is now a pure aggregation
+  entry for project library new-card, media preview, and text submodules.
+- `styles/features/project-library-cards-content-new.css` owns project library
+  new-card content styles.
+- `styles/features/project-library-cards-content-media.css` owns project
+  library card thumbnail frame, image, and fallback icon styles.
+- `styles/features/project-library-cards-content-text.css` owns project library
+  card title and date text styles.
 - `styles/features/project-library-page.css` owns `body[data-view="library"]`
   project library page overrides, mobile overrides, and library entry
   animation.
