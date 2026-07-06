@@ -1,0 +1,27 @@
+.director-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 18px;
+  color: rgba(245, 247, 250, 0.86);
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.director-refresh {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 30px;
+  border: 0;
+  border-radius: 50%;
+  color: rgba(245, 247, 250, 0.8);
+  background: transparent;
+  font-size: 20px;
+}
+
+.director-refresh:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.08);
+}
