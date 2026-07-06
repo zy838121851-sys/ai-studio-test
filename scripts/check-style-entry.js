@@ -517,7 +517,9 @@ const EXPECTED_ASSET_PINTEREST_RESPONSIVE_IMPORTS = [
 const EXPECTED_HOME_IMPORTS = [
   "./home-history.css",
   "./home-community.css",
-  "./home-shell.css"
+  "./home-shell.css",
+  "./home-responsive-tablet.css",
+  "./home-responsive-mobile.css"
 ];
 const EXPECTED_HOME_HISTORY_IMPORTS = [
   "./home-history-stack.css",
@@ -666,9 +668,24 @@ const EXPECTED_PROJECT_LIBRARY_PAGE_RESPONSIVE_SELECTORS = [
   "@keyframes librarySlideUp"
 ];
 const EXPECTED_HOME_SELECTORS = [
+  "@import url(\"./home-history.css\")",
+  "@import url(\"./home-community.css\")",
+  "@import url(\"./home-shell.css\")",
+  "@import url(\"./home-responsive-tablet.css\")",
+  "@import url(\"./home-responsive-mobile.css\")"
+];
+const EXPECTED_HOME_RESPONSIVE_TABLET_SELECTORS = [
   "@media (max-width: 1100px)",
+  ".home-history",
+  ".home-community-section",
+  ".home-inspiration-grid",
+  ".home-masonry-feed"
+];
+const EXPECTED_HOME_RESPONSIVE_MOBILE_SELECTORS = [
   "@media (max-width: 760px)",
+  ".home-stage",
   ".home-prompt",
+  ".home-model",
   ".home-model-picker"
 ];
 const EXPECTED_HOME_SHELL_SELECTORS = [
@@ -2887,6 +2904,8 @@ checkFileContains("styles/legacy-canvas-visual-shell-brand-menu.css", EXPECTED_L
 checkFileContains("styles/legacy-canvas-visual-shell-home-menu.css", EXPECTED_LEGACY_CANVAS_VISUAL_SHELL_HOME_MENU_SELECTORS);
 checkFileContains("styles/legacy-canvas-visual-shell-simple-page.css", EXPECTED_LEGACY_CANVAS_VISUAL_SHELL_SIMPLE_PAGE_SELECTORS);
 checkFileContains("styles/features/home.css", EXPECTED_HOME_SELECTORS);
+checkFileContains("styles/features/home-responsive-tablet.css", EXPECTED_HOME_RESPONSIVE_TABLET_SELECTORS);
+checkFileContains("styles/features/home-responsive-mobile.css", EXPECTED_HOME_RESPONSIVE_MOBILE_SELECTORS);
 checkFileContains("styles/features/home-shell.css", EXPECTED_HOME_SHELL_SELECTORS);
 checkFileContains("styles/features/home-shell-boot.css", EXPECTED_HOME_SHELL_BOOT_SELECTORS);
 checkFileContains("styles/features/home-shell-prompt.css", EXPECTED_HOME_SHELL_PROMPT_SELECTORS);
