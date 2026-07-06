@@ -575,6 +575,11 @@ const EXPECTED_HOME_HISTORY_STACK_IMPORTS = [
   "./home-history-stack-preview.css",
   "./home-history-stack-open.css"
 ];
+const EXPECTED_HOME_HISTORY_STACK_PREVIEW_IMPORTS = [
+  "./home-history-stack-preview-shell.css",
+  "./home-history-stack-preview-media.css",
+  "./home-history-stack-preview-empty.css"
+];
 const EXPECTED_HOME_HISTORY_SECTION_IMPORTS = [
   "./home-history-section-layout.css",
   "./home-history-section-head.css"
@@ -846,9 +851,19 @@ const EXPECTED_HOME_HISTORY_STACK_SHELL_SELECTORS = [
   ".home-history-trigger"
 ];
 const EXPECTED_HOME_HISTORY_STACK_PREVIEW_SELECTORS = [
+  "@import url(\"./home-history-stack-preview-shell.css\")",
+  "@import url(\"./home-history-stack-preview-media.css\")",
+  "@import url(\"./home-history-stack-preview-empty.css\")"
+];
+const EXPECTED_HOME_HISTORY_STACK_PREVIEW_SHELL_SELECTORS = [
   ".home-history-stack",
-  ".home-history-stack i",
+  ".home-history-stack i"
+];
+const EXPECTED_HOME_HISTORY_STACK_PREVIEW_MEDIA_SELECTORS = [
   ".home-history-stack img"
+];
+const EXPECTED_HOME_HISTORY_STACK_PREVIEW_EMPTY_SELECTORS = [
+  ".home-history-stack b"
 ];
 const EXPECTED_HOME_HISTORY_STACK_OPEN_SELECTORS = [
   ".home-history-open"
@@ -2779,6 +2794,7 @@ const homeResponsiveTabletImports = parseCssImports("styles/features/home-respon
 const homeResponsiveMobileImports = parseCssImports("styles/features/home-responsive-mobile.css");
 const homeHistoryImports = parseCssImports("styles/features/home-history.css");
 const homeHistoryStackImports = parseCssImports("styles/features/home-history-stack.css");
+const homeHistoryStackPreviewImports = parseCssImports("styles/features/home-history-stack-preview.css");
 const homeHistorySectionImports = parseCssImports("styles/features/home-history-section.css");
 const homeHistorySectionHeadImports = parseCssImports("styles/features/home-history-section-head.css");
 const homeHistoryCardsImports = parseCssImports("styles/features/home-history-cards.css");
@@ -2887,6 +2903,7 @@ assertListEqual("styles/features/home-responsive-tablet.css", homeResponsiveTabl
 assertListEqual("styles/features/home-responsive-mobile.css", homeResponsiveMobileImports, EXPECTED_HOME_RESPONSIVE_MOBILE_IMPORTS);
 assertListEqual("styles/features/home-history.css", homeHistoryImports, EXPECTED_HOME_HISTORY_IMPORTS);
 assertListEqual("styles/features/home-history-stack.css", homeHistoryStackImports, EXPECTED_HOME_HISTORY_STACK_IMPORTS);
+assertListEqual("styles/features/home-history-stack-preview.css", homeHistoryStackPreviewImports, EXPECTED_HOME_HISTORY_STACK_PREVIEW_IMPORTS);
 assertListEqual("styles/features/home-history-section.css", homeHistorySectionImports, EXPECTED_HOME_HISTORY_SECTION_IMPORTS);
 assertListEqual("styles/features/home-history-section-head.css", homeHistorySectionHeadImports, EXPECTED_HOME_HISTORY_SECTION_HEAD_IMPORTS);
 assertListEqual("styles/features/home-history-cards.css", homeHistoryCardsImports, EXPECTED_HOME_HISTORY_CARDS_IMPORTS);
@@ -3207,6 +3224,9 @@ checkFileContains("styles/features/home-shell-transition.css", EXPECTED_HOME_SHE
 checkFileContains("styles/features/home-history-stack.css", EXPECTED_HOME_HISTORY_SELECTORS);
 checkFileContains("styles/features/home-history-stack-shell.css", EXPECTED_HOME_HISTORY_STACK_SHELL_SELECTORS);
 checkFileContains("styles/features/home-history-stack-preview.css", EXPECTED_HOME_HISTORY_STACK_PREVIEW_SELECTORS);
+checkFileContains("styles/features/home-history-stack-preview-shell.css", EXPECTED_HOME_HISTORY_STACK_PREVIEW_SHELL_SELECTORS);
+checkFileContains("styles/features/home-history-stack-preview-media.css", EXPECTED_HOME_HISTORY_STACK_PREVIEW_MEDIA_SELECTORS);
+checkFileContains("styles/features/home-history-stack-preview-empty.css", EXPECTED_HOME_HISTORY_STACK_PREVIEW_EMPTY_SELECTORS);
 checkFileContains("styles/features/home-history-stack-open.css", EXPECTED_HOME_HISTORY_STACK_OPEN_SELECTORS);
 checkFileContains("styles/features/home-history-section.css", EXPECTED_HOME_HISTORY_SECTION_SELECTORS);
 checkFileContains("styles/features/home-history-section-layout.css", EXPECTED_HOME_HISTORY_SECTION_LAYOUT_SELECTORS);

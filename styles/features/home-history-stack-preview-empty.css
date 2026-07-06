@@ -1,0 +1,7 @@
+.home-history-stack b {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: rgba(23, 32, 44, 0.42);
+  font-weight: 900;
+}

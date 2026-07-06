@@ -1,0 +1,7 @@
+.home-history-stack img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.1) brightness(1.14);
+  opacity: 0.26;
+}

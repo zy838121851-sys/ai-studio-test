@@ -338,8 +338,17 @@ Post-baseline CSS governance note:
 - `styles/features/home-history.css` is now a pure aggregation entry for home
   history stack, section header, and recent project card styles; it is imported
   by `styles/features/home.css`.
-- `styles/features/home-history-stack.css` owns the home recent project/history
-  stack, trigger, layered thumbnails, and open affordance styles.
+- `styles/features/home-history-stack.css` is now a pure aggregation entry for
+  home recent project/history stack shell, preview, and open affordance
+  submodules.
+- `styles/features/home-history-stack-preview.css` is now a pure aggregation
+  entry for stack preview shell, media, and empty-state submodules.
+- `styles/features/home-history-stack-preview-shell.css` owns the home history
+  stack preview frame and layered thumbnail shell styles.
+- `styles/features/home-history-stack-preview-media.css` owns the stack preview
+  image presentation styles.
+- `styles/features/home-history-stack-preview-empty.css` owns the stack preview
+  empty placeholder styles.
 - `styles/features/home-history-section.css` is now a pure aggregation entry for
   home history section layout and head/navigation submodules.
 - `styles/features/home-history-section-layout.css` owns the home history
