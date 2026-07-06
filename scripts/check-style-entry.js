@@ -542,6 +542,11 @@ const EXPECTED_HOME_COMMUNITY_CHANNEL_IMPORTS = [
   "./home-community-channels-strip.css",
   "./home-community-channels-scroll.css"
 ];
+const EXPECTED_HOME_COMMUNITY_CHANNEL_STRIP_IMPORTS = [
+  "./home-community-channels-strip-shell.css",
+  "./home-community-channels-strip-button.css",
+  "./home-community-channels-strip-tone.css"
+];
 const EXPECTED_HOME_COMMUNITY_FEED_IMPORTS = [
   "./home-community-feed-masonry.css",
   "./home-community-feed-back-top.css"
@@ -790,8 +795,21 @@ const EXPECTED_HOME_COMMUNITY_CHANNEL_SHELL_SELECTORS = [
   ".home-channel-shell::before"
 ];
 const EXPECTED_HOME_COMMUNITY_CHANNEL_STRIP_SELECTORS = [
+  "@import url(\"./home-community-channels-strip-shell.css\")",
+  "@import url(\"./home-community-channels-strip-button.css\")",
+  "@import url(\"./home-community-channels-strip-tone.css\")"
+];
+const EXPECTED_HOME_COMMUNITY_CHANNEL_STRIP_SHELL_SELECTORS = [
   ".home-channel-strip",
+  ".home-channel-strip::-webkit-scrollbar"
+];
+const EXPECTED_HOME_COMMUNITY_CHANNEL_STRIP_BUTTON_SELECTORS = [
+  ".home-channel-strip button",
   ".home-channel-all",
+  ".home-channel-all span::before"
+];
+const EXPECTED_HOME_COMMUNITY_CHANNEL_STRIP_TONE_SELECTORS = [
+  ".home-channel-strip i",
   ".home-channel-tone-xr",
   ".home-channel-tone-abstract"
 ];
@@ -2551,6 +2569,7 @@ const homeHistoryImports = parseCssImports("styles/features/home-history.css");
 const homeHistoryCardsImports = parseCssImports("styles/features/home-history-cards.css");
 const homeCommunityImports = parseCssImports("styles/features/home-community.css");
 const homeCommunityChannelImports = parseCssImports("styles/features/home-community-channels.css");
+const homeCommunityChannelStripImports = parseCssImports("styles/features/home-community-channels-strip.css");
 const homeCommunityFeedImports = parseCssImports("styles/features/home-community-feed.css");
 const homeCommunityInspirationImports = parseCssImports("styles/features/home-community-inspiration.css");
 const homeShellImports = parseCssImports("styles/features/home-shell.css");
@@ -2647,6 +2666,7 @@ assertListEqual("styles/features/home-history.css", homeHistoryImports, EXPECTED
 assertListEqual("styles/features/home-history-cards.css", homeHistoryCardsImports, EXPECTED_HOME_HISTORY_CARDS_IMPORTS);
 assertListEqual("styles/features/home-community.css", homeCommunityImports, EXPECTED_HOME_COMMUNITY_IMPORTS);
 assertListEqual("styles/features/home-community-channels.css", homeCommunityChannelImports, EXPECTED_HOME_COMMUNITY_CHANNEL_IMPORTS);
+assertListEqual("styles/features/home-community-channels-strip.css", homeCommunityChannelStripImports, EXPECTED_HOME_COMMUNITY_CHANNEL_STRIP_IMPORTS);
 assertListEqual("styles/features/home-community-feed.css", homeCommunityFeedImports, EXPECTED_HOME_COMMUNITY_FEED_IMPORTS);
 assertListEqual("styles/features/home-community-inspiration.css", homeCommunityInspirationImports, EXPECTED_HOME_COMMUNITY_INSPIRATION_IMPORTS);
 assertListEqual("styles/features/home-shell.css", homeShellImports, EXPECTED_HOME_SHELL_IMPORTS);
@@ -2740,6 +2760,7 @@ checkImportedFilesExist(homeHistoryImports, "styles/features");
 checkImportedFilesExist(homeHistoryCardsImports, "styles/features");
 checkImportedFilesExist(homeCommunityImports, "styles/features");
 checkImportedFilesExist(homeCommunityChannelImports, "styles/features");
+checkImportedFilesExist(homeCommunityChannelStripImports, "styles/features");
 checkImportedFilesExist(homeCommunityFeedImports, "styles/features");
 checkImportedFilesExist(homeCommunityInspirationImports, "styles/features");
 checkImportedFilesExist(homeShellImports, "styles/features");
@@ -2929,6 +2950,9 @@ checkFileContains("styles/features/home-community.css", EXPECTED_HOME_COMMUNITY_
 checkFileContains("styles/features/home-community-channels.css", EXPECTED_HOME_COMMUNITY_CHANNEL_SELECTORS);
 checkFileContains("styles/features/home-community-channels-shell.css", EXPECTED_HOME_COMMUNITY_CHANNEL_SHELL_SELECTORS);
 checkFileContains("styles/features/home-community-channels-strip.css", EXPECTED_HOME_COMMUNITY_CHANNEL_STRIP_SELECTORS);
+checkFileContains("styles/features/home-community-channels-strip-shell.css", EXPECTED_HOME_COMMUNITY_CHANNEL_STRIP_SHELL_SELECTORS);
+checkFileContains("styles/features/home-community-channels-strip-button.css", EXPECTED_HOME_COMMUNITY_CHANNEL_STRIP_BUTTON_SELECTORS);
+checkFileContains("styles/features/home-community-channels-strip-tone.css", EXPECTED_HOME_COMMUNITY_CHANNEL_STRIP_TONE_SELECTORS);
 checkFileContains("styles/features/home-community-channels-scroll.css", EXPECTED_HOME_COMMUNITY_CHANNEL_SCROLL_SELECTORS);
 checkFileContains("styles/features/home-community-feed.css", EXPECTED_HOME_COMMUNITY_FEED_SELECTORS);
 checkFileContains("styles/features/home-community-feed-masonry.css", EXPECTED_HOME_COMMUNITY_FEED_MASONRY_SELECTORS);

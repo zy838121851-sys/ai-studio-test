@@ -1,0 +1,16 @@
+.home-channel-strip {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  overflow-x: auto;
+  padding: 2px 0;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+}
+
+.home-channel-strip::-webkit-scrollbar {
+  display: none;
+}
