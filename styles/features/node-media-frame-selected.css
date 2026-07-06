@@ -1,0 +1,6 @@
+.node-image.selected .image-frame,
+.node-model.selected .model-viewer,
+.node-loading-image.selected .image-frame {
+  outline: 2px solid rgba(31, 46, 72, 0.22);
+  outline-offset: 0;
+}
