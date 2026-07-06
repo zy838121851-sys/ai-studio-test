@@ -1,0 +1,23 @@
+body[data-theme="dark"] .image-node-toolbar .image-toolbar-menu button.image-toolbar-upscale-option,
+body[data-theme="dark"] .image-node-toolbar .image-toolbar-menu button.image-toolbar-upscale-option.is-premium {
+  border-color: rgba(142, 177, 255, 0.18) !important;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(116, 149, 255, 0.18), transparent 40%),
+    linear-gradient(145deg, rgba(38, 43, 56, 0.98), rgba(19, 23, 32, 0.96)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 12px 28px rgba(0, 0, 0, 0.34) !important;
+}
+
+body[data-theme="dark"] .image-node-toolbar .image-toolbar-menu button.image-toolbar-upscale-option:hover {
+  border-color: rgba(142, 177, 255, 0.34) !important;
+  background:
+    radial-gradient(circle at 20% 12%, rgba(132, 162, 255, 0.24), transparent 42%),
+    linear-gradient(145deg, rgba(48, 56, 74, 0.98), rgba(24, 30, 42, 0.98)) !important;
+}
+
+body[data-theme="dark"] .image-node-toolbar .image-toolbar-menu em {
+  border-color: rgba(142, 177, 255, 0.22);
+  color: #a9bdff;
+  background: rgba(13, 17, 26, 0.5);
+}

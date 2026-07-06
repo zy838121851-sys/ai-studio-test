@@ -1,0 +1,18 @@
+body[data-theme="dark"] .image-node-toolbar .image-toolbar-menu button {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  color: #f8fafc !important;
+  background:
+    linear-gradient(180deg, rgba(42, 45, 54, 0.96), rgba(22, 24, 30, 0.94)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 10px 26px rgba(0, 0, 0, 0.32) !important;
+}
+
+body[data-theme="dark"] .image-node-toolbar .image-toolbar-menu button:hover {
+  border-color: rgba(127, 200, 255, 0.34) !important;
+  background:
+    linear-gradient(180deg, rgba(50, 56, 70, 0.98), rgba(25, 29, 38, 0.96)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 14px 32px rgba(127, 200, 255, 0.12) !important;
+}
