@@ -1,0 +1,18 @@
+.stack-row strong {
+  min-width: 0;
+  overflow: hidden;
+  color: #15191f;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+}
+
+.stack-row small {
+  justify-self: start;
+  padding: 3px 7px;
+  border-radius: 6px;
+  color: #697586;
+  background: #eef3f8;
+  font-size: 11px;
+  font-weight: 700;
+}

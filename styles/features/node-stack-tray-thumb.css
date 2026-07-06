@@ -1,0 +1,15 @@
+.stack-thumb {
+  grid-row: 1 / 3;
+  display: block;
+  width: 116px;
+  height: 64px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #edf1f6, #d9e1ea);
+  overflow: hidden;
+}
+
+.stack-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
