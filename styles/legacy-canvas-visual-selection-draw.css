@@ -1,3 +1,51 @@
+body[data-view="canvas"] .node-draw {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+  padding: 0 !important;
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body[data-view="canvas"] .node-draw .node-expand {
+  display: none !important;
+}
+
+body[data-view="canvas"] .canvas-object {
+  display: block;
+  min-height: 0;
+  overflow: visible;
+  border: 0 !important;
+  border-radius: 0;
+  background: transparent !important;
+  background-color: transparent !important;
+  background-image: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  outline: 0 !important;
+}
+
+body[data-view="canvas"] .canvas-object::before,
+body[data-view="canvas"] .canvas-object::after {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body[data-view="canvas"] .canvas-shape {
+  pointer-events: auto;
+}
+
+body[data-view="canvas"] .canvas-shape .draw-shape,
+body[data-view="canvas"] .canvas-shape svg {
+  pointer-events: none;
+}
+
+body[data-view="canvas"] .canvas-shape.selected .resize-handle {
+  pointer-events: auto;
+}
+
 body[data-view="canvas"] .canvas-object.selected {
   border-color: transparent !important;
   box-shadow: none !important;

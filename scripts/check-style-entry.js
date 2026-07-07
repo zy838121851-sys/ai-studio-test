@@ -1990,6 +1990,14 @@ const EXPECTED_LEGACY_CANVAS_VISUAL_SHAPE_TOOLS_SELECTORS = [
   "@import url(\"./legacy-canvas-visual-text-toolbar.css\")"
 ];
 const EXPECTED_LEGACY_CANVAS_VISUAL_SELECTION_DRAW_SELECTORS = [
+  "body[data-view=\"canvas\"] .node-draw",
+  "body[data-view=\"canvas\"] .node-draw .node-expand",
+  "body[data-view=\"canvas\"] .canvas-object",
+  "background-image: none !important",
+  "body[data-view=\"canvas\"] .canvas-object::before",
+  "body[data-view=\"canvas\"] .canvas-shape",
+  "body[data-view=\"canvas\"] .canvas-shape .draw-shape",
+  "body[data-view=\"canvas\"] .canvas-shape.selected .resize-handle",
   "body[data-view=\"canvas\"] .canvas-object.selected",
   "body[data-view=\"canvas\"] .draw-node",
   "body[data-view=\"canvas\"] .draw-shape"
