@@ -2761,14 +2761,20 @@ const EXPECTED_LEGACY_COMPACT_TOOL_RAIL_ITEMS_SELECTORS = [
   ".rail-btn.add",
   ".rail-btn.jump",
   ".rail-separator",
-  ".shape-tool-group",
-  ".pen-tool-group",
-  ".shape-tool-menu",
-  ".pen-tool-menu",
-  ".shape-tool-group:hover .shape-tool-menu",
-  ".pen-tool-group:focus-within .pen-tool-menu",
-  ".shape-menu-section button",
-  ".pen-tool-menu button"
+  "body[data-view=\"canvas\"] .rail-btn:hover",
+  "body[data-view=\"canvas\"] .shape-tool-group",
+  "body[data-view=\"canvas\"] .pen-tool-group",
+  "body[data-view=\"canvas\"] .shape-tool-menu",
+  "body[data-view=\"canvas\"] .pen-tool-menu",
+  "width: 238px",
+  "width: 132px",
+  "body[data-view=\"canvas\"] .shape-tool-group:hover .shape-tool-menu",
+  "body[data-view=\"canvas\"] .pen-tool-group:focus-within .pen-tool-menu",
+  "body[data-view=\"canvas\"] .shape-menu-section",
+  "grid-template-columns: repeat(5, 34px)",
+  "body[data-view=\"canvas\"] .shape-tool-menu button",
+  "body[data-view=\"canvas\"] .pen-tool-menu button",
+  "backdrop-filter: blur(24px) saturate(1.4)"
 ];
 const EXPECTED_LEGACY_COMPACT_TOOL_RAIL_LIGHT_SELECTORS = [
   "body[data-theme=\"light\"] .tool-rail"
