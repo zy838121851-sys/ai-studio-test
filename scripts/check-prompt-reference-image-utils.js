@@ -1,9 +1,12 @@
 import {
   collectReferenceImages,
+  getSelectedImageReferenceCount,
+  getSelectedImageReferenceNodes,
   imageSourceToDataUrl,
   inferMimeTypeFromDataUrl,
   readDomPreviewReferences,
-  readSelectedImageReference
+  readSelectedImageReference,
+  readSelectedImageReferences
 } from "../src/client/features/workspace/chat/workflows/prompt-reference-image-utils.js";
 
 function assert(condition, message) {
@@ -128,6 +131,8 @@ const selectedRoot = makeSelectedImageRoot({
   title: "Canvas title",
   imageSource: "/uploads/selected.png"
 });
+assert(getSelectedImageReferenceCount(selectedRoot) === 1, "Selected image count should include readable selected canvas images");
+assert(getSelectedImageReferenceNodes(selectedRoot).length === 1, "Selected image lookup should include active selected image node");
 const selectedReference = await readSelectedImageReference(async (source) => {
   assert(source === "/uploads/selected.png", "Selected image reference should read the selected image source");
   return "data:image/png;base64,selected";
@@ -154,6 +159,27 @@ const defaultTitleReference = await readSelectedImageReference(async () => "data
   })
 });
 assert(defaultTitleReference.name === "Selected canvas image", "Selected image reference should use default title fallback");
+
+const multiSelectedRoot = makeMultiSelectedImageRoot([
+  makeSelectedImageNode({
+    title: "First selected",
+    imageSource: "/uploads/first.png"
+  }),
+  makeSelectedImageNode({
+    title: "Second selected",
+    imageSource: "/uploads/second.png"
+  })
+]);
+const multiSources = [];
+const multiReferences = await readSelectedImageReferences(async (source) => {
+  multiSources.push(source);
+  return `data:image/png;base64,${source.split("/").pop().replace(".png", "")}`;
+}, { root: multiSelectedRoot });
+assert(getSelectedImageReferenceCount(multiSelectedRoot) === 2, "Selected image count should include every selected image node");
+assert(multiReferences.length === 2, "Selected image references should include every selected canvas image");
+assert(multiReferences[0].name === "First selected", "Selected image references should keep active selection first");
+assert(multiReferences[1].name === "Second selected", "Selected image references should preserve additional selections");
+assert(multiSources.join(",") === "/uploads/first.png,/uploads/second.png", "Selected image references should read every selected image source");
 
 assert(await readSelectedImageReference(null, { root: selectedRoot }) === null, "Selected image reference should ignore missing reader");
 assert(await readSelectedImageReference(async () => "", { root: selectedRoot }) === null, "Selected image reference should ignore empty data URLs");
@@ -261,15 +287,38 @@ assert(selectedBundle.attachments.length === 1, "Reference collection should use
 assert(selectedBundle.attachments[0].source === "canvas-selection", "Reference collection should preserve selected canvas source");
 assert(selectedBundle.images[0] === "data:image/png;base64,selected", "Reference collection should expose selected canvas data URL");
 
+const mixedBundle = await collectReferenceImages({
+  files: [{ name: "upload.png", type: "image/png", size: 1 }],
+  readFileAsDataUrl: async () => "data:image/png;base64,upload",
+  readImageSourceAsDataUrl: async () => "data:image/png;base64,unused",
+  readSelectedImageReferencesImpl: async () => ([
+    {
+      type: "image",
+      name: "Canvas one",
+      source: "canvas-selection",
+      dataUrl: "data:image/png;base64,canvas-one"
+    },
+    {
+      type: "image",
+      name: "Canvas two",
+      source: "canvas-selection",
+      dataUrl: "data:image/png;base64,canvas-two"
+    }
+  ]),
+  logDebug: () => {}
+});
+assert(mixedBundle.attachments.length === 3, "Reference collection should append selected canvas images to uploaded references");
+assert(mixedBundle.attachments.filter((item) => item.source === "canvas-selection").length === 2, "Reference collection should keep all selected canvas references");
+
 console.log("Prompt reference image utility checks passed.");
 
-function makeSelectedImageRoot({
+function makeSelectedImageNode({
   title = "Canvas title",
   nodeTitle = "",
   imageSource = "",
   objectUrl = ""
 } = {}) {
-  const node = {
+  return {
     dataset: {
       title,
       objectUrl
@@ -289,10 +338,30 @@ function makeSelectedImageRoot({
       return null;
     }
   };
+}
+
+function makeSelectedImageRoot(options = {}) {
+  const node = makeSelectedImageNode(options);
   return {
     querySelector(selector) {
       if (selector === "#canvasWorld .node-image.selected[data-active-selection='true']") return node;
       return null;
+    },
+    querySelectorAll(selector) {
+      return selector === "#canvasWorld .node-image.selected" ? [node] : [];
+    }
+  };
+}
+
+function makeMultiSelectedImageRoot(nodes = []) {
+  return {
+    querySelector(selector) {
+      if (selector === "#canvasWorld .node-image.selected[data-active-selection='true']") return nodes[0] || null;
+      if (selector === "#canvasWorld .node-image.selected") return nodes[0] || null;
+      return null;
+    },
+    querySelectorAll(selector) {
+      return selector === "#canvasWorld .node-image.selected" ? nodes : [];
     }
   };
 }

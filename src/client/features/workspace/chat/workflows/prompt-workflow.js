@@ -82,7 +82,8 @@ import {
   resolvePromptModelSelection
 } from "./prompt-generation-payload-utils.js";
 import {
-  collectReferenceImages
+  collectReferenceImages,
+  getSelectedImageReferenceCount
 } from "./prompt-reference-image-utils.js";
 import {
   collectCanvasContext,
@@ -390,6 +391,8 @@ export function bindPromptSubmit({
       chatImageFiles: chatImageFilesRef(),
       domPreviewAttachments
     });
+    const selectedCanvasReferenceCount = getSelectedImageReferenceCount();
+    const submittedReferenceCount = (referenceFiles.length || domPreviewAttachments.length) + selectedCanvasReferenceCount;
     console.debug("[chat-submit] trigger source", buildPromptSubmitConsoleDebugPayload({
       triggerSource,
       currentFiles,
@@ -414,7 +417,7 @@ export function bindPromptSubmit({
       selectedSource,
     }));
 
-    if (!prompt && !referenceFiles.length && !domPreviewAttachments.length) {
+    if (!prompt && !submittedReferenceCount) {
       resolvedPromptForm.__pendingHomeGenerationModel = "";
       updateAgentDebugPanel(agentDebug);
       return;
@@ -445,12 +448,11 @@ export function bindPromptSubmit({
     recordCanvasEvent("prompt_submitted", {
       source: "chat-panel",
       hasPrompt: Boolean(prompt),
-      imageCount: referenceFiles.length || domPreviewAttachments.length,
+      imageCount: submittedReferenceCount,
       model
     });
 
     setChatCollapsed(false);
-    const submittedReferenceCount = referenceFiles.length || domPreviewAttachments.length;
     const attachmentText = submittedReferenceCount ? ` Attached ${submittedReferenceCount} reference image(s)` : "";
     addChat("user", `${prompt || "[image reference]"} ${attachmentText}`);
     resolvedPromptInput.value = "";

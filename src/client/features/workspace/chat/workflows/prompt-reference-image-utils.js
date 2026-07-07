@@ -40,7 +40,8 @@ export async function collectReferenceImages({
   debugRecord = null,
   logDebug = () => {},
   readDomPreviewReferencesImpl = readDomPreviewReferences,
-  readSelectedImageReferenceImpl = readSelectedImageReference
+  readSelectedImageReferenceImpl = null,
+  readSelectedImageReferencesImpl = readSelectedImageReferences
 } = {}) {
   const attachments = [];
   let successCount = 0;
@@ -93,10 +94,12 @@ export async function collectReferenceImages({
     }
   }
 
-  if (!attachments.length && !files.length && !domPreviewAttachments.length) {
-    const selectedReference = await readSelectedImageReferenceImpl(readImageSourceAsDataUrl);
-    if (selectedReference) attachments.push(selectedReference);
-  }
+  const selectedReferences = await readSelectedReferencesForCollection({
+    readImageSourceAsDataUrl,
+    readSelectedImageReferenceImpl,
+    readSelectedImageReferencesImpl
+  });
+  if (selectedReferences.length) attachments.push(...selectedReferences);
 
   if (debugRecord) {
     debugRecord.dataUrlSuccessCount = successCount;
@@ -181,26 +184,78 @@ export async function readDomPreviewReferences({
   return references;
 }
 
+export function getSelectedImageReferenceNodes(root = globalThis.document) {
+  const nodes = [];
+  const seen = new Set();
+  const activeNode = findActiveImageNode(root);
+  const selectedNodes = Array.from(root?.querySelectorAll?.("#canvasWorld .node-image.selected") || []);
+  [activeNode, ...selectedNodes].forEach((node) => {
+    if (!node || seen.has(node) || !getSelectedImageNodeSource(node)) return;
+    seen.add(node);
+    nodes.push(node);
+  });
+  return nodes;
+}
+
+export function getSelectedImageReferenceCount(root = globalThis.document) {
+  return getSelectedImageReferenceNodes(root).length;
+}
+
 export async function readSelectedImageReference(readImageSourceAsDataUrl, {
   root = globalThis.document,
   warn = console.warn
 } = {}) {
-  if (typeof readImageSourceAsDataUrl !== "function") return null;
-  const node = findActiveImageNode(root);
-  const image = node?.querySelector?.("img");
-  const source = image?.currentSrc || image?.src || node?.dataset?.objectUrl || "";
-  if (!source) return null;
-  try {
-    const dataUrl = await readImageSourceAsDataUrl(source);
-    if (!dataUrl) return null;
-    return {
-      type: "image",
-      name: node?.dataset?.title || node?.querySelector?.(".node-title")?.textContent?.trim?.() || "Selected canvas image",
-      source: "canvas-selection",
-      dataUrl
-    };
-  } catch (error) {
-    warn?.("[conversation] Failed to read selected image reference", error);
-    return null;
+  const references = await readSelectedImageReferences(readImageSourceAsDataUrl, { root, warn });
+  return references[0] || null;
+}
+
+export async function readSelectedImageReferences(readImageSourceAsDataUrl, {
+  root = globalThis.document,
+  warn = console.warn
+} = {}) {
+  if (typeof readImageSourceAsDataUrl !== "function") return [];
+  const references = [];
+  const nodes = getSelectedImageReferenceNodes(root);
+  for (const [index, node] of nodes.entries()) {
+    const source = getSelectedImageNodeSource(node);
+    if (!source) continue;
+    try {
+      const dataUrl = await readImageSourceAsDataUrl(source);
+      if (!dataUrl) continue;
+      references.push({
+        type: "image",
+        name: getSelectedImageNodeName(node, index, nodes.length),
+        source: "canvas-selection",
+        dataUrl
+      });
+    } catch (error) {
+      warn?.("[conversation] Failed to read selected image reference", error);
+    }
   }
+  return references;
+}
+
+async function readSelectedReferencesForCollection({
+  readImageSourceAsDataUrl,
+  readSelectedImageReferenceImpl = null,
+  readSelectedImageReferencesImpl = null
+} = {}) {
+  if (typeof readImageSourceAsDataUrl !== "function") return [];
+  const reader = typeof readSelectedImageReferenceImpl === "function"
+    ? readSelectedImageReferenceImpl
+    : readSelectedImageReferencesImpl;
+  if (typeof reader !== "function") return [];
+  const result = await reader(readImageSourceAsDataUrl);
+  return Array.isArray(result) ? result.filter(Boolean) : (result ? [result] : []);
+}
+
+function getSelectedImageNodeSource(node) {
+  const image = node?.querySelector?.("img");
+  return image?.currentSrc || image?.src || node?.dataset?.objectUrl || "";
+}
+
+function getSelectedImageNodeName(node, index, total) {
+  return node?.dataset?.title
+    || node?.querySelector?.(".node-title")?.textContent?.trim?.()
+    || (total > 1 ? `Selected canvas image ${index + 1}` : "Selected canvas image");
 }
