@@ -1,0 +1,18 @@
+.node-card:hover .node-expand,
+.node-card.selected .node-expand,
+.node-card:hover .node-download,
+.node-card.selected .node-download {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.node-director .node-expand,
+.node-director .node-download {
+  display: none;
+}
+
+.node-expand:hover,
+.node-download:hover {
+  background: rgba(17, 24, 39, 0.26);
+  transform: translateY(-1px);
+}

@@ -631,6 +631,14 @@ Post-baseline CSS governance note:
 - `styles/features/node-base.css` owns base node/card/resize/action styles that
   were moved out of `styles/legacy-node.css`; it is imported at the top of
   `styles/features/node.css` to preserve cascade order.
+- `styles/features/node-base-actions.css` is now a pure aggregation entry for
+  node action shell, icon, and state submodules.
+- `styles/features/node-base-actions-shell.css` owns node expand/download action
+  button shell placement and surface styles.
+- `styles/features/node-base-actions-icon.css` owns node expand/download action
+  SVG icon styles.
+- `styles/features/node-base-actions-state.css` owns node action reveal, hidden,
+  and hover states.
 - `styles/features/node-image-edit.css` is now a pure aggregation entry for
   image edit state, crop, and expand styles; it is imported by
   `styles/features/node.css` immediately after node base styles to preserve the

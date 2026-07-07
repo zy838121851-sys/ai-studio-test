@@ -272,6 +272,11 @@ const EXPECTED_NODE_BASE_IMPORTS = [
   "./node-base-resize.css",
   "./node-base-actions.css"
 ];
+const EXPECTED_NODE_BASE_ACTIONS_IMPORTS = [
+  "./node-base-actions-shell.css",
+  "./node-base-actions-icon.css",
+  "./node-base-actions-state.css"
+];
 const EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS = [
   "./node-image-generator-base.css",
   "./node-image-generator-inline-edit.css"
@@ -2033,8 +2038,22 @@ const EXPECTED_NODE_BASE_RESIZE_SELECTORS = [
   ".resize-se"
 ];
 const EXPECTED_NODE_BASE_ACTIONS_SELECTORS = [
+  "@import url(\"./node-base-actions-shell.css\")",
+  "@import url(\"./node-base-actions-icon.css\")",
+  "@import url(\"./node-base-actions-state.css\")"
+];
+const EXPECTED_NODE_BASE_ACTIONS_SHELL_SELECTORS = [
   ".node-expand",
   ".node-download"
+];
+const EXPECTED_NODE_BASE_ACTIONS_ICON_SELECTORS = [
+  ".node-expand svg",
+  ".node-download svg"
+];
+const EXPECTED_NODE_BASE_ACTIONS_STATE_SELECTORS = [
+  ".node-card:hover .node-expand",
+  ".node-director .node-expand",
+  ".node-expand:hover"
 ];
 const EXPECTED_NODE_IMAGE_EDIT_SELECTORS = [
   ".node-image.cropping",
@@ -2880,6 +2899,7 @@ const authCreditDetailImports = parseCssImports("styles/features/auth-credit-det
 const authDialogImports = parseCssImports("styles/features/auth-dialog.css");
 const nodeImports = parseCssImports("styles/features/node.css");
 const nodeBaseImports = parseCssImports("styles/features/node-base.css");
+const nodeBaseActionsImports = parseCssImports("styles/features/node-base-actions.css");
 const nodeImageEditImports = parseCssImports("styles/features/node-image-edit.css");
 const nodeImageCropImports = parseCssImports("styles/features/node-image-crop.css");
 const nodeImageExpandImports = parseCssImports("styles/features/node-image-expand.css");
@@ -2998,6 +3018,7 @@ assertListEqual("styles/features/auth-credit-detail.css", authCreditDetailImport
 assertListEqual("styles/features/auth-dialog.css", authDialogImports, EXPECTED_AUTH_DIALOG_IMPORTS);
 assertListEqual("styles/features/node.css", nodeImports, EXPECTED_NODE_IMPORTS);
 assertListEqual("styles/features/node-base.css", nodeBaseImports, EXPECTED_NODE_BASE_IMPORTS);
+assertListEqual("styles/features/node-base-actions.css", nodeBaseActionsImports, EXPECTED_NODE_BASE_ACTIONS_IMPORTS);
 assertListEqual("styles/features/node-image-edit.css", nodeImageEditImports, EXPECTED_NODE_IMAGE_EDIT_IMPORTS);
 assertListEqual("styles/features/node-image-crop.css", nodeImageCropImports, EXPECTED_NODE_IMAGE_CROP_IMPORTS);
 assertListEqual("styles/features/node-image-expand.css", nodeImageExpandImports, EXPECTED_NODE_IMAGE_EXPAND_IMPORTS);
@@ -3113,6 +3134,7 @@ checkImportedFilesExist(authCreditDetailImports, "styles/features");
 checkImportedFilesExist(authDialogImports, "styles/features");
 checkImportedFilesExist(nodeImports, "styles/features");
 checkImportedFilesExist(nodeBaseImports, "styles/features");
+checkImportedFilesExist(nodeBaseActionsImports, "styles/features");
 checkImportedFilesExist(nodeImageEditImports, "styles/features");
 checkImportedFilesExist(nodeImageCropImports, "styles/features");
 checkImportedFilesExist(nodeImageExpandImports, "styles/features");
@@ -3440,6 +3462,9 @@ checkFileContains("styles/features/node-base-card.css", EXPECTED_NODE_BASE_CARD_
 checkFileContains("styles/features/node-base-group.css", EXPECTED_NODE_BASE_GROUP_SELECTORS);
 checkFileContains("styles/features/node-base-resize.css", EXPECTED_NODE_BASE_RESIZE_SELECTORS);
 checkFileContains("styles/features/node-base-actions.css", EXPECTED_NODE_BASE_ACTIONS_SELECTORS);
+checkFileContains("styles/features/node-base-actions-shell.css", EXPECTED_NODE_BASE_ACTIONS_SHELL_SELECTORS);
+checkFileContains("styles/features/node-base-actions-icon.css", EXPECTED_NODE_BASE_ACTIONS_ICON_SELECTORS);
+checkFileContains("styles/features/node-base-actions-state.css", EXPECTED_NODE_BASE_ACTIONS_STATE_SELECTORS);
 checkFileContains("styles/features/node-image-edit-state.css", EXPECTED_NODE_IMAGE_EDIT_SELECTORS);
 checkFileContains("styles/features/node-image-crop.css", EXPECTED_NODE_IMAGE_CROP_SELECTORS);
 checkFileContains("styles/features/node-image-crop-overlay.css", EXPECTED_NODE_IMAGE_CROP_OVERLAY_SELECTORS);
