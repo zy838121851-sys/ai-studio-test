@@ -2760,7 +2760,15 @@ const EXPECTED_LEGACY_COMPACT_TOOL_RAIL_ITEMS_SELECTORS = [
   ".rail-btn",
   ".rail-btn.add",
   ".rail-btn.jump",
-  ".rail-separator"
+  ".rail-separator",
+  ".shape-tool-group",
+  ".pen-tool-group",
+  ".shape-tool-menu",
+  ".pen-tool-menu",
+  ".shape-tool-group:hover .shape-tool-menu",
+  ".pen-tool-group:focus-within .pen-tool-menu",
+  ".shape-menu-section button",
+  ".pen-tool-menu button"
 ];
 const EXPECTED_LEGACY_COMPACT_TOOL_RAIL_LIGHT_SELECTORS = [
   "body[data-theme=\"light\"] .tool-rail"
