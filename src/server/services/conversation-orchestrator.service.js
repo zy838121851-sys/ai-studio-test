@@ -876,30 +876,21 @@ export async function runConversationTurn({
         intent,
         qwenVlMode,
         stepBudgetEnabled: !shouldGenerate,
-        timeoutMs: shouldGenerate ? 0 : IMAGE_ANALYSIS_TIMEOUT_MS,
+        timeoutMs: IMAGE_ANALYSIS_TIMEOUT_MS,
         referenceImageCount: cleanAttachments.length
       });
-      const attempt = shouldGenerate
-        ? {
-          ok: true,
-          value: await analyzeImage({
-            image: firstImage.dataUrl,
-            title: firstImage.name || "Reference image",
-            runId
-          })
-        }
-        : await runBudgetedOperation({
-          label: "Qwen VL image analysis",
-          timeoutMs: IMAGE_ANALYSIS_TIMEOUT_MS,
+      const attempt = await runBudgetedOperation({
+        label: "Qwen VL image analysis",
+        timeoutMs: IMAGE_ANALYSIS_TIMEOUT_MS,
+        runId,
+        logPrefix: "[image-analysis]",
+        operation: (signal) => analyzeImage({
+          image: firstImage.dataUrl,
+          title: firstImage.name || "Reference image",
           runId,
-          logPrefix: "[image-analysis]",
-          operation: (signal) => analyzeImage({
-            image: firstImage.dataUrl,
-            title: firstImage.name || "Reference image",
-            runId,
-            signal
-          })
-        });
+          signal
+        })
+      });
       if (!attempt.ok) {
         imageAnalysisError = attempt.error?.message || "unknown error";
         const failedToolCall = { ...analysisToolCall, status: "failed" };
@@ -1281,7 +1272,7 @@ export async function runConversationTurn({
     timeBudget: {
       stepBudgetEnabled: !shouldGenerate,
       intentTimeoutMs: CHAT_AGENT_CONFIG.intentTimeoutMs,
-      imageAnalysisTimeoutMs: shouldGenerate ? 0 : CHAT_AGENT_CONFIG.imageAnalysisTimeoutMs,
+      imageAnalysisTimeoutMs: CHAT_AGENT_CONFIG.imageAnalysisTimeoutMs,
       promptOptimizerTimeoutMs: shouldGenerate ? 0 : CHAT_AGENT_CONFIG.promptOptimizerTimeoutMs,
       totalAgentBudgetMs: CHAT_AGENT_CONFIG.totalAgentBudgetMs
     },
