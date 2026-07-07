@@ -927,8 +927,7 @@ const EXPECTED_HOME_SHELL_MODEL_PICKER_SELECTORS = [
 ];
 const EXPECTED_HOME_SHELL_MODEL_MENU_SELECTORS = [
   ".home-model-menu",
-  ".home-model-option-content",
-  ".home-model-menu button.active"
+  ".home-model-picker.open .home-model-menu"
 ];
 const EXPECTED_HOME_SHELL_MODEL_NATIVE_SELECTORS = [
   ".home-model"
