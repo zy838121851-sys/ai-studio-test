@@ -1,0 +1,60 @@
+.cube-scene {
+  display: grid;
+  place-items: center;
+  height: 130px;
+  perspective: 700px;
+}
+
+.cube {
+  position: relative;
+  width: 74px;
+  height: 74px;
+  transform-style: preserve-3d;
+  animation: spinCube 8s linear infinite;
+}
+
+.face {
+  position: absolute;
+  inset: 0;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: rgba(127, 200, 255, 0.72);
+}
+
+.front {
+  transform: translateZ(37px);
+}
+
+.back {
+  transform: rotateY(180deg) translateZ(37px);
+  background: rgba(134, 240, 192, 0.72);
+}
+
+.right {
+  transform: rotateY(90deg) translateZ(37px);
+  background: rgba(255, 228, 106, 0.72);
+}
+
+.left {
+  transform: rotateY(-90deg) translateZ(37px);
+  background: rgba(255, 138, 216, 0.72);
+}
+
+.top {
+  transform: rotateX(90deg) translateZ(37px);
+  background: rgba(245, 247, 250, 0.72);
+}
+
+.bottom {
+  transform: rotateX(-90deg) translateZ(37px);
+  background: rgba(143, 148, 155, 0.72);
+}
+
+@keyframes spinCube {
+  from {
+    transform: rotateX(-18deg) rotateY(0deg);
+  }
+
+  to {
+    transform: rotateX(-18deg) rotateY(360deg);
+  }
+}

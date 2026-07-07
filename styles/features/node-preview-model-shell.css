@@ -1,0 +1,15 @@
+.model-preview {
+  display: grid;
+  gap: 8px;
+  justify-items: center;
+  margin: 14px 0 10px;
+  padding: 12px;
+  border-radius: 8px;
+  background:
+    linear-gradient(135deg, rgba(127, 200, 255, 0.18), rgba(134, 240, 192, 0.1)),
+    #101317;
+}
+
+.model-preview .cube-scene {
+  height: 96px;
+}

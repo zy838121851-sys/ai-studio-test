@@ -1,0 +1,17 @@
+.model-name {
+  display: block;
+  overflow: hidden;
+  color: #eaf2f8;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 14px;
+}
+
+.model-preview strong {
+  max-width: 100%;
+  overflow: hidden;
+  color: #eaf2f8;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 13px;
+}

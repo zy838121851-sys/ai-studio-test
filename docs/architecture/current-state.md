@@ -703,8 +703,22 @@ Post-baseline CSS governance note:
   action styles moved out of `styles/features/node-image-generator.css`.
 - `styles/features/node-image-generator.css` is now a pure aggregation entry
   for image generator base and inline edit submodules.
-- `styles/features/node-preview.css` owns media/model/video preview helper,
-  cube preview, and bottom control styles.
+- `styles/features/node-preview.css` is now a pure aggregation entry for
+  media/model/cube/video preview helper and bottom control submodules.
+- `styles/features/node-preview-model.css` is now a pure aggregation entry for
+  model preview shell, viewer controls, and text submodules.
+- `styles/features/node-preview-model-shell.css` owns model preview frame and
+  model cube-scene sizing styles.
+- `styles/features/node-preview-model-viewer.css` owns model viewer canvas,
+  loading label, mode toggle, and active mode styles.
+- `styles/features/node-preview-model-text.css` owns model name and preview
+  title truncation styles.
+- `styles/features/node-preview-cube-video.css` is now a pure aggregation entry
+  for cube preview and video preview submodules.
+- `styles/features/node-preview-cube.css` owns cube scene, faces, and spin
+  keyframe styles.
+- `styles/features/node-preview-video.css` owns video preview frame, play
+  control, and progress strip styles.
 - `styles/features/node.css` is now a feature CSS aggregation entry for node
   submodules.
 - The inactive AI Core runtime and its legacy style modules were removed after

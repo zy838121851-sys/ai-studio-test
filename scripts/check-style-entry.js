@@ -441,6 +441,15 @@ const EXPECTED_NODE_PREVIEW_IMPORTS = [
   "./node-preview-cube-video.css",
   "./node-preview-bottom-controls.css"
 ];
+const EXPECTED_NODE_PREVIEW_MODEL_IMPORTS = [
+  "./node-preview-model-shell.css",
+  "./node-preview-model-viewer.css",
+  "./node-preview-model-text.css"
+];
+const EXPECTED_NODE_PREVIEW_CUBE_VIDEO_IMPORTS = [
+  "./node-preview-cube.css",
+  "./node-preview-video.css"
+];
 const EXPECTED_ASSET_IMPORTS = [
   "./assets-page.css",
   "./assets-board.css",
@@ -2622,14 +2631,39 @@ const EXPECTED_NODE_PREVIEW_MEDIA_SELECTORS = [
   ".video-file-preview"
 ];
 const EXPECTED_NODE_PREVIEW_MODEL_SELECTORS = [
+  "@import url(\"./node-preview-model-shell.css\")",
+  "@import url(\"./node-preview-model-viewer.css\")",
+  "@import url(\"./node-preview-model-text.css\")"
+];
+const EXPECTED_NODE_PREVIEW_MODEL_SHELL_SELECTORS = [
   ".model-preview",
+  ".model-preview .cube-scene"
+];
+const EXPECTED_NODE_PREVIEW_MODEL_VIEWER_SELECTORS = [
   ".model-viewer",
-  ".model-viewer-mode-toggle"
+  ".model-viewer canvas",
+  ".model-loading",
+  ".model-viewer-mode-toggle",
+  ".model-viewer-mode-toggle button.is-active"
+];
+const EXPECTED_NODE_PREVIEW_MODEL_TEXT_SELECTORS = [
+  ".model-name",
+  ".model-preview strong"
 ];
 const EXPECTED_NODE_PREVIEW_CUBE_VIDEO_SELECTORS = [
+  "@import url(\"./node-preview-cube.css\")",
+  "@import url(\"./node-preview-video.css\")"
+];
+const EXPECTED_NODE_PREVIEW_CUBE_SELECTORS = [
   ".cube-scene",
-  ".video-preview",
+  ".cube",
+  ".front",
   "@keyframes spinCube"
+];
+const EXPECTED_NODE_PREVIEW_VIDEO_SELECTORS = [
+  ".video-preview",
+  ".play",
+  ".video-preview i"
 ];
 const EXPECTED_NODE_PREVIEW_BOTTOM_CONTROLS_SELECTORS = [
   ".bottom-controls",
@@ -2923,6 +2957,8 @@ const nodeMediaVideoImports = parseCssImports("styles/features/node-media-video.
 const nodeMediaFrameImports = parseCssImports("styles/features/node-media-frame.css");
 const nodeGenerationImports = parseCssImports("styles/features/node-generation.css");
 const nodePreviewImports = parseCssImports("styles/features/node-preview.css");
+const nodePreviewModelImports = parseCssImports("styles/features/node-preview-model.css");
+const nodePreviewCubeVideoImports = parseCssImports("styles/features/node-preview-cube-video.css");
 const nodeImageGeneratorImports = parseCssImports("styles/features/node-image-generator.css");
 const nodeImageGeneratorBaseImports = parseCssImports("styles/features/node-image-generator-base.css");
 const nodeImageGeneratorPanelImports = parseCssImports("styles/features/node-image-generator-panel.css");
@@ -3042,6 +3078,8 @@ assertListEqual("styles/features/node-media-video.css", nodeMediaVideoImports, E
 assertListEqual("styles/features/node-media-frame.css", nodeMediaFrameImports, EXPECTED_NODE_MEDIA_FRAME_IMPORTS);
 assertListEqual("styles/features/node-generation.css", nodeGenerationImports, EXPECTED_NODE_GENERATION_IMPORTS);
 assertListEqual("styles/features/node-preview.css", nodePreviewImports, EXPECTED_NODE_PREVIEW_IMPORTS);
+assertListEqual("styles/features/node-preview-model.css", nodePreviewModelImports, EXPECTED_NODE_PREVIEW_MODEL_IMPORTS);
+assertListEqual("styles/features/node-preview-cube-video.css", nodePreviewCubeVideoImports, EXPECTED_NODE_PREVIEW_CUBE_VIDEO_IMPORTS);
 assertListEqual("styles/features/node-image-generator.css", nodeImageGeneratorImports, EXPECTED_NODE_IMAGE_GENERATOR_IMPORTS);
 assertListEqual("styles/features/node-image-generator-base.css", nodeImageGeneratorBaseImports, EXPECTED_NODE_IMAGE_GENERATOR_BASE_IMPORTS);
 assertListEqual("styles/features/node-image-generator-panel.css", nodeImageGeneratorPanelImports, EXPECTED_NODE_IMAGE_GENERATOR_PANEL_IMPORTS);
@@ -3158,6 +3196,8 @@ checkImportedFilesExist(nodeMediaVideoImports, "styles/features");
 checkImportedFilesExist(nodeMediaFrameImports, "styles/features");
 checkImportedFilesExist(nodeGenerationImports, "styles/features");
 checkImportedFilesExist(nodePreviewImports, "styles/features");
+checkImportedFilesExist(nodePreviewModelImports, "styles/features");
+checkImportedFilesExist(nodePreviewCubeVideoImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorBaseImports, "styles/features");
 checkImportedFilesExist(nodeImageGeneratorPanelImports, "styles/features");
@@ -3573,7 +3613,12 @@ checkFileContains("styles/features/node-image-generator-inline-responsive.css", 
 checkFileContains("styles/features/node-preview.css", EXPECTED_NODE_PREVIEW_SELECTORS);
 checkFileContains("styles/features/node-preview-media.css", EXPECTED_NODE_PREVIEW_MEDIA_SELECTORS);
 checkFileContains("styles/features/node-preview-model.css", EXPECTED_NODE_PREVIEW_MODEL_SELECTORS);
+checkFileContains("styles/features/node-preview-model-shell.css", EXPECTED_NODE_PREVIEW_MODEL_SHELL_SELECTORS);
+checkFileContains("styles/features/node-preview-model-viewer.css", EXPECTED_NODE_PREVIEW_MODEL_VIEWER_SELECTORS);
+checkFileContains("styles/features/node-preview-model-text.css", EXPECTED_NODE_PREVIEW_MODEL_TEXT_SELECTORS);
 checkFileContains("styles/features/node-preview-cube-video.css", EXPECTED_NODE_PREVIEW_CUBE_VIDEO_SELECTORS);
+checkFileContains("styles/features/node-preview-cube.css", EXPECTED_NODE_PREVIEW_CUBE_SELECTORS);
+checkFileContains("styles/features/node-preview-video.css", EXPECTED_NODE_PREVIEW_VIDEO_SELECTORS);
 checkFileContains("styles/features/node-preview-bottom-controls.css", EXPECTED_NODE_PREVIEW_BOTTOM_CONTROLS_SELECTORS);
 checkFileContains("styles/features/node.css", EXPECTED_NODE_SELECTORS);
 checkFileContains("styles/features/project-library.css", EXPECTED_PROJECT_LIBRARY_SELECTORS);

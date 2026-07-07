@@ -1,0 +1,34 @@
+.video-preview {
+  position: relative;
+  height: 110px;
+  margin: 14px 0 10px;
+  border-radius: 8px;
+  overflow: hidden;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.11) 0 16%, transparent 16% 20%) 0 0 / 52px 100%,
+    linear-gradient(135deg, #19232f, #49334d);
+}
+
+.play {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  color: #111;
+  background: #f3f6f8;
+  transform: translate(-50%, -50%);
+}
+
+.video-preview i {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 12px;
+  height: 4px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--yellow) 48%, rgba(255, 255, 255, 0.24) 48%);
+}
