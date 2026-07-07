@@ -2005,7 +2005,10 @@ const EXPECTED_LEGACY_CANVAS_VISUAL_SELECTION_DRAW_SELECTORS = [
   "body[data-view=\"canvas\"] .canvas-drawing-preview.preview-pen",
   "body[data-view=\"canvas\"] .canvas-drawing-preview.preview-laser",
   "body[data-view=\"canvas\"] .canvas-drawing-preview.preview-laser .laser-trail-core",
-  "body[data-view=\"canvas\"] .canvas-drawing-preview.preview-laser .laser-trail-head"
+  "body[data-view=\"canvas\"] .canvas-drawing-preview.preview-laser .laser-trail-head",
+  "body[data-view=\"canvas\"] .canvas-eraser-stroke",
+  "body[data-view=\"canvas\"] .canvas-eraser-cursor",
+  "body[data-view=\"canvas\"] .node-card.eraser-marked"
 ];
 const EXPECTED_LEGACY_CANVAS_VISUAL_TEXT_EDITOR_SELECTORS = [
   "body[data-view=\"canvas\"] .node-text-tool",
@@ -2020,6 +2023,7 @@ const EXPECTED_LEGACY_CANVAS_VISUAL_SHAPE_TOOLBAR_SELECTORS = [
 ];
 const EXPECTED_LEGACY_CANVAS_VISUAL_TEXT_TOOLBAR_SELECTORS = [
   "body[data-view=\"canvas\"] .text-format-toolbar",
+  "body[data-view=\"canvas\"] .text-format-toolbar select:focus",
   "body[data-view=\"canvas\"] .text-color-picker"
 ];
 const EXPECTED_LEGACY_CANVAS_VISUAL_MEDIA_SELECTORS = [

@@ -36,6 +36,14 @@ body[data-view="canvas"] .text-color-picker {
 
 body[data-view="canvas"] .text-format-toolbar select {
   padding: 0 28px 0 12px;
+  outline: 0;
+}
+
+body[data-view="canvas"] .text-format-toolbar select:focus,
+body[data-view="canvas"] .text-format-toolbar select:focus-visible,
+body[data-view="canvas"] .text-color-picker:focus-within {
+  outline: 0;
+  box-shadow: inset 0 0 0 1px rgba(28, 35, 45, 0.08), 0 0 0 2px rgba(77, 143, 255, 0.16);
 }
 
 body[data-view="canvas"] .text-color-picker {
