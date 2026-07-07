@@ -113,7 +113,9 @@ export function restoreComposerAttachmentsForPromptFailure({
 }
 
 export function getChatPreviewDomSummaries(root = globalThis.document) {
-  return Array.from(root?.querySelectorAll?.(".chat-image-preview button") || []).map((button, index) => {
+  return Array.from(root?.querySelectorAll?.(".chat-image-preview button") || [])
+    .filter((button) => button.dataset?.canvasReference !== "true")
+    .map((button, index) => {
     const image = button.querySelector("img");
     return {
       index,

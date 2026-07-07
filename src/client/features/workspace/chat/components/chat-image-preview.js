@@ -29,12 +29,14 @@ export function getChatPreviewAttachmentFile(attachmentId = "") {
 export function renderChatImagePreviewList({
   container,
   files = [],
+  canvasReferences = [],
   escapeHtml,
   onRemove
 }) {
   if (!container) return;
   container.innerHTML = "";
-  container.classList.toggle("open", files.length > 0);
+  const visibleCanvasReferences = Array.from(canvasReferences || []).filter((item) => item?.src);
+  container.classList.toggle("open", files.length > 0 || visibleCanvasReferences.length > 0);
   const activeAttachmentIds = new Set();
   files.forEach((file, index) => {
     const attachmentId = getChatPreviewId(file);
@@ -53,6 +55,17 @@ export function renderChatImagePreviewList({
     item.dataset.attachmentSize = String(file?.size || 0);
     item.innerHTML = `<img src="${getChatPreviewUrl(file)}" alt="${escapeHtml(file.name)}" /><b>图${index + 1}</b><span aria-hidden="true">x</span>`;
     item.addEventListener("click", () => onRemove?.(index));
+    container.appendChild(item);
+  });
+  visibleCanvasReferences.forEach((reference, index) => {
+    const item = document.createElement("button");
+    item.type = "button";
+    item.title = reference.name || `Canvas reference ${index + 1}`;
+    item.dataset.canvasReference = "true";
+    item.dataset.attachmentName = reference.name || "";
+    item.dataset.attachmentType = "image";
+    item.dataset.attachmentSize = "0";
+    item.innerHTML = `<img src="${escapeHtml(reference.src)}" alt="${escapeHtml(reference.name || `Canvas reference ${index + 1}`)}" /><b>Ref ${index + 1}</b>`;
     container.appendChild(item);
   });
   for (const attachmentId of chatPreviewFilesById.keys()) {

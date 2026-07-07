@@ -243,6 +243,12 @@ assert(domSummaries[0].dataUrl === "data:image/png;base64, length=4", "DOM previ
 assert(domSummaries[1].name === "Reference 2", "DOM preview summary should fall back to indexed name");
 assert(domSummaries[1].hasBlob === true, "DOM preview summary should detect blob URLs");
 assert(domSummaries[1].size === 0, "DOM preview summary should default empty size to zero");
+assert(getChatPreviewDomSummaries(makePreviewRoot([
+  makePreviewButton({
+    imageSrc: "/uploads/canvas.png",
+    canvasReference: "true"
+  })
+])).length === 0, "DOM preview summary should skip selected canvas reference thumbnails");
 assert(getChatPreviewDomSummaries({ querySelectorAll: () => [] }).length === 0, "DOM preview summary should handle empty root");
 
 console.log("Prompt input utility checks passed.");
@@ -269,14 +275,16 @@ function makePreviewButton({
   attachmentType = "",
   attachmentSize = "",
   imageSrc = "",
-  imageAlt = ""
+  imageAlt = "",
+  canvasReference = ""
 } = {}) {
   return {
     dataset: {
       attachmentId,
       attachmentName,
       attachmentType,
-      attachmentSize
+      attachmentSize,
+      canvasReference
     },
     querySelector(selector) {
       if (selector !== "img") return null;

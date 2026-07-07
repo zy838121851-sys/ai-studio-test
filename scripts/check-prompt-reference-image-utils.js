@@ -2,6 +2,7 @@ import {
   collectReferenceImages,
   getSelectedImageReferenceCount,
   getSelectedImageReferenceNodes,
+  getSelectedImageReferencePreviews,
   imageSourceToDataUrl,
   inferMimeTypeFromDataUrl,
   readDomPreviewReferences,
@@ -127,6 +128,20 @@ assert(failedPreviewReferences.length === 0, "DOM preview references should skip
 assert(failedPreviewLogs.some((item) => item.label === "attachments.dom_preview_failed"), "DOM preview references should log preview failures");
 assert(failedPreviewLogs.at(-1).data.recoveredReferenceCount === 0, "DOM preview completion should report zero recovered references");
 
+const skippedCanvasPreviewReferences = await readDomPreviewReferences({
+  root: makePreviewRoot([
+    makePreviewButton({
+      canvasReference: "true",
+      imageSrc: "/uploads/canvas-selected.png"
+    })
+  ]),
+  getAttachmentFile: () => null,
+  imageSourceToDataUrlImpl: async () => {
+    throw new Error("canvas reference previews should be skipped");
+  }
+});
+assert(skippedCanvasPreviewReferences.length === 0, "DOM preview references should skip selected canvas reference thumbnails");
+
 const selectedRoot = makeSelectedImageRoot({
   title: "Canvas title",
   imageSource: "/uploads/selected.png"
@@ -176,6 +191,10 @@ const multiReferences = await readSelectedImageReferences(async (source) => {
   return `data:image/png;base64,${source.split("/").pop().replace(".png", "")}`;
 }, { root: multiSelectedRoot });
 assert(getSelectedImageReferenceCount(multiSelectedRoot) === 2, "Selected image count should include every selected image node");
+const multiPreviews = getSelectedImageReferencePreviews(multiSelectedRoot);
+assert(multiPreviews.length === 2, "Selected image previews should include every selected image node");
+assert(multiPreviews[0].src === "/uploads/first.png", "Selected image previews should preserve image source");
+assert(multiPreviews[1].name === "Second selected", "Selected image previews should preserve names");
 assert(multiReferences.length === 2, "Selected image references should include every selected canvas image");
 assert(multiReferences[0].name === "First selected", "Selected image references should keep active selection first");
 assert(multiReferences[1].name === "Second selected", "Selected image references should preserve additional selections");
@@ -380,14 +399,16 @@ function makePreviewButton({
   attachmentType = "",
   attachmentSize = "",
   imageSrc = "",
-  imageAlt = ""
+  imageAlt = "",
+  canvasReference = ""
 } = {}) {
   return {
     dataset: {
       attachmentId,
       attachmentName,
       attachmentType,
-      attachmentSize
+      attachmentSize,
+      canvasReference
     },
     querySelector(selector) {
       if (selector !== "img") return null;

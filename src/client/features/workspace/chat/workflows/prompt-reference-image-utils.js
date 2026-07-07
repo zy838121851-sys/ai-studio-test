@@ -125,7 +125,8 @@ export async function readDomPreviewReferences({
   imageSourceToDataUrlImpl = imageSourceToDataUrl,
   logDebug = () => {}
 } = {}) {
-  const items = Array.from(root?.querySelectorAll?.(".chat-image-preview button") || []);
+  const items = Array.from(root?.querySelectorAll?.(".chat-image-preview button") || [])
+    .filter((button) => button.dataset?.canvasReference !== "true");
   const references = [];
   for (const [index, button] of items.entries()) {
     const image = button.querySelector("img");
@@ -199,6 +200,14 @@ export function getSelectedImageReferenceNodes(root = globalThis.document) {
 
 export function getSelectedImageReferenceCount(root = globalThis.document) {
   return getSelectedImageReferenceNodes(root).length;
+}
+
+export function getSelectedImageReferencePreviews(root = globalThis.document) {
+  return getSelectedImageReferenceNodes(root).map((node, index, list) => ({
+    name: getSelectedImageNodeName(node, index, list.length),
+    src: getSelectedImageNodeSource(node),
+    source: "canvas-selection"
+  }));
 }
 
 export async function readSelectedImageReference(readImageSourceAsDataUrl, {

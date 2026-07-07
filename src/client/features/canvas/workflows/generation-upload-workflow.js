@@ -3,6 +3,9 @@ import {
   renderChatImagePreviewList
 } from "../../workspace/chat/components/chat-image-preview.js?v=20260627-chat-agent-2";
 import {
+  getSelectedImageReferencePreviews
+} from "../../workspace/chat/workflows/prompt-reference-image-utils.js";
+import {
   createGenerationChoiceOverlay,
   hideGenerationChoiceOverlay,
   showGenerationChoiceOverlay
@@ -55,6 +58,10 @@ export function createGenerationUploadWorkflow({
 
   let pendingUploadChoice = null;
   let generationOverlayState = null;
+
+  promptForm?.ownerDocument?.addEventListener?.("canvas:selection-changed", () => {
+    renderChatImagePreview();
+  });
 
   function getPendingUploadChoice() {
     return pendingUploadChoice;
@@ -167,6 +174,7 @@ export function createGenerationUploadWorkflow({
     renderChatImagePreviewList({
       container: chatImagePreview,
       files: getChatImageFiles(),
+      canvasReferences: getSelectedImageReferencePreviews(chatImagePreview?.ownerDocument || globalThis.document),
       escapeHtml,
       onRemove: (index) => {
         const chatImageFiles = getChatImageFiles();
