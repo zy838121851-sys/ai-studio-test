@@ -2761,6 +2761,8 @@ const EXPECTED_LEGACY_COMPACT_TOOL_RAIL_SELECTORS = [
 const EXPECTED_LEGACY_COMPACT_TOOL_RAIL_SHELL_SELECTORS = [
   ".tool-rail",
   ".rail-main",
+  "body[data-view=\"canvas\"] .tool-rail",
+  "body[data-view=\"canvas\"] .tool-rail .rail-main",
   ".rail-main-icon"
 ];
 const EXPECTED_LEGACY_COMPACT_TOOL_RAIL_ITEMS_SELECTORS = [
@@ -2769,6 +2771,12 @@ const EXPECTED_LEGACY_COMPACT_TOOL_RAIL_ITEMS_SELECTORS = [
   ".rail-btn.add",
   ".rail-btn.jump",
   ".rail-separator",
+  "body[data-view=\"canvas\"] .rail-items",
+  "body[data-view=\"canvas\"] .tool-rail:not(.collapsed) .rail-items",
+  "body[data-view=\"canvas\"] .rail-btn",
+  "body[data-view=\"canvas\"] .rail-btn svg",
+  "body[data-view=\"canvas\"] .rail-btn[data-tool=\"pen\"] svg",
+  "body[data-view=\"canvas\"] .rail-btn span",
   "body[data-view=\"canvas\"] .rail-btn:hover",
   "body[data-view=\"canvas\"] .shape-tool-group",
   "body[data-view=\"canvas\"] .pen-tool-group",

@@ -58,6 +58,22 @@
   transform: scale(1);
 }
 
+body[data-view="canvas"] .tool-rail {
+  width: 62px !important;
+  overflow: visible !important;
+}
+
+body[data-view="canvas"] .tool-rail .rail-main {
+  display: grid !important;
+  place-items: center !important;
+  width: 48px !important;
+  min-width: 48px !important;
+  height: 48px !important;
+  min-height: 48px !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+}
+
 .rail-main-icon path {
   transition: opacity 0.18s ease;
 }
