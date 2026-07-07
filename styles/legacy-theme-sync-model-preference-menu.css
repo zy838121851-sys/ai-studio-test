@@ -20,6 +20,87 @@
   top: calc(100% + 10px);
   bottom: auto;
   z-index: 2200;
+  width: min(420px, calc(100vw - 32px));
+  max-width: min(420px, calc(100vw - 32px));
+  max-height: min(430px, calc(100vh - 72px));
+}
+
+.home-model-menu.model-preference-menu .model-preference-panel {
+  padding: 14px 18px 12px;
+}
+
+.home-model-menu.model-preference-menu .model-preference-header {
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.home-model-menu.model-preference-menu .model-preference-header strong {
+  font-size: 19px;
+}
+
+.home-model-menu.model-preference-menu .model-preference-tabs {
+  margin-bottom: 14px;
+}
+
+.home-model-menu.model-preference-menu .model-preference-list {
+  max-height: min(286px, calc(100vh - 190px));
+}
+
+.home-model-menu.model-preference-menu .model-preference-option {
+  grid-template-columns: 24px minmax(0, 1fr) 20px;
+  gap: 8px;
+  align-items: start;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 12px 10px !important;
+  overflow: visible;
+}
+
+.home-model-menu.model-preference-menu .model-preference-body {
+  gap: 4px;
+}
+
+.home-model-menu.model-preference-menu .model-preference-title strong {
+  overflow: visible;
+  font-size: 15px;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.home-model-menu.model-preference-menu .model-preference-description {
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.home-model-menu.model-preference-menu .model-preference-tags {
+  gap: 4px;
+}
+
+.home-model-menu.model-preference-menu .model-preference-tags span {
+  min-height: 19px;
+  padding: 1px 6px;
+  font-size: 11px;
+}
+
+.home-model-menu.model-preference-menu .model-preference-default {
+  padding: 1px 5px;
+  font-size: 10px;
+}
+
+.home-model-menu.model-preference-menu .model-preference-icon {
+  width: 20px;
+  height: 20px;
+}
+
+.home-model-menu.model-preference-menu .model-preference-icon::before,
+.home-model-menu.model-preference-menu .model-preference-icon::after {
+  inset: 4px;
+  border-width: 2px;
+}
+
+.home-model-menu.model-preference-menu .model-preference-state {
+  width: 20px;
+  height: 20px;
 }
 
 .compact-select-menu.model-preference-menu {

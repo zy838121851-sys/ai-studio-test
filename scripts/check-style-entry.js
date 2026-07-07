@@ -1764,6 +1764,8 @@ const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_SELECTORS = [
 ];
 const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_MENU_SELECTORS = [
   ".home-model-menu.model-preference-menu",
+  ".home-model-menu.model-preference-menu .model-preference-panel",
+  ".home-model-menu.model-preference-menu .model-preference-option",
   ".compact-select-menu.model-preference-menu",
   ".compact-select-menu-portal.model-preference-menu",
   ".chat-model-menu .model-preference-panel",
