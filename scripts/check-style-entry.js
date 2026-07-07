@@ -2000,7 +2000,12 @@ const EXPECTED_LEGACY_CANVAS_VISUAL_SELECTION_DRAW_SELECTORS = [
   "body[data-view=\"canvas\"] .canvas-shape.selected .resize-handle",
   "body[data-view=\"canvas\"] .canvas-object.selected",
   "body[data-view=\"canvas\"] .draw-node",
-  "body[data-view=\"canvas\"] .draw-shape"
+  "body[data-view=\"canvas\"] .draw-shape",
+  "body[data-view=\"canvas\"] .canvas-drawing-preview",
+  "body[data-view=\"canvas\"] .canvas-drawing-preview.preview-pen",
+  "body[data-view=\"canvas\"] .canvas-drawing-preview.preview-laser",
+  "body[data-view=\"canvas\"] .canvas-drawing-preview.preview-laser .laser-trail-core",
+  "body[data-view=\"canvas\"] .canvas-drawing-preview.preview-laser .laser-trail-head"
 ];
 const EXPECTED_LEGACY_CANVAS_VISUAL_TEXT_EDITOR_SELECTORS = [
   "body[data-view=\"canvas\"] .node-text-tool",
@@ -2789,11 +2794,14 @@ const EXPECTED_LEGACY_COMPACT_TOOL_RAIL_ITEMS_SELECTORS = [
   "body[data-view=\"canvas\"] .shape-menu-section",
   "grid-template-columns: repeat(5, 34px)",
   "body[data-view=\"canvas\"] .shape-tool-menu button",
+  "body[data-view=\"canvas\"] .shape-tool-menu button.active",
   "body[data-view=\"canvas\"] .pen-tool-menu button",
   "backdrop-filter: blur(24px) saturate(1.4)"
 ];
 const EXPECTED_LEGACY_COMPACT_TOOL_RAIL_LIGHT_SELECTORS = [
-  "body[data-theme=\"light\"] .tool-rail"
+  "body[data-theme=\"light\"] .tool-rail",
+  "body[data-theme=\"light\"][data-view=\"canvas\"] .rail-btn",
+  "body[data-theme=\"light\"][data-view=\"canvas\"] .rail-btn.active"
 ];
 const EXPECTED_LEGACY_COMPACT_PROJECT_MENU_SELECTORS = [
   ".project-header",

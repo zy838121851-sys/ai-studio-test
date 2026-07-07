@@ -113,3 +113,87 @@ body[data-view="canvas"] .draw-pen .draw-shape svg {
   stroke: #050505 !important;
   stroke-width: 4 !important;
 }
+
+body[data-view="canvas"] .canvas-drawing-preview {
+  position: absolute;
+  z-index: 24;
+  pointer-events: none;
+  color: #17202c;
+  opacity: 0.86;
+}
+
+body[data-view="canvas"] .canvas-drawing-preview svg {
+  width: 100%;
+  height: 100%;
+  fill: rgba(255, 255, 255, 0.36);
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 12px 24px rgba(31, 46, 72, 0.1));
+}
+
+body[data-view="canvas"] .canvas-drawing-preview.preview-line svg,
+body[data-view="canvas"] .canvas-drawing-preview.preview-arrow svg,
+body[data-view="canvas"] .canvas-drawing-preview.preview-pen svg,
+body[data-view="canvas"] .canvas-drawing-preview.preview-laser svg {
+  fill: none;
+}
+
+body[data-view="canvas"] .canvas-drawing-preview.preview-pen {
+  color: #050505;
+}
+
+body[data-view="canvas"] .canvas-drawing-preview.preview-pen svg {
+  stroke-width: 4;
+}
+
+body[data-view="canvas"] .canvas-drawing-preview.preview-laser {
+  z-index: 80;
+  color: #ff3b30;
+  opacity: 1;
+}
+
+body[data-view="canvas"] .canvas-drawing-preview.preview-laser svg {
+  stroke: currentColor;
+  overflow: visible;
+  filter:
+    drop-shadow(0 0 5px rgba(255, 59, 48, 0.88))
+    drop-shadow(0 0 14px rgba(255, 59, 48, 0.36));
+}
+
+body[data-view="canvas"] .canvas-drawing-preview.preview-laser .laser-trail path,
+body[data-view="canvas"] .canvas-drawing-preview.preview-laser .laser-trail circle {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+body[data-view="canvas"] .canvas-drawing-preview.preview-laser .laser-trail-glow {
+  stroke: rgba(255, 59, 48, 0.64);
+}
+
+body[data-view="canvas"] .canvas-drawing-preview.preview-laser .laser-trail-core {
+  stroke: #ff2f25;
+}
+
+body[data-view="canvas"] .canvas-drawing-preview.preview-laser .laser-trail-head {
+  fill: rgba(255, 238, 226, 0.88);
+  stroke: rgba(255, 59, 48, 0.9);
+  stroke-width: 2.2;
+}
+
+@keyframes laserTrailFade {
+  0% {
+    opacity: 0.95;
+    filter: blur(0);
+  }
+  55% {
+    opacity: 0.38;
+  }
+  100% {
+    opacity: 0;
+    filter: blur(2px);
+  }
+}

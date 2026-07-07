@@ -35,6 +35,11 @@ export function initCanvasToolbar({
       if (button.dataset.tool === "pen") {
         root.querySelectorAll("[data-pen-tool]").forEach((item) => item.classList.toggle("active", item.dataset.penTool === "pen"));
       }
+      if (button.dataset.tool === "shape") {
+        root.querySelectorAll("[data-shape-tool]").forEach((item) => item.classList.toggle("active", item.dataset.shapeTool === "rect"));
+      } else {
+        root.querySelectorAll("[data-shape-tool]").forEach((item) => item.classList.remove("active"));
+      }
       if (typeof runCanvasTool === "function") {
         runCanvasTool(button.dataset.tool);
       } else {
@@ -47,6 +52,11 @@ export function initCanvasToolbar({
     button.addEventListener("click", (event) => {
       event.preventDefault();
       event.stopPropagation();
+      root.querySelectorAll("[data-shape-tool]").forEach((item) => item.classList.remove("active"));
+      button.classList.add("active");
+      if (typeof setActiveRailPanelButton === "function") {
+        setActiveRailPanelButton(root.querySelector('.rail-btn[data-tool="shape"]'), root);
+      }
       if (typeof setShapeTool === "function") {
         setShapeTool(button.dataset.shapeTool);
       } else {

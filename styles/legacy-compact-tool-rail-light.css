@@ -35,3 +35,21 @@ body[data-theme="light"] .rail-main {
 body[data-theme="light"] .rail-separator {
   background: rgba(24, 34, 48, 0.1) !important;
 }
+
+body[data-theme="light"][data-view="canvas"] .rail-btn,
+body[data-theme="light"][data-view="canvas"] .rail-btn.add,
+body[data-theme="light"][data-view="canvas"] .rail-btn.jump {
+  color: #17202c !important;
+  border: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+body[data-theme="light"][data-view="canvas"] .rail-btn:hover,
+body[data-theme="light"][data-view="canvas"] .rail-btn.active,
+body[data-theme="light"][data-view="canvas"] .rail-btn.add:hover,
+body[data-theme="light"][data-view="canvas"] .rail-btn.jump:hover {
+  color: #17202c !important;
+  background: rgba(218, 211, 255, 0.82) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 10px 24px rgba(94, 92, 230, 0.12) !important;
+}
