@@ -1,0 +1,20 @@
+.director-tile:hover {
+  border-color: rgba(245, 247, 250, 0.54);
+  background:
+    radial-gradient(circle at 24% 10%, rgba(255, 255, 255, 0.16), transparent 34%),
+    linear-gradient(145deg, rgba(62, 62, 62, 0.82), rgba(18, 18, 18, 0.72));
+  box-shadow:
+    0 18px 46px rgba(0, 0, 0, 0.3),
+    0 0 22px rgba(245, 247, 250, 0.24),
+    0 0 0 1px rgba(255, 255, 255, 0.08) inset;
+  transform: translateY(-2px);
+}
+
+.director-tile:hover::after {
+  opacity: 1;
+}
+
+.director-tile.running {
+  color: #9fb4ca;
+  cursor: wait;
+}

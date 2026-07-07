@@ -1,0 +1,23 @@
+.director-tile small {
+  color: rgba(245, 247, 250, 0.68);
+  font-size: 18px;
+  font-style: italic;
+}
+
+.director-tile span {
+  position: relative;
+  z-index: 1;
+  max-width: 7em;
+  color: rgba(245, 247, 250, 0.88);
+  font-size: 21px;
+  line-height: 1.28;
+}
+
+.director-tile b {
+  position: absolute;
+  right: 20px;
+  bottom: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 32px;
+  font-weight: 400;
+}

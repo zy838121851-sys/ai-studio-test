@@ -408,6 +408,11 @@ const EXPECTED_NODE_DIRECTOR_IMPORTS = [
   "./node-director-actions.css",
   "./node-director-tile.css"
 ];
+const EXPECTED_NODE_DIRECTOR_TILE_IMPORTS = [
+  "./node-director-tile-shell.css",
+  "./node-director-tile-state.css",
+  "./node-director-tile-content.css"
+];
 const EXPECTED_NODE_MEDIA_IMPORTS = [
   "./node-media-shell.css",
   "./node-media-video.css",
@@ -2374,14 +2379,23 @@ const EXPECTED_NODE_DIRECTOR_ACTIONS_SELECTORS = [
   ".director-actions"
 ];
 const EXPECTED_NODE_DIRECTOR_TILE_SELECTORS = [
+  "@import url(\"./node-director-tile-shell.css\")",
+  "@import url(\"./node-director-tile-state.css\")",
+  "@import url(\"./node-director-tile-content.css\")"
+];
+const EXPECTED_NODE_DIRECTOR_TILE_SHELL_SELECTORS = [
   ".director-tile",
-  ".director-tile::after",
+  ".director-tile::after"
+];
+const EXPECTED_NODE_DIRECTOR_TILE_STATE_SELECTORS = [
   ".director-tile:hover",
   ".director-tile:hover::after",
+  ".director-tile.running"
+];
+const EXPECTED_NODE_DIRECTOR_TILE_CONTENT_SELECTORS = [
   ".director-tile small",
   ".director-tile span",
-  ".director-tile b",
-  ".director-tile.running"
+  ".director-tile b"
 ];
 const EXPECTED_NODE_MEDIA_SHELL_SELECTORS = [
   "@import url(\"./node-media-shell-2d.css\")",
@@ -2951,6 +2965,7 @@ const nodeStackImports = parseCssImports("styles/features/node-stack.css");
 const nodeStackBaseImports = parseCssImports("styles/features/node-stack-base.css");
 const nodeStackTrayImports = parseCssImports("styles/features/node-stack-tray.css");
 const nodeDirectorImports = parseCssImports("styles/features/node-director.css");
+const nodeDirectorTileImports = parseCssImports("styles/features/node-director-tile.css");
 const nodeMediaImports = parseCssImports("styles/features/node-media.css");
 const nodeMediaShellImports = parseCssImports("styles/features/node-media-shell.css");
 const nodeMediaVideoImports = parseCssImports("styles/features/node-media-video.css");
@@ -3072,6 +3087,7 @@ assertListEqual("styles/features/node-stack.css", nodeStackImports, EXPECTED_NOD
 assertListEqual("styles/features/node-stack-base.css", nodeStackBaseImports, EXPECTED_NODE_STACK_BASE_IMPORTS);
 assertListEqual("styles/features/node-stack-tray.css", nodeStackTrayImports, EXPECTED_NODE_STACK_TRAY_IMPORTS);
 assertListEqual("styles/features/node-director.css", nodeDirectorImports, EXPECTED_NODE_DIRECTOR_IMPORTS);
+assertListEqual("styles/features/node-director-tile.css", nodeDirectorTileImports, EXPECTED_NODE_DIRECTOR_TILE_IMPORTS);
 assertListEqual("styles/features/node-media.css", nodeMediaImports, EXPECTED_NODE_MEDIA_IMPORTS);
 assertListEqual("styles/features/node-media-shell.css", nodeMediaShellImports, EXPECTED_NODE_MEDIA_SHELL_IMPORTS);
 assertListEqual("styles/features/node-media-video.css", nodeMediaVideoImports, EXPECTED_NODE_MEDIA_VIDEO_IMPORTS);
@@ -3190,6 +3206,7 @@ checkImportedFilesExist(nodeStackImports, "styles/features");
 checkImportedFilesExist(nodeStackBaseImports, "styles/features");
 checkImportedFilesExist(nodeStackTrayImports, "styles/features");
 checkImportedFilesExist(nodeDirectorImports, "styles/features");
+checkImportedFilesExist(nodeDirectorTileImports, "styles/features");
 checkImportedFilesExist(nodeMediaImports, "styles/features");
 checkImportedFilesExist(nodeMediaShellImports, "styles/features");
 checkImportedFilesExist(nodeMediaVideoImports, "styles/features");
@@ -3566,6 +3583,9 @@ checkFileContains("styles/features/node-director-shell.css", EXPECTED_NODE_DIREC
 checkFileContains("styles/features/node-director-head.css", EXPECTED_NODE_DIRECTOR_HEAD_SELECTORS);
 checkFileContains("styles/features/node-director-actions.css", EXPECTED_NODE_DIRECTOR_ACTIONS_SELECTORS);
 checkFileContains("styles/features/node-director-tile.css", EXPECTED_NODE_DIRECTOR_TILE_SELECTORS);
+checkFileContains("styles/features/node-director-tile-shell.css", EXPECTED_NODE_DIRECTOR_TILE_SHELL_SELECTORS);
+checkFileContains("styles/features/node-director-tile-state.css", EXPECTED_NODE_DIRECTOR_TILE_STATE_SELECTORS);
+checkFileContains("styles/features/node-director-tile-content.css", EXPECTED_NODE_DIRECTOR_TILE_CONTENT_SELECTORS);
 checkFileContains("styles/features/node-media-shell.css", EXPECTED_NODE_MEDIA_SHELL_SELECTORS);
 checkFileContains("styles/features/node-media-shell-2d.css", EXPECTED_NODE_MEDIA_SHELL_2D_SELECTORS);
 checkFileContains("styles/features/node-media-shell-dark.css", EXPECTED_NODE_MEDIA_SHELL_DARK_SELECTORS);

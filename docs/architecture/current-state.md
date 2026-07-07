@@ -676,7 +676,16 @@ Post-baseline CSS governance note:
   card depth shadows, drop target state, and stack toggle styles.
 - `styles/features/node-stack-tray.css` owns stack tray, row, thumbnail, title,
   and metadata styles.
-- `styles/features/node-director.css` owns director node styles.
+- `styles/features/node-director.css` is now a pure aggregation entry for
+  director shell, heading, actions, and tile submodules.
+- `styles/features/node-director-tile.css` is now a pure aggregation entry for
+  director tile shell, state, and content submodules.
+- `styles/features/node-director-tile-shell.css` owns director tile surface and
+  overlay pseudo-element styles.
+- `styles/features/node-director-tile-state.css` owns director tile hover and
+  running states.
+- `styles/features/node-director-tile-content.css` owns director tile small,
+  span, and icon text styles.
 - `styles/features/node-media.css` is now a pure aggregation entry for media
   shell, video preview, and media frame styles.
 - `styles/features/node-media-shell.css` owns 2D, 3D, image, model, video, and
