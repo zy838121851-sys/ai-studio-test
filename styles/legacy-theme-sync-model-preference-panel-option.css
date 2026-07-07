@@ -15,6 +15,14 @@
   text-align: left !important;
 }
 
+.home-model-menu.model-preference-menu .model-preference-option,
+.compact-select-menu.model-preference-menu .model-preference-option,
+.generator-select-menu.model-preference-menu .model-preference-option {
+  display: grid !important;
+  grid-template-columns: 32px minmax(0, 1fr) 24px;
+  align-items: center;
+}
+
 .model-preference-option:hover,
 .model-preference-option:focus-visible,
 .model-preference-option.selected,

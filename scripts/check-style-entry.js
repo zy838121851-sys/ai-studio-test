@@ -1795,6 +1795,7 @@ const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_LIST_SELECTORS = [
 ];
 const EXPECTED_LEGACY_THEME_SYNC_MODEL_PREFERENCE_PANEL_OPTION_SELECTORS = [
   ".model-preference-option",
+  ".home-model-menu.model-preference-menu .model-preference-option",
   ".model-preference-icon",
   ".model-preference-state",
   ".model-preference-option.selected .model-preference-state"
