@@ -173,6 +173,37 @@ try {
     message: "Conversation not found"
   });
 
+  const ownerRun = await requestStream(baseUrl, `/api/conversations/${conversationId}/runs`, {
+    method: "POST",
+    cookie: userA.cookie,
+    body: {
+      text: "keep this prompt unchanged",
+      model: "gpt-image-2",
+      attachments: [{
+        type: "image",
+        name: "reference.png",
+        source: "upload",
+        dataUrl: "data:image/png;base64,cmVm"
+      }]
+    }
+  });
+  assert(ownerRun.status === 200, "Owner should be able to run own conversation");
+  assert(ownerRun.events.some((event) => event.type === "message.done"), "Conversation run should emit message.done");
+  assert(
+    !ownerRun.events.some((event) => event.type === "image.analysis.start"),
+    "Conversation generation should skip image analysis while temporarily disabled"
+  );
+  assert(
+    !ownerRun.events.some((event) => event.type === "prompt.optimizer.start"),
+    "Conversation generation should skip prompt optimization while temporarily disabled"
+  );
+  const doneEvent = ownerRun.events.find((event) => event.type === "message.done");
+  assert(doneEvent.optimizedPrompt === "keep this prompt unchanged", "Disabled optimizer should preserve the original prompt");
+  assert(doneEvent.qwenVlMode === "disabled_for_generation", "Conversation run should report disabled image analysis mode");
+  assert(doneEvent.promptOptimizerMode === "disabled_for_generation", "Conversation run should report disabled optimizer mode");
+  assert(doneEvent.skippedOptimizer === true, "Conversation run should mark optimizer as skipped");
+  assert(doneEvent.imageAnalysis === null, "Conversation run should not produce image analysis while disabled");
+
   const otherList = await request(baseUrl, `/api/conversations?projectId=${projectA.id}`, { cookie: userB.cookie });
   assertErrorContract(otherList, {
     label: "cross-user conversation list",
@@ -255,6 +286,7 @@ function suppressRuntimeLogs() {
   const originalWarn = console.warn;
   console.debug = (...args) => {
     if (String(args[0] || "").startsWith("[conversation-stream]")) return;
+    if (String(args[0] || "").startsWith("[message.done]")) return;
     originalDebug(...args);
   };
   console.log = (...args) => {
@@ -351,5 +383,32 @@ async function request(baseUrl, path, {
     contentType: response.headers.get("content-type") || "",
     cookie: setCookie.split(";")[0],
     body: text ? JSON.parse(text) : null
+  };
+}
+
+async function requestStream(baseUrl, path, {
+  method = "GET",
+  cookie = "",
+  body
+} = {}) {
+  const headers = {};
+  if (cookie) headers.cookie = cookie;
+  if (body !== undefined) headers["content-type"] = "application/json";
+
+  const response = await fetch(`${baseUrl}${path}`, {
+    method,
+    headers,
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  const text = await response.text();
+  return {
+    status: response.status,
+    contentType: response.headers.get("content-type") || "",
+    text,
+    events: text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+      .map((line) => JSON.parse(line))
   };
 }

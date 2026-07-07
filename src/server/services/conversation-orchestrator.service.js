@@ -28,8 +28,8 @@ const PRODUCT_RENDER_RE = /(3d|3D|效果图|产品渲染|渲染图|材质|结构
 const STYLE_TRANSFER_RE = /(风格化|风格迁移|改成.*风格|换成.*风格|像.*一样|style transfer|in the style)/i;
 const CHAT_AGENT_CONFIG = {
   autoExecute: true,
-  qwenVlModeForGeneration: "required",
-  promptOptimizerModeForGeneration: "required",
+  qwenVlModeForGeneration: "disabled_for_generation",
+  promptOptimizerModeForGeneration: "disabled_for_generation",
   intentTimeoutMs: 2000,
   imageAnalysisTimeoutMs: 5000,
   promptOptimizerTimeoutMs: 4000,
@@ -796,8 +796,8 @@ export async function runConversationTurn({
     attachments: cleanAttachments
   });
   const promptStrategy = shouldGenerate ? getPromptStrategy(taskType).name : "";
-  const qwenVlMode = QWEN_VL_MODE.required;
-  const promptOptimizerMode = PROMPT_OPTIMIZER_MODE.lightweight;
+  const qwenVlMode = CHAT_AGENT_CONFIG.qwenVlModeForGeneration;
+  const promptOptimizerMode = CHAT_AGENT_CONFIG.promptOptimizerModeForGeneration;
   const toolCalls = [];
   let imageAnalysis = null;
   let imageAnalysisError = "";
@@ -815,7 +815,7 @@ export async function runConversationTurn({
   let totalBudgetExceeded = false;
   const firstImage = getFirstImageAttachment(cleanAttachments);
   const needsImageAnalysis = false;
-  const shouldAnalyzeImage = Boolean(firstImage?.dataUrl);
+  const shouldAnalyzeImage = qwenVlMode !== QWEN_VL_MODE.disabledForGeneration && Boolean(firstImage?.dataUrl);
   const decisionSummary = summarizeDecision({
     intent,
     taskType,
@@ -1023,6 +1023,18 @@ export async function runConversationTurn({
       modelType,
       attachments: cleanAttachments
     });
+    if (promptOptimizerMode === PROMPT_OPTIMIZER_MODE.disabledForGeneration) {
+      optimizedPrompt = fallbackPrompt;
+      promptSummary = "Prompt optimization skipped; using the original prompt.";
+      skippedOptimizer = true;
+      strategyTags = getWeakStrategyTags({
+        text: cleanText,
+        taskType,
+        modelType,
+        attachments: cleanAttachments
+      });
+    }
+    if (!optimizedPrompt) {
     thinkingSteps = appendThinkingStatus(thinkingSteps, "prompt", "active", "正在根据图片分析和上下文优化提示词");
     emit({ type: "thinking.step", messageId: assistantMessage.id, steps: thinkingSteps });
     emit({
@@ -1098,7 +1110,8 @@ export async function runConversationTurn({
         error: optimizerError
       });
     }
-    skippedOptimizer = false;
+    }
+    skippedOptimizer = promptOptimizerMode === PROMPT_OPTIMIZER_MODE.disabledForGeneration;
     totalBudgetExceeded = false;
     thinkingSteps = appendThinkingStatus(thinkingSteps, "prompt", "done", usedConservativeFallback ? "已保守处理" : "完成");
     emit({
