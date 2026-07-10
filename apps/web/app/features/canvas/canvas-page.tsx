@@ -7,6 +7,7 @@ import { Link, useParams, useSearchParams } from "react-router";
 import { ApiClientError } from "../../lib/api-client.js";
 import { useCanvasJobQuery, useCanvasProjectQuery } from "./canvas-api.js";
 import { useCanvasReceiverStore } from "./canvas-store.js";
+import { CanvasAdapter } from "./canvas-adapter.js";
 
 import "./canvas.css";
 
@@ -82,9 +83,7 @@ export function CanvasPage() {
 
       <section className="canvas-receiver__surface" aria-label="项目画布">
         <div className="canvas-receiver__document">
-          {(document?.nodes ?? []).map((node) => (
-            <CanvasNodeView key={node.id} node={node} job={job} />
-          ))}
+          {document ? <CanvasAdapter document={document} job={job} /> : null}
           {document && document.nodes.length === 0 ? (
             <p className="canvas-receiver__empty">空白画布</p>
           ) : null}
@@ -94,6 +93,8 @@ export function CanvasPage() {
   );
 }
 
+// Kept as the legacy-compatible renderer reference while the adapter rolls out.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function CanvasNodeView({ node, job }: { node: CanvasNode; job: AiJobDto | undefined }) {
   const fitted = fitCanvasNodeSize(node.width, node.height);
   const style = {

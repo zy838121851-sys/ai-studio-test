@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "4",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-4.6-react-canvas-adapter",
+  "nextWorkPackage": "WP-4.7-canvas-performance-gate",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -29,13 +29,14 @@
     "WP-4.2-viewport-coordinate-system",
     "WP-4.3-command-history",
     "WP-4.4-selection-model",
-    "WP-4.5-drag-resize"
+    "WP-4.5-drag-resize",
+    "WP-4.6-react-canvas-adapter"
   ],
-  "lastCompletedWorkPackage": "WP-4.5-drag-resize",
+  "lastCompletedWorkPackage": "WP-4.6-react-canvas-adapter",
   "lastVerification": {
-    "workPackage": "WP-4.5-drag-resize",
+    "workPackage": "WP-4.6-react-canvas-adapter",
     "commands": [
-      "npm run governance:verify -- WP-4.5-drag-resize"
+      "npm run governance:verify -- WP-4.6-react-canvas-adapter"
     ],
     "result": "passed-with-local-infrastructure-blocker",
     "verifiedAt": "2026-07-11"
@@ -107,6 +108,7 @@
     "Canvas command history now provides bounded reversible document commands, project identity protection, and redo-branch invalidation without UI integration.",
     "Canvas selection now supports single, additive, marquee, clear, and focus-safe reconciliation without UI integration.",
     "Canvas transforms now provide pointer-delta movement and minimum-safe resize for selected nodes without UI integration or decorative path animation.",
+    "The rewrite Canvas adapter now renders engine nodes with granular selection and pointerup command commits; high-frequency pointermove avoids full React tree updates and Legacy remains untouched.",
     "Stage 3.5 builds fail-closed SaaS provider, commercial, and compliance foundations before full canvas migration.",
     "The legacy runtime remains the default and is unchanged."
   ]
