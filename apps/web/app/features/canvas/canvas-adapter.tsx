@@ -2,6 +2,7 @@ import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react"
 import {
   moveNodes,
   selectNode,
+  updateTextNode,
   type CanvasDocument,
   type CanvasNode,
   type SelectionState
@@ -88,6 +89,7 @@ export function CanvasAdapter({
             else nodesRef.current.delete(node.id);
           }}
           onPointerDown={onPointerDown}
+          onTextCommit={(nodeId, text) => setDocument({ ...document, nodes: document.nodes.map((candidate) => candidate.id === nodeId && candidate.kind === "text" ? updateTextNode(candidate, { text }) : candidate) })}
         />
       ))}
     </div>
@@ -100,12 +102,14 @@ function CanvasAdapterNode({
   selected,
   register,
   onPointerDown
+  , onTextCommit
 }: {
   node: CanvasNode;
   job: AiJobDto | undefined;
   selected: boolean;
   register: (element: HTMLElement | null) => void;
   onPointerDown: (event: ReactPointerEvent<HTMLElement>, nodeId: string) => void;
+  onTextCommit: (nodeId: string, text: string) => void;
 }) {
   const scale = Math.min(1, 640 / Math.max(node.width, node.height));
   const style = {
@@ -126,6 +130,8 @@ function CanvasAdapterNode({
         <img src={node.sourceUrl} alt={node.alt} draggable={false} />
       </figure>
     );
+  if (node.kind === "text") return <div ref={register} className={`canvas-text-node${selected ? " is-selected" : ""}`} style={{ ...style, color: node.color, fontFamily: node.fontFamily, fontSize: node.fontSize, fontWeight: node.fontWeight === "regular" ? 400 : node.fontWeight === "medium" ? 500 : 700, textAlign: node.align }} contentEditable suppressContentEditableWarning onBlur={(event) => onTextCommit(node.id, event.currentTarget.textContent ?? "")} onPointerDown={(event) => onPointerDown(event, node.id)}>{node.text}</div>;
+  if (node.kind !== "pending-image") return null;
   const failed = job?.id === node.jobId && job.status === "failed";
   return (
     <article

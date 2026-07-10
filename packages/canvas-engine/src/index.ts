@@ -1,6 +1,7 @@
 import { SHAPE_REGISTRY, type CanvasArrowNode, type CanvasShapeNode } from "./shapes.js";
+import type { CanvasTextNode } from "./text.js";
 
-export type CanvasNode = CanvasImageNode | CanvasPendingImageNode | CanvasShapeNode | CanvasArrowNode;
+export type CanvasNode = CanvasImageNode | CanvasPendingImageNode | CanvasShapeNode | CanvasArrowNode | CanvasTextNode;
 
 export type { CanvasNodeDefinition, CanvasNodeKind, CanvasSnapshotMigration } from "./document-registry.js";
 
@@ -95,6 +96,7 @@ export * from "./history.js";
 export * from "./selection.js";
 export * from "./transforms.js";
 export * from "./shapes.js";
+export * from "./text.js";
 
 export function fitCanvasNodeSize(
   width: number,
@@ -138,6 +140,19 @@ function normalizeCanvasNode(value: unknown): CanvasNode | null {
   if (value.kind === "arrow" && arrowValues.every(isFiniteNumber)) {
     const [startX, startY, endX, endY] = arrowValues as [number, number, number, number];
     return { ...base, kind: "arrow", startX, startY, endX, endY };
+  }
+
+  if (value.kind === "text" && typeof value.text === "string") {
+    return {
+      ...base,
+      kind: "text",
+      text: value.text,
+      fontFamily: typeof value.fontFamily === "string" ? value.fontFamily : "Inter",
+      fontSize: isPositiveFiniteNumber(value.fontSize) ? value.fontSize : 32,
+      fontWeight: value.fontWeight === "bold" || value.fontWeight === "medium" ? value.fontWeight : "regular",
+      color: typeof value.color === "string" ? value.color : "#1b2330",
+      align: value.align === "center" || value.align === "right" ? value.align : "left"
+    };
   }
 
   return null;

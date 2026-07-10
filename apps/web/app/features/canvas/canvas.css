@@ -127,6 +127,9 @@
   cursor: grabbing;
 }
 
+.canvas-text-node { position: absolute; overflow: hidden; padding: 8px; border: 1px solid transparent; border-radius: 6px; line-height: 1.2; white-space: pre-wrap; outline: none; cursor: text; }
+.canvas-text-node.is-selected { border-color: #3478f6; box-shadow: 0 0 0 2px rgb(52 120 246 / 20%); }
+
 .canvas-result-node img {
   display: block;
   width: 100%;

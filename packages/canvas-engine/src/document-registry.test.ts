@@ -19,7 +19,7 @@ describe("canvas document registry", () => {
       ]
     }, "project-1");
 
-    expect(Object.keys(CANVAS_NODE_REGISTRY)).toEqual(["image", "pending-image"]);
+    expect(Object.keys(CANVAS_NODE_REGISTRY)).toEqual(["image", "pending-image", "shape", "arrow", "text"]);
     expect(serializeCanvasDocument(document).nodes).toHaveLength(1);
   });
 
