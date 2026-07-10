@@ -668,6 +668,32 @@ export function createImageGeneratorWorkflow({
     }).filter(Boolean);
   }
 
+  async function finalizeGeneratedImageNode(sourceNode, createdNode, {
+    sourceUrl = "",
+    prompt = "",
+    model = "",
+    dimensions = {},
+    width = 0
+  } = {}) {
+    if (!createdNode) return null;
+    applyGeneratedImageNodeSize(createdNode, { width, dimensions });
+    const displayUrl = await persistGeneratorResult({
+      node: createdNode,
+      sourceUrl,
+      prompt,
+      model
+    });
+    applyPersistedGeneratedImageNodeResult(createdNode, {
+      displayUrl,
+      sourceUrl,
+      prompt,
+      model,
+      dimensions,
+      sourceNode
+    });
+    return createdNode;
+  }
+
   async function addGeneratedImageBesideGenerator(node, {
     sourceUrl = "",
     prompt = "",
@@ -685,26 +711,13 @@ export function createImageGeneratorWorkflow({
       x: placement.x,
       y: placement.y
     }));
-    if (!createdNode) return null;
-    applyGeneratedImageNodeSize(createdNode, {
-      width: placement.width,
-      dimensions
-    });
-    const displayUrl = await persistGeneratorResult({
-      node: createdNode,
-      sourceUrl,
-      prompt,
-      model
-    });
-    applyPersistedGeneratedImageNodeResult(createdNode, {
-      displayUrl,
+    return finalizeGeneratedImageNode(node, createdNode, {
       sourceUrl,
       prompt,
       model,
-      dimensions,
-      sourceNode: node
+      width: placement.width,
+      dimensions
     });
-    return createdNode;
   }
 
   async function replaceGeneratorWithImageNode(node, {
@@ -724,28 +737,17 @@ export function createImageGeneratorWorkflow({
       x: placement.x,
       y: placement.y
     }));
-    if (!createdNode) return null;
-    applyGeneratedImageNodeSize(createdNode, {
-      width: placement.width,
-      dimensions
-    });
-    const displayUrl = await persistGeneratorResult({
-      node: createdNode,
-      sourceUrl,
-      prompt,
-      model
-    });
-    applyPersistedGeneratedImageNodeResult(createdNode, {
-      displayUrl,
+    const finalizedNode = await finalizeGeneratedImageNode(node, createdNode, {
       sourceUrl,
       prompt,
       model,
-      dimensions,
-      sourceNode: node
+      width: placement.width,
+      dimensions
     });
+    if (!finalizedNode) return null;
     hideGeneratorPopover();
     if (node.isConnected) node.remove();
-    return createdNode;
+    return finalizedNode;
   }
 
   async function handleDrop(node, dataTransfer) {
