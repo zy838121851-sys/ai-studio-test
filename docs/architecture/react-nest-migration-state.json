@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "3.5",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-3.5.5-payment-provider-contracts",
+  "nextWorkPackage": "WP-3.5.6-commercial-pages",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -21,13 +21,14 @@
     "WP-3.5.1-capability-registry",
     "WP-3.5.2-identity-provider-seams",
     "WP-3.5.3-moderation-notification-audit",
-    "WP-3.5.4-billing-domain-foundation"
+    "WP-3.5.4-billing-domain-foundation",
+    "WP-3.5.5-payment-provider-contracts"
   ],
-  "lastCompletedWorkPackage": "WP-3.5.4-billing-domain-foundation",
+  "lastCompletedWorkPackage": "WP-3.5.5-payment-provider-contracts",
   "lastVerification": {
-    "workPackage": "WP-3.5.4-billing-domain-foundation",
+    "workPackage": "WP-3.5.5-payment-provider-contracts",
     "commands": [
-      "npm run governance:verify -- WP-3.5.4-billing-domain-foundation"
+      "npm run governance:verify -- WP-3.5.5-payment-provider-contracts"
     ],
     "result": "passed-with-local-infrastructure-blocker",
     "verifiedAt": "2026-07-11"
@@ -35,7 +36,8 @@
   "deferredExternalWorkPackages": [
     "WP-3.5.2-identity-provider-seams",
     "WP-3.5.3-moderation-notification-audit",
-    "WP-3.5.4-billing-domain-foundation"
+    "WP-3.5.4-billing-domain-foundation",
+    "WP-3.5.5-payment-provider-contracts"
   ],
   "cutoverAllowed": false,
   "blockers": [
@@ -90,6 +92,7 @@
     "Identity provider contracts use deterministic development implementations and production fail-closed placeholders; real provider delivery, OAuth callbacks, and live verification remain deferred.",
     "Moderation, notification, and audit records now have workspace-scoped PostgreSQL persistence, idempotency keys, retry timestamps, and worker recovery seams; real external providers remain deferred.",
     "Billing domain foundation now defines integer-fen money, explicit order/payment/subscription state machines, and durable catalog/order/payment/subscription/entitlement/refund/invoice/event tables; merchant integrations remain deferred.",
+    "Payment provider contracts now fail closed in production and cover checkout, query, refund, renewal mandate, webhook signature verification, and provider-scoped replay protection; merchant credentials remain deferred.",
     "Stage 3.5 builds fail-closed SaaS provider, commercial, and compliance foundations before full canvas migration.",
     "The legacy runtime remains the default and is unchanged."
   ]

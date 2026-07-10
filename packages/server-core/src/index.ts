@@ -2,6 +2,7 @@ export * from "./application/application-error.js";
 export * from "./application/auth-context.js";
 export * from "./capabilities/capability-registry.js";
 export * from "./billing/billing-domain.js";
+export * from "./billing/payment-providers.js";
 export * from "./config/rewrite-config.js";
 export * from "./compliance/compliance-providers.js";
 export * from "./compliance/compliance-service.js";
