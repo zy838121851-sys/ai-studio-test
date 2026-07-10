@@ -61,6 +61,30 @@ copy. It never reads or writes the configured production database.
 Do not merge uploads from unrelated backup timestamps during a database
 restore. Keep the pre-restore rollback copies until application checks pass.
 
+## Audit Upload Integrity
+
+Run the read-only inventory against the configured database and upload path:
+
+```bash
+npm run db:uploads-audit
+```
+
+The report distinguishes:
+
+- `orphan`: a disk file with no persisted database reference;
+- `missing`: a local upload reference with no corresponding disk file;
+- `unsafe`: a malformed or traversal-like upload reference requiring review.
+
+References are collected conservatively from every server-side persisted
+text/JSON column, including snapshots, chat attachments, AI job payloads,
+thumbnails, and asset file records. External CDN URLs are excluded. The command
+never deletes files. Output defaults to the first 25 entries per category; add
+`--all` for the complete inventory. Use
+`npm run db:uploads-audit -- --strict` when a deployment gate should fail on any
+finding. Never delete an orphan candidate without a fresh backup and manual
+reference review, especially while legacy browser-local project data may still
+exist.
+
 ## Railway Notes
 
 - `DB_PATH=/data/ai-studio.sqlite`

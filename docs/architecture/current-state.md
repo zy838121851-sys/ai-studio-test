@@ -802,6 +802,8 @@ Already present:
 - Health endpoint with database integrity information.
 - SQLite online backup and isolated restore-drill tooling for the current
   single-instance deployment phase.
+- Read-only upload integrity auditing across persisted text/JSON references and
+  the configured upload directory; no automatic orphan deletion.
 - Production environment checks for base URL, mock provider flags, Railway
   volume paths, DB path, and upload path.
 - Basic security headers and protected upload serving.
