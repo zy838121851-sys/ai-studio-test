@@ -13,13 +13,15 @@ function assertIncludes(source, text, message) {
 }
 
 const workflow = read("src/client/features/canvas/workflows/image-generator-workflow.js");
+const recoveryWorkflow = read("src/client/features/canvas/workflows/image-generator-recovery-workflow.js");
+const workflowCopySurface = `${workflow}\n${recoveryWorkflow}`;
 const previewJobUtils = read("src/client/features/canvas/workflows/image-generator-preview-job-utils.js");
 
 [
   "鍥惧儚",
   "澶辫触"
 ].forEach((text) => {
-  assert(!workflow.includes(text), `image generator workflow copy must not contain mojibake: ${text}`);
+  assert(!workflowCopySurface.includes(text), `image generator workflow copy must not contain mojibake: ${text}`);
 });
 
 [
@@ -29,7 +31,7 @@ const previewJobUtils = read("src/client/features/canvas/workflows/image-generat
   "生成失败：${error.message}",
   "图像生成失败：${error.message}"
 ].forEach((text) => {
-  assertIncludes(workflow, text, `image generator workflow copy must preserve: ${text}`);
+  assertIncludes(workflowCopySurface, text, `image generator workflow copy must preserve: ${text}`);
 });
 
 [

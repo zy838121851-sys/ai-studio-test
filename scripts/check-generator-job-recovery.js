@@ -92,6 +92,7 @@ const generatorResultUtils = read("src/client/features/canvas/workflows/image-ge
 const generatorJobPollingUtils = read("src/client/features/canvas/workflows/image-generator-job-polling-utils.js");
 const generatorPreviewJobUtils = read("src/client/features/canvas/workflows/image-generator-preview-job-utils.js");
 const generatorPreviewReplacementUtils = read("src/client/features/canvas/workflows/image-generator-preview-replacement-utils.js");
+const generatorRecoveryWorkflow = read("src/client/features/canvas/workflows/image-generator-recovery-workflow.js");
 const generatorDomStateUtils = read("src/client/features/canvas/workflows/image-generator-dom-state-utils.js");
 const generatorControlStateUtils = read("src/client/features/canvas/workflows/image-generator-control-state-utils.js");
 const generatorSelectUtils = read("src/client/features/canvas/workflows/image-generator-select-utils.js");
@@ -100,7 +101,7 @@ const generatorRunContextUtils = read("src/client/features/canvas/workflows/imag
 assert(
   generatorWorkflow.includes("onJobCreated")
     && generatorWorkflow.includes("tagGeneratorPreviewJobs")
-    && generatorWorkflow.includes("replaceRecoveredGeneratorPreview")
+    && generatorRecoveryWorkflow.includes("replaceRecoveredGeneratorPreview")
     && generatorPreviewReplacementUtils.includes("export function replaceRecoveredGeneratorPreview")
     && generatorPreviewReplacementUtils.includes("getRecoveredGeneratorPreviewReplacementMeta")
     && generatorPreviewJobUtils.includes("getRecoveredGeneratorPreviewUrl")
@@ -108,7 +109,7 @@ assert(
     && generatorWorkflow.includes("getGeneratorPreviewNodeWidth as getPreviewNodeWidth")
     && generatorWorkflow.includes("getGeneratedImagePlacement")
     && generatorWorkflow.includes("getGeneratorReplacementPlacement")
-    && generatorWorkflow.includes("buildRecoveredGeneratorPreviewItems")
+    && generatorRecoveryWorkflow.includes("buildRecoveredGeneratorPreviewItems")
     && generatorControlStateUtils.includes("export function getGeneratorBatchCount")
     && generatorWorkflow.includes("readGeneratorReferenceFromImageNode")
     && generatorWorkflow.includes("readGeneratorReferenceFiles")

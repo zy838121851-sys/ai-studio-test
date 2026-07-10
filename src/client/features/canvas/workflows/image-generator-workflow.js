@@ -13,7 +13,6 @@ import {
   getGeneratorResultTitle,
   getRequiredGeneratorResultUrl,
   getRequiredGeneratorResultUrls,
-  getResultImageUrls,
   parseGeneratorResult,
   shouldUseImmediateGeneratorResult
 } from "./image-generator-result-utils.js";
@@ -28,18 +27,15 @@ import {
   buildGeneratorImagePreviewReplacementOptions,
   buildGeneratorVideoPreviewReplacementOptions,
   ensureGeneratorPreviewReplacement,
-  replaceGeneratorImagePreviewNode,
-  replaceRecoveredGeneratorPreview
+  replaceGeneratorImagePreviewNode
 } from "./image-generator-preview-replacement-utils.js";
 import {
   applyGeneratorPreviewBatchMetadata,
   applyGeneratorPreviewDimensions,
   buildGeneratorPreviewJobMeta,
-  buildRecoveredGeneratorPreviewItems,
   getGeneratorPreviewDescription,
   getGeneratorPreviewNodeWidth as getPreviewNodeWidth,
   getGeneratorProgressStatusText,
-  getPendingGeneratorPreviewGroups,
   markGeneratorPreviewFailed,
   tagGeneratorPreviewJobs,
   updateGeneratorPreviewStatus as updatePreviewStatus
@@ -107,6 +103,7 @@ import {
   GENERATOR_SELECTOR,
   MIDJOURNEY_IMAGE_COUNT
 } from "./image-generator-workflow-constants.js";
+import { createImageGeneratorRecoveryWorkflow } from "./image-generator-recovery-workflow.js";
 
 let canvasViewportEventsModulePromise = null;
 
@@ -160,6 +157,12 @@ export function createImageGeneratorWorkflow({
       addReferenceFilesToGenerator: () => Promise.resolve([])
     };
   }
+
+  const resumePendingGeneratorPreviews = createImageGeneratorRecoveryWorkflow({
+    root: canvasWorld.ownerDocument || globalThis.document,
+    replacePreviewWithImage,
+    saveCurrentProjectAfterGeneration
+  });
 
   const popover = getGeneratorPopover();
   initGeneratorCustomSelects();
@@ -663,52 +666,6 @@ export function createImageGeneratorWorkflow({
       }
       return previewNode;
     }).filter(Boolean);
-  }
-
-  function resumePendingGeneratorPreviews() {
-    const root = canvasWorld?.ownerDocument || globalThis.document;
-    const groups = getPendingGeneratorPreviewGroups(root);
-    if (!groups.size) return;
-    groups.forEach((nodes, jobId) => resumeGeneratorPreviewGroup(jobId, nodes));
-  }
-
-  function resumeGeneratorPreviewGroup(jobId, nodes = []) {
-    nodes.forEach((node) => {
-      node.dataset.generatorResuming = "true";
-      updatePreviewStatus(node, "正在恢复生成结果...");
-    });
-    waitForImageGenerationJob(jobId, {
-      attempts: 20,
-      delayMs: 1500,
-      fallback: { jobId },
-      onProgress: (payload) => {
-        nodes.forEach((node) => updatePreviewStatus(node, getGeneratorProgressStatusText(payload?.progress, {
-          idleText: "正在恢复生成结果...",
-          activeText: "正在恢复生成结果"
-        })));
-      }
-    }).then((result) => {
-      completeRecoveredGeneratorPreviewGroup(jobId, nodes, result);
-    }).catch((error) => {
-      nodes.forEach((node) => {
-        delete node.dataset.generatorResuming;
-        if (node.isConnected) markGeneratorPreviewFailed(node, error);
-      });
-    });
-  }
-
-  function completeRecoveredGeneratorPreviewGroup(jobId, nodes = [], result = {}) {
-    const urls = getResultImageUrls(result);
-    buildRecoveredGeneratorPreviewItems(nodes, { jobId, result, urls }).forEach((item) => replaceRecoveredGeneratorPreview(item.previewNode, {
-      jobId: item.jobId,
-      result: item.result,
-      url: item.url,
-      index: item.index,
-      count: item.count,
-      replacePreviewWithImage
-    }));
-    window.dispatchEvent(new CustomEvent("ai-studio-credits-refresh"));
-    saveCurrentProjectAfterGeneration?.();
   }
 
   async function addGeneratedImageBesideGenerator(node, {
