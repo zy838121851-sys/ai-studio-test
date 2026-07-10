@@ -1135,7 +1135,9 @@
         "mode": "none"
       },
       "verificationTier": "stage-gate",
-      "verificationCommands": [],
+      "verificationCommands": [
+        "npm run test:e2e --workspace @ai-studio/web"
+      ],
       "visualDeltaIds": []
     },
     {

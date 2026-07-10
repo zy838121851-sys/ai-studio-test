@@ -56,7 +56,7 @@ export default function CommercialRoute() {
       <div className="commercial-shell">
         <aside className="commercial-nav" aria-label="Account navigation">
           <Link className={location.pathname === "/pricing" ? "is-active" : ""} to="/pricing">
-            <Sparkles size={17} aria-hidden="true" /> Upgrade
+            <Sparkles size={18} aria-hidden="true" /> Upgrade
           </Link>
           {navItems.map(([href, label]) => (
             <Link className={location.pathname === href ? "is-active" : ""} to={href} key={href}>
@@ -68,7 +68,7 @@ export default function CommercialRoute() {
           <div className="commercial-heading">
             <span className="commercial-eyebrow">{page.eyebrow}</span>
             <h1 id="commercial-title">
-              <Icon size={24} aria-hidden="true" />
+              <Icon size={20} aria-hidden="true" />
               {page.title}
             </h1>
             <p>
@@ -121,7 +121,7 @@ function Pricing() {
           <ul>
             {plan.items.map((item) => (
               <li key={item}>
-                <BadgeCheck size={15} aria-hidden="true" />
+                <BadgeCheck size={16} aria-hidden="true" />
                 {item}
               </li>
             ))}

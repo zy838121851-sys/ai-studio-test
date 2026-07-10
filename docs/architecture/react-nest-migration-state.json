@@ -3,9 +3,9 @@
   "program": "react-nest-rewrite",
   "catalogVersion": 2,
   "programStatus": "active",
-  "activeStage": "4",
+  "activeStage": "5",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-4.7-canvas-performance-gate",
+  "nextWorkPackage": "WP-5.1-tool-rail",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -30,13 +30,14 @@
     "WP-4.3-command-history",
     "WP-4.4-selection-model",
     "WP-4.5-drag-resize",
-    "WP-4.6-react-canvas-adapter"
+    "WP-4.6-react-canvas-adapter",
+    "WP-4.7-canvas-performance-gate"
   ],
-  "lastCompletedWorkPackage": "WP-4.6-react-canvas-adapter",
+  "lastCompletedWorkPackage": "WP-4.7-canvas-performance-gate",
   "lastVerification": {
-    "workPackage": "WP-4.6-react-canvas-adapter",
+    "workPackage": "WP-4.7-canvas-performance-gate",
     "commands": [
-      "npm run governance:verify -- WP-4.6-react-canvas-adapter"
+      "npm run governance:verify -- WP-4.7-canvas-performance-gate"
     ],
     "result": "passed-with-local-infrastructure-blocker",
     "verifiedAt": "2026-07-11"
@@ -77,8 +78,8 @@
     "2": "in-progress",
     "3": "completed",
     "3.5": "completed",
-    "4": "in-progress",
-    "5": "not-started",
+    "4": "completed",
+    "5": "in-progress",
     "6": "not-started",
     "7": "not-started",
     "8": "not-started",
@@ -109,6 +110,7 @@
     "Canvas selection now supports single, additive, marquee, clear, and focus-safe reconciliation without UI integration.",
     "Canvas transforms now provide pointer-delta movement and minimum-safe resize for selected nodes without UI integration or decorative path animation.",
     "The rewrite Canvas adapter now renders engine nodes with granular selection and pointerup command commits; high-frequency pointermove avoids full React tree updates and Legacy remains untouched.",
+    "Canvas Stage 4 now has a 500-node selection/transform benchmark and rewrite Playwright gate; the next package starts Stage 5 tool-rail migration.",
     "Stage 3.5 builds fail-closed SaaS provider, commercial, and compliance foundations before full canvas migration.",
     "The legacy runtime remains the default and is unchanged."
   ]
