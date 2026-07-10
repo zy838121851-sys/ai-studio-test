@@ -2,7 +2,12 @@ import {
   createLocalAuditLogger,
   sanitizeAuditDetail
 } from "../src/server/providers/audit/local-audit-logger.js";
-import { getDefaultAuditLogger, recordAuditEvent } from "../src/server/services/audit.service.js";
+import {
+  getDefaultAuditLogger,
+  recordAuditEvent,
+  resetDefaultAuditLogger,
+  setDefaultAuditLogger
+} from "../src/server/services/audit.service.js";
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -22,6 +27,28 @@ function captureConsole(callback) {
 
   try {
     callback();
+  } finally {
+    console.log = originalLog;
+    console.warn = originalWarn;
+  }
+
+  return entries;
+}
+
+async function captureConsoleAsync(callback) {
+  const originalLog = console.log;
+  const originalWarn = console.warn;
+  const entries = [];
+
+  console.log = (...args) => {
+    entries.push({ level: "log", args });
+  };
+  console.warn = (...args) => {
+    entries.push({ level: "warn", args });
+  };
+
+  try {
+    await callback();
   } finally {
     console.log = originalLog;
     console.warn = originalWarn;
@@ -121,7 +148,64 @@ try {
   assert(serviceEntries[0].args[0] === "[info] audit:asset.delete.succeeded", "Audit service should preserve event name");
   assert(serviceEntries[0].args[1].ip === "127.0.0.1", "Audit service should include request metadata");
   assert(serviceEntries[0].args[1].userAgent === "AuditServiceCheck/1.0", "Audit service should include user-agent metadata");
+
+  const injectedEntries = [];
+  const injectedLogger = {
+    requestMetadata(req) {
+      return { requestId: req.requestId || "" };
+    },
+    record(event, detail) {
+      injectedEntries.push({ event, detail });
+    }
+  };
+  setDefaultAuditLogger(injectedLogger);
+  assert(getDefaultAuditLogger() === injectedLogger, "Audit services should support logger replacement");
+  assert(recordAuditEvent({ requestId: "request-1" }, "project.save.succeeded", {
+    outcome: "succeeded",
+    projectId: "project-1"
+  }) === true, "Audit services should report successful provider writes");
+  assert(injectedEntries[0]?.event === "project.save.succeeded", "Audit services should preserve event names");
+  assert(injectedEntries[0]?.detail.requestId === "request-1", "Audit services should preserve provider request metadata");
+  assert(injectedEntries[0]?.detail.projectId === "project-1", "Audit services should preserve audit details");
+  resetDefaultAuditLogger();
+  assert(getDefaultAuditLogger() === defaultLogger, "Audit services should restore the local logger");
+
+  let invalidLoggerError = null;
+  try {
+    setDefaultAuditLogger({ record() {} });
+  } catch (error) {
+    invalidLoggerError = error;
+  }
+  assert(
+    invalidLoggerError?.message === "Audit logger must implement requestMetadata()",
+    "Audit services should reject incomplete loggers"
+  );
+
+  setDefaultAuditLogger({
+    requestMetadata: () => ({}),
+    record() {
+      throw new Error("sync audit failure");
+    }
+  });
+  const syncFailureEntries = captureConsole(() => {
+    assert(recordAuditEvent({}, "asset.upload.failed") === false, "Audit services should isolate synchronous logger failures");
+  });
+  assert(syncFailureEntries.length === 1, "Synchronous logger failures should emit one fallback warning");
+  assert(syncFailureEntries[0].args[0] === "[warn] Audit logger failed", "Synchronous logger failures should use the fallback warning");
+
+  setDefaultAuditLogger({
+    requestMetadata: () => ({}),
+    record: () => Promise.reject(new Error("async audit failure"))
+  });
+  const asyncFailureEntries = await captureConsoleAsync(async () => {
+    assert(recordAuditEvent({}, "asset.delete.failed") === true, "Async audit writes should remain non-blocking");
+    await Promise.resolve();
+    await Promise.resolve();
+  });
+  assert(asyncFailureEntries.length === 1, "Asynchronous logger failures should emit one fallback warning");
+  assert(asyncFailureEntries[0].args[0] === "[warn] Audit logger failed", "Asynchronous logger failures should use the fallback warning");
 } finally {
+  resetDefaultAuditLogger();
   Date.now = originalNow;
 }
 
