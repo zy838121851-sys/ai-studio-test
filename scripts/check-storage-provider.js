@@ -3,9 +3,13 @@ import { tmpdir } from "node:os";
 import { basename, join, resolve } from "node:path";
 import { createLocalStorageProvider } from "../src/server/providers/storage/local-storage.provider.js";
 import {
+  deleteStoredFile,
   getDefaultStorageProvider,
+  getStoredPublicUrl,
   normalizeStoredUploadPublicPath,
+  resetDefaultStorageProvider,
   resolveStoredFilePath,
+  setDefaultStorageProvider,
   storedFileExists
 } from "../src/server/services/storage.service.js";
 
@@ -29,8 +33,10 @@ const outsideFile = resolve(tempRoot, "escape.txt");
 try {
   const defaultProvider = getDefaultStorageProvider();
   assert(defaultProvider?.saveBuffer, "Storage service should expose a default provider with saveBuffer");
+  assert(defaultProvider?.publicUrlFor, "Storage service should expose a default provider with publicUrlFor");
   assert(defaultProvider?.resolveStoredPath, "Storage service should expose a default provider with resolveStoredPath");
   assert(defaultProvider?.storedPathExists, "Storage service should expose a default provider with storedPathExists");
+  assert(defaultProvider?.deleteStoredPath, "Storage service should expose a default provider with deleteStoredPath");
 
   const storage = createLocalStorageProvider({
     uploadDir,
@@ -42,6 +48,7 @@ try {
   assert(stored.filePath.endsWith("sample.txt"), "Stored filePath should include the saved file name");
   assert(!stored.filePath.includes("\\"), "Stored filePath should use URL-safe separators");
   assert(stored.url === "/assets/sample.txt", "Stored URL should use normalized public base path");
+  assert(storage.publicUrlFor("sample.txt") === "/assets/sample.txt", "Provider public URLs should use normalized file names");
   assert(existsSync(stored.absolutePath), "Saved file should exist on disk");
   assert(readFileSync(stored.absolutePath, "utf8") === "storage-provider-check", "Saved file content should match");
 
@@ -86,7 +93,40 @@ try {
   );
   assert(!existsSync(outsideFile), "Rejected traversal writes should not create files outside upload root");
 
+  const removable = storage.saveBuffer("remove.txt", Buffer.from("remove-me"));
+  assert(storage.deleteStoredPath(removable.filePath), "Storage providers should delete existing stored files");
+  assert(!existsSync(removable.absolutePath), "Deleted stored files should be removed from disk");
+  assert(!storage.deleteStoredPath(removable.filePath), "Deleting a missing stored file should be idempotent");
+  assert(!storage.deleteStoredPath("package.json"), "Storage providers should reject deletion outside the upload root");
+
+  const injectedCalls = [];
+  const injectedProvider = {
+    publicUrlFor: (fileName) => `/cdn/${fileName}`,
+    saveBuffer: (fileName) => ({ fileName }),
+    resolveStoredPath: (filePath) => `resolved:${filePath}`,
+    storedPathExists: (filePath) => filePath === "present.txt",
+    deleteStoredPath: (filePath) => {
+      injectedCalls.push(filePath);
+      return true;
+    }
+  };
+  setDefaultStorageProvider(injectedProvider);
+  assert(getDefaultStorageProvider() === injectedProvider, "Storage services should support provider replacement");
+  assert(getStoredPublicUrl("asset.png") === "/cdn/asset.png", "Storage services should route public URLs through the provider");
+  assert(resolveStoredFilePath("asset.png") === "resolved:asset.png", "Storage services should route path resolution through the provider");
+  assert(storedFileExists("present.txt"), "Storage services should route existence checks through the provider");
+  assert(deleteStoredFile("asset.png"), "Storage services should route deletion through the provider");
+  assert(injectedCalls[0] === "asset.png", "Storage services should preserve deletion paths");
+  resetDefaultStorageProvider();
+  assert(getDefaultStorageProvider() === defaultProvider, "Storage services should restore the local provider");
+
+  assertThrows(
+    () => setDefaultStorageProvider({ saveBuffer() {} }),
+    "Storage services should reject incomplete providers"
+  );
+
   console.log("Storage provider checks passed.");
 } finally {
+  resetDefaultStorageProvider();
   rmSync(tempRoot, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 }

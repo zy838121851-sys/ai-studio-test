@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, unlinkSync, writeFileSync } from "node:fs";
 import { basename, join, relative, resolve } from "node:path";
 import { env } from "../../config/env.js";
 import { createHttpError } from "../../lib/input-validation.js";
@@ -15,7 +15,7 @@ export function createLocalStorageProvider({
   }
 
   function publicUrlFor(fileName) {
-    return `${publicPrefix}/${fileName}`;
+    return `${publicPrefix}/${normalizeFileName(fileName)}`;
   }
 
   function normalizeFileName(fileName = "") {
@@ -53,11 +53,20 @@ export function createLocalStorageProvider({
     return Boolean(absolutePath && existsSync(absolutePath));
   }
 
+  function deleteStoredPath(filePath = "") {
+    const absolutePath = resolveStoredPath(filePath);
+    if (!absolutePath || absolutePath === uploadRoot || !existsSync(absolutePath)) return false;
+    unlinkSync(absolutePath);
+    return true;
+  }
+
   return {
     ensureReady,
+    publicUrlFor,
     saveBuffer,
     resolveStoredPath,
-    storedPathExists
+    storedPathExists,
+    deleteStoredPath
   };
 }
 
