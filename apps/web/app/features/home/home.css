@@ -7,6 +7,9 @@
   --blue: #3478f6;
   --blue-soft: #edf3ff;
   --coral: #ff6b5f;
+  --motion-press: 120ms ease;
+  --motion-popover: 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-modal: 220ms cubic-bezier(0.22, 1, 0.36, 1);
   min-height: 100vh;
   color: var(--ink);
   background: #fff;
@@ -23,6 +26,50 @@ textarea {
 button,
 a {
   -webkit-tap-highlight-color: transparent;
+}
+
+.home-page
+  :where(
+    .icon-command,
+    .submit-generation,
+    .model-trigger,
+    .auth-entry,
+    .account-trigger,
+    .home-side-rail a,
+    .channel-controls button,
+    .dialog-close,
+    .home-toast button,
+    .back-to-top,
+    .account-menu > button,
+    .model-tabs button,
+    .auth-tabs button,
+    .verification-field button,
+    .auth-submit
+  ) {
+  transition:
+    transform var(--motion-press),
+    opacity var(--motion-press);
+}
+
+.home-page
+  :where(
+    .icon-command,
+    .submit-generation,
+    .model-trigger,
+    .auth-entry,
+    .account-trigger,
+    .home-side-rail a,
+    .channel-controls button,
+    .dialog-close,
+    .home-toast button,
+    .back-to-top,
+    .account-menu > button,
+    .model-tabs button,
+    .auth-tabs button,
+    .verification-field button,
+    .auth-submit
+  ):not(:disabled):active {
+  transform: scale(0.98);
 }
 
 button:focus-visible,
@@ -42,7 +89,8 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 20px 24px;
+  padding: max(20px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) 20px
+    max(24px, env(safe-area-inset-left));
   pointer-events: none;
 }
 
@@ -156,8 +204,7 @@ textarea:focus-visible {
   margin: 0 auto;
   place-items: center;
   border-radius: 50%;
-  color: #8791a0;
-  font-size: 20px;
+  color: #687386;
   text-decoration: none;
 }
 
@@ -175,8 +222,9 @@ textarea:focus-visible {
   padding: 10px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fff;
+  background: rgb(255 255 255 / 92%);
   box-shadow: 0 18px 48px rgba(23, 29, 40, 0.16);
+  animation: rewrite-popover-in var(--motion-popover) both;
 }
 
 .account-menu__identity,
@@ -206,6 +254,10 @@ textarea:focus-visible {
 }
 
 .account-menu > button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   width: 100%;
   height: 38px;
   border: 0;
@@ -310,18 +362,32 @@ textarea:focus-visible {
 
 .attachment-preview button {
   position: absolute;
-  top: -6px;
-  right: -6px;
+  top: -12px;
+  right: -12px;
   display: grid;
-  width: 22px;
-  height: 22px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   place-items: center;
-  border: 1px solid #fff;
+  border: 0;
   border-radius: 50%;
   color: #fff;
-  background: #1f2937;
+  background: transparent;
   cursor: pointer;
+}
+
+.attachment-preview button::before {
+  position: absolute;
+  width: 26px;
+  height: 26px;
+  border: 1px solid #fff;
+  border-radius: 50%;
+  background: #1f2937;
+  content: "";
+}
+
+.attachment-preview button .ui-icon {
+  position: relative;
 }
 
 .composer-actions,
@@ -366,9 +432,9 @@ textarea:focus-visible {
 .icon-command,
 .submit-generation {
   display: grid;
-  width: 42px;
-  height: 42px;
-  flex: 0 0 42px;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
   padding: 0;
   place-items: center;
   border-radius: 50%;
@@ -403,8 +469,12 @@ textarea:focus-visible {
 }
 
 .submit-generation {
+  display: flex;
   width: 64px;
   height: 54px;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   flex-basis: 64px;
   border: 0;
   border-radius: 27px;
@@ -429,8 +499,10 @@ textarea:focus-visible {
   padding: 20px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #fff;
+  background: rgb(255 255 255 / 94%);
   box-shadow: 0 24px 64px rgba(20, 27, 38, 0.18);
+  backdrop-filter: blur(20px);
+  animation: rewrite-popover-in var(--motion-popover) both;
 }
 
 .model-picker__header {
@@ -447,6 +519,7 @@ textarea:focus-visible {
 
 .switch-control {
   display: inline-flex;
+  min-height: 44px;
   align-items: center;
   gap: 9px;
   color: #4b5563;
@@ -500,7 +573,7 @@ textarea:focus-visible {
 }
 
 .model-tabs button {
-  height: 38px;
+  height: 44px;
   border: 0;
   border-radius: 6px;
   color: #858c97;
@@ -617,7 +690,6 @@ textarea:focus-visible {
   border-radius: 6px;
   color: #fff;
   background: #dce2ea;
-  font-size: 13px;
 }
 
 .model-option.is-selected .model-option__check {
@@ -648,6 +720,9 @@ textarea:focus-visible {
 }
 
 .section-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
   color: #8b93a0;
   font-size: 13px;
 }
@@ -676,11 +751,16 @@ textarea:focus-visible {
   text-align: left;
   box-shadow: 0 10px 28px rgba(31, 43, 61, 0.06);
   cursor: pointer;
+  transition: transform var(--motion-popover);
 }
 
 .project-card:hover {
   border-color: #cbd3df;
   transform: translateY(-2px);
+}
+
+.project-card:active {
+  transform: translateY(0) scale(0.99);
 }
 
 .project-card__cover {
@@ -731,9 +811,12 @@ textarea:focus-visible {
 }
 
 .project-card__plus {
+  display: grid;
+  width: 44px;
+  height: 44px;
   align-self: end;
   margin-bottom: 34px;
-  font-size: 28px;
+  place-items: center;
 }
 
 .project-card--new strong {
@@ -745,6 +828,7 @@ textarea:focus-visible {
   height: 296px;
   border-radius: 8px;
   background: #f1f2f4;
+  animation: rewrite-loading-pulse 1.6s ease-in-out infinite;
 }
 
 .inspiration-section {
@@ -771,15 +855,14 @@ textarea:focus-visible {
 
 .channel-controls button {
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   place-items: center;
   border: 1px solid var(--line);
   border-radius: 50%;
   color: #3f4856;
   background: #fff;
-  font-size: 22px;
   cursor: pointer;
 }
 
@@ -908,6 +991,7 @@ textarea:focus-visible {
   padding: 20px;
   place-items: center;
   background: rgba(18, 24, 34, 0.42);
+  animation: rewrite-fade-in var(--motion-modal) both;
 }
 
 .auth-dialog {
@@ -918,6 +1002,7 @@ textarea:focus-visible {
   border-radius: 8px;
   background: #fff;
   box-shadow: 0 28px 80px rgba(16, 24, 40, 0.24);
+  animation: rewrite-modal-in var(--motion-modal) both;
 }
 
 .auth-dialog h2 {
@@ -927,11 +1012,11 @@ textarea:focus-visible {
 
 .dialog-close {
   position: absolute;
-  top: 16px;
-  right: 16px;
+  top: 10px;
+  right: 10px;
   display: grid;
-  width: 32px;
-  height: 32px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   place-items: center;
   border: 0;
@@ -1042,6 +1127,7 @@ textarea:focus-visible {
   color: #8f241d;
   background: #fff5f4;
   box-shadow: 0 12px 38px rgba(31, 43, 61, 0.13);
+  animation: rewrite-toast-in var(--motion-modal) both;
 }
 
 .home-toast span {
@@ -1049,10 +1135,15 @@ textarea:focus-visible {
 }
 
 .home-toast button {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  padding: 0;
+  place-items: center;
   border: 0;
   color: inherit;
   background: transparent;
-  font-size: 20px;
   cursor: pointer;
 }
 
@@ -1062,8 +1153,8 @@ textarea:focus-visible {
   right: 24px;
   bottom: 82px;
   display: grid;
-  width: 42px;
-  height: 42px;
+  width: 44px;
+  height: 44px;
   padding: 0;
   place-items: center;
   border: 1px solid var(--line);
@@ -1075,8 +1166,8 @@ textarea:focus-visible {
   pointer-events: none;
   transform: translateY(8px);
   transition:
-    opacity 150ms ease,
-    transform 150ms ease;
+    opacity var(--motion-popover),
+    transform var(--motion-popover);
 }
 
 .back-to-top.is-visible {
@@ -1086,9 +1177,43 @@ textarea:focus-visible {
   cursor: pointer;
 }
 
+@keyframes rewrite-popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes rewrite-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes rewrite-modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+}
+
+@keyframes rewrite-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@keyframes rewrite-loading-pulse {
+  50% {
+    opacity: 0.58;
+  }
+}
+
 @media (max-width: 760px) {
   .home-header {
-    padding: 20px 24px;
+    padding: max(20px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) 20px
+      max(24px, env(safe-area-inset-left));
   }
 
   .home-brand__mark {
@@ -1099,6 +1224,11 @@ textarea:focus-visible {
   .credit-pill,
   .account-trigger__name {
     display: none;
+  }
+
+  .account-trigger,
+  .auth-entry {
+    min-height: 44px;
   }
 
   .home-side-rail {
@@ -1152,6 +1282,7 @@ textarea:focus-visible {
     left: 0;
     width: 100%;
     max-height: 78vh;
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
     border-radius: 8px 8px 0 0;
   }
 
@@ -1205,7 +1336,8 @@ textarea:focus-visible {
   .inspiration-section {
     width: 100%;
     margin-top: 0;
-    padding: 27px 16px 90px;
+    padding: 27px max(16px, env(safe-area-inset-right))
+      max(90px, calc(70px + env(safe-area-inset-bottom))) max(16px, env(safe-area-inset-left));
   }
 
   .inspiration-grid {
@@ -1231,13 +1363,13 @@ textarea:focus-visible {
 
   .home-toast {
     right: 12px;
-    bottom: 12px;
+    bottom: max(12px, env(safe-area-inset-bottom));
     max-width: calc(100% - 24px);
   }
 
   .back-to-top {
     right: 16px;
-    bottom: 72px;
+    bottom: max(72px, calc(56px + env(safe-area-inset-bottom)));
   }
 }
 
@@ -1247,5 +1379,6 @@ textarea:focus-visible {
   *::after {
     scroll-behavior: auto !important;
     transition-duration: 0.01ms !important;
+    animation: none !important;
   }
 }

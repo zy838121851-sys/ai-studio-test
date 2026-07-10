@@ -1,4 +1,5 @@
 import type { ProjectSummaryDto } from "@ai-studio/contracts";
+import { ChevronRight, Plus } from "lucide-react";
 
 interface RecentProjectsProps {
   projects: ProjectSummaryDto[];
@@ -21,7 +22,10 @@ export function RecentProjects({
     <section className="home-section" id="projects" aria-labelledby="recent-projects-title">
       <div className="section-heading">
         <h2 id="recent-projects-title">最近项目</h2>
-        <span className="section-link">查看全部 ›</span>
+        <span className="section-link">
+          查看全部
+          <ChevronRight className="ui-icon" size={16} strokeWidth={2} aria-hidden="true" />
+        </span>
       </div>
       <div className="project-row">
         <button
@@ -29,7 +33,9 @@ export function RecentProjects({
           type="button"
           onClick={signedIn ? onCreate : onRequireAuth}
         >
-          <span className="project-card__plus">+</span>
+          <span className="project-card__plus" aria-hidden="true">
+            <Plus className="ui-icon" size={20} strokeWidth={2} />
+          </span>
           <strong>新建项目</strong>
         </button>
         {loading ? <div className="project-skeleton" aria-label="正在加载项目" /> : null}

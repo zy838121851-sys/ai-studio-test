@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import type { ModelCatalogEntryDto } from "@ai-studio/contracts";
+import { ChevronDown, LoaderCircle, Plus, X, Zap } from "lucide-react";
 
 import { ModelPicker } from "./model-picker.js";
 
@@ -95,9 +96,10 @@ export function HomeComposer({
                 <button
                   type="button"
                   title="移除参考图"
+                  aria-label={`移除参考图：${attachment.file.name}`}
                   onClick={() => removeAttachment(attachment.id)}
                 >
-                  ×
+                  <X className="ui-icon" size={16} strokeWidth={2} aria-hidden="true" />
                 </button>
               </figure>
             ))}
@@ -126,9 +128,10 @@ export function HomeComposer({
               className="icon-command"
               type="button"
               title="添加参考图片"
+              aria-label="选择参考图片"
               onClick={() => fileInputRef.current?.click()}
             >
-              +
+              <Plus className="ui-icon" size={20} strokeWidth={2} aria-hidden="true" />
             </button>
             <button
               className="model-trigger"
@@ -137,7 +140,7 @@ export function HomeComposer({
               onClick={() => setModelPickerOpen((value) => !value)}
             >
               <span>{selectedModel?.label ?? "选择模型"}</span>
-              <span aria-hidden="true">⌄</span>
+              <ChevronDown className="ui-icon" size={16} strokeWidth={2} aria-hidden="true" />
             </button>
           </div>
           <div className="composer-actions__right">
@@ -147,7 +150,19 @@ export function HomeComposer({
               disabled={!prompt.trim() || submitting || selectedModel?.modality !== "image"}
               title="开始生成"
             >
-              {submitting ? "…" : `⚡ ${selectedModel?.creditCost ?? 0}`}
+              {submitting ? (
+                <LoaderCircle
+                  className="ui-icon is-spinning"
+                  size={18}
+                  strokeWidth={2}
+                  aria-hidden="true"
+                />
+              ) : (
+                <>
+                  <Zap className="ui-icon" size={16} strokeWidth={2} aria-hidden="true" />
+                  <span>{selectedModel?.creditCost ?? 0}</span>
+                </>
+              )}
             </button>
           </div>
         </div>

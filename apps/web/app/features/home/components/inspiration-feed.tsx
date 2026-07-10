@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import type { HomeFeedItemDto } from "@ai-studio/contracts";
+import { ChevronLeft, ChevronRight, LayoutGrid } from "lucide-react";
 
 const CHANNELS = ["推荐", "平面设计", "电商", "摄影", "建筑", "角色", "3D"];
 
@@ -48,11 +49,21 @@ export function InspirationFeed({
           <h2>灵感频道</h2>
         </div>
         <div className="channel-controls">
-          <button type="button" title="向左滚动" onClick={() => scrollChannels(-1)}>
-            ‹
+          <button
+            type="button"
+            title="向左滚动"
+            aria-label="向左滚动频道"
+            onClick={() => scrollChannels(-1)}
+          >
+            <ChevronLeft className="ui-icon" size={18} strokeWidth={2} aria-hidden="true" />
           </button>
-          <button type="button" title="向右滚动" onClick={() => scrollChannels(1)}>
-            ›
+          <button
+            type="button"
+            title="向右滚动"
+            aria-label="向右滚动频道"
+            onClick={() => scrollChannels(1)}
+          >
+            <ChevronRight className="ui-icon" size={18} strokeWidth={2} aria-hidden="true" />
           </button>
         </div>
       </div>
@@ -70,7 +81,9 @@ export function InspirationFeed({
               className={`channel-swatch channel-swatch--${CHANNELS.indexOf(item)}`}
               aria-hidden="true"
             >
-              {item === "推荐" ? "▦" : ""}
+              {item === "推荐" ? (
+                <LayoutGrid className="ui-icon" size={18} strokeWidth={2} aria-hidden="true" />
+              ) : null}
             </span>
             <strong>{item === "推荐" ? "所有频道" : item}</strong>
           </button>

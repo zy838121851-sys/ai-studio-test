@@ -1,4 +1,6 @@
 .canvas-receiver {
+  --motion-press: 120ms ease;
+  --motion-surface: 220ms cubic-bezier(0.22, 1, 0.36, 1);
   min-height: 100vh;
   color: #1b2330;
   background: #f8fafc;
@@ -11,7 +13,8 @@
   grid-template-columns: 48px minmax(0, 1fr) auto;
   align-items: center;
   min-height: 72px;
-  padding: 10px 24px;
+  padding: max(10px, env(safe-area-inset-top)) max(24px, env(safe-area-inset-right)) 10px
+    max(24px, env(safe-area-inset-left));
   border-bottom: 1px solid #e4e8ee;
   background: rgb(255 255 255 / 94%);
   backdrop-filter: blur(14px);
@@ -29,6 +32,7 @@
   box-shadow: 0 12px 28px rgb(24 33 46 / 8%);
   font-weight: 800;
   text-decoration: none;
+  transition: transform var(--motion-press);
 }
 
 .canvas-receiver__title {
@@ -55,7 +59,7 @@
 .canvas-receiver__back {
   display: inline-flex;
   align-items: center;
-  min-height: 38px;
+  min-height: 44px;
   gap: 7px;
   padding: 0 13px;
   border: 1px solid #dfe4ea;
@@ -64,6 +68,14 @@
   background: #fff;
   font-size: 13px;
   text-decoration: none;
+  transition: transform var(--motion-press);
+}
+
+.canvas-receiver__brand:active,
+.canvas-receiver__back:active,
+.canvas-receiver--failure button:active,
+.canvas-receiver--failure a:active {
+  transform: scale(0.98);
 }
 
 .canvas-receiver__surface {
@@ -95,6 +107,7 @@
   border-radius: 8px;
   background: #fff;
   box-shadow: 0 20px 50px rgb(28 38 52 / 12%);
+  animation: canvas-node-in var(--motion-surface) both;
 }
 
 .canvas-result-node img {
@@ -114,13 +127,8 @@
 }
 
 .canvas-pending-node__indicator {
-  width: 34px;
-  height: 34px;
   margin-bottom: 18px;
-  border: 3px solid #d8e5f4;
-  border-top-color: #4d91e8;
-  border-radius: 50%;
-  animation: canvas-receiver-spin 900ms linear infinite;
+  color: #4d91e8;
 }
 
 .canvas-pending-node strong {
@@ -135,29 +143,8 @@
   line-height: 1.6;
 }
 
-.canvas-pending-node.is-failed .canvas-pending-node__indicator {
-  position: relative;
-  border: 0;
-  animation: none;
-}
-
-.canvas-pending-node.is-failed .canvas-pending-node__indicator::before,
-.canvas-pending-node.is-failed .canvas-pending-node__indicator::after {
-  position: absolute;
-  top: 15px;
-  left: 3px;
-  width: 28px;
-  height: 2px;
-  content: "";
-  background: #d64545;
-}
-
-.canvas-pending-node.is-failed .canvas-pending-node__indicator::before {
-  transform: rotate(45deg);
-}
-
-.canvas-pending-node.is-failed .canvas-pending-node__indicator::after {
-  transform: rotate(-45deg);
+.canvas-pending-node__indicator.is-failed {
+  color: #d64545;
 }
 
 .canvas-receiver__empty {
@@ -189,6 +176,7 @@
   background: #fff;
   box-shadow: 0 14px 36px rgb(25 35 49 / 10%);
   font-weight: 800;
+  animation: canvas-loading-pulse 1.6s ease-in-out infinite;
 }
 
 .canvas-receiver--loading p,
@@ -208,7 +196,7 @@
 
 .canvas-receiver--failure button,
 .canvas-receiver--failure a {
-  min-height: 38px;
+  min-height: 44px;
   padding: 9px 15px;
   border: 1px solid #dce2e9;
   border-radius: 6px;
@@ -216,11 +204,19 @@
   background: #fff;
   font: inherit;
   text-decoration: none;
+  transition: transform var(--motion-press);
 }
 
-@keyframes canvas-receiver-spin {
-  to {
-    transform: rotate(360deg);
+@keyframes canvas-node-in {
+  from {
+    opacity: 0;
+    transform: scale(0.99);
+  }
+}
+
+@keyframes canvas-loading-pulse {
+  50% {
+    opacity: 0.58;
   }
 }
 
@@ -234,7 +230,8 @@
   .canvas-receiver__header {
     grid-template-columns: 42px minmax(0, 1fr) auto;
     min-height: 64px;
-    padding: 8px 12px;
+    padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 8px
+      max(12px, env(safe-area-inset-left));
   }
 
   .canvas-receiver__brand {
@@ -251,8 +248,8 @@
   }
 
   .canvas-receiver__back {
-    width: 38px;
-    min-height: 38px;
+    width: 44px;
+    min-height: 44px;
     justify-content: center;
     padding: 0;
   }
@@ -272,7 +269,9 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .canvas-pending-node__indicator {
-    animation-duration: 1.8s;
+  .canvas-result-node,
+  .canvas-pending-node,
+  .canvas-loading-mark {
+    animation: none;
   }
 }

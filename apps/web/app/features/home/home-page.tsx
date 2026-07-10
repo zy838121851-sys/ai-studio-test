@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { ArrowUp, X } from "lucide-react";
 import { useNavigate } from "react-router";
 
 import {
@@ -163,8 +164,8 @@ export function HomePage() {
       {notice ? (
         <div className="home-toast" role="status">
           <span>{notice}</span>
-          <button type="button" title="关闭" onClick={() => setNotice("")}>
-            ×
+          <button type="button" title="关闭" aria-label="关闭提示" onClick={() => setNotice("")}>
+            <X className="ui-icon" size={18} strokeWidth={2} aria-hidden="true" />
           </button>
         </div>
       ) : null}
@@ -177,7 +178,7 @@ export function HomePage() {
         tabIndex={backToTopVisible ? 0 : -1}
         onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
       >
-        ↑
+        <ArrowUp className="ui-icon" size={18} strokeWidth={2} aria-hidden="true" />
       </button>
 
       <AuthDialog open={authOpen} onClose={() => setAuthOpen(false)} />

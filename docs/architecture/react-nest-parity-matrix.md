@@ -17,17 +17,17 @@ An item is complete only when its status is approved and evidence points to pass
 
 | ID | Surface | Required Behavior | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| HOME-001 | Home shell | Existing nav, title, prompt, history and community layout | automated | React route test and desktop/mobile Playwright screenshots |
+| HOME-001 | Home shell | Existing nav, title, prompt, history and community layout | automated | React route test; `react-polish.spec.ts` desktop/mobile screenshots and Lucide control audit |
 | HOME-002 | Prompt input | Autosize, focus and submit behavior | automated | `apps/web/app/routes/home.test.tsx` |
 | HOME-003 | Attachments | Upload, thumbnail preview, remove and submit | automated | Attachment preview/remove component test; authenticated upload integration pending local infrastructure |
-| HOME-004 | Model picker | Full model list, selected state, scroll and close behavior | automated | Component test plus Playwright list overflow check with five image models |
+| HOME-004 | Model picker | Full model list, selected state, scroll and close behavior | automated | Component test plus `react-polish.spec.ts` bounds, selected state, close, and settled visual evidence |
 | HOME-005 | Credit quote | Quote follows selected model | automated | Model switch test verifies 8 to 10 credit display |
 | HOME-006 | Recent projects | New tile, thumbnails, title, time and open behavior | in-progress | Signed-out/new tile rendered; authenticated PostgreSQL integration pending |
 | HOME-007 | Channels | Active channel and horizontal scroll behavior | automated | React implementation and desktop/mobile Playwright screenshots |
 | HOME-008 | Inspiration feed | Masonry sizing, filtering and incremental load | automated | Local image feed and desktop/mobile Playwright screenshots |
 | HOME-009 | Back to top | Visibility and smooth scroll | in-progress | React implementation present; dedicated browser assertion pending |
 | HOME-010 | Generation handoff | Create project, enter canvas, pending then result | in-progress | API/worker and React receiver automated independently; PostgreSQL/Redis end-to-end integration pending |
-| HOME-011 | Responsive | Desktop, tablet and mobile match legacy | automated | Compared at 1440x1000 and 390x844 against captured legacy geometry |
+| HOME-011 | Responsive | Desktop, tablet and mobile match legacy | automated | `react-polish.spec.ts` verifies 1440x1000 and 390x844 layout, 44px controls, overflow, and safe-area rules |
 
 ## Authentication And Account
 
@@ -38,7 +38,7 @@ An item is complete only when its status is approved and evidence points to pass
 | AUTH-003 | Email code | Send, verify, throttle and expiry | not-started | |
 | AUTH-004 | SMS code | Send, verify, throttle and expiry | not-started | |
 | AUTH-005 | OAuth | WeChat and QQ provider availability and callback | not-started | |
-| AUTH-006 | Account popover | Profile, points, upgrade and logout | in-progress | React states implemented; authenticated integration pending |
+| AUTH-006 | Account popover | Profile, points, upgrade and logout | in-progress | Authenticated account-menu visual and interaction automated in `react-polish.spec.ts`; commercial entries and live integration remain pending |
 | AUTH-007 | Session restore | Refresh restores the current user | not-started | |
 | AUTH-008 | Isolation | Cross-user/workspace resources are hidden | not-started | |
 
@@ -88,8 +88,8 @@ An item is complete only when its status is approved and evidence points to pass
 | ID | Surface | Required Behavior | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | MEDIA-001 | Upload node | Image/video/model node placement | not-started | |
-| MEDIA-002 | Pending image | Loading preview and status | automated | React route test plus 390x844 Playwright pending-state check |
-| MEDIA-003 | Result image | Pending replacement, size and metadata | automated | Worker persists final node; React route test and 1440x1000 Playwright result check |
+| MEDIA-002 | Pending image | Loading preview and status | automated | React route test plus `react-polish.spec.ts` centered pending-state and reduced-motion-safe loading evidence |
+| MEDIA-003 | Result image | Pending replacement, size and metadata | automated | Worker persists final node; React route test plus `react-polish.spec.ts` mobile result visibility evidence |
 | MEDIA-004 | Image toolbar | Crop, upscale, background, expand, text and 3D | not-started | |
 | MEDIA-005 | Image generator | Form, references, model, count and result | not-started | |
 | MEDIA-006 | Image edit | References, prompt and replacement | not-started | |

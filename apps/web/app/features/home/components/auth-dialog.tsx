@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { X } from "lucide-react";
 
 import { ApiClientError, login, register, sendVerificationCode } from "../../../lib/api-client.js";
 import { homeQueryKeys } from "../home-api.js";
@@ -59,8 +60,14 @@ export function AuthDialog({ open, onClose }: AuthDialogProps) {
         aria-labelledby="auth-title"
         onMouseDown={(event) => event.stopPropagation()}
       >
-        <button className="dialog-close" type="button" onClick={onClose} title="关闭">
-          ×
+        <button
+          className="dialog-close"
+          type="button"
+          onClick={onClose}
+          title="关闭"
+          aria-label="关闭登录窗口"
+        >
+          <X className="ui-icon" size={18} strokeWidth={2} aria-hidden="true" />
         </button>
         <h2 id="auth-title">{mode === "login" ? "登录 AI Studio" : "创建账号"}</h2>
         <div className="auth-tabs" role="tablist">

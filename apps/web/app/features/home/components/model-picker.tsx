@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ModelCatalogEntryDto, ModelModality } from "@ai-studio/contracts";
+import { Check } from "lucide-react";
 
 interface ModelPickerProps {
   open: boolean;
@@ -106,7 +107,9 @@ export function ModelPicker({
                 </span>
               </span>
               <span className="model-option__check" aria-hidden="true">
-                {selectedModel ? "✓" : ""}
+                {selectedModel ? (
+                  <Check className="ui-icon" size={16} strokeWidth={2} aria-hidden="true" />
+                ) : null}
               </span>
             </button>
           );

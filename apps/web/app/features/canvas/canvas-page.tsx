@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from "react";
 import { fitCanvasNodeSize, type CanvasNode } from "@ai-studio/canvas-engine";
 import type { AiJobDto } from "@ai-studio/contracts";
+import { ArrowLeft, CircleAlert, LoaderCircle } from "lucide-react";
 import { Link, useParams, useSearchParams } from "react-router";
 
 import { ApiClientError } from "../../lib/api-client.js";
@@ -74,7 +75,7 @@ export function CanvasPage() {
           <span>{jobStatusLabel(job, document?.nodes ?? [])}</span>
         </div>
         <Link className="canvas-receiver__back" to="/" title="返回首页">
-          <span aria-hidden="true">←</span>
+          <ArrowLeft className="ui-icon" size={18} strokeWidth={2} aria-hidden="true" />
           <span>首页</span>
         </Link>
       </header>
@@ -117,7 +118,21 @@ function CanvasNodeView({ node, job }: { node: CanvasNode; job: AiJobDto | undef
       style={style}
       data-node-kind="pending-image"
     >
-      <span className="canvas-pending-node__indicator" aria-hidden="true" />
+      {failed ? (
+        <CircleAlert
+          className="canvas-pending-node__indicator is-failed"
+          size={20}
+          strokeWidth={2}
+          aria-hidden="true"
+        />
+      ) : (
+        <LoaderCircle
+          className="canvas-pending-node__indicator is-spinning"
+          size={20}
+          strokeWidth={2}
+          aria-hidden="true"
+        />
+      )}
       <strong>{failed ? "生成失败" : "正在生成图片"}</strong>
       <p>{failed ? (job.error?.message ?? "任务未完成，请返回首页重试。") : jobDetail(job)}</p>
     </article>

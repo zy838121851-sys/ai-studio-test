@@ -1,7 +1,9 @@
 :root {
   color: #1b2330;
   background: #f7f8fa;
-  font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", "PingFang SC",
+    "Microsoft YaHei", sans-serif;
   font-synthesis: none;
 }
 
@@ -13,6 +15,27 @@ body {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
+}
+
+.ui-icon {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.is-spinning {
+  animation: rewrite-spin 900ms linear infinite;
+}
+
+@keyframes rewrite-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-spinning {
+    animation: none;
+  }
 }
 
 .rewrite-placeholder,
