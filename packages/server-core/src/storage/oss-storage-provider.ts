@@ -41,6 +41,11 @@ export class OssStorageProvider implements StorageProvider {
     };
   }
 
+  async get(key: string): Promise<Buffer> {
+    const result = await this.client.get(this.normalizeKey(key));
+    return Buffer.isBuffer(result.content) ? result.content : Buffer.from(result.content);
+  }
+
   async stat(key: string): Promise<StorageObjectMetadata> {
     const normalizedKey = this.normalizeKey(key);
     const result = await this.client.head(normalizedKey);

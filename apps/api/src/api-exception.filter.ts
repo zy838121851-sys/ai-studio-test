@@ -1,5 +1,6 @@
 import { Catch, HttpException, HttpStatus, type ArgumentsHost, type ExceptionFilter } from "@nestjs/common";
 import type { ApiErrorEnvelope } from "@ai-studio/contracts";
+import { isApplicationError } from "@ai-studio/server-core";
 import type { FastifyReply, FastifyRequest } from "fastify";
 
 @Catch()
@@ -8,13 +9,19 @@ export class ApiExceptionFilter implements ExceptionFilter {
     const context = host.switchToHttp();
     const request = context.getRequest<FastifyRequest>();
     const reply = context.getResponse<FastifyReply>();
-    const status = exception instanceof HttpException ? exception.getStatus() : 500;
+    const status = isApplicationError(exception)
+      ? exception.status
+      : exception instanceof HttpException
+        ? exception.getStatus()
+        : 500;
     const response = exception instanceof HttpException ? exception.getResponse() : undefined;
-    const message = extractMessage(response, status);
-    const details = extractDetails(response);
+    const message = isApplicationError(exception)
+      ? exception.message
+      : extractMessage(response, status);
+    const details = isApplicationError(exception) ? exception.details : extractDetails(response);
     const envelope: ApiErrorEnvelope = {
       error: {
-        code: errorCodeForStatus(status),
+        code: isApplicationError(exception) ? exception.code : errorCodeForStatus(status),
         message,
         requestId: request.id,
         ...(details ? { details } : {})

@@ -27,7 +27,7 @@ describe("LocalStorageProvider", () => {
     });
 
     await expect(provider.exists("workspace-1/input/reference.png")).resolves.toBe(true);
-    await expect(provider.read("workspace-1/input/reference.png")).resolves.toEqual(
+    await expect(provider.get("workspace-1/input/reference.png")).resolves.toEqual(
       Buffer.from("image")
     );
   });

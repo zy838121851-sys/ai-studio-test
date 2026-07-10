@@ -4,29 +4,31 @@
   "programStatus": "active",
   "activeStage": 3,
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-3.1-home-api",
+  "nextWorkPackage": "WP-3.2-ai-job-worker",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
     "WP-1.1-workspace-scaffold",
-    "WP-2.1-backend-platform"
+    "WP-2.1-backend-platform",
+    "WP-3.1-home-api"
   ],
   "lastVerification": {
-    "workPackage": "WP-2.1-backend-platform",
+    "workPackage": "WP-3.1-home-api",
     "commands": [
       "npm run check:rewrite",
       "npm run build:rewrite",
       "npm run check",
       "npm run build",
       "git diff --check",
-      "GET /api/v1/health/live",
-      "GET /api/v1/openapi.json",
-      "GET /api/v1/health/ready (expected 503 without local infrastructure)"
+      "GET /api/v1/models",
+      "GET /api/v1/models/quote",
+      "GET /api/v1/home/feed",
+      "GET /api/v1/openapi.json"
     ],
     "result": "passed-with-local-infrastructure-blocker",
     "verifiedAt": "2026-07-10"
   },
-  "lastCommit": "d5895e68",
+  "lastCommit": "ff486e4b",
   "cutoverAllowed": false,
   "blockers": [
     {

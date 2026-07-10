@@ -32,7 +32,7 @@ export class LocalStorageProvider implements StorageProvider {
     };
   }
 
-  async read(key: string): Promise<Buffer> {
+  async get(key: string): Promise<Buffer> {
     return readFile(this.resolvePath(this.normalizeKey(key)));
   }
 

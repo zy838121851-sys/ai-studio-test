@@ -21,6 +21,7 @@
     "infra:check": "tsx src/check-infrastructure.ts"
   },
   "dependencies": {
+    "@ai-studio/contracts": "*",
     "ali-oss": "^6.23.0",
     "bullmq": "^5.0.0",
     "drizzle-orm": "^0.45.2",

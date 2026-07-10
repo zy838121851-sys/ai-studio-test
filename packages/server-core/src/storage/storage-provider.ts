@@ -14,6 +14,7 @@ export interface PutStorageObject {
 export interface StorageProvider {
   readonly name: "local" | "oss";
   put(object: PutStorageObject): Promise<StorageObjectMetadata>;
+  get(key: string): Promise<Buffer>;
   stat(key: string): Promise<StorageObjectMetadata>;
   exists(key: string): Promise<boolean>;
   delete(key: string): Promise<void>;
