@@ -138,11 +138,11 @@ function securityHeaders(_req, res, next) {
 }
 
 function buildContentSecurityPolicy() {
-  const scriptSources = ["'self'", "'unsafe-inline'"];
+  const scriptSources = ["'self'"];
   const connectSources = ["'self'", "https:"];
   const mediaSources = ["'self'", "data:", "blob:", "https:"];
   if (env.nodeEnv !== "production") {
-    scriptSources.push("'unsafe-eval'");
+    scriptSources.push("'unsafe-inline'", "'unsafe-eval'");
     connectSources.push("http:");
     mediaSources.push("http:");
   }

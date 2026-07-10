@@ -807,10 +807,10 @@ Already present:
 
 Known release-readiness gaps:
 
-- CSP still allows `unsafe-inline`; production CSP no longer allows
-  `unsafe-eval`, `connect-src http:`, `img-src http:`, or `media-src http:`,
-  while development/test paths may keep broader allowances for tooling
-  compatibility.
+- Production CSP no longer allows inline/eval scripts, `connect-src http:`,
+  `img-src http:`, or `media-src http:`. Development keeps its import map and
+  broader script/network allowances for unbundled local tooling. Inline styles
+  remain the next CSP tightening boundary.
 - Rate limiting uses an in-memory Map, which is not suitable for multi-instance
   production.
 - Uploads are local filesystem based; future SaaS release should use an object

@@ -69,8 +69,11 @@ const server = await listen(app);
 try {
   const port = server.address().port;
   const baseUrl = `http://127.0.0.1:${port}`;
+  const builtHtml = readText("dist/index.html");
   const { stylesheets, moduleScripts } = getBuiltAssetLinks();
 
+  assert(!/<script\s+type=["']importmap["']/i.test(builtHtml), "production HTML should not include the development import map");
+  assert(!/<script\b(?![^>]*\bsrc=)[^>]*>/i.test(builtHtml), "production HTML should not include inline scripts");
   assert(stylesheets.length === 1, `expected one built stylesheet link, found ${stylesheets.length}`);
   assert(moduleScripts.length === 1, `expected one built module script, found ${moduleScripts.length}`);
 

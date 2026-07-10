@@ -15,7 +15,7 @@ default-src 'self'
 base-uri 'self'
 object-src 'none'
 frame-ancestors 'self'
-script-src 'self' 'unsafe-inline'
+script-src 'self'
 style-src 'self' 'unsafe-inline'
 img-src 'self' data: blob: https:
 media-src 'self' data: blob: https:
@@ -98,20 +98,19 @@ Findings:
 
 ### 1. `script-src 'unsafe-inline'`
 
-Known dependency:
+Development dependency:
 
 - Inline import map in `index.html`.
 
-Likely mitigation path:
+Status:
 
-1. Keep current behavior.
-2. Move the import map out of inline HTML if supported by the target browser
-   baseline, or add a CSP hash/nonce strategy.
-3. Add a strict CSP check that proves the boot path still works.
-4. Remove `unsafe-inline` from `script-src`.
-
-Do not remove `script-src 'unsafe-inline'` until the import map path has a
-verified replacement or hash/nonce coverage.
+- Development keeps the import map for unbundled Three.js module loading.
+- The Vite production build removes the import map after bundling Three.js.
+- Production HTML contains no inline scripts and production `script-src` no
+  longer includes `unsafe-inline`.
+- `scripts/check-built-static-assets.js` guards the production HTML shape.
+- `scripts/check-csp-production-policy.js` verifies the stricter policy with a
+  production browser startup and same-origin API smoke.
 
 ### 2. `script-src 'unsafe-eval'`
 
@@ -242,9 +241,7 @@ Remaining mitigation path:
 ## Recommended Tightening Order
 
 1. Gradually reduce runtime generated inline style dependencies by feature.
-2. Replace or hash/nonce the inline import map.
-3. Remove `script-src 'unsafe-inline'`.
-4. Remove `style-src 'unsafe-inline'`.
+2. Remove `style-src 'unsafe-inline'` after its runtime dependencies are gone.
 
 ## Gates Before Any CSP Change
 
@@ -266,10 +263,11 @@ Before changing `src/server/index.js` CSP:
 
 ## Current Decision
 
-The first three safe implementation stages have been completed: production CSP
-removes `unsafe-eval`, `connect-src http:`, and media `http:` sources, while
-development/test CSP keeps broader allowances. Media URL normalization covers
-same-host HTTP `/uploads/...` URLs in project thumbnails and snapshots, and the
-production media restore smoke covers thumbnail, snapshot image, and video
-poster loading. The next safe implementation stage is to reduce inline style
-dependencies before tightening `style-src`.
+Production CSP removes inline/eval scripts, `connect-src http:`, and media
+`http:` sources, while development/test keeps broader allowances. The
+production build strips its now-unneeded development import map and is guarded
+by static and browser checks. Media URL normalization covers same-host HTTP
+`/uploads/...` URLs in project thumbnails and snapshots, and the production
+media restore smoke covers thumbnail, snapshot image, and video poster loading.
+The next safe implementation stage is to reduce inline style dependencies
+before tightening `style-src`.

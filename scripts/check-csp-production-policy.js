@@ -108,7 +108,8 @@ function assertProductionCsp(csp) {
   assert(!getCspDirectiveValues(csp, "connect-src").includes("http:"), "production CSP connect-src must not include http:");
   assert(!getCspDirectiveValues(csp, "img-src").includes("http:"), "production CSP img-src must not include http:");
   assert(!getCspDirectiveValues(csp, "media-src").includes("http:"), "production CSP media-src must not include http:");
-  assert(csp.includes("'unsafe-inline'"), "production CSP should keep unsafe-inline until import map/style work is complete");
+  assert(!getCspDirectiveValues(csp, "script-src").includes("'unsafe-inline'"), "production CSP script-src must not include unsafe-inline");
+  assert(getCspDirectiveValues(csp, "style-src").includes("'unsafe-inline'"), "production CSP style-src should keep unsafe-inline until style work is complete");
 }
 
 function getCspDirectiveValues(csp, directive) {
