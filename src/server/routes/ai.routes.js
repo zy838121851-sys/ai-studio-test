@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { createAIAsyncHandler } from "../lib/ai-error-response.js";
 import { sendErrorResponse } from "../lib/http-error-response.js";
+import { createHttpError } from "../lib/input-validation.js";
 import { getRequestBody, getRequestPath, getRequestQuery, getRouteParam } from "../lib/route-request.js";
 import { getRequestUserId } from "../lib/request-auth.js";
 import { requireAuth } from "../middleware/auth.middleware.js";
@@ -183,7 +184,7 @@ export function createAIRouter() {
 
   router.post("/canvas-agent", aiLimiter, asyncHandler(async (req, res) => {
     const body = getRequestBody(req);
-    if (!body?.canvasState) throw new Error("Missing canvasState");
+    if (!body?.canvasState) throw createHttpError("Missing canvasState", 400);
     const suggestion = await createCanvasAgentSuggestion({ body });
     res.json(suggestion.body);
   }));

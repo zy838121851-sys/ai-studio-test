@@ -183,6 +183,25 @@ try {
     message: "Job not found"
   });
 
+  const missingCanvasState = await request(baseUrl, "/api/canvas-agent", {
+    method: "POST",
+    cookie: userA.cookie,
+    body: {}
+  });
+  assertErrorContract(missingCanvasState, {
+    label: "canvas agent without canvas state",
+    status: 400,
+    message: "Missing canvasState"
+  });
+  assert(
+    missingCanvasState.body.failureCode === "INVALID_REQUEST",
+    "canvas agent without canvas state should return INVALID_REQUEST"
+  );
+  assert(
+    missingCanvasState.body.stage === "request",
+    "canvas agent without canvas state should identify the request stage"
+  );
+
   const failedGenerate = await request(baseUrl, "/api/ai/generate", {
     method: "POST",
     cookie: userA.cookie,
