@@ -1,5 +1,6 @@
 import { env } from "./env.js";
 import { assertSqliteAvailable, databasePath } from "../db/sqlite.js";
+import { assertProviderReadiness } from "./provider-readiness.js";
 
 export function validateRuntimeEnvironment() {
   const allowsEphemeralPort = env.nodeEnv === "test" && env.port === 0;
@@ -28,6 +29,10 @@ function validateProductionEnvironment() {
   const isProduction = env.nodeEnv === "production";
   const isRailway = Boolean(process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_ENVIRONMENT_NAME);
   if (!isProduction && !isRailway) return;
+
+  assertProviderReadiness({
+    profile: process.env.SAAS_RUNTIME_PROFILE || "single-instance"
+  });
 
   if (isProduction) {
     validateProductionBaseUrl();
