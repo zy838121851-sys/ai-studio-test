@@ -1,10 +1,11 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "program": "react-nest-rewrite",
+  "catalogVersion": 1,
   "programStatus": "active",
-  "activeStage": 4,
+  "activeStage": "3.5",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-4.1-canvas-engine-foundation",
+  "nextWorkPackage": "WP-3.5.1-capability-registry",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -13,26 +14,23 @@
     "WP-3.1-home-api",
     "WP-3.2-ai-job-worker",
     "WP-3.3-react-home",
-    "WP-3.4-minimal-react-canvas"
+    "WP-3.4-minimal-react-canvas",
+    "WP-G.1-autonomous-catalog"
   ],
+  "lastCompletedWorkPackage": "WP-G.1-autonomous-catalog",
   "lastVerification": {
-    "workPackage": "WP-3.4-minimal-react-canvas",
+    "workPackage": "WP-G.1-autonomous-catalog",
     "commands": [
-      "npm run test --workspace @ai-studio/canvas-engine",
-      "npm run test --workspace @ai-studio/web",
-      "npm run typecheck --workspace @ai-studio/web",
-      "npm run typecheck --workspace @ai-studio/server-core",
-      "npm run lint --workspace @ai-studio/web",
-      "npm run lint --workspace @ai-studio/server-core",
-      "Playwright pending mobile and result desktop checks",
+      "npm run governance:check",
       "npm run check",
       "npm run build",
-      "git diff --check"
+      "git diff --check",
+      "npm run governance:scope -- WP-G.1-autonomous-catalog --cached"
     ],
     "result": "passed-with-local-infrastructure-blocker",
-    "verifiedAt": "2026-07-10"
+    "verifiedAt": "2026-07-11"
   },
-  "lastCommit": "c135a7ac",
+  "deferredExternalWorkPackages": [],
   "cutoverAllowed": false,
   "blockers": [
     {
@@ -62,7 +60,8 @@
     "1": "completed",
     "2": "in-progress",
     "3": "in-progress",
-    "4": "in-progress",
+    "3.5": "in-progress",
+    "4": "not-started",
     "5": "not-started",
     "6": "not-started",
     "7": "not-started",
@@ -77,7 +76,8 @@
     "Legacy remains the default runtime until Stage 12.",
     "Rewrite uses a fresh database and does not migrate legacy SQLite or uploads.",
     "The React home and minimal canvas receiver implementations are complete; authenticated end-to-end integration remains covered by the local Docker blocker.",
-    "Stage 4 may proceed on pure TypeScript canvas-engine work while Stages 2 and 3 retain their explicit infrastructure verification gap.",
+    "The machine-readable work-package catalog is authoritative for scope, checks, acceptance, blockers, and successors.",
+    "Stage 3.5 builds fail-closed SaaS provider, commercial, and compliance foundations before full canvas migration.",
     "The legacy runtime remains the default and is unchanged."
   ]
 }

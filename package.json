@@ -21,6 +21,7 @@
     "check:rewrite": "npm run build:packages && npm run typecheck --workspaces --if-present && npm run test --workspaces --if-present && npm run lint --workspaces --if-present && npm run format:rewrite:check",
     "format:rewrite:check": "prettier --check \"apps/**/*.{ts,tsx,css,json}\" \"packages/**/*.{ts,tsx,json}\" \"*.{ts,json,yml}\"",
     "governance:check": "node scripts/check-react-nest-governance.js",
+    "governance:scope": "node scripts/check-work-package-scope.js",
     "smoke": "node scripts/smoke-test.js",
     "railway:check": "node scripts/check-railway-env.js",
     "auth:check": "node scripts/check-auth-config.js",

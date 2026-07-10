@@ -1,6 +1,6 @@
 # AI Studio React/NestJS SaaS 重建 PRD
 
-更新日期：2026-07-10
+更新日期：2026-07-11
 
 本文档是 AI Studio 唯一的长期治理与重建路线图。它用于 Codex 目标模式的持续执行、阶段选择、范围控制、验收和发布判断。旧的“保持原生 ESM、禁止框架迁移”路线已经被用户明确替换。
 
@@ -101,6 +101,7 @@
       react-nest-execution-runbook.md
       react-nest-parity-matrix.md
       react-nest-migration-state.json
+      react-nest-work-packages.json
 
 apps/web 只依赖公开 contracts、canvas engine 和前端库。
 
@@ -243,6 +244,8 @@ Payment:
 
 ## 11. 长期执行阶段
 
+`react-nest-work-packages.json` 是工作包 ID、前置依赖、允许路径、验收、测试、外部阻断和唯一 successor 的机器权威。本文档定义阶段目标，执行时不得临时拆分、合并、跳过或扩大工作包。所有未购买外部服务必须使用 fail-closed Provider 边界；development 实现不得在 production 启用，也不得用 mock 结果解除发布阻断。
+
 ### Stage 0：治理与自动执行基线
 
 交付：
@@ -323,6 +326,37 @@ Payment:
 - 首页提交后进入 React 画布并得到最终图片。
 
 回滚：rewrite 独立入口关闭，legacy 不受影响。
+
+### Stage 3.5：商业 SaaS 必要骨架
+
+在完整画布迁移前完成可替换的商业与合规骨架，使未来购买外部服务时只增加配置、凭证和 live verification，不重写领域、API 或页面。
+
+交付：
+
+- capability registry 与 `/api/v1/capabilities`；
+- Email、SMS、微信、QQ、Captcha/Risk Provider；
+- 内容审核、通知和审计 Provider；
+- plans、prices、orders、payments、subscriptions、mandates、entitlements、refunds 和 invoice_requests；
+- 微信、支付宝、自动续费、回调、退款、查询和对账 Provider contracts；
+- pricing、account、billing、credits、security 和 data 页面；
+- 用户协议、隐私、退款、AI 说明、举报、申诉、注销和数据导出页面与后端工作流。
+
+界面规则：
+
+- 已有首页、画布、聊天和账号流程不得重排或重设计；
+- 新入口只复用已有“升级、积分、账户管理、用户协议、隐私政策”等位置；
+- 服务未配置时页面完整可访问，但真实操作必须明确不可用；
+- production 只有 capability 状态为 `verified` 才能开放真实外部操作。
+
+验收：
+
+- capability 状态只允许 `disabled`、`development`、`configured`、`verified`；
+- 缺失生产 Provider 返回稳定 `PROVIDER_NOT_CONFIGURED`，不得返回虚假成功；
+- 支付、订阅、积分和退款状态机在无真实资金情况下通过合同测试；
+- 新页面遵循现有视觉语言，只有批准的新入口允许视觉差异；
+- 外部 live verification 可记录为 deferred，但必须在 Stage 11 前关闭。
+
+回滚：逐个 revert Stage 3.5 工作包；legacy 默认入口不受影响。
 
 ### Stage 4：Canvas Engine 基础
 
@@ -490,15 +524,17 @@ Payment:
 
 每次目标模式运行：
 
-1. 读取 AGENTS 和五份必读架构文件；
+1. 读取 AGENTS 和六份必读架构文件；
 2. 运行 git status --short --branch；
 3. 从 migration state 读取唯一 nextWorkPackage；
-4. 只实施该工作包；
-5. 运行 targeted checks、npm run check、npm run build；
-6. 更新 parity evidence 和 migration state；
-7. 显式 stage 文件并创建一个 commit；
-8. 工作区干净后继续下一工作包；
-9. 遇到 AGENTS stop condition 时暂停。
+4. 在 work-packages catalog 中确认前置、允许路径、测试、验收和 successor；
+5. 只实施该工作包，不临时拆分或合并；
+6. 运行 targeted checks、npm run check、npm run build；
+7. 更新 parity evidence 和 migration state；
+8. 显式 stage 文件并运行 staged scope gate；
+9. 使用 `Work-Package: <id>` trailer 创建一个 commit；
+10. 工作区干净后继续 successor；
+11. 遇到 AGENTS stop condition 时暂停。
 
 不能因为 token、耗时或难度接近上限而伪造完成状态。
 

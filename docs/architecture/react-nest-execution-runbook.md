@@ -1,6 +1,6 @@
 # React/NestJS Goal Mode Execution Runbook
 
-更新日期：2026-07-10
+更新日期：2026-07-11
 
 ## Goal Objective
 
@@ -19,6 +19,7 @@ Read in this order:
 3. saas-governance-prd.md
 4. react-nest-target-architecture.md
 5. react-nest-migration-state.json
+6. react-nest-work-packages.json
 
 Read react-nest-parity-matrix.md for frontend or behavior work.
 
@@ -29,7 +30,7 @@ Only open legacy maps relevant to the active work package.
 1. Run git status --short --branch.
 2. Confirm the branch is codex/react-nest-rewrite or an explicitly approved successor.
 3. Read nextWorkPackage from the migration state.
-4. Locate that work package in the PRD.
+4. Locate that work package in the work-package catalog and verify its prerequisites.
 5. Inspect the live legacy code and new code required for the package.
 6. Implement only that package.
 7. Add targeted tests and parity evidence.
@@ -39,9 +40,10 @@ Only open legacy maps relevant to the active work package.
 11. Update parity matrix entries affected by the package.
 12. Update migration state with verification and the next package.
 13. Stage explicit paths.
-14. Create one scoped commit.
-15. Confirm the worktree is clean or contains only unrelated user changes.
-16. Continue automatically when Goal mode remains active.
+14. Run `npm run governance:scope -- <work-package-id> --cached`.
+15. Create one scoped commit with a `Work-Package: <id>` trailer.
+16. Confirm the worktree is clean or contains only unrelated user changes.
+17. Continue to the catalogued successor when Goal mode remains active.
 
 ## State Rules
 
@@ -51,8 +53,9 @@ react-nest-migration-state.json is authoritative for progress.
 - activeWorkPackage identifies work currently in progress or null between packages.
 - nextWorkPackage must contain exactly one package.
 - completedWorkPackages is append-only.
+- lastCompletedWorkPackage records the latest completed catalog ID.
 - lastVerification records the commands and results for the latest completed package.
-- lastCommit records the latest package commit.
+- Git commit trailers, not a self-referential JSON hash, identify the package commit.
 - blockers records conditions that prevent a later stage.
 - cutoverAllowed remains false until all release blockers are cleared.
 
@@ -81,6 +84,8 @@ Do not combine:
 - CSS cleanup and feature migration;
 - legacy deletion and rewrite implementation;
 - multiple PRD stages.
+
+Do not split, merge, skip, or widen catalogued packages during execution. Change the catalog only in a dedicated governance package.
 
 ## Legacy Comparison
 
@@ -152,6 +157,7 @@ Layer 5: production-like
 - Use explicit git add paths.
 - Never use git add .
 - One commit per completed package.
+- Every program commit must include `Work-Package: <id>` in its message body.
 - Do not push without explicit user instruction.
 - Do not amend unrelated history.
 - Include generated files only when they are outputs required by the package.

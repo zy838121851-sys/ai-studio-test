@@ -17,6 +17,7 @@ Before any change, read:
 3. docs/architecture/react-nest-target-architecture.md
 4. docs/architecture/react-nest-execution-runbook.md
 5. docs/architecture/react-nest-migration-state.json
+6. docs/architecture/react-nest-work-packages.json
 
 For UI or interaction work, also read:
 
@@ -88,7 +89,9 @@ Do not add:
 ## Autonomous Execution
 
 - The authoritative next task is react-nest-migration-state.json.nextWorkPackage.
+- The next task must exist in react-nest-work-packages.json and all prerequisites must be complete.
 - Execute exactly one work package at a time.
+- Do not split, merge, skip, or widen a catalogued work package during execution.
 - Do not skip ahead because a later task appears easier.
 - A work package must have one responsibility, explicit verification, and a simple rollback.
 - Update the migration state only after implementation and verification succeed.
@@ -111,6 +114,7 @@ Do not add:
 - Do not use git add .
 - Stage only explicit paths for the current work package.
 - Use one scoped commit per completed work package.
+- Add a `Work-Package: <id>` trailer to every rewrite-program commit.
 - Do not push unless the user explicitly asks.
 - Keep the branch clean between autonomous work packages.
 - Recommended commit prefixes are docs:, build:, test:, refactor:, feat:, fix:, security:, and ops:.
@@ -122,6 +126,7 @@ Before every commit:
 - run the targeted tests for the changed surface;
 - run npm run check;
 - run npm run build.
+- stage only explicit paths, then run `npm run governance:scope -- <work-package-id> --cached`.
 
 During coexistence, the root check and build commands must validate both legacy and rewrite surfaces.
 

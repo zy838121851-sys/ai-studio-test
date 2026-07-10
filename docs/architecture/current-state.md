@@ -1,6 +1,6 @@
 # AI Studio Current State
 
-更新日期：2026-07-10
+更新日期：2026-07-11
 
 本文档只描述当前仍在运行的 legacy 系统与已经批准但尚未切流的 rewrite 状态。长期目标、阶段和验收以 saas-governance-prd.md 为准，实时进度以 react-nest-migration-state.json 为准。
 
@@ -163,6 +163,7 @@ Always read:
 - react-nest-target-architecture.md
 - react-nest-execution-runbook.md
 - react-nest-migration-state.json
+- react-nest-work-packages.json
 
 For UI work:
 
