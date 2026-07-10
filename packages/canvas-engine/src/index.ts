@@ -1,4 +1,6 @@
-export type CanvasNode = CanvasImageNode | CanvasPendingImageNode;
+import { SHAPE_REGISTRY, type CanvasArrowNode, type CanvasShapeNode } from "./shapes.js";
+
+export type CanvasNode = CanvasImageNode | CanvasPendingImageNode | CanvasShapeNode | CanvasArrowNode;
 
 export type { CanvasNodeDefinition, CanvasNodeKind, CanvasSnapshotMigration } from "./document-registry.js";
 
@@ -92,6 +94,7 @@ export * from "./viewport.js";
 export * from "./history.js";
 export * from "./selection.js";
 export * from "./transforms.js";
+export * from "./shapes.js";
 
 export function fitCanvasNodeSize(
   width: number,
@@ -125,6 +128,16 @@ function normalizeCanvasNode(value: unknown): CanvasNode | null {
       sourceUrl: value.sourceUrl,
       alt: typeof value.alt === "string" && value.alt.trim() ? value.alt : "生成图片"
     };
+  }
+
+  if (value.kind === "shape" && isNonEmptyString(value.shapeType) && SHAPE_REGISTRY.includes(value.shapeType as CanvasShapeNode["shapeType"])) {
+    return { ...base, kind: "shape", shapeType: value.shapeType as CanvasShapeNode["shapeType"] };
+  }
+
+  const arrowValues = [value.startX, value.startY, value.endX, value.endY];
+  if (value.kind === "arrow" && arrowValues.every(isFiniteNumber)) {
+    const [startX, startY, endX, endY] = arrowValues as [number, number, number, number];
+    return { ...base, kind: "arrow", startX, startY, endX, endY };
   }
 
   return null;

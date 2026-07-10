@@ -114,6 +114,7 @@ function CanvasNodeView({ node, job }: { node: CanvasNode; job: AiJobDto | undef
     );
   }
 
+  if (node.kind !== "pending-image") return null;
   const failed = job?.id === node.jobId && job.status === "failed";
   return (
     <article
