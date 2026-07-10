@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "program": "react-nest-rewrite",
+  "programStatus": "active",
+  "activeStage": 0,
+  "activeWorkPackage": null,
+  "nextWorkPackage": "WP-0.2-governance-check",
+  "completedWorkPackages": [
+    "WP-0.1-governance-baseline"
+  ],
+  "lastVerification": {
+    "workPackage": "WP-0.1-governance-baseline",
+    "commands": [
+      "npm run check",
+      "npm run build",
+      "git diff --check"
+    ],
+    "result": "passed",
+    "verifiedAt": "2026-07-10"
+  },
+  "lastCommit": null,
+  "cutoverAllowed": false,
+  "blockers": [
+    {
+      "id": "BLOCK-CROSS-BORDER-PERSONAL-DATA",
+      "scope": "production-cutover",
+      "status": "open",
+      "reason": "Silent overseas model calls may transfer personal or sensitive information without a resolved mainland production policy.",
+      "resolution": "User must approve disabling, domestic fallback, or a compliant notice and consent policy before production cutover."
+    },
+    {
+      "id": "BLOCK-EXTERNAL-APPROVALS",
+      "scope": "production-cutover",
+      "status": "open",
+      "reason": "ICP or operating-license decision, model application registration, and payment merchant approvals are not complete.",
+      "resolution": "Record authoritative approvals and evidence during Stages 8 through 11."
+    }
+  ],
+  "stageStatus": {
+    "0": "in-progress",
+    "1": "not-started",
+    "2": "not-started",
+    "3": "not-started",
+    "4": "not-started",
+    "5": "not-started",
+    "6": "not-started",
+    "7": "not-started",
+    "8": "not-started",
+    "9": "not-started",
+    "10": "not-started",
+    "11": "not-started",
+    "12": "not-started",
+    "13": "not-started"
+  },
+  "notes": [
+    "Legacy remains the default runtime until Stage 12.",
+    "Rewrite uses a fresh database and does not migrate legacy SQLite or uploads.",
+    "The first vertical slice is a fully functional React home plus a minimal React canvas receiver."
+  ]
+}

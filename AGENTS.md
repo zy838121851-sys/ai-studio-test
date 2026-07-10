@@ -2,125 +2,164 @@
 
 ## Mission
 
-- Govern AI Studio toward a commercial SaaS-ready modern monolith suitable for public beta and later paid production release.
-- Optimize for long-term maintainability, release safety, data reliability, tenant isolation, operational visibility, and rollback discipline.
-- Keep the current Express + Vite + native ESM architecture unless the user explicitly approves a later migration stage.
+- Rebuild AI Studio into a commercial SaaS-ready modern modular monolith.
+- The approved target is React + TypeScript on the frontend and NestJS + Fastify on the backend.
+- Production targets Alibaba Cloud SAE, RDS PostgreSQL, Tair Redis, BullMQ workers, private OSS, SLS, and ARMS.
+- Preserve the existing product behavior, UI appearance, interaction details, generation workflows, and user expectations while replacing the implementation.
 - Treat this file as the standing operating contract for every Codex stage in this repository.
 
 ## Required Reading
 
-- Read `docs/architecture/current-state.md` before making changes.
-- Read `docs/architecture/saas-governance-prd.md` before making changes.
-- Use other `docs/architecture/*` files only when they are directly relevant to the current stage.
+Before any change, read:
 
-## Default Scope
+1. docs/architecture/current-state.md
+2. docs/architecture/saas-governance-prd.md
+3. docs/architecture/react-nest-target-architecture.md
+4. docs/architecture/react-nest-execution-runbook.md
+5. docs/architecture/react-nest-migration-state.json
 
-- Make behavior-equivalent governance changes by default.
-- Prefer small architecture boundary improvements, workflow extraction, provider/service seams, verification scripts, release gates, and dead-code cleanup with proof.
-- Prefer changes that reduce production risk or improve future extension seams without changing the product surface.
-- Do not add product features unless the user explicitly asks for that feature.
-- Do not change UI appearance.
-- Do not change interaction behavior.
-- Do not change visible copy unless the task explicitly targets broken or corrupted copy.
+For UI or interaction work, also read:
 
-## Architecture Rules
+- docs/architecture/react-nest-parity-matrix.md
+- only the directly relevant legacy map documents
 
-- Do not refactor the entire project.
-- Do not directly switch to Next.js, React, Vue, or another frontend framework.
-- Do not rewrite the app to satisfy a cleanup task.
-- Do not move files just to make the tree look cleaner.
-- Keep legacy compatibility seams working while gradually thinning them.
-- New backend external capabilities must go through provider/service boundaries with a local implementation.
-- New heavy frontend capabilities must stay lazy-loaded.
-- Routes should stay thin; business flow belongs in services, persistence in repositories, and external capabilities in providers.
-- Persisted payload normalization, URL normalization, and tenant/user scoping are production-critical, not cosmetic cleanup.
-- Any migration toward a different framework, database, queue, storage, or billing provider must be an explicit later phase with a rollback plan.
+Do not reread every historical document for every work package.
 
-## Commercial SaaS Priorities
+## Locked Program Decisions
 
-- Protect auth, session, user/workspace isolation, uploads, project persistence, credits, AI jobs, and auditability.
-- Treat persisted data quality as production-critical.
-- Prefer backend truth over optimistic UI claims for save/delete/payment-like operations.
-- Keep storage, queue, billing, rate limit, and audit seams replaceable for future production providers.
-- Do not enable production mock providers or unsafe production defaults.
-- Prefer direct API, schema, and check-script evidence for SaaS readiness claims.
-- Keep local implementations usable while making future production providers pluggable.
-- Treat logs, audit events, backups, restore paths, and rollback instructions as part of the product's commercial readiness.
-- Do not weaken auth, CSP, upload protection, rate limits, tenant isolation, credit accounting, or production environment checks to make a stage pass.
+- Frontend: React, TypeScript, React Router Framework SPA mode, TanStack Query, and Zustand.
+- Canvas: React components plus an isolated TypeScript canvas engine.
+- Backend: NestJS with the Fastify adapter and REST/OpenAPI contracts.
+- Database: a fresh PostgreSQL database using Drizzle and node-postgres.
+- Queue: BullMQ backed by Tair-compatible Redis.
+- Storage: local provider for development and private OSS for production.
+- Repository layout: npm workspaces; no Nx or Turborepo.
+- Delivery: internal incremental work packages followed by one production cutover.
+- Legacy runtime: frozen reference implementation until the final audited deletion stage.
+- Existing SQLite and upload data are not migrated into the new production database.
+- Domestic commercial launch includes WeChat Pay, Alipay, automatic renewal, credits, invoices, refunds, AI content labeling, and release governance.
 
-## Commercial SaaS Definition Of Done
+## Architecture Boundaries
 
-A stage is not considered SaaS-ready unless it preserves existing behavior and improves at least one of:
+- apps/web owns the React application and must not import server implementation code.
+- apps/api is the HTTP composition root.
+- apps/worker is the background worker composition root.
+- packages/contracts contains generated public API types, not database entities.
+- packages/canvas-engine contains framework-independent editor state, geometry, commands, history, and serialization.
+- packages/server-core contains domain modules, repositories, providers, and use cases shared by API and worker.
+- Routes/controllers remain thin.
+- Business flow belongs in application services.
+- Persistence belongs in repositories.
+- External systems belong behind providers.
+- PostgreSQL and AI job records are durable business truth; Redis jobs are delivery mechanisms.
 
-- release gate coverage;
-- data integrity or recovery;
-- auth, tenant isolation, or security posture;
-- provider/service/repository boundaries;
-- production deployability or observability;
-- maintainability of active runtime paths.
+## Approved Dependencies
 
-Before calling a stage complete, confirm:
+The following dependency families are approved when introduced by the matching PRD stage:
 
-- the changed surface is narrow and intentional;
-- no product feature, UI appearance, or interaction behavior was changed unless explicitly requested;
-- `npm run check` and `npm run build` pass;
-- rollback is a simple commit revert or a clearly described manual reversal;
-- the next recommended step follows `docs/architecture/saas-governance-prd.md`.
+- React, React DOM, React Router, TanStack Query, Zustand
+- NestJS core, Fastify adapter, configuration, validation, Swagger/OpenAPI
+- TypeScript, Vite, ESLint, Prettier, Vitest, Testing Library, Playwright
+- Drizzle ORM, Drizzle Kit, pg
+- BullMQ, ioredis
+- Aliyun SDKs and ali-oss
+- official WeChat Pay and Alipay integrations or narrowly scoped HTTP adapters
+- OpenAPI type generation
+
+Do not add:
+
+- Next.js, Vue, Angular, Nuxt, or another frontend framework
+- Tailwind, Ant Design, Material UI, Chakra, or another visual system
+- Prisma or TypeORM
+- React Three Fiber
+- Nx, Turborepo, or Kubernetes tooling
+- a second state-management or API-contract stack without a recorded architecture decision
+
+## Behavior And UI Rules
+
+- Existing surfaces must remain visually and behaviorally equivalent.
+- Do not redesign the home page, canvas, chat, upload flow, generators, project library, asset library, task log, auth, credits, or 3D preview.
+- New commercial and compliance screens are allowed only in their PRD stages and must use the existing visual language.
+- Do not treat React default markup or browser defaults as acceptable visual parity.
+- The new app must not use querySelector, innerHTML, dataset, or window globals as application state.
+- High-frequency canvas pointer movement must not force a full React render for every event.
+- Heavy 3D and video workflows must remain lazy-loaded.
+
+## Autonomous Execution
+
+- The authoritative next task is react-nest-migration-state.json.nextWorkPackage.
+- Execute exactly one work package at a time.
+- Do not skip ahead because a later task appears easier.
+- A work package must have one responsibility, explicit verification, and a simple rollback.
+- Update the migration state only after implementation and verification succeed.
+- Do not mark a stage complete while any acceptance item is incomplete.
+- When Goal mode is active, continue to the next work package without asking for routine confirmation.
+- Pause only for a stop condition defined below.
+
+## Legacy Protection
+
+- The current root start and dev commands remain the legacy default until the cutover stage.
+- Do not modify legacy behavior merely to make the new implementation easier.
+- Critical legacy production fixes must be isolated from migration work.
+- Do not move or delete legacy files before the final cleanup stage.
+- Legacy deletion requires static reachability evidence, parity evidence, runtime verification, and a rollback commit.
 
 ## Worktree And Git
 
-- Start each stage with `git status --short --branch`.
-- Protect existing unrelated changes; do not revert user work.
-- Do not use `git add .`.
-- Stage only explicit paths that belong to the current stage.
-- Do not mix unrelated files into a commit.
-- Commit each completed small stage unless the user asks not to commit.
-- Do not push unless the user explicitly asks to push.
-- If the worktree contains unrelated changes, report them and leave them untouched.
-- Commit messages should name the governance intent, such as `docs:`, `test:`, `refactor:`, or `fix:`.
-
-## File Deletion Rules
-
-- Do not delete files unless all are true:
-  - static reference evidence shows the file is unused or superseded;
-  - runtime or check-script verification supports deletion;
-  - there is a clear rollback point;
-  - deletion is scoped to the current stage.
-- Documentation cleanup must be its own stage.
-- Legacy code cleanup must be its own stage.
+- Start each work package with git status --short --branch.
+- Protect unrelated changes and never revert user work.
+- Do not use git add .
+- Stage only explicit paths for the current work package.
+- Use one scoped commit per completed work package.
+- Do not push unless the user explicitly asks.
+- Keep the branch clean between autonomous work packages.
+- Recommended commit prefixes are docs:, build:, test:, refactor:, feat:, fix:, security:, and ops:.
 
 ## Verification
 
-- Before every commit, run:
-  - `npm run check`
-  - `npm run build`
-- For frontend workflow edits, also run targeted `node --check` and the matching `scripts/check-*.js` when available.
-- For `src/client/legacy-app.js` edits, run `node --check src/client/legacy-app.js` immediately.
-- For production-readiness changes, prefer direct API/schema/check-script evidence over visual impressions.
-- For server, auth, storage, upload, project, credit, or AI job changes, add or run the most specific existing API/schema/check script available.
-- For CSS or DOM-governance changes, prefer selector/static-surface checks first; use visual/browser checks only when they are needed to prove no UI drift.
-- If a check fails, fix within the same narrow stage only when the cause is clear and in scope; otherwise pause and report.
+Before every commit:
+
+- run the targeted tests for the changed surface;
+- run npm run check;
+- run npm run build.
+
+During coexistence, the root check and build commands must validate both legacy and rewrite surfaces.
+
+Additional requirements:
+
+- React UI work requires Playwright behavior checks and visual comparison where relevant.
+- Canvas work requires pointer, coordinate, zoom, selection, undo/redo, and serialization tests.
+- API work requires OpenAPI, validation, error-contract, auth, and tenant-isolation tests.
+- Database work requires migration, constraint, transaction, and clean-database bootstrap tests.
+- Job work requires retry, duplicate delivery, crash recovery, and exactly-once billing tests.
+- Payment work requires signature, webhook replay, reconciliation, cancellation, refund, and entitlement tests.
+- Production work requires backup/restore, health, alert, and rollback drills.
 
 ## Reporting
 
-After changes, report:
+After each work package, report:
 
 - modified files;
-- whether behavior, UI, interaction, dependencies, or data schema changed;
-- verification commands and results;
-- risk;
-- rollback method;
-- recommended next step.
-- whether the commit was created and whether the branch is ahead of remote.
+- behavior, UI, interaction, dependency, and schema impact;
+- verification results;
+- risk and rollback;
+- commit hash and branch-ahead state;
+- next work package from the migration state.
 
 ## Stop Conditions
 
-Pause and report before continuing if:
+Pause and report when:
 
-- a change requires UI or interaction changes;
-- a change requires a new dependency;
-- a framework migration looks necessary;
-- deletion evidence is incomplete;
-- checks fail for unclear reasons;
-- production data, database migration, auth, billing, or storage safety is at risk;
-- unrelated worktree changes conflict with the current stage.
+- existing UI or interaction cannot be reproduced without a product decision;
+- a dependency outside the approved list is required;
+- an API or persisted contract must change without a documented migration;
+- tenant isolation, auth, payment, credits, uploads, or project data may be unsafe;
+- production secrets or external merchant credentials are required;
+- checks fail for an unclear or out-of-scope reason;
+- unrelated worktree changes conflict with the current package;
+- a deletion lacks evidence;
+- a production cutover is requested while cutoverAllowed is false.
+
+## Release Blocker
+
+The current product decision keeps overseas model calls silent and equivalent to domestic model calls during development and staging. This is not considered resolved for a mainland public paid launch when personal or sensitive information may be transmitted overseas. The migration may continue, but production cutover must remain blocked until the user chooses and approves a compliant policy.
