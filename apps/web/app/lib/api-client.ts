@@ -83,6 +83,24 @@ export function createProject(input: { title: string; prompt: string }): Promise
   return request("/api/v1/projects", { method: "POST", body: JSON.stringify(input) });
 }
 
+export function getProject(projectId: string): Promise<ProjectDetailDto> {
+  return request(`/api/v1/projects/${encodeURIComponent(projectId)}`);
+}
+
+export function updateProject(
+  projectId: string,
+  input: {
+    expectedVersion: number;
+    title?: string;
+    canvasDocument?: ProjectDetailDto["canvasDocument"];
+  }
+): Promise<ProjectDetailDto> {
+  return request(`/api/v1/projects/${encodeURIComponent(projectId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(input)
+  });
+}
+
 export function uploadReference(file: File): Promise<UploadAssetDto> {
   const form = new FormData();
   form.append("file", file);
@@ -106,6 +124,10 @@ export function createAiJob(input: {
       uploadIds: input.uploadIds
     })
   });
+}
+
+export function getAiJob(jobId: string): Promise<AiJobDto> {
+  return request(`/api/v1/ai-jobs/${encodeURIComponent(jobId)}`);
 }
 
 export function getHomeFeed(input: {

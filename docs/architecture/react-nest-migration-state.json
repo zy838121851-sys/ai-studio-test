@@ -2,9 +2,9 @@
   "schemaVersion": 1,
   "program": "react-nest-rewrite",
   "programStatus": "active",
-  "activeStage": 3,
+  "activeStage": 4,
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-3.4-minimal-react-canvas",
+  "nextWorkPackage": "WP-4.1-canvas-engine-foundation",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -12,16 +12,19 @@
     "WP-2.1-backend-platform",
     "WP-3.1-home-api",
     "WP-3.2-ai-job-worker",
-    "WP-3.3-react-home"
+    "WP-3.3-react-home",
+    "WP-3.4-minimal-react-canvas"
   ],
   "lastVerification": {
-    "workPackage": "WP-3.3-react-home",
+    "workPackage": "WP-3.4-minimal-react-canvas",
     "commands": [
-      "npm run typecheck --workspace @ai-studio/web",
+      "npm run test --workspace @ai-studio/canvas-engine",
       "npm run test --workspace @ai-studio/web",
+      "npm run typecheck --workspace @ai-studio/web",
+      "npm run typecheck --workspace @ai-studio/server-core",
       "npm run lint --workspace @ai-studio/web",
-      "npm run build --workspace @ai-studio/web",
-      "Playwright desktop and mobile visual and interaction checks",
+      "npm run lint --workspace @ai-studio/server-core",
+      "Playwright pending mobile and result desktop checks",
       "npm run check",
       "npm run build",
       "git diff --check"
@@ -29,7 +32,7 @@
     "result": "passed-with-local-infrastructure-blocker",
     "verifiedAt": "2026-07-10"
   },
-  "lastCommit": "abe39928",
+  "lastCommit": "c135a7ac",
   "cutoverAllowed": false,
   "blockers": [
     {
@@ -59,7 +62,7 @@
     "1": "completed",
     "2": "in-progress",
     "3": "in-progress",
-    "4": "not-started",
+    "4": "in-progress",
     "5": "not-started",
     "6": "not-started",
     "7": "not-started",
@@ -73,7 +76,8 @@
   "notes": [
     "Legacy remains the default runtime until Stage 12.",
     "Rewrite uses a fresh database and does not migrate legacy SQLite or uploads.",
-    "The React home implementation and visual parity checks are complete; authenticated integration remains covered by the local Docker blocker.",
-    "The next package is the minimal React canvas receiver; the legacy runtime remains unchanged."
+    "The React home and minimal canvas receiver implementations are complete; authenticated end-to-end integration remains covered by the local Docker blocker.",
+    "Stage 4 may proceed on pure TypeScript canvas-engine work while Stages 2 and 3 retain their explicit infrastructure verification gap.",
+    "The legacy runtime remains the default and is unchanged."
   ]
 }

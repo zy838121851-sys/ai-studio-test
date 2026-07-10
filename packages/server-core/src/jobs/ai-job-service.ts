@@ -1,5 +1,6 @@
 import { createHash, randomUUID } from "node:crypto";
 
+import { fitCanvasNodeSize } from "@ai-studio/canvas-engine";
 import type { AiJobDto } from "@ai-studio/contracts";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 
@@ -395,6 +396,7 @@ export class AiJobService {
           width: result.width,
           height: result.height
         };
+        const canvasNodeSize = fitCanvasNodeSize(result.width, result.height);
         const [updatedJob] = await transaction
           .update(aiJobs)
           .set({
@@ -432,8 +434,8 @@ export class AiJobService {
                     alt: "生成图片",
                     x: 120,
                     y: 100,
-                    width: result.width,
-                    height: result.height
+                    width: canvasNodeSize.width,
+                    height: canvasNodeSize.height
                   }
                 ]
               },

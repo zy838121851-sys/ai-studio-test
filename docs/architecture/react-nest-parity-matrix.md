@@ -26,7 +26,7 @@ An item is complete only when its status is approved and evidence points to pass
 | HOME-007 | Channels | Active channel and horizontal scroll behavior | automated | React implementation and desktop/mobile Playwright screenshots |
 | HOME-008 | Inspiration feed | Masonry sizing, filtering and incremental load | automated | Local image feed and desktop/mobile Playwright screenshots |
 | HOME-009 | Back to top | Visibility and smooth scroll | in-progress | React implementation present; dedicated browser assertion pending |
-| HOME-010 | Generation handoff | Create project, enter canvas, pending then result | in-progress | API/worker flow implemented; PostgreSQL/Redis integration and canvas receiver pending |
+| HOME-010 | Generation handoff | Create project, enter canvas, pending then result | in-progress | API/worker and React receiver automated independently; PostgreSQL/Redis end-to-end integration pending |
 | HOME-011 | Responsive | Desktop, tablet and mobile match legacy | automated | Compared at 1440x1000 and 390x844 against captured legacy geometry |
 
 ## Authentication And Account
@@ -48,11 +48,11 @@ An item is complete only when its status is approved and evidence points to pass
 | --- | --- | --- | --- | --- |
 | PROJ-001 | Create | New project title, prompt and empty document | not-started | |
 | PROJ-002 | Save | Backend result is save truth | not-started | |
-| PROJ-003 | Open | Document, thumbnail and recent time restore | not-started | |
+| PROJ-003 | Open | Document, thumbnail and recent time restore | automated | React receiver component tests restore project title and persisted document |
 | PROJ-004 | Delete | Confirm, backend delete and failure rollback | not-started | |
-| PROJ-005 | Snapshot | Versioned CanvasDocument save and restore | not-started | |
+| PROJ-005 | Snapshot | Versioned CanvasDocument save and restore | automated | `canvas-engine` normalization tests and React receiver tests |
 | PROJ-006 | Thumbnail | Home/library thumbnail remains stable | not-started | |
-| PROJ-007 | Recovery | Invalid or temporary nodes do not restore | not-started | |
+| PROJ-007 | Recovery | Invalid or temporary nodes do not restore | automated | `normalizeCanvasDocument` filters malformed and unsupported nodes |
 
 ## Canvas Viewport And Selection
 
@@ -88,8 +88,8 @@ An item is complete only when its status is approved and evidence points to pass
 | ID | Surface | Required Behavior | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | MEDIA-001 | Upload node | Image/video/model node placement | not-started | |
-| MEDIA-002 | Pending image | Loading preview and status | not-started | |
-| MEDIA-003 | Result image | Pending replacement, size and metadata | not-started | |
+| MEDIA-002 | Pending image | Loading preview and status | automated | React route test plus 390x844 Playwright pending-state check |
+| MEDIA-003 | Result image | Pending replacement, size and metadata | automated | Worker persists final node; React route test and 1440x1000 Playwright result check |
 | MEDIA-004 | Image toolbar | Crop, upscale, background, expand, text and 3D | not-started | |
 | MEDIA-005 | Image generator | Form, references, model, count and result | not-started | |
 | MEDIA-006 | Image edit | References, prompt and replacement | not-started | |
