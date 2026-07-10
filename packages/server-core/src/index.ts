@@ -6,6 +6,7 @@ export * from "./billing/payment-providers.js";
 export * from "./config/rewrite-config.js";
 export * from "./compliance/compliance-providers.js";
 export * from "./compliance/compliance-service.js";
+export * from "./compliance/data-rights.js";
 export * from "./credits/credit-service.js";
 export * from "./database/client.js";
 export * from "./database/schema.js";

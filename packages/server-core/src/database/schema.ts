@@ -60,6 +60,7 @@ export const mandateStatus = pgEnum("mandate_status", ["pending", "active", "rev
 export const entitlementStatus = pgEnum("entitlement_status", ["pending", "active", "expired", "revoked"]);
 export const refundStatus = pgEnum("refund_status", ["pending", "succeeded", "failed", "cancelled"]);
 export const invoiceRequestStatus = pgEnum("invoice_request_status", ["pending", "issued", "rejected"]);
+export const dataRightsRequestStatus = pgEnum("data_rights_request_status", ["pending", "processing", "completed", "rejected", "cancelled"]);
 
 export const users = pgTable(
   "users",
@@ -523,4 +524,21 @@ export const paymentEvents = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
   },
   (table) => [uniqueIndex("payment_events_provider_unique").on(table.provider, table.providerEventId)]
+);
+
+export const dataRightsRequests = pgTable(
+  "data_rights_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull().references(() => workspaces.id, { onDelete: "restrict" }),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+    requestType: varchar("request_type", { length: 30 }).notNull(),
+    status: dataRightsRequestStatus("status").default("pending").notNull(),
+    reason: text("reason").default("").notNull(),
+    result: jsonb("result").$type<Record<string, unknown>>().default({}).notNull(),
+    idempotencyKey: varchar("idempotency_key", { length: 160 }).notNull(),
+    completedAt: timestamp("completed_at", { withTimezone: true }),
+    ...timestamps
+  },
+  (table) => [uniqueIndex("data_rights_requests_idempotency_unique").on(table.workspaceId, table.idempotencyKey), index("data_rights_requests_workspace_idx").on(table.workspaceId, table.createdAt)]
 );

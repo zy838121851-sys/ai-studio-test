@@ -62,9 +62,15 @@ export function HomeHeader({ session, onOpenAuth, onLogout }: HomeHeaderProps) {
                   <LogOut className="ui-icon" size={16} strokeWidth={2} aria-hidden="true" />
                   退出登录
                 </button>
-                <a href="/pricing" role="menuitem">升级方案</a>
-                <a href="/account" role="menuitem">账户管理</a>
-                <a href="/account/credits" role="menuitem">积分记录</a>
+                <a href="/pricing" role="menuitem">
+                  升级方案
+                </a>
+                <a href="/account" role="menuitem">
+                  账户管理
+                </a>
+                <a href="/account/credits" role="menuitem">
+                  积分记录
+                </a>
               </div>
             ) : null}
           </>
