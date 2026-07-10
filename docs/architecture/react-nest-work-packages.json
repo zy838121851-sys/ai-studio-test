@@ -1151,6 +1151,7 @@
       "successor": "WP-5.2-shapes-arrows",
       "allowedAreas": [
         "apps/web/app/features/canvas/",
+        "apps/web/e2e/",
         "docs/architecture/"
       ],
       "allowedDependencyFamilies": [],

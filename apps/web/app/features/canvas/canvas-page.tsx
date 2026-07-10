@@ -8,6 +8,7 @@ import { ApiClientError } from "../../lib/api-client.js";
 import { useCanvasJobQuery, useCanvasProjectQuery } from "./canvas-api.js";
 import { useCanvasReceiverStore } from "./canvas-store.js";
 import { CanvasAdapter } from "./canvas-adapter.js";
+import { CanvasToolRail } from "./tool-rail.js";
 
 import "./canvas.css";
 
@@ -67,6 +68,7 @@ export function CanvasPage() {
 
   return (
     <main className="canvas-receiver">
+      <CanvasToolRail />
       <header className="canvas-receiver__header">
         <Link className="canvas-receiver__brand" to="/" aria-label="返回 AI Studio 首页">
           D

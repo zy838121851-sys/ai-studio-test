@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "5",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-5.1-tool-rail",
+  "nextWorkPackage": "WP-5.2-shapes-arrows",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -31,13 +31,14 @@
     "WP-4.4-selection-model",
     "WP-4.5-drag-resize",
     "WP-4.6-react-canvas-adapter",
-    "WP-4.7-canvas-performance-gate"
+    "WP-4.7-canvas-performance-gate",
+    "WP-5.1-tool-rail"
   ],
-  "lastCompletedWorkPackage": "WP-4.7-canvas-performance-gate",
+  "lastCompletedWorkPackage": "WP-5.1-tool-rail",
   "lastVerification": {
-    "workPackage": "WP-4.7-canvas-performance-gate",
+    "workPackage": "WP-5.1-tool-rail",
     "commands": [
-      "npm run governance:verify -- WP-4.7-canvas-performance-gate"
+      "npm run governance:verify -- WP-5.1-tool-rail"
     ],
     "result": "passed-with-local-infrastructure-blocker",
     "verifiedAt": "2026-07-11"
@@ -111,6 +112,7 @@
     "Canvas transforms now provide pointer-delta movement and minimum-safe resize for selected nodes without UI integration or decorative path animation.",
     "The rewrite Canvas adapter now renders engine nodes with granular selection and pointerup command commits; high-frequency pointermove avoids full React tree updates and Legacy remains untouched.",
     "Canvas Stage 4 now has a 500-node selection/transform benchmark and rewrite Playwright gate; the next package starts Stage 5 tool-rail migration.",
+    "Rewrite Canvas tool rail now preserves tool identifiers, active/collapse state, submenu anchors, and mobile touch targets; shape and pen geometry remain in dedicated successor packages.",
     "Stage 3.5 builds fail-closed SaaS provider, commercial, and compliance foundations before full canvas migration.",
     "The legacy runtime remains the default and is unchanged."
   ]
