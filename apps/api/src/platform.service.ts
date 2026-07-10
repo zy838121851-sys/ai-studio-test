@@ -3,12 +3,14 @@ import {
   AiJobService,
   CreditService,
   createCapabilityRegistry,
+  createIdentityProviders,
   IdentityService,
   loadRewriteConfig,
   ProjectService,
   RewriteInfrastructure,
   type ReadinessResult,
   type CapabilityRegistry,
+  type IdentityProviders,
   type RewriteConfig,
   UploadService
 } from "@ai-studio/server-core";
@@ -18,6 +20,7 @@ export class PlatformService implements OnApplicationShutdown {
   readonly config: RewriteConfig;
   readonly infrastructure: RewriteInfrastructure;
   readonly identity: IdentityService;
+  readonly identityProviders: IdentityProviders;
   readonly capabilities: CapabilityRegistry;
   readonly credits: CreditService;
   readonly projects: ProjectService;
@@ -28,10 +31,11 @@ export class PlatformService implements OnApplicationShutdown {
     this.config = loadRewriteConfig(process.env);
     this.infrastructure = new RewriteInfrastructure(this.config);
     this.capabilities = createCapabilityRegistry(this.config);
+    this.identityProviders = createIdentityProviders(this.config.nodeEnvironment);
     this.identity = new IdentityService(
       this.infrastructure.database,
       this.config.sessionSecret,
-      this.config.nodeEnvironment
+      this.identityProviders
     );
     this.credits = new CreditService(this.infrastructure.database);
     this.projects = new ProjectService(this.infrastructure.database);

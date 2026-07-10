@@ -93,10 +93,17 @@ export class CapabilityRegistry {
 }
 
 export function createCapabilityRegistry(config: RewriteConfig): CapabilityRegistry {
+  const hasDevelopmentIdentityProviders = config.nodeEnvironment !== "production";
   return new CapabilityRegistry(config.nodeEnvironment, {
     "object-storage": config.storage.provider === "local" ? "development" : "configured",
     "image-generation":
-      config.imageProvider.provider === "development" ? "development" : "configured"
+      config.imageProvider.provider === "development" ? "development" : "configured",
+    "email-identity": hasDevelopmentIdentityProviders ? "development" : "disabled",
+    "sms-identity": hasDevelopmentIdentityProviders ? "development" : "disabled",
+    "wechat-oauth": hasDevelopmentIdentityProviders ? "development" : "disabled",
+    "qq-oauth": hasDevelopmentIdentityProviders ? "development" : "disabled",
+    captcha: hasDevelopmentIdentityProviders ? "development" : "disabled",
+    "risk-control": hasDevelopmentIdentityProviders ? "development" : "disabled"
   });
 }
 

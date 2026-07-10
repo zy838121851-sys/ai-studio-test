@@ -7,6 +7,7 @@ export * from "./database/client.js";
 export * from "./database/schema.js";
 export * from "./home/home-feed.js";
 export * from "./identity/identity-service.js";
+export * from "./identity/identity-providers.js";
 export * from "./identity/password.js";
 export * from "./infrastructure.js";
 export * from "./jobs/ai-job-service.js";

@@ -10,7 +10,6 @@ import { and, desc, eq, gt, isNull } from "drizzle-orm";
 
 import { ApplicationError } from "../application/application-error.js";
 import type { AuthContext } from "../application/auth-context.js";
-import type { RewriteNodeEnvironment } from "../config/rewrite-config.js";
 import type { RewriteDatabase } from "../database/client.js";
 import {
   creditAccounts,
@@ -22,6 +21,7 @@ import {
   workspaces
 } from "../database/schema.js";
 import { hashPassword, verifyPassword } from "./password.js";
+import type { IdentityProviders } from "./identity-providers.js";
 
 const SESSION_DURATION_MS = 30 * 24 * 60 * 60 * 1_000;
 const VERIFICATION_DURATION_MS = 10 * 60 * 1_000;
@@ -43,20 +43,17 @@ export class IdentityService {
   constructor(
     private readonly database: RewriteDatabase,
     private readonly sessionSecret: string,
-    private readonly nodeEnvironment: RewriteNodeEnvironment
+    private readonly providers: IdentityProviders
   ) {}
 
   async issueVerificationCode(emailInput: string): Promise<VerificationCodeDto> {
-    if (this.nodeEnvironment === "production") {
-      throw new ApplicationError(
-        "VERIFICATION_PROVIDER_UNAVAILABLE",
-        503,
-        "生产验证码服务尚未配置"
-      );
-    }
-
     const email = normalizeEmail(emailInput);
     const code = String(randomInt(100_000, 1_000_000));
+    const delivery = await this.providers.emailCode.deliver({
+      target: email,
+      code,
+      purpose: "register"
+    });
 
     await this.database.insert(verificationCodes).values({
       target: email,
@@ -68,7 +65,7 @@ export class IdentityService {
     return {
       delivered: true,
       expiresInSeconds: VERIFICATION_DURATION_MS / 1_000,
-      developmentCode: code
+      ...(delivery.developmentCode ? { developmentCode: delivery.developmentCode } : {})
     };
   }
 
