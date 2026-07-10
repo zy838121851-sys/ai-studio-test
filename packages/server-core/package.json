@@ -15,9 +15,23 @@
     "build": "tsc -p tsconfig.build.json",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",
-    "lint": "eslint src"
+    "lint": "eslint src drizzle.config.ts",
+    "db:generate": "drizzle-kit generate --config drizzle.config.ts",
+    "db:migrate": "tsx src/database/migrate.ts",
+    "infra:check": "tsx src/check-infrastructure.ts"
+  },
+  "dependencies": {
+    "ali-oss": "^6.23.0",
+    "bullmq": "^5.0.0",
+    "drizzle-orm": "^0.45.2",
+    "ioredis": "^5.0.0",
+    "pg": "^8.0.0"
   },
   "devDependencies": {
+    "@types/pg": "^8.0.0",
+    "@types/ali-oss": "^6.23.3",
+    "drizzle-kit": "^0.31.0",
+    "tsx": "^4.0.0",
     "typescript": "^5.9.0",
     "vitest": "^4.1.10"
   }

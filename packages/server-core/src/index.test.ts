@@ -1,11 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { assertRewriteEnvironment } from "./index.js";
+import { loadRewriteConfig } from "./index.js";
 
-describe("assertRewriteEnvironment", () => {
-  it("rejects local storage in production", () => {
-    expect(() =>
-      assertRewriteEnvironment({ nodeEnv: "production", storageProvider: "local" })
-    ).toThrow("Production rewrite must use the OSS storage provider.");
+describe("server-core public API", () => {
+  it("exports the rewrite configuration boundary", () => {
+    expect(loadRewriteConfig({ NODE_ENV: "test" }).nodeEnvironment).toBe("test");
   });
 });

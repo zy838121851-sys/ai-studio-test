@@ -9,5 +9,10 @@ export interface ApiErrorEnvelope {
 
 export interface ServiceHealth {
   service: "ai-studio-rewrite-api";
-  status: "ok";
+  status: "ok" | "degraded";
+  dependencies?: {
+    database: "ready" | "unavailable";
+    redis: "ready" | "unavailable";
+    storage: "ready" | "unavailable";
+  };
 }

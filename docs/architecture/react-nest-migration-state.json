@@ -2,27 +2,31 @@
   "schemaVersion": 1,
   "program": "react-nest-rewrite",
   "programStatus": "active",
-  "activeStage": 2,
+  "activeStage": 3,
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-2.1-backend-platform",
+  "nextWorkPackage": "WP-3.1-home-api",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
-    "WP-1.1-workspace-scaffold"
+    "WP-1.1-workspace-scaffold",
+    "WP-2.1-backend-platform"
   ],
   "lastVerification": {
-    "workPackage": "WP-1.1-workspace-scaffold",
+    "workPackage": "WP-2.1-backend-platform",
     "commands": [
       "npm run check:rewrite",
       "npm run build:rewrite",
       "npm run check",
       "npm run build",
-      "git diff --check"
+      "git diff --check",
+      "GET /api/v1/health/live",
+      "GET /api/v1/openapi.json",
+      "GET /api/v1/health/ready (expected 503 without local infrastructure)"
     ],
-    "result": "passed",
+    "result": "passed-with-local-infrastructure-blocker",
     "verifiedAt": "2026-07-10"
   },
-  "lastCommit": "f7b6fbee",
+  "lastCommit": "d5895e68",
   "cutoverAllowed": false,
   "blockers": [
     {
@@ -38,13 +42,20 @@
       "status": "open",
       "reason": "ICP or operating-license decision, model application registration, and payment merchant approvals are not complete.",
       "resolution": "Record authoritative approvals and evidence during Stages 8 through 11."
+    },
+    {
+      "id": "BLOCK-LOCAL-DOCKER-ADMIN",
+      "scope": "local-integration-verification",
+      "status": "open",
+      "reason": "Docker Desktop cannot start com.docker.service from the current non-administrator session, so PostgreSQL and Redis integration verification is deferred.",
+      "resolution": "Start Docker Desktop with administrator permission, then run rewrite:infra:up, rewrite:db:migrate, and rewrite:infra:check."
     }
   ],
   "stageStatus": {
     "0": "completed",
     "1": "completed",
     "2": "in-progress",
-    "3": "not-started",
+    "3": "in-progress",
     "4": "not-started",
     "5": "not-started",
     "6": "not-started",

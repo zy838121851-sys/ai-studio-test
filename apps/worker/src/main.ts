@@ -1,9 +1,11 @@
 import "reflect-metadata";
 
-import { Logger } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 
+import { StructuredLogger } from "./structured-logger.js";
 import { WorkerModule } from "./worker.module.js";
 
-await NestFactory.createApplicationContext(WorkerModule);
-Logger.log("Rewrite worker application context started", "Bootstrap");
+const logger = new StructuredLogger();
+const application = await NestFactory.createApplicationContext(WorkerModule, { logger });
+application.enableShutdownHooks();
+logger.log("Rewrite worker application context started", "Bootstrap");

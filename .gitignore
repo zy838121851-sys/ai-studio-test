@@ -1,6 +1,7 @@
 .env
 .env.*
 !.env.example
+rewrite.env.local
 node_modules/
 dist/
 apps/*/dist/

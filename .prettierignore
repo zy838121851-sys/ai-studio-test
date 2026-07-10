@@ -3,6 +3,7 @@ dist
 apps/*/dist
 apps/web/build
 packages/*/dist
+packages/server-core/drizzle/meta
 coverage
 src
 styles
