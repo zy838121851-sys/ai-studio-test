@@ -49,6 +49,8 @@ try {
 
   const healthResponse = await fetch(`${baseUrl}/health`);
   assert(healthResponse.status === 200, `production health should return 200, got ${healthResponse.status}`);
+  assert(healthResponse.headers.get("strict-transport-security") === "max-age=31536000", "production responses should enable HSTS");
+  assert(healthResponse.headers.get("x-frame-options") === "DENY", "production responses should deny framing");
   assertProductionCsp(healthResponse.headers.get("content-security-policy") || "");
 
   const response = await page.goto(`${baseUrl}/`, { waitUntil: "domcontentloaded" });
@@ -104,6 +106,8 @@ function assertProductionCsp(csp) {
   assert(csp, "Content-Security-Policy header should be present in production");
   assert(csp.includes("script-src"), "production CSP should include script-src");
   assert(csp.includes("connect-src"), "production CSP should include connect-src");
+  assert(getCspDirectiveValues(csp, "form-action").includes("'self'"), "production CSP form-action should be self");
+  assert(getCspDirectiveValues(csp, "frame-ancestors").includes("'none'"), "production CSP should deny framing");
   assert(!csp.includes("'unsafe-eval'"), "production CSP must not include unsafe-eval");
   assert(!getCspDirectiveValues(csp, "connect-src").includes("http:"), "production CSP connect-src must not include http:");
   assert(!getCspDirectiveValues(csp, "img-src").includes("http:"), "production CSP img-src must not include http:");

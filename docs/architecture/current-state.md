@@ -810,7 +810,8 @@ Known release-readiness gaps:
 - Production CSP no longer allows inline/eval scripts, `connect-src http:`,
   `img-src http:`, or `media-src http:`. Development keeps its import map and
   broader script/network allowances for unbundled local tooling. Inline styles
-  remain the next CSP tightening boundary.
+  remain the next CSP tightening boundary. Framing is denied, form submissions
+  are same-origin only, and production responses enable one-year HSTS.
 - Rate limiting uses an in-memory Map, which is not suitable for multi-instance
   production.
 - Uploads are local filesystem based; future SaaS release should use an object

@@ -13,8 +13,9 @@ Source: `src/server/index.js`
 ```text
 default-src 'self'
 base-uri 'self'
+form-action 'self'
 object-src 'none'
-frame-ancestors 'self'
+frame-ancestors 'none'
 script-src 'self'
 style-src 'self' 'unsafe-inline'
 img-src 'self' data: blob: https:
@@ -266,8 +267,9 @@ Before changing `src/server/index.js` CSP:
 Production CSP removes inline/eval scripts, `connect-src http:`, and media
 `http:` sources, while development/test keeps broader allowances. The
 production build strips its now-unneeded development import map and is guarded
-by static and browser checks. Media URL normalization covers same-host HTTP
-`/uploads/...` URLs in project thumbnails and snapshots, and the production
-media restore smoke covers thumbnail, snapshot image, and video poster loading.
-The next safe implementation stage is to reduce inline style dependencies
-before tightening `style-src`.
+by static and browser checks. Framing is denied, form submissions are limited
+to the same origin, and production responses enable one-year HSTS. Media URL
+normalization covers same-host HTTP `/uploads/...` URLs in project thumbnails
+and snapshots, and the production media restore smoke covers thumbnail,
+snapshot image, and video poster loading. The next safe implementation stage is
+to reduce inline style dependencies before tightening `style-src`.

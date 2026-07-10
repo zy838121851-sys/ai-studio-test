@@ -33,14 +33,20 @@ try {
   assert(response.status === 200, "Health endpoint should be reachable for security header checks");
   assertHeader(response, "x-content-type-options", "nosniff");
   assertHeader(response, "referrer-policy", "strict-origin-when-cross-origin");
-  assertHeader(response, "x-frame-options", "SAMEORIGIN");
+  assertHeader(response, "x-frame-options", "DENY");
+  if (process.env.NODE_ENV === "production") {
+    assertHeader(response, "strict-transport-security", "max-age=31536000");
+  } else {
+    assert(!response.headers.get("strict-transport-security"), "Non-production responses should not set HSTS");
+  }
 
   const csp = response.headers.get("content-security-policy") || "";
   assert(csp, "Content-Security-Policy header should be present");
   assertCspDirective(csp, "default-src", "'self'");
   assertCspDirective(csp, "base-uri", "'self'");
+  assertCspDirective(csp, "form-action", "'self'");
   assertCspDirective(csp, "object-src", "'none'");
-  assertCspDirective(csp, "frame-ancestors", "'self'");
+  assertCspDirective(csp, "frame-ancestors", "'none'");
 
   const risks = [
     csp.includes("'unsafe-inline'") ? "CSP allows unsafe-inline" : "",

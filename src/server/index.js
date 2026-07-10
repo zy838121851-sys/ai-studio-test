@@ -132,7 +132,10 @@ export function createServer() {
 function securityHeaders(_req, res, next) {
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
-  res.setHeader("X-Frame-Options", "SAMEORIGIN");
+  res.setHeader("X-Frame-Options", "DENY");
+  if (env.nodeEnv === "production") {
+    res.setHeader("Strict-Transport-Security", "max-age=31536000");
+  }
   res.setHeader("Content-Security-Policy", buildContentSecurityPolicy());
   next();
 }
@@ -149,8 +152,9 @@ function buildContentSecurityPolicy() {
   return [
     "default-src 'self'",
     "base-uri 'self'",
+    "form-action 'self'",
     "object-src 'none'",
-    "frame-ancestors 'self'",
+    "frame-ancestors 'none'",
     `script-src ${scriptSources.join(" ")}`,
     "style-src 'self' 'unsafe-inline'",
     `img-src ${mediaSources.join(" ")}`,
