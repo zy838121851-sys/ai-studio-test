@@ -39,6 +39,20 @@ export const creditEntryType = pgEnum("credit_entry_type", [
   "refund"
 ]);
 export const outboxStatus = pgEnum("outbox_status", ["pending", "published", "failed"]);
+export const moderationStatus = pgEnum("moderation_status", [
+  "pending",
+  "running",
+  "passed",
+  "blocked",
+  "failed"
+]);
+export const notificationStatus = pgEnum("notification_status", [
+  "pending",
+  "running",
+  "delivered",
+  "failed"
+]);
+export const notificationChannel = pgEnum("notification_channel", ["email", "sms", "in_app"]);
 
 export const users = pgTable(
   "users",
@@ -260,4 +274,87 @@ export const outboxEvents = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
   },
   (table) => [index("outbox_pending_idx").on(table.status, table.availableAt)]
+);
+
+export const moderationJobs = pgTable(
+  "moderation_jobs",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    subjectType: varchar("subject_type", { length: 40 }).notNull(),
+    subjectId: varchar("subject_id", { length: 160 }).notNull(),
+    contentHash: varchar("content_hash", { length: 64 }).notNull(),
+    provider: varchar("provider", { length: 40 }).notNull(),
+    status: moderationStatus("status").default("pending").notNull(),
+    attemptCount: integer("attempt_count").default(0).notNull(),
+    availableAt: timestamp("available_at", { withTimezone: true }).defaultNow().notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    result: jsonb("result").$type<Record<string, unknown>>().default({}).notNull(),
+    errorCode: varchar("error_code", { length: 100 }),
+    errorMessage: text("error_message"),
+    idempotencyKey: varchar("idempotency_key", { length: 160 }).notNull(),
+    ...timestamps
+  },
+  (table) => [
+    uniqueIndex("moderation_jobs_idempotency_unique").on(table.workspaceId, table.idempotencyKey),
+    index("moderation_jobs_available_idx").on(table.status, table.availableAt),
+    index("moderation_jobs_workspace_idx").on(table.workspaceId, table.createdAt)
+  ]
+);
+
+export const notificationDeliveries = pgTable(
+  "notification_deliveries",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    recipientUserId: uuid("recipient_user_id").references(() => users.id, {
+      onDelete: "set null"
+    }),
+    channel: notificationChannel("channel").notNull(),
+    recipient: varchar("recipient", { length: 320 }).notNull(),
+    templateKey: varchar("template_key", { length: 100 }).notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>().default({}).notNull(),
+    provider: varchar("provider", { length: 40 }).notNull(),
+    providerReference: varchar("provider_reference", { length: 160 }),
+    status: notificationStatus("status").default("pending").notNull(),
+    attemptCount: integer("attempt_count").default(0).notNull(),
+    availableAt: timestamp("available_at", { withTimezone: true }).defaultNow().notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true }),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+    errorCode: varchar("error_code", { length: 100 }),
+    errorMessage: text("error_message"),
+    idempotencyKey: varchar("idempotency_key", { length: 160 }).notNull(),
+    ...timestamps
+  },
+  (table) => [
+    uniqueIndex("notification_deliveries_idempotency_unique").on(
+      table.workspaceId,
+      table.idempotencyKey
+    ),
+    index("notification_deliveries_available_idx").on(table.status, table.availableAt),
+    index("notification_deliveries_workspace_idx").on(table.workspaceId, table.createdAt)
+  ]
+);
+
+export const auditEvents = pgTable(
+  "audit_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "restrict" }),
+    actorUserId: uuid("actor_user_id").references(() => users.id, { onDelete: "set null" }),
+    action: varchar("action", { length: 120 }).notNull(),
+    targetType: varchar("target_type", { length: 60 }).notNull(),
+    targetId: varchar("target_id", { length: 160 }).notNull(),
+    requestId: varchar("request_id", { length: 80 }),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}).notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [index("audit_events_workspace_idx").on(table.workspaceId, table.createdAt)]
 );

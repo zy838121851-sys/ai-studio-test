@@ -5,6 +5,8 @@ import {
 } from "@nestjs/common";
 import {
   AiJobService,
+  ComplianceService,
+  createComplianceProviders,
   createImageProvider,
   loadRewriteConfig,
   RewriteInfrastructure
@@ -15,6 +17,10 @@ export class WorkerPlatformService implements OnModuleInit, OnApplicationShutdow
   readonly config = loadRewriteConfig(process.env);
   readonly infrastructure = new RewriteInfrastructure(this.config);
   readonly aiJobs = new AiJobService(this.infrastructure.database, this.infrastructure.storage);
+  readonly compliance = new ComplianceService(
+    this.infrastructure.database,
+    createComplianceProviders(this.config.nodeEnvironment)
+  );
   readonly imageProvider = createImageProvider(this.config);
 
   async onModuleInit(): Promise<void> {

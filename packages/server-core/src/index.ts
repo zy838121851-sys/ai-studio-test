@@ -2,6 +2,8 @@ export * from "./application/application-error.js";
 export * from "./application/auth-context.js";
 export * from "./capabilities/capability-registry.js";
 export * from "./config/rewrite-config.js";
+export * from "./compliance/compliance-providers.js";
+export * from "./compliance/compliance-service.js";
 export * from "./credits/credit-service.js";
 export * from "./database/client.js";
 export * from "./database/schema.js";

@@ -103,7 +103,11 @@ export function createCapabilityRegistry(config: RewriteConfig): CapabilityRegis
     "wechat-oauth": hasDevelopmentIdentityProviders ? "development" : "disabled",
     "qq-oauth": hasDevelopmentIdentityProviders ? "development" : "disabled",
     captcha: hasDevelopmentIdentityProviders ? "development" : "disabled",
-    "risk-control": hasDevelopmentIdentityProviders ? "development" : "disabled"
+    "risk-control": hasDevelopmentIdentityProviders ? "development" : "disabled",
+    "content-moderation": hasDevelopmentIdentityProviders ? "development" : "disabled",
+    "email-notification": hasDevelopmentIdentityProviders ? "development" : "disabled",
+    "sms-notification": hasDevelopmentIdentityProviders ? "development" : "disabled",
+    "audit-log": hasDevelopmentIdentityProviders ? "development" : "disabled"
   });
 }
 
