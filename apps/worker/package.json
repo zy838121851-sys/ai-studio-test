@@ -12,7 +12,6 @@
   },
   "dependencies": {
     "@ai-studio/server-core": "*",
-    "@nestjs/bullmq": "^11.0.0",
     "@nestjs/common": "^11.0.0",
     "@nestjs/config": "^4.0.0",
     "@nestjs/core": "^11.0.0",

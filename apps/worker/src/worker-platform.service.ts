@@ -3,12 +3,19 @@ import {
   type OnApplicationShutdown,
   type OnModuleInit
 } from "@nestjs/common";
-import { loadRewriteConfig, RewriteInfrastructure } from "@ai-studio/server-core";
+import {
+  AiJobService,
+  createImageProvider,
+  loadRewriteConfig,
+  RewriteInfrastructure
+} from "@ai-studio/server-core";
 
 @Injectable()
 export class WorkerPlatformService implements OnModuleInit, OnApplicationShutdown {
   readonly config = loadRewriteConfig(process.env);
   readonly infrastructure = new RewriteInfrastructure(this.config);
+  readonly aiJobs = new AiJobService(this.infrastructure.database, this.infrastructure.storage);
+  readonly imageProvider = createImageProvider(this.config);
 
   async onModuleInit(): Promise<void> {
     const readiness = await this.infrastructure.checkReadiness();

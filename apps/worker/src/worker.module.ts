@@ -1,6 +1,7 @@
 import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 
+import { AiJobConsumerService } from "./ai-job-consumer.service.js";
 import { WorkerPlatformService } from "./worker-platform.service.js";
 
 @Module({
@@ -10,6 +11,6 @@ import { WorkerPlatformService } from "./worker-platform.service.js";
       envFilePath: ["rewrite.env.local"]
     })
   ],
-  providers: [WorkerPlatformService]
+  providers: [WorkerPlatformService, AiJobConsumerService]
 })
 export class WorkerModule {}

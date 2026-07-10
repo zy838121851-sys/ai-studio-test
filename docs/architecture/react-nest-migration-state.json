@@ -4,31 +4,31 @@
   "programStatus": "active",
   "activeStage": 3,
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-3.2-ai-job-worker",
+  "nextWorkPackage": "WP-3.3-react-home",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
     "WP-1.1-workspace-scaffold",
     "WP-2.1-backend-platform",
-    "WP-3.1-home-api"
+    "WP-3.1-home-api",
+    "WP-3.2-ai-job-worker"
   ],
   "lastVerification": {
-    "workPackage": "WP-3.1-home-api",
+    "workPackage": "WP-3.2-ai-job-worker",
     "commands": [
       "npm run check:rewrite",
       "npm run build:rewrite",
       "npm run check",
       "npm run build",
       "git diff --check",
-      "GET /api/v1/models",
-      "GET /api/v1/models/quote",
-      "GET /api/v1/home/feed",
-      "GET /api/v1/openapi.json"
+      "npm run test --workspace @ai-studio/server-core",
+      "npm run typecheck --workspace @ai-studio/worker",
+      "npm run lint --workspace @ai-studio/worker"
     ],
     "result": "passed-with-local-infrastructure-blocker",
     "verifiedAt": "2026-07-10"
   },
-  "lastCommit": "ff486e4b",
+  "lastCommit": "cf6c4007",
   "cutoverAllowed": false,
   "blockers": [
     {

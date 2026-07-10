@@ -23,4 +23,21 @@ describe("loadRewriteConfig", () => {
       })
     ).toThrow("Production rewrite must use the OSS storage provider.");
   });
+
+  it("rejects the development image provider for production", () => {
+    expect(() =>
+      loadRewriteConfig({
+        NODE_ENV: "production",
+        DATABASE_URL: "postgres://user:password@database/rewrite",
+        REDIS_URL: "rediss://redis.example.com",
+        REWRITE_APP_BASE_URL: "https://studio.example.com",
+        SESSION_SECRET: "a-production-secret-with-32-characters",
+        STORAGE_PROVIDER: "oss",
+        OSS_REGION: "oss-cn-shanghai",
+        OSS_BUCKET: "studio-production",
+        OSS_ACCESS_KEY_ID: "key-id",
+        OSS_ACCESS_KEY_SECRET: "key-secret"
+      })
+    ).toThrow("Production rewrite must not use the development image provider.");
+  });
 });

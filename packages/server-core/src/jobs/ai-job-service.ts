@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 
 import type { AiJobDto } from "@ai-studio/contracts";
-import { and, asc, eq, inArray } from "drizzle-orm";
+import { and, asc, eq, inArray, sql } from "drizzle-orm";
 
 import { ApplicationError } from "../application/application-error.js";
 import type { AuthContext } from "../application/auth-context.js";
@@ -215,8 +215,13 @@ export class AiJobService {
   async markRunning(jobId: string): Promise<AiJobDto | null> {
     const [job] = await this.database
       .update(aiJobs)
-      .set({ status: "running", startedAt: new Date(), updatedAt: new Date() })
-      .where(and(eq(aiJobs.id, jobId), eq(aiJobs.status, "queued")))
+      .set({
+        status: "running",
+        startedAt: new Date(),
+        attemptCount: sql`${aiJobs.attemptCount} + 1`,
+        updatedAt: new Date()
+      })
+      .where(and(eq(aiJobs.id, jobId), inArray(aiJobs.status, ["queued", "running"])))
       .returning();
 
     if (job) {
@@ -234,12 +239,31 @@ export class AiJobService {
     prompt: string;
     modelId: string;
     status: AiJobRow["status"];
+    references: { contentType: string; body: Buffer }[];
   }> {
     const [job] = await this.database.select().from(aiJobs).where(eq(aiJobs.id, jobId)).limit(1);
     if (!job) {
       throw new ApplicationError("AI_JOB_NOT_FOUND", 404, "生成任务不存在");
     }
     const input = parseJobInput(job.input);
+    const referenceRows =
+      input.uploadIds.length > 0
+        ? await this.database
+            .select({ contentType: uploads.contentType, storageKey: uploads.storageKey })
+            .from(uploads)
+            .where(
+              and(
+                eq(uploads.workspaceId, job.workspaceId),
+                inArray(uploads.id, input.uploadIds)
+              )
+            )
+        : [];
+    const references = await Promise.all(
+      referenceRows.map(async (reference) => ({
+        contentType: reference.contentType,
+        body: await this.storage.get(reference.storageKey)
+      }))
+    );
 
     return {
       id: job.id,
@@ -247,8 +271,19 @@ export class AiJobService {
       projectId: job.projectId,
       prompt: input.prompt,
       modelId: job.modelId,
-      status: job.status
+      status: job.status,
+      references
     };
+  }
+
+  async listRecoverableJobIds(limit = 100): Promise<string[]> {
+    const rows = await this.database
+      .select({ id: aiJobs.id })
+      .from(aiJobs)
+      .where(inArray(aiJobs.status, ["queued", "running"]))
+      .orderBy(asc(aiJobs.updatedAt))
+      .limit(Math.min(Math.max(limit, 1), 500));
+    return rows.map((row) => row.id);
   }
 
   async completeWithImage(

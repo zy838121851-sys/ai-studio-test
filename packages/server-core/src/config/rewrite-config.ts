@@ -25,6 +25,10 @@ export interface RewriteConfig {
   redisUrl: string;
   sessionSecret: string;
   storage: LocalStorageConfig | OssStorageConfig;
+  imageProvider:
+    | { provider: "development" }
+    | { provider: "apimart"; apiKey: string; baseUrl: URL };
+  workerConcurrency: number;
 }
 
 const LOCAL_DATABASE_URL =
@@ -123,6 +127,30 @@ export function loadRewriteConfig(environment: NodeJS.ProcessEnv): RewriteConfig
           endpoint: environment.OSS_ENDPOINT?.trim() || undefined
         };
 
+  const imageProviderName = environment.REWRITE_IMAGE_PROVIDER?.trim() || "development";
+  if (imageProviderName !== "development" && imageProviderName !== "apimart") {
+    throw new Error("REWRITE_IMAGE_PROVIDER must be development or apimart.");
+  }
+  if (isProduction && imageProviderName === "development") {
+    throw new Error("Production rewrite must not use the development image provider.");
+  }
+  const imageProvider =
+    imageProviderName === "development"
+      ? ({ provider: "development" } as const)
+      : ({
+          provider: "apimart",
+          apiKey: requireValue(environment, "APIMART_API_KEY"),
+          baseUrl: parseUrl(
+            environment.APIMART_BASE_URL?.trim() || "https://api.apimart.ai/v1",
+            "APIMART_BASE_URL",
+            ["https:"]
+          )
+        } as const);
+  const workerConcurrency = Number(environment.REWRITE_WORKER_CONCURRENCY ?? 2);
+  if (!Number.isInteger(workerConcurrency) || workerConcurrency < 1 || workerConcurrency > 20) {
+    throw new Error("REWRITE_WORKER_CONCURRENCY must be an integer between 1 and 20.");
+  }
+
   return {
     nodeEnvironment,
     apiHost: environment.REWRITE_API_HOST?.trim() || "127.0.0.1",
@@ -131,6 +159,8 @@ export function loadRewriteConfig(environment: NodeJS.ProcessEnv): RewriteConfig
     databaseUrl,
     redisUrl,
     sessionSecret,
-    storage
+    storage,
+    imageProvider,
+    workerConcurrency
   };
 }

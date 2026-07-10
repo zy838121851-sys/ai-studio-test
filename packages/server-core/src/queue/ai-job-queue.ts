@@ -2,6 +2,10 @@ import { Queue, type ConnectionOptions } from "bullmq";
 
 export const AI_JOB_QUEUE_NAME = "ai-studio-ai-jobs";
 
+export interface AiJobQueuePayload {
+  jobId: string;
+}
+
 export function createBullConnectionOptions(redisUrl: string): ConnectionOptions {
   const url = new URL(redisUrl);
   const databasePath = url.pathname.replace(/^\//, "");
@@ -17,7 +21,7 @@ export function createBullConnectionOptions(redisUrl: string): ConnectionOptions
   };
 }
 
-export function createAiJobQueue(redisUrl: string): Queue {
+export function createAiJobQueue(redisUrl: string): Queue<AiJobQueuePayload> {
   return new Queue(AI_JOB_QUEUE_NAME, {
     connection: createBullConnectionOptions(redisUrl),
     defaultJobOptions: {
