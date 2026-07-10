@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "4",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-4.4-selection-model",
+  "nextWorkPackage": "WP-4.5-drag-resize",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -27,13 +27,14 @@
     "WP-3.5.7-compliance-pages",
     "WP-4.1-canvas-document-registry",
     "WP-4.2-viewport-coordinate-system",
-    "WP-4.3-command-history"
+    "WP-4.3-command-history",
+    "WP-4.4-selection-model"
   ],
-  "lastCompletedWorkPackage": "WP-4.3-command-history",
+  "lastCompletedWorkPackage": "WP-4.4-selection-model",
   "lastVerification": {
-    "workPackage": "WP-4.3-command-history",
+    "workPackage": "WP-4.4-selection-model",
     "commands": [
-      "npm run governance:verify -- WP-4.3-command-history"
+      "npm run governance:verify -- WP-4.4-selection-model"
     ],
     "result": "passed-with-local-infrastructure-blocker",
     "verifiedAt": "2026-07-11"
@@ -103,6 +104,7 @@
     "Canvas document persistence now has a registered-node allowlist, explicit serializer, and snapshot migration registry; temporary and unknown nodes cannot be persisted as restored business nodes.",
     "Canvas viewport math now provides deterministic pan, zoom-anchor, fit-bounds, and screen/world coordinate round trips without touching Legacy pointer behavior.",
     "Canvas command history now provides bounded reversible document commands, project identity protection, and redo-branch invalidation without UI integration.",
+    "Canvas selection now supports single, additive, marquee, clear, and focus-safe reconciliation without UI integration.",
     "Stage 3.5 builds fail-closed SaaS provider, commercial, and compliance foundations before full canvas migration.",
     "The legacy runtime remains the default and is unchanged."
   ]
