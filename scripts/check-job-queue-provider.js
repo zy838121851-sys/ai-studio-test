@@ -3,6 +3,8 @@ import {
   createJobQueueKey,
   getDefaultJobQueue,
   isJobActive,
+  resetDefaultJobQueue,
+  setDefaultJobQueue,
   scheduleUniqueJob
 } from "../src/server/services/job-queue.service.js";
 
@@ -99,5 +101,36 @@ await tick();
 
 assert(serviceCalls === 1, "Job queue service scheduled tasks should run");
 assert(isJobActive("service:job") === false, "Job queue service should expose active state");
+
+const injectedCalls = [];
+const injectedQueue = {
+  scheduleUnique(key, task) {
+    injectedCalls.push({ key, task });
+    return true;
+  },
+  isActive(key) {
+    return key === "injected:active";
+  }
+};
+setDefaultJobQueue(injectedQueue);
+assert(getDefaultJobQueue() === injectedQueue, "Job queue services should support provider replacement");
+assert(scheduleUniqueJob("injected:job", () => {}) === true, "Job queue services should schedule through injected providers");
+assert(injectedCalls[0]?.key === "injected:job", "Job queue services should preserve scheduled keys");
+assert(typeof injectedCalls[0]?.task === "function", "Job queue services should preserve scheduled tasks");
+assert(isJobActive("injected:active") === true, "Job queue services should read active state from injected providers");
+resetDefaultJobQueue();
+assert(getDefaultJobQueue() === defaultQueue, "Job queue services should restore the local provider");
+
+let invalidProviderError = null;
+try {
+  setDefaultJobQueue({ scheduleUnique() {} });
+} catch (error) {
+  invalidProviderError = error;
+}
+assert(
+  invalidProviderError?.message === "Job queue provider must implement isActive()",
+  "Job queue services should reject incomplete providers"
+);
+resetDefaultJobQueue();
 
 console.log("Job queue provider checks passed.");
