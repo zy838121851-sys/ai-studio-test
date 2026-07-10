@@ -55,7 +55,7 @@ const ALLOWED_FILES = new Set([
   "src/client/features/workspace/asset-library/asset-library-context-menu.js",
   "src/client/features/workspace/chat/workflows/prompt-conversation-dom-utils.js",
   "src/client/features/workspace/chat/workflows/prompt-generation-metrics-utils.js",
-  "src/client/features/workspace/chat/workflows/prompt-workflow.js",
+  "src/client/features/workspace/chat/workflows/prompt-agent-debug-panel.js",
   "src/client/features/workspace/home/components/home-inspiration-feed.js",
   "src/client/features/workspace/task-log/task-log-runtime.js",
   "src/client/features/workspace/taskbar/task-bar.js",
