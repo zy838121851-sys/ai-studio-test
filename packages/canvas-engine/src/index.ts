@@ -91,6 +91,7 @@ export { CANVAS_NODE_REGISTRY, CANVAS_SNAPSHOT_MIGRATIONS, CURRENT_CANVAS_SCHEMA
 export * from "./viewport.js";
 export * from "./history.js";
 export * from "./selection.js";
+export * from "./transforms.js";
 
 export function fitCanvasNodeSize(
   width: number,
