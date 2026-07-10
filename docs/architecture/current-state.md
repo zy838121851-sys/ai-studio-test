@@ -154,6 +154,8 @@ Before cutover:
 - temporary API or database dual-write is forbidden;
 - old CSS may be consumed for visual parity but must not be changed to hide React drift.
 
+The rewrite now also exposes `/api/v1/capabilities`. It reports external-service readiness without credentials and permits production actions only for `verified` capabilities. Identity, moderation, notification, audit, and billing providers remain disabled until their Stage 3.5 work packages are complete.
+
 ## 10. Documentation Routing
 
 Always read:

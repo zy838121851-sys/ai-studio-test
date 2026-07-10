@@ -17,6 +17,53 @@ export interface ServiceHealth {
   };
 }
 
+export type CapabilityStatusDto = "disabled" | "development" | "configured" | "verified";
+
+export type CapabilityIdDto =
+  | "object-storage"
+  | "image-generation"
+  | "email-identity"
+  | "sms-identity"
+  | "wechat-oauth"
+  | "qq-oauth"
+  | "captcha"
+  | "risk-control"
+  | "content-moderation"
+  | "email-notification"
+  | "sms-notification"
+  | "audit-log"
+  | "wechat-pay"
+  | "alipay"
+  | "automatic-renewal";
+
+export type CapabilityCategoryDto =
+  | "storage"
+  | "ai"
+  | "identity"
+  | "safety"
+  | "notification"
+  | "audit"
+  | "billing";
+
+export type CapabilityAvailabilityReasonDto =
+  | "available"
+  | "provider-disabled"
+  | "development-provider-not-allowed"
+  | "live-verification-required";
+
+export interface CapabilityDto {
+  id: CapabilityIdDto;
+  category: CapabilityCategoryDto;
+  status: CapabilityStatusDto;
+  actionAllowed: boolean;
+  reason: CapabilityAvailabilityReasonDto;
+}
+
+export interface CapabilityRegistryDto {
+  environment: "development" | "test" | "production";
+  capabilities: CapabilityDto[];
+}
+
 export interface AuthUserDto {
   id: string;
   email: string;

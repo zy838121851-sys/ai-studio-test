@@ -4,6 +4,7 @@ import { ConfigModule } from "@nestjs/config";
 import { AiJobsController } from "./ai-jobs/ai-jobs.controller.js";
 import { SessionAuthGuard } from "./auth/auth-context.js";
 import { AuthController } from "./auth/auth.controller.js";
+import { CapabilitiesController } from "./capabilities.controller.js";
 import { CreditsController } from "./credits.controller.js";
 import { HealthController } from "./health.controller.js";
 import { HomeController } from "./home.controller.js";
@@ -21,6 +22,7 @@ import { UploadsController } from "./uploads.controller.js";
   ],
   controllers: [
     HealthController,
+    CapabilitiesController,
     AuthController,
     ModelsController,
     CreditsController,

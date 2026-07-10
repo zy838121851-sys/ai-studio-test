@@ -2,11 +2,13 @@ import { Injectable, type OnApplicationShutdown } from "@nestjs/common";
 import {
   AiJobService,
   CreditService,
+  createCapabilityRegistry,
   IdentityService,
   loadRewriteConfig,
   ProjectService,
   RewriteInfrastructure,
   type ReadinessResult,
+  type CapabilityRegistry,
   type RewriteConfig,
   UploadService
 } from "@ai-studio/server-core";
@@ -16,6 +18,7 @@ export class PlatformService implements OnApplicationShutdown {
   readonly config: RewriteConfig;
   readonly infrastructure: RewriteInfrastructure;
   readonly identity: IdentityService;
+  readonly capabilities: CapabilityRegistry;
   readonly credits: CreditService;
   readonly projects: ProjectService;
   readonly uploads: UploadService;
@@ -24,6 +27,7 @@ export class PlatformService implements OnApplicationShutdown {
   constructor() {
     this.config = loadRewriteConfig(process.env);
     this.infrastructure = new RewriteInfrastructure(this.config);
+    this.capabilities = createCapabilityRegistry(this.config);
     this.identity = new IdentityService(
       this.infrastructure.database,
       this.config.sessionSecret,
