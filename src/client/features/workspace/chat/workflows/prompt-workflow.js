@@ -73,6 +73,7 @@ import {
   resolveGenerationMetrics
 } from "./prompt-generation-metrics-utils.js";
 import {
+  buildPrompt3DGenerationRequest,
   buildPromptGenerationPayload,
   isPrompt3DGeneration,
   isPromptVideoGeneration,
@@ -649,15 +650,20 @@ export function bindPromptSubmit({
           throw new Error("3D canvas generation workflow is unavailable.");
         }
         const tripoReference = imageAttachments[0] || null;
-        const isImageTo3D = Boolean(tripoReference?.dataUrl);
-        if (!isImageTo3D && model === "tripo-p1") {
+        const tripoRequest = buildPrompt3DGenerationRequest({
+          prompt,
+          model,
+          reference: tripoReference
+        });
+        const { isImageTo3D, taskType } = tripoRequest;
+        if (tripoRequest.requiresReference) {
           throw new Error("Tripo P1 only supports image-to-3D. Please upload a reference image first.");
         }
         generationStarted = true;
         agentDebug.generationStarted = true;
         agentDebug.generationType = "3d";
         agentDebug.intent = "generate_3d";
-        agentDebug.taskType = isImageTo3D ? "image_to_3d" : "text_to_3d";
+        agentDebug.taskType = taskType;
         agentDebug.shouldGenerate = true;
         agentDebug.executeGeneration = true;
         agentDebug.messageDoneHandled = true;
@@ -692,7 +698,7 @@ export function bindPromptSubmit({
           modelId: model,
           generationType: "3d",
           prompt,
-          taskType: isImageTo3D ? "image_to_3d" : "text_to_3d",
+          taskType,
           imageCount: isImageTo3D ? 1 : 0,
           texture: true
         };
@@ -702,24 +708,7 @@ export function bindPromptSubmit({
         agentDebug.generatePayloadBuilt = true;
         agentDebug.generateRequestStarted = true;
         updateAgentDebugPanel(agentDebug);
-        const createPayload = isImageTo3D
-          ? {
-            prompt,
-            modelId: model,
-            imageDataUrl: tripoReference.dataUrl,
-            imageName: tripoReference.name || "reference.png",
-            imageMimeType: tripoReference.type || "",
-            texture: true
-          }
-          : {
-            prompt,
-            modelId: model,
-            texture: true
-          };
-        const createResult = await postJsonRequest(
-          isImageTo3D ? "/api/ai/3d/image-to-model" : "/api/ai/3d/text-to-model",
-          createPayload
-        );
+        const createResult = await postJsonRequest(tripoRequest.endpoint, tripoRequest.payload);
         agentDebug.generateResult = {
           taskId: createResult.taskId || "",
           status: createResult.status || "",
@@ -755,7 +744,7 @@ export function bindPromptSubmit({
           url: modelUrl,
           previewWidth: previewNode?.offsetWidth,
           generationPrompt: prompt,
-          actionType: isImageTo3D ? "image_to_3d" : "text_to_3d",
+          actionType: taskType,
           model
         }));
         centerPendingHomeGenerationNode(modelNode);

@@ -30,6 +30,34 @@ export function isPromptVideoGeneration({ modelType = "", outputType = "" } = {}
   return modelType === "video" || outputType === "video";
 }
 
+export function buildPrompt3DGenerationRequest({
+  prompt = "",
+  model = "",
+  reference = null
+} = {}) {
+  const isImageTo3D = Boolean(reference?.dataUrl);
+  return {
+    isImageTo3D,
+    requiresReference: !isImageTo3D && model === "tripo-p1",
+    taskType: isImageTo3D ? "image_to_3d" : "text_to_3d",
+    endpoint: isImageTo3D ? "/api/ai/3d/image-to-model" : "/api/ai/3d/text-to-model",
+    payload: isImageTo3D
+      ? {
+        prompt,
+        modelId: model,
+        imageDataUrl: reference.dataUrl,
+        imageName: reference.name || "reference.png",
+        imageMimeType: reference.type || "",
+        texture: true
+      }
+      : {
+        prompt,
+        modelId: model,
+        texture: true
+      }
+  };
+}
+
 export function buildPromptGenerationPayload({
   buildChatImagePayload,
   model,

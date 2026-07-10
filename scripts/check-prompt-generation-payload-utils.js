@@ -1,4 +1,5 @@
 import {
+  buildPrompt3DGenerationRequest,
   buildPromptGenerationPayload,
   isPrompt3DGeneration,
   isPromptVideoGeneration,
@@ -46,6 +47,54 @@ assert(isPromptVideoGeneration({ modelType: "video", outputType: "" }), "Prompt 
 assert(isPromptVideoGeneration({ modelType: "image", outputType: "video" }), "Prompt video generation should accept video output intents");
 assert(!isPromptVideoGeneration({ modelType: "image", outputType: "image" }), "Prompt video generation should reject image-only requests");
 assert(!isPromptVideoGeneration({}), "Prompt video generation should default to false");
+
+const imageTo3DRequest = buildPrompt3DGenerationRequest({
+  prompt: "Turn this into a model",
+  model: "tripo-v2.5-20250123",
+  reference: {
+    dataUrl: "data:image/png;base64,abc",
+    name: "reference.png",
+    type: "image/png"
+  }
+});
+assert(imageTo3DRequest.isImageTo3D === true, "Prompt 3D request should detect image references");
+assert(imageTo3DRequest.requiresReference === false, "Prompt 3D request should accept available references");
+assert(imageTo3DRequest.taskType === "image_to_3d", "Prompt 3D request should classify image-to-3D tasks");
+assert(imageTo3DRequest.endpoint === "/api/ai/3d/image-to-model", "Prompt 3D request should preserve the image endpoint");
+assert(imageTo3DRequest.payload.prompt === "Turn this into a model", "Prompt 3D request should preserve prompts");
+assert(imageTo3DRequest.payload.modelId === "tripo-v2.5-20250123", "Prompt 3D request should preserve model ids");
+assert(imageTo3DRequest.payload.imageDataUrl === "data:image/png;base64,abc", "Prompt 3D request should preserve image data");
+assert(imageTo3DRequest.payload.imageName === "reference.png", "Prompt 3D request should preserve image names");
+assert(imageTo3DRequest.payload.imageMimeType === "image/png", "Prompt 3D request should preserve image MIME types");
+assert(imageTo3DRequest.payload.texture === true, "Prompt 3D request should preserve texture generation");
+
+const imageTo3DDefaults = buildPrompt3DGenerationRequest({
+  prompt: "Turn this into a model",
+  model: "tripo-v2.5-20250123",
+  reference: { dataUrl: "data:image/png;base64,abc" }
+});
+assert(imageTo3DDefaults.payload.imageName === "reference.png", "Prompt 3D request should preserve the fallback image name");
+assert(imageTo3DDefaults.payload.imageMimeType === "", "Prompt 3D request should preserve the fallback image MIME type");
+
+const textTo3DRequest = buildPrompt3DGenerationRequest({
+  prompt: "Create a chair",
+  model: "tripo-v2.5-20250123"
+});
+assert(textTo3DRequest.isImageTo3D === false, "Prompt 3D request should detect missing image references");
+assert(textTo3DRequest.requiresReference === false, "Prompt 3D request should allow text-capable models without references");
+assert(textTo3DRequest.taskType === "text_to_3d", "Prompt 3D request should classify text-to-3D tasks");
+assert(textTo3DRequest.endpoint === "/api/ai/3d/text-to-model", "Prompt 3D request should preserve the text endpoint");
+assert(JSON.stringify(textTo3DRequest.payload) === JSON.stringify({
+  prompt: "Create a chair",
+  modelId: "tripo-v2.5-20250123",
+  texture: true
+}), "Prompt 3D request should preserve the text payload shape");
+
+const referenceRequiredRequest = buildPrompt3DGenerationRequest({
+  prompt: "Create a model",
+  model: "tripo-p1"
+});
+assert(referenceRequiredRequest.requiresReference === true, "Prompt 3D request should preserve Tripo P1 reference requirements");
 
 const calls = [];
 const payload = buildPromptGenerationPayload({
