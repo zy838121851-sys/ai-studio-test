@@ -59,6 +59,7 @@ Do not reread every historical document for every work package.
 The following dependency families are approved when introduced by the matching PRD stage:
 
 - React, React DOM, React Router, TanStack Query, Zustand
+- lucide-react for the rewrite web workspace only
 - NestJS core, Fastify adapter, configuration, validation, Swagger/OpenAPI
 - TypeScript, Vite, ESLint, Prettier, Vitest, Testing Library, Playwright
 - Drizzle ORM, Drizzle Kit, pg
@@ -81,6 +82,11 @@ Do not add:
 - Existing surfaces must remain visually and behaviorally equivalent.
 - Do not redesign the home page, canvas, chat, upload flow, generators, project library, asset library, task log, auth, credits, or 3D preview.
 - New commercial and compliance screens are allowed only in their PRD stages and must use the existing visual language.
+- The legacy runtime is a read-only visual and behavior reference during rewrite UI work.
+- Rewrite-only polish is limited to the machine-readable rules in docs/architecture/react-visual-delta-allowlist.json.
+- Approved polish may replace character glyphs with lucide-react icons, add restrained transform/opacity feedback, correct spacing or overflow, and restore 44px touch targets or safe-area handling.
+- Approved polish must not change information architecture, content order, routes, feature behavior, generation flow, canvas coordinates, breakpoints, or established user habits.
+- Canvas pen, arrow, laser, and eraser paths must follow real pointer samples; decorative animation must never replace editor state or pointer geometry.
 - Do not treat React default markup or browser defaults as acceptable visual parity.
 - The new app must not use querySelector, innerHTML, dataset, or window globals as application state.
 - High-frequency canvas pointer movement must not force a full React render for every event.
@@ -123,9 +129,22 @@ Do not add:
 
 Before every commit:
 
-- run the targeted tests for the changed surface;
-- run npm run check;
-- run npm run build.
+- stage only the explicit work-package paths;
+- run `npm run governance:verify -- <work-package-id>`;
+- run every command required by the package verification tier;
+- run `npm run check` and `npm run build` for stage-gate and release-gate packages.
+
+Verification tiers:
+
+- docs: governance, UTF-8/JSON, staged scope, and diff checks only.
+- workspace: affected workspace typecheck, test, lint, and build.
+- multi-workspace: all affected workspaces plus package-specific contract, schema, transaction, or recovery checks.
+- stage-gate: full root check/build and the stage acceptance evidence.
+- release-gate: full root check/build, release E2E, audit, failure, and rollback evidence.
+
+Affected workspaces are derived from the staged diff and expanded through local workspace dependents. Do not lower a tier or remove a failing command to make a package pass. Missing PostgreSQL, Redis, cloud credentials, or merchant approval may remain a recorded blocker only when the catalog explicitly allows deferred external verification.
+
+If the user requests a push before the current stage gate, run `npm run check` and `npm run build` immediately before pushing.
 - stage only explicit paths, then run `npm run governance:scope -- <work-package-id> --cached`.
 
 During coexistence, the root check and build commands must validate both legacy and rewrite surfaces.

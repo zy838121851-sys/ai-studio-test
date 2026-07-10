@@ -22,6 +22,7 @@
     "format:rewrite:check": "prettier --check \"apps/**/*.{ts,tsx,css,json}\" \"packages/**/*.{ts,tsx,json}\" \"*.{ts,json,yml}\"",
     "governance:check": "node scripts/check-react-nest-governance.js",
     "governance:scope": "node scripts/check-work-package-scope.js",
+    "governance:verify": "node scripts/verify-work-package.js",
     "smoke": "node scripts/smoke-test.js",
     "railway:check": "node scripts/check-railway-env.js",
     "auth:check": "node scripts/check-auth-config.js",

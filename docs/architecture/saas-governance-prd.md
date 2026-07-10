@@ -70,7 +70,7 @@
 - 不切换到 Next.js、Vue、Angular 或其他前端框架。
 - 不拆成微服务。
 - 不引入 Kubernetes、Nx 或 Turborepo。
-- 不引入新的视觉系统。
+- 不引入新的视觉系统；rewrite 仅允许 `react-visual-delta-allowlist.json` 中的克制微调。
 - 不使用 React Three Fiber。
 - 不使用 Prisma 或 TypeORM。
 - 不把数据库实体直接暴露为 API contract。
@@ -79,7 +79,7 @@
 - 不在最终阶段前删除旧版文件。
 - 不使用 git add .
 - 不把多个无关工作包混入同一个 commit。
-- 不绕过 npm run check 或 npm run build。
+- 不绕过 catalog 指定的验证等级；阶段边界、发布阶段和中途 push 前不得跳过完整 check/build。
 
 ## 4. 目标仓库结构
 
@@ -216,6 +216,7 @@ Frontend:
 - react-router, @react-router/dev, @react-router/node
 - @tanstack/react-query
 - zustand
+- lucide-react（仅用于 rewrite web，按需导入）
 
 Backend:
 
@@ -326,6 +327,35 @@ Payment:
 - 首页提交后进入 React 画布并得到最终图片。
 
 回滚：rewrite 独立入口关闭，legacy 不受影响。
+
+### Stage 3.4：React iOS 风格集中微调
+
+在进入商业 SaaS 骨架前，对已经完成的 React 首页与最小画布执行一次集中微调，后续页面直接复用同一规则，避免重复返工。
+
+允许：
+
+- 用 lucide-react 替换字符工具图标，统一 16/18/20px 与 1.75-2px 线宽；
+- 为按钮按压、菜单、Popover、Modal、Toast 和 loading 增加仅使用 transform/opacity 的克制反馈；
+- 修复间距、文本溢出、44px 触控区域和 safe-area；
+- 保持浅色中性表面、当前系统蓝、细分隔线、克制阴影和仅用于浮层/顶栏的轻量 blur；
+- 支持 prefers-reduced-motion。
+
+禁止：
+
+- 改变首页或画布的信息结构、内容顺序、功能、路由、生成流程和移动端断点；
+- 改变画布坐标、节点持久化或真实指针采样；
+- 用装饰动画替代箭头、画笔、激光笔或橡皮擦的实际路径；
+- 修改 legacy UI、样式、交互或业务代码；
+- 新增 dark mode、渐变球、装饰光斑或第二套图标库。
+
+验收：
+
+- 1440x1000 与 390x844 的首页、模型菜单、账号菜单、附件、提交、pending/result 画布通过截图和交互检查；
+- 键盘焦点、ARIA、tooltip、触控区域、文本溢出和 reduced-motion 通过；
+- Lucide 按需打包，不产生整包图标 chunk；
+- 所有视觉差异均有机器可读白名单 ID。
+
+回滚：revert 独立 React polish 工作包；legacy 不受影响。
 
 ### Stage 3.5：商业 SaaS 必要骨架
 
@@ -522,6 +552,20 @@ Payment:
 
 ## 12. 自动执行规则
 
+### 12.1 分级验证
+
+所有工作包通过 `npm run governance:verify -- <work-package-id>` 统一验证。该命令从 staged diff 推导受影响 workspace，扩展本地依赖方，合并 package 与 verification profile 的可执行命令，去重后按顺序运行，任一失败立即停止。
+
+- `docs`：governance、UTF-8/JSON、staged scope 和 diff 检查；
+- `workspace`：受影响 workspace 的 typecheck、test、lint 和 build；
+- `multi-workspace`：全部受影响 workspace，加 API contract、schema/transaction 或 worker recovery 等专项检查；
+- `stage-gate`：完整 `npm run check`、`npm run build`、阶段 E2E 和审计；
+- `release-gate`：Stage 11-13、切流和 Legacy 删除前后的全部检查、故障与回滚证据。
+
+阶段中途收到 push 要求时，push 前补跑一次完整 check/build。PostgreSQL、Redis、云服务凭证或商户审批缺失只允许记录 catalog 已批准的 deferred blocker，不能伪造 live verification，也不能通过降低验证等级绕过错误。
+
+### 12.2 工作包循环
+
 每次目标模式运行：
 
 1. 读取 AGENTS 和六份必读架构文件；
@@ -529,12 +573,13 @@ Payment:
 3. 从 migration state 读取唯一 nextWorkPackage；
 4. 在 work-packages catalog 中确认前置、允许路径、测试、验收和 successor；
 5. 只实施该工作包，不临时拆分或合并；
-6. 运行 targeted checks、npm run check、npm run build；
-7. 更新 parity evidence 和 migration state；
-8. 显式 stage 文件并运行 staged scope gate；
-9. 使用 `Work-Package: <id>` trailer 创建一个 commit；
-10. 工作区干净后继续 successor；
-11. 遇到 AGENTS stop condition 时暂停。
+6. 更新 parity evidence 和 migration state 候选记录；
+7. 显式 stage 当前工作包文件；
+8. 运行 `npm run governance:verify -- <work-package-id>`；
+9. 对 stage-gate/release-gate 核对完整 check/build 与 E2E 证据；
+10. 使用 `Work-Package: <id>` trailer 创建一个 commit；
+11. 工作区干净后继续 successor；
+12. 遇到 AGENTS stop condition 时暂停。
 
 不能因为 token、耗时或难度接近上限而伪造完成状态。
 

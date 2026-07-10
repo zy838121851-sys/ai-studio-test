@@ -1,106 +1,3572 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "program": "react-nest-rewrite",
   "firstWorkPackage": "WP-0.1-governance-baseline",
   "terminalWorkPackage": "WP-13.3-legacy-delete",
   "defaults": {
-    "forbiddenAreas": [".git/", "node_modules/", "dist/", "data/", "uploads/", ".rewrite-data/"],
-    "requiredChecks": ["npm run check", "npm run build", "git diff --check"],
+    "forbiddenAreas": [
+      ".git/",
+      "node_modules/",
+      "dist/",
+      "data/",
+      "uploads/",
+      ".rewrite-data/"
+    ],
+    "requiredChecks": [
+      "npm run governance:verify -- <work-package-id>"
+    ],
     "rollback": "Revert the single scoped work-package commit.",
-    "uiInvariant": "Preserve existing UI, interaction, behavior, copy, and user expectations unless the package explicitly adds an approved commercial or compliance surface."
+    "uiInvariant": "Preserve existing UI, interaction, behavior, copy, and user expectations unless the package explicitly adds an approved commercial or compliance surface.",
+    "visualPolicyFile": "docs/architecture/react-visual-delta-allowlist.json"
   },
   "packages": [
-    {"id":"WP-0.1-governance-baseline","stage":"0","title":"Governance baseline","objective":"Establish the rewrite authority documents.","prerequisites":[],"successor":"WP-0.2-governance-check","allowedAreas":["AGENTS.md","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Authoritative PRD and operating rules"],"parityIds":[],"targetedChecks":["git diff --check"],"acceptance":["Governance documents are UTF-8 and internally consistent"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-0.2-governance-check","stage":"0","title":"Governance check","objective":"Make governance rules machine verifiable.","prerequisites":["WP-0.1-governance-baseline"],"successor":"WP-1.1-workspace-scaffold","allowedAreas":["scripts/","package.json","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Root governance check"],"parityIds":[],"targetedChecks":["npm run governance:check"],"acceptance":["Conflicting architecture rules fail the check"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-1.1-workspace-scaffold","stage":"1","title":"Workspace scaffold","objective":"Create isolated rewrite workspaces and strict tooling.","prerequisites":["WP-0.2-governance-check"],"successor":"WP-2.1-backend-platform","allowedAreas":["apps/","packages/","package.json","package-lock.json","compose.rewrite.yml","tsconfig.base.json","eslint.config.js","prettier.config.js","docs/architecture/"],"allowedDependencyFamilies":["react","nestjs","typescript","testing"],"deliverables":["Web, API, Worker, and shared package workspaces"],"parityIds":[],"targetedChecks":["npm run check:rewrite","npm run build:rewrite"],"acceptance":["Rewrite builds independently and legacy defaults remain unchanged"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-2.1-backend-platform","stage":"2","title":"Backend platform","objective":"Establish NestJS, PostgreSQL, Redis, queue, storage, and health foundations.","prerequisites":["WP-1.1-workspace-scaffold"],"successor":"WP-3.1-home-api","allowedAreas":["apps/api/","apps/worker/","packages/server-core/","packages/contracts/","package.json","package-lock.json","compose.rewrite.yml","docs/architecture/"],"allowedDependencyFamilies":["nestjs","postgresql","redis","bullmq","oss"],"deliverables":["Production-fail-closed backend platform"],"parityIds":["OPS-001","OPS-002","OPS-005"],"targetedChecks":["npm run check:rewrite"],"acceptance":["API and Worker compose independently with strict production config"],"legacyMutationAllowed":false,"externalVerification":{"mode":"deferred","blockerId":"BLOCK-LOCAL-DOCKER-ADMIN","deadlineStage":"11"}},
-    {"id":"WP-3.1-home-api","stage":"3","title":"Home platform APIs","objective":"Provide auth, models, credits, projects, uploads, jobs, and feed APIs.","prerequisites":["WP-2.1-backend-platform"],"successor":"WP-3.2-ai-job-worker","allowedAreas":["apps/api/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Workspace-scoped home APIs"],"parityIds":["AUTH-001","HOME-005","HOME-006","PROJ-001"],"targetedChecks":["npm run test --workspace @ai-studio/server-core","npm run test --workspace @ai-studio/api"],"acceptance":["Home APIs use stable contracts and tenant scoping"],"legacyMutationAllowed":false,"externalVerification":{"mode":"deferred","blockerId":"BLOCK-LOCAL-DOCKER-ADMIN","deadlineStage":"11"}},
-    {"id":"WP-3.2-ai-job-worker","stage":"3","title":"Durable AI worker","objective":"Execute durable image jobs with exactly-once credit effects.","prerequisites":["WP-3.1-home-api"],"successor":"WP-3.3-react-home","allowedAreas":["apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Outbox dispatch, recovery, and image provider execution"],"parityIds":["TASK-002","MEDIA-002","MEDIA-003"],"targetedChecks":["npm run test --workspace @ai-studio/worker","npm run test --workspace @ai-studio/server-core"],"acceptance":["Duplicate delivery cannot duplicate charges"],"legacyMutationAllowed":false,"externalVerification":{"mode":"deferred","blockerId":"BLOCK-LOCAL-DOCKER-ADMIN","deadlineStage":"11"}},
-    {"id":"WP-3.3-react-home","stage":"3","title":"React home","objective":"Rebuild the full home experience with visual and behavioral parity.","prerequisites":["WP-3.2-ai-job-worker"],"successor":"WP-3.4-minimal-react-canvas","allowedAreas":["apps/web/","packages/contracts/","packages/server-core/src/home/","docs/architecture/","package.json","package-lock.json"],"allowedDependencyFamilies":["react","tanstack-query","zustand"],"deliverables":["Responsive React home"],"parityIds":["HOME-001","HOME-002","HOME-003","HOME-004","HOME-005","HOME-006","HOME-007","HOME-008","HOME-009","HOME-011"],"targetedChecks":["npm run test --workspace @ai-studio/web","Playwright desktop and mobile comparison"],"acceptance":["Existing home UI and interactions remain equivalent"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-3.4-minimal-react-canvas","stage":"3","title":"Minimal React canvas receiver","objective":"Receive pending and completed home jobs in a versioned canvas document.","prerequisites":["WP-3.3-react-home"],"successor":"WP-G.1-autonomous-catalog","allowedAreas":["apps/web/","packages/canvas-engine/","packages/server-core/","packages/contracts/","docs/architecture/","package.json","package-lock.json"],"allowedDependencyFamilies":[],"deliverables":["Pending and result receiver"],"parityIds":["HOME-010","PROJ-003","PROJ-005","PROJ-007","MEDIA-002","MEDIA-003"],"targetedChecks":["npm run test --workspace @ai-studio/web","npm run test --workspace @ai-studio/canvas-engine","Playwright pending and result checks"],"acceptance":["Pending becomes a stable persisted result without temporary nodes"],"legacyMutationAllowed":false,"externalVerification":{"mode":"deferred","blockerId":"BLOCK-LOCAL-DOCKER-ADMIN","deadlineStage":"11"}},
-    {"id":"WP-G.1-autonomous-catalog","stage":"0","title":"Autonomous work-package catalog","objective":"Make the complete migration sequence decision-complete and machine verifiable.","prerequisites":["WP-3.4-minimal-react-canvas"],"successor":"WP-3.5.1-capability-registry","allowedAreas":["AGENTS.md","docs/architecture/","scripts/check-react-nest-governance.js","scripts/check-work-package-scope.js","package.json"],"allowedDependencyFamilies":[],"deliverables":["Complete package catalog","Dependency and parity validation","Staged scope gate","Commit trailer policy"],"parityIds":[],"targetedChecks":["npm run governance:check","npm run governance:scope -- WP-G.1-autonomous-catalog --cached"],"acceptance":["Every package has paths, checks, acceptance, rollback, blockers, and one successor","The next package is catalog-backed and unblocked"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-
-    {"id":"WP-3.5.1-capability-registry","stage":"3.5","title":"Capability registry","objective":"Expose fail-closed external-service readiness without leaking credentials.","prerequisites":["WP-G.1-autonomous-catalog"],"successor":"WP-3.5.2-identity-provider-seams","allowedAreas":["apps/api/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Capability registry and /api/v1/capabilities"],"parityIds":[],"targetedChecks":["npm run test --workspace @ai-studio/server-core","npm run test --workspace @ai-studio/api"],"acceptance":["Capabilities are disabled, development, configured, or verified; production actions require verified"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-3.5.2-identity-provider-seams","stage":"3.5","title":"Identity provider seams","objective":"Add email, SMS, WeChat, QQ, captcha, and risk provider contracts.","prerequisites":["WP-3.5.1-capability-registry"],"successor":"WP-3.5.3-moderation-notification-audit","allowedAreas":["apps/api/","packages/server-core/","packages/contracts/","docs/architecture/","package.json","package-lock.json"],"allowedDependencyFamilies":["aliyun","narrow-http-adapters"],"deliverables":["Identity provider contracts and deterministic development implementations"],"parityIds":["AUTH-002","AUTH-003","AUTH-004","AUTH-005","AUTH-007","AUTH-008"],"targetedChecks":["npm run test --workspace @ai-studio/server-core","npm run test --workspace @ai-studio/api"],"acceptance":["Unconfigured production providers fail with PROVIDER_NOT_CONFIGURED and HTTP 503"],"legacyMutationAllowed":false,"externalVerification":{"mode":"deferred","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-3.5.3-moderation-notification-audit","stage":"3.5","title":"Moderation, notification, and audit seams","objective":"Create durable moderation, delivery, and audit boundaries.","prerequisites":["WP-3.5.2-identity-provider-seams"],"successor":"WP-3.5.4-billing-domain-foundation","allowedAreas":["apps/api/","apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":["aliyun","narrow-http-adapters"],"deliverables":["Provider contracts, durable records, retry states"],"parityIds":["COMP-003","OPS-006","OPS-007"],"targetedChecks":["npm run test --workspace @ai-studio/server-core","npm run test --workspace @ai-studio/worker"],"acceptance":["Failures are durable and retryable; audit events are immutable"],"legacyMutationAllowed":false,"externalVerification":{"mode":"deferred","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-3.5.4-billing-domain-foundation","stage":"3.5","title":"Billing domain foundation","objective":"Build payment-independent commercial state machines and ledgers.","prerequisites":["WP-3.5.3-moderation-notification-audit"],"successor":"WP-3.5.5-payment-provider-contracts","allowedAreas":["apps/api/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Plans, prices, orders, payments, subscriptions, mandates, entitlements, refunds, and invoices"],"parityIds":["BILL-001","BILL-003","BILL-004","BILL-005","BILL-006","BILL-007","BILL-008"],"targetedChecks":["npm run test --workspace @ai-studio/server-core","Clean PostgreSQL migration and transaction checks"],"acceptance":["Money uses integer fen; commercial history is append-only and idempotent"],"legacyMutationAllowed":false,"externalVerification":{"mode":"deferred","blockerId":"BLOCK-LOCAL-DOCKER-ADMIN","deadlineStage":"11"}},
-    {"id":"WP-3.5.5-payment-provider-contracts","stage":"3.5","title":"Payment provider contracts","objective":"Define WeChat Pay, Alipay, renewal, webhook, refund, query, and reconciliation contracts.","prerequisites":["WP-3.5.4-billing-domain-foundation"],"successor":"WP-3.5.6-commercial-pages","allowedAreas":["apps/api/","apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/","package.json","package-lock.json"],"allowedDependencyFamilies":["wechat-pay","alipay","narrow-http-adapters"],"deliverables":["Fail-closed payment provider interfaces and official signature fixtures"],"parityIds":["BILL-002","BILL-004","BILL-007","OPS-010"],"targetedChecks":["Provider contract tests for signatures, replay, refund, and reconciliation"],"acceptance":["Missing credentials cannot create a successful payment or entitlement"],"legacyMutationAllowed":false,"externalVerification":{"mode":"deferred","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-3.5.6-commercial-pages","stage":"3.5","title":"Commercial pages","objective":"Add complete account and commercial pages using existing visual language.","prerequisites":["WP-3.5.5-payment-provider-contracts"],"successor":"WP-3.5.7-compliance-pages","allowedAreas":["apps/web/","apps/api/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":["react","tanstack-query"],"deliverables":["Pricing, account, billing, credits, security, and data pages","Upgrade, credits, and account entries"],"parityIds":["AUTH-006","BILL-001","BILL-002","BILL-003","BILL-004","BILL-006","BILL-007","BILL-008"],"targetedChecks":["npm run test --workspace @ai-studio/web","Playwright desktop and mobile additive-entry comparison"],"acceptance":["Existing surfaces are unchanged except approved entries; unavailable payments are clearly disabled"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-3.5.7-compliance-pages","stage":"3.5","title":"Compliance pages and data rights","objective":"Add legal, report, appeal, deletion, and export workflows without pretending regulatory approval.","prerequisites":["WP-3.5.6-commercial-pages"],"successor":"WP-4.1-canvas-document-registry","allowedAreas":["apps/web/","apps/api/","apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Terms, privacy, refund, AI disclosure, report, appeal, deletion, and export surfaces"],"parityIds":["COMP-001","COMP-002","COMP-005","COMP-006","COMP-007"],"targetedChecks":["npm run test --workspace @ai-studio/web","npm run test --workspace @ai-studio/server-core","Playwright legal-link checks"],"acceptance":["Data-rights requests are authenticated, durable, auditable, and fail closed"],"legacyMutationAllowed":false,"externalVerification":{"mode":"deferred","blockerId":"BLOCK-CROSS-BORDER-PERSONAL-DATA","deadlineStage":"11"}},
-
-    {"id":"WP-4.1-canvas-document-registry","stage":"4","title":"Canvas document and node registry","objective":"Define versioned nodes, serializers, migrations, and validation.","prerequisites":["WP-3.5.7-compliance-pages"],"successor":"WP-4.2-viewport-coordinate-system","allowedAreas":["packages/canvas-engine/","packages/contracts/","apps/web/app/features/canvas/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Node registry and snapshot migration registry"],"parityIds":["PROJ-005","PROJ-007","MEDIA-001","MEDIA-002","MEDIA-003"],"targetedChecks":["npm run test --workspace @ai-studio/canvas-engine"],"acceptance":["Unknown or temporary nodes cannot corrupt restored documents"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-4.2-viewport-coordinate-system","stage":"4","title":"Viewport coordinate system","objective":"Implement pan, zoom, fit, and pointer/world transforms.","prerequisites":["WP-4.1-canvas-document-registry"],"successor":"WP-4.3-command-history","allowedAreas":["packages/canvas-engine/","apps/web/app/features/canvas/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Deterministic viewport math"],"parityIds":["CANVAS-001","CANVAS-002"],"targetedChecks":["Canvas geometry and pointer round-trip tests"],"acceptance":["Pointer and world coordinates do not drift at supported zoom levels"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-4.3-command-history","stage":"4","title":"Command and history","objective":"Implement reversible editor commands and bounded undo/redo.","prerequisites":["WP-4.2-viewport-coordinate-system"],"successor":"WP-4.4-selection-model","allowedAreas":["packages/canvas-engine/","apps/web/app/features/canvas/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Command registry and history"],"parityIds":["CANVAS-006","CANVAS-007","CANVAS-008"],"targetedChecks":["Command inversion and history boundary tests"],"acceptance":["Undo and redo preserve document identity and selection invariants"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-4.4-selection-model","stage":"4","title":"Selection model","objective":"Implement single, multi, marquee, clear, and focus-safe selection.","prerequisites":["WP-4.3-command-history"],"successor":"WP-4.5-drag-resize","allowedAreas":["packages/canvas-engine/","apps/web/app/features/canvas/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Selection state machine"],"parityIds":["CANVAS-003","CANVAS-010"],"targetedChecks":["Selection and focus-exclusion tests"],"acceptance":["Selection matches legacy click, modifier, and marquee behavior"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-4.5-drag-resize","stage":"4","title":"Drag and resize","objective":"Implement pointer-driven node and multi-node transforms.","prerequisites":["WP-4.4-selection-model"],"successor":"WP-4.6-react-canvas-adapter","allowedAreas":["packages/canvas-engine/","apps/web/app/features/canvas/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Drag, resize, bounds, and aspect rules"],"parityIds":["CANVAS-004","CANVAS-005"],"targetedChecks":["Pointer path, bounds, aspect, and multi-node transform tests"],"acceptance":["Transforms follow the actual pointer and produce stable commands"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-4.6-react-canvas-adapter","stage":"4","title":"React canvas adapter","objective":"Render engine state through granular Zustand selectors.","prerequisites":["WP-4.5-drag-resize"],"successor":"WP-4.7-canvas-performance-gate","allowedAreas":["apps/web/app/features/canvas/","packages/canvas-engine/","docs/architecture/"],"allowedDependencyFamilies":["react","zustand"],"deliverables":["Canvas store adapter and node renderer registry"],"parityIds":["CANVAS-001","CANVAS-003","CANVAS-004","CANVAS-005"],"targetedChecks":["npm run test --workspace @ai-studio/web","Playwright pointer and visual checks"],"acceptance":["High-frequency pointer movement does not rerender the full React tree"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-4.7-canvas-performance-gate","stage":"4","title":"Canvas performance gate","objective":"Establish measurable interaction budgets for 500 nodes.","prerequisites":["WP-4.6-react-canvas-adapter"],"successor":"WP-5.1-tool-rail","allowedAreas":["apps/web/","packages/canvas-engine/","packages/test-support/","docs/architecture/"],"allowedDependencyFamilies":["playwright"],"deliverables":["500-node benchmark and regression gate"],"parityIds":["CANVAS-001","CANVAS-004","CANVAS-005"],"targetedChecks":["Playwright 500-node interaction benchmark"],"acceptance":["Pan, zoom, selection, drag, and resize remain interactive at the documented budget"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-
-    {"id":"WP-5.1-tool-rail","stage":"5","title":"Canvas tool rail","objective":"Restore original icons, colors, active states, collapse, and submenu behavior.","prerequisites":["WP-4.7-canvas-performance-gate"],"successor":"WP-5.2-shapes-arrows","allowedAreas":["apps/web/app/features/canvas/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Parity tool rail"],"parityIds":["TOOL-001"],"targetedChecks":["Playwright desktop and mobile tool-rail comparison"],"acceptance":["No icon, color, layout, hover, click, or submenu drift"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-5.2-shapes-arrows","stage":"5","title":"Shapes and arrows","objective":"Migrate all shape and arrow creation and formatting.","prerequisites":["WP-5.1-tool-rail"],"successor":"WP-5.3-text-tool","allowedAreas":["apps/web/app/features/canvas/","packages/canvas-engine/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Shape registry, menus, arrow geometry"],"parityIds":["TOOL-002","TOOL-003","TOOL-008"],"targetedChecks":["Shape geometry tests","Playwright shape-menu and pointer-path checks"],"acceptance":["All legacy shapes and arrows match creation and formatting behavior"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-5.3-text-tool","stage":"5","title":"Text tool","objective":"Migrate text creation, editing, selection, and formatting.","prerequisites":["WP-5.2-shapes-arrows"],"successor":"WP-5.4-pen-tool","allowedAreas":["apps/web/app/features/canvas/","packages/canvas-engine/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Text nodes and toolbar"],"parityIds":["TOOL-004","TOOL-009"],"targetedChecks":["Text edit and keyboard tests","Playwright toolbar comparison"],"acceptance":["Fonts, style, size, color, editing, and focus match legacy"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-5.4-pen-tool","stage":"5","title":"Pen tool","objective":"Migrate pointer-following freehand drawing and formatting.","prerequisites":["WP-5.3-text-tool"],"successor":"WP-5.5-laser-eraser","allowedAreas":["apps/web/app/features/canvas/","packages/canvas-engine/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Pen path state machine"],"parityIds":["TOOL-005"],"targetedChecks":["Recorded pointer-path tests","Playwright color and width checks"],"acceptance":["Rendered path follows recorded user pointer samples"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-5.5-laser-eraser","stage":"5","title":"Laser pen and eraser","objective":"Migrate transient laser animation and eraser hit testing.","prerequisites":["WP-5.4-pen-tool"],"successor":"WP-5.6-format-toolbars","allowedAreas":["apps/web/app/features/canvas/","packages/canvas-engine/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Laser and eraser pointer state machines"],"parityIds":["TOOL-006","TOOL-007"],"targetedChecks":["Animation timing and hit-test tests","Playwright pointer-path checks"],"acceptance":["Animation and erasure follow actual pointer coordinates and legacy timing"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-5.6-format-toolbars","stage":"5","title":"Formatting toolbars","objective":"Complete shape and text formatting controls and selection binding.","prerequisites":["WP-5.5-laser-eraser"],"successor":"WP-5.7-image-toolbar","allowedAreas":["apps/web/app/features/canvas/","packages/canvas-engine/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Stable formatting toolbars"],"parityIds":["TOOL-008","TOOL-009"],"targetedChecks":["Toolbar state tests","Playwright layout and interaction comparison"],"acceptance":["Controls remain aligned, complete, and bound to selected nodes"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-5.7-image-toolbar","stage":"5","title":"Image toolbar","objective":"Migrate image action toolbar and command routing.","prerequisites":["WP-5.6-format-toolbars"],"successor":"WP-5.8-crop-upscale-expand","allowedAreas":["apps/web/app/features/canvas/","packages/canvas-engine/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Image action toolbar"],"parityIds":["MEDIA-004"],"targetedChecks":["Toolbar command tests","Playwright selected-image comparison"],"acceptance":["Crop, upscale, background, expand, text, and 3D entries match legacy"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-5.8-crop-upscale-expand","stage":"5","title":"Crop, upscale, and expand","objective":"Migrate image transformation overlays and job handoff.","prerequisites":["WP-5.7-image-toolbar"],"successor":"WP-5.9-model-3d","allowedAreas":["apps/web/","apps/api/","apps/worker/","packages/canvas-engine/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Crop, upscale, background, expand, and text workflows"],"parityIds":["MEDIA-004","MEDIA-006"],"targetedChecks":["Workflow tests","Playwright overlay and result checks"],"acceptance":["Existing image commands retain geometry, save timing, and failure behavior"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-5.9-model-3d","stage":"5","title":"3D action and model nodes","objective":"Migrate 3D action entry, model nodes, and lazy preview shell.","prerequisites":["WP-5.8-crop-upscale-expand"],"successor":"WP-5.10-keyboard-stack","allowedAreas":["apps/web/","packages/canvas-engine/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":["three"],"deliverables":["Lazy model node and 3D entry"],"parityIds":["MEDIA-008"],"targetedChecks":["Lazy-load checks","Playwright canvas-pixel and control checks"],"acceptance":["3D remains lazy, visible, framed, and behaviorally equivalent"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-5.10-keyboard-stack","stage":"5","title":"Keyboard, stack, and editor commands","objective":"Complete shortcuts, stacking, alignment, clipboard, and deletion.","prerequisites":["WP-5.9-model-3d"],"successor":"WP-6.1-chat-composer","allowedAreas":["apps/web/app/features/canvas/","packages/canvas-engine/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Complete editor command surface"],"parityIds":["CANVAS-007","CANVAS-008","CANVAS-009","CANVAS-010"],"targetedChecks":["Keyboard focus and command tests","Playwright stack and clipboard checks"],"acceptance":["All existing shortcuts and stacking operations are equivalent"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-
-    {"id":"WP-6.1-chat-composer","stage":"6","title":"Chat composer","objective":"Migrate prompt, files, model selection, and send behavior.","prerequisites":["WP-5.10-keyboard-stack"],"successor":"WP-6.2-canvas-reference","allowedAreas":["apps/web/","apps/api/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Parity chat composer"],"parityIds":["CHAT-001"],"targetedChecks":["Composer tests","Playwright desktop and mobile comparison"],"acceptance":["Input, files, model, send, focus, and errors match legacy"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-6.2-canvas-reference","stage":"6","title":"Canvas reference images","objective":"Synchronize selected canvas images into chat references.","prerequisites":["WP-6.1-chat-composer"],"successor":"WP-6.3-conversation-persistence","allowedAreas":["apps/web/","packages/canvas-engine/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Selection-to-reference adapter"],"parityIds":["CHAT-002"],"targetedChecks":["Selection/reference state tests","Playwright thumbnail timing checks"],"acceptance":["Selection instantly produces the expected removable reference thumbnail"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-6.3-conversation-persistence","stage":"6","title":"Conversation persistence","objective":"Persist workspace-scoped conversations, messages, and recovery state.","prerequisites":["WP-6.2-canvas-reference"],"successor":"WP-6.4-image-generation","allowedAreas":["apps/web/","apps/api/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Conversation repositories and UI restore"],"parityIds":["CHAT-003","CHAT-004","CHAT-005","CHAT-006"],"targetedChecks":["Tenant isolation tests","Conversation restore browser tests"],"acceptance":["Refresh restores messages and active jobs without cross-workspace access"],"legacyMutationAllowed":false,"externalVerification":{"mode":"deferred","blockerId":"BLOCK-LOCAL-DOCKER-ADMIN","deadlineStage":"11"}},
-    {"id":"WP-6.4-image-generation","stage":"6","title":"Image generation workflow","objective":"Migrate image generator, references, pending, results, and billing.","prerequisites":["WP-6.3-conversation-persistence"],"successor":"WP-6.5-image-edit","allowedAreas":["apps/web/","apps/api/","apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Complete image generation workflow"],"parityIds":["MEDIA-005","MEDIA-002","MEDIA-003","CHAT-003","CHAT-004"],"targetedChecks":["Job and credit tests","Playwright generation and recovery checks"],"acceptance":["Pending replacement, charges, save timing, and errors match legacy"],"legacyMutationAllowed":false,"externalVerification":{"mode":"deferred","blockerId":"BLOCK-LOCAL-DOCKER-ADMIN","deadlineStage":"11"}},
-    {"id":"WP-6.5-image-edit","stage":"6","title":"Image edit workflow","objective":"Migrate image editing, references, replacement, and recovery.","prerequisites":["WP-6.4-image-generation"],"successor":"WP-6.6-video-generation","allowedAreas":["apps/web/","apps/api/","apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Complete image edit workflow"],"parityIds":["MEDIA-006","CHAT-004","CHAT-006"],"targetedChecks":["Edit job tests","Playwright edit and failure checks"],"acceptance":["Edit output, replacement, metadata, and recovery match legacy"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-6.6-video-generation","stage":"6","title":"Video generation workflow","objective":"Migrate lazy video generation, polling, output, and recovery.","prerequisites":["WP-6.5-image-edit"],"successor":"WP-6.7-heavy-3d-viewer","allowedAreas":["apps/web/","apps/api/","apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Complete lazy video workflow"],"parityIds":["MEDIA-007","CHAT-004","CHAT-006"],"targetedChecks":["Video job state tests","Lazy-load and Playwright recovery checks"],"acceptance":["Video jobs survive refresh and preserve existing UI behavior"],"legacyMutationAllowed":false,"externalVerification":{"mode":"deferred","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-6.7-heavy-3d-viewer","stage":"6","title":"Heavy 3D viewer","objective":"Complete lazy Three.js viewer, controls, loading, and failure states.","prerequisites":["WP-6.6-video-generation"],"successor":"WP-6.8-task-log-recovery","allowedAreas":["apps/web/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":["three"],"deliverables":["Production lazy 3D viewer"],"parityIds":["MEDIA-008"],"targetedChecks":["Bundle lazy-load gate","Playwright screenshots, canvas pixels, and controls"],"acceptance":["Viewer is nonblank, correctly framed, interactive, and lazy"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-6.8-task-log-recovery","stage":"6","title":"Task log and job recovery","objective":"Migrate task list, filters, detail, refresh, and durable recovery.","prerequisites":["WP-6.7-heavy-3d-viewer"],"successor":"WP-7.1-project-crud","allowedAreas":["apps/web/","apps/api/","apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Task log and recovery UI"],"parityIds":["TASK-001","TASK-002","CHAT-006"],"targetedChecks":["Worker recovery tests","Playwright task-log parity checks"],"acceptance":["Queued, running, success, failed, and cancelled states recover correctly"],"legacyMutationAllowed":false,"externalVerification":{"mode":"deferred","blockerId":"BLOCK-LOCAL-DOCKER-ADMIN","deadlineStage":"11"}},
-
-    {"id":"WP-7.1-project-crud","stage":"7","title":"Project CRUD","objective":"Complete create, list, open, update, delete, and conflict behavior.","prerequisites":["WP-6.8-task-log-recovery"],"successor":"WP-7.2-snapshot-versioning","allowedAreas":["apps/web/","apps/api/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Backend-truth project workflows"],"parityIds":["PROJ-001","PROJ-002","PROJ-003","PROJ-004"],"targetedChecks":["Repository isolation and version-conflict tests","Playwright project flows"],"acceptance":["Save and delete claims follow backend results and rollback on failure"],"legacyMutationAllowed":false,"externalVerification":{"mode":"deferred","blockerId":"BLOCK-LOCAL-DOCKER-ADMIN","deadlineStage":"11"}},
-    {"id":"WP-7.2-snapshot-versioning","stage":"7","title":"Snapshot versioning","objective":"Complete CanvasDocument migrations, optimistic saves, and recovery.","prerequisites":["WP-7.1-project-crud"],"successor":"WP-7.3-protected-media","allowedAreas":["apps/web/","apps/api/","packages/canvas-engine/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Versioned snapshot lifecycle"],"parityIds":["PROJ-002","PROJ-005","PROJ-007"],"targetedChecks":["Migration fixture tests","Concurrent save and restore tests"],"acceptance":["Old supported snapshots upgrade safely and temporary nodes never persist"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-7.3-protected-media","stage":"7","title":"Protected media","objective":"Enforce workspace-scoped upload, read, download, and metadata access.","prerequisites":["WP-7.2-snapshot-versioning"],"successor":"WP-7.4-asset-collections","allowedAreas":["apps/web/","apps/api/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Protected media APIs and stable downloads"],"parityIds":["MEDIA-001","MEDIA-009","ASSET-001","ASSET-007"],"targetedChecks":["Cross-workspace access and signed-source tests"],"acceptance":["Unauthorized media access is denied without leaking storage keys"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-7.4-asset-collections","stage":"7","title":"Asset collections","objective":"Migrate asset library, collections, move, favorite, preview, and insertion.","prerequisites":["WP-7.3-protected-media"],"successor":"WP-7.5-thumbnails","allowedAreas":["apps/web/","apps/api/","packages/server-core/","packages/contracts/","packages/canvas-engine/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Complete asset library"],"parityIds":["ASSET-001","ASSET-002","ASSET-003","ASSET-004","ASSET-005","ASSET-006"],"targetedChecks":["Asset repository tests","Playwright library and canvas insertion checks"],"acceptance":["Library workflows and insertion coordinates match legacy"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-7.5-thumbnails","stage":"7","title":"Project thumbnails","objective":"Generate and restore stable home and project-library thumbnails.","prerequisites":["WP-7.4-asset-collections"],"successor":"WP-7.6-orphan-audit","allowedAreas":["apps/web/","apps/api/","apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Durable thumbnail pipeline"],"parityIds":["PROJ-006"],"targetedChecks":["Thumbnail persistence tests","Playwright home/library comparison"],"acceptance":["Thumbnail URLs are stable, protected, and environment independent"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-7.6-orphan-audit","stage":"7","title":"Orphan media audit","objective":"Detect unreferenced objects without unsafe automatic deletion.","prerequisites":["WP-7.5-thumbnails"],"successor":"WP-8.1-plan-entitlement","allowedAreas":["apps/worker/","packages/server-core/","scripts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Read-only orphan audit and guarded cleanup contract"],"parityIds":["ASSET-006","ASSET-007"],"targetedChecks":["Reference graph and dry-run audit tests"],"acceptance":["Referenced files are never classified as deletable"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-
-    {"id":"WP-8.1-plan-entitlement","stage":"8","title":"Plans and entitlements","objective":"Activate authoritative plan catalogs and entitlement evaluation.","prerequisites":["WP-7.6-orphan-audit"],"successor":"WP-8.2-order-payment","allowedAreas":["apps/web/","apps/api/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Production plan and entitlement rules"],"parityIds":["BILL-001","BILL-003"],"targetedChecks":["Catalog version and entitlement tests"],"acceptance":["Production catalog is explicit, versioned, and not seeded from development defaults"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-8.2-order-payment","stage":"8","title":"Order and payment orchestration","objective":"Connect orders, payment attempts, webhooks, ledger, and entitlements.","prerequisites":["WP-8.1-plan-entitlement"],"successor":"WP-8.3-wechat-pay","allowedAreas":["apps/web/","apps/api/","apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Provider-neutral payment orchestration"],"parityIds":["BILL-002","BILL-003"],"targetedChecks":["Idempotency, duplicate webhook, and entitlement tests"],"acceptance":["Only verified provider results grant paid entitlements"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-8.3-wechat-pay","stage":"8","title":"WeChat Pay adapter","objective":"Implement and verify WeChat Pay, refund, query, and renewal mandate integration.","prerequisites":["WP-8.2-order-payment"],"successor":"WP-8.4-alipay","allowedAreas":["apps/api/","apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/","package.json","package-lock.json"],"allowedDependencyFamilies":["wechat-pay","narrow-http-adapters"],"deliverables":["WeChat Pay production adapter"],"parityIds":["BILL-002","BILL-004","BILL-007","OPS-010"],"targetedChecks":["Official signature fixtures","Sandbox or merchant-environment smoke tests"],"acceptance":["Signatures, callbacks, queries, refunds, and mandates pass live verification"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-8.4-alipay","stage":"8","title":"Alipay adapter","objective":"Implement and verify Alipay, refund, query, and renewal agreement integration.","prerequisites":["WP-8.3-wechat-pay"],"successor":"WP-8.5-subscriptions","allowedAreas":["apps/api/","apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/","package.json","package-lock.json"],"allowedDependencyFamilies":["alipay","narrow-http-adapters"],"deliverables":["Alipay production adapter"],"parityIds":["BILL-002","BILL-004","BILL-007","OPS-010"],"targetedChecks":["Official signature fixtures","Sandbox or merchant-environment smoke tests"],"acceptance":["Signatures, callbacks, queries, refunds, and agreements pass live verification"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-8.5-subscriptions","stage":"8","title":"Subscriptions and renewal","objective":"Complete sign-up, renewal, grace, reminder, cancellation, and entitlement transitions.","prerequisites":["WP-8.4-alipay"],"successor":"WP-8.6-refunds-invoices","allowedAreas":["apps/web/","apps/api/","apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Subscription lifecycle"],"parityIds":["BILL-004","BILL-005","BILL-006"],"targetedChecks":["Time-controlled renewal, grace, reminder, and cancellation tests"],"acceptance":["Cancellation is immediately accessible and renewal evidence is auditable"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-8.6-refunds-invoices","stage":"8","title":"Refunds and invoices","objective":"Complete refund requests, provider outcomes, ledgers, and invoice workflows.","prerequisites":["WP-8.5-subscriptions"],"successor":"WP-8.7-reconciliation","allowedAreas":["apps/web/","apps/api/","apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Refund and invoice lifecycle"],"parityIds":["BILL-007","BILL-008"],"targetedChecks":["Partial/full refund and invoice status tests"],"acceptance":["Provider result and local ledger remain reconcilable and append-only"],"legacyMutationAllowed":false,"externalVerification":{"mode":"deferred","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-8.7-reconciliation","stage":"8","title":"Payment reconciliation","objective":"Reconcile orders, provider statements, subscriptions, refunds, and ledgers.","prerequisites":["WP-8.6-refunds-invoices"],"successor":"WP-8.8-commercial-activation","allowedAreas":["apps/worker/","packages/server-core/","apps/api/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Scheduled reconciliation and discrepancy workflow"],"parityIds":["BILL-003","BILL-004","BILL-007","OPS-010"],"targetedChecks":["Missing, duplicate, and mismatched statement fixture tests"],"acceptance":["Discrepancies are durable, alertable, and never silently corrected"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-8.8-commercial-activation","stage":"8","title":"Commercial activation","objective":"Enable verified commercial capabilities and complete account flows.","prerequisites":["WP-8.7-reconciliation"],"successor":"WP-9.1-legal-documents","allowedAreas":["apps/web/","apps/api/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Verified checkout, billing, subscription, refund, and invoice UI"],"parityIds":["BILL-001","BILL-002","BILL-003","BILL-004","BILL-005","BILL-006","BILL-007","BILL-008"],"targetedChecks":["Production-like payment E2E","Desktop and mobile commercial-page checks"],"acceptance":["All commercial actions are backed by verified provider and ledger truth"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-
-    {"id":"WP-9.1-legal-documents","stage":"9","title":"Legal documents and acceptance","objective":"Version legal texts and record authenticated acceptance evidence.","prerequisites":["WP-8.8-commercial-activation"],"successor":"WP-9.2-content-moderation","allowedAreas":["apps/web/","apps/api/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Versioned terms, privacy, refund, and disclosure"],"parityIds":["COMP-001","COMP-002"],"targetedChecks":["Document version and acceptance evidence tests"],"acceptance":["Required legal versions and acceptance timestamps are auditable"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-9.2-content-moderation","stage":"9","title":"Content moderation","objective":"Moderate inputs and outputs with durable decisions and appeals.","prerequisites":["WP-9.1-legal-documents"],"successor":"WP-9.3-ai-labeling","allowedAreas":["apps/web/","apps/api/","apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/","package.json","package-lock.json"],"allowedDependencyFamilies":["aliyun","narrow-http-adapters"],"deliverables":["Production moderation adapter and case workflow"],"parityIds":["COMP-003"],"targetedChecks":["Allow, reject, timeout, retry, and appeal tests","Live provider verification"],"acceptance":["Unsafe content fails closed according to documented policy"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-9.3-ai-labeling","stage":"9","title":"AI content labeling","objective":"Apply visible and metadata labels to generated exports.","prerequisites":["WP-9.2-content-moderation"],"successor":"WP-9.4-complaints-appeals","allowedAreas":["apps/web/","apps/api/","apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Visible and metadata labeling pipeline"],"parityIds":["COMP-004","MEDIA-009"],"targetedChecks":["Image, video, and model export label tests"],"acceptance":["All required exports carry durable visible and metadata labels"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-9.4-complaints-appeals","stage":"9","title":"Complaints and appeals","objective":"Complete report, complaint, appeal, evidence, and resolution workflows.","prerequisites":["WP-9.3-ai-labeling"],"successor":"WP-9.5-account-deletion","allowedAreas":["apps/web/","apps/api/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Durable complaints and appeals"],"parityIds":["COMP-003"],"targetedChecks":["Authorization, evidence, status, and audit tests"],"acceptance":["Cases are workspace scoped, traceable, and cannot be silently discarded"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-9.5-account-deletion","stage":"9","title":"Account deletion","objective":"Implement confirmation, revocation, retention, and deletion orchestration.","prerequisites":["WP-9.4-complaints-appeals"],"successor":"WP-9.6-data-export","allowedAreas":["apps/web/","apps/api/","apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Account deletion lifecycle"],"parityIds":["COMP-005"],"targetedChecks":["Re-authentication, cancellation, retention, and deletion tests"],"acceptance":["Sessions revoke immediately and retained records follow documented policy"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-9.6-data-export","stage":"9","title":"Data export","objective":"Produce authenticated, scoped, expiring user data exports.","prerequisites":["WP-9.5-account-deletion"],"successor":"WP-9.7-security-audit","allowedAreas":["apps/web/","apps/api/","apps/worker/","packages/server-core/","packages/contracts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Durable export jobs and protected downloads"],"parityIds":["COMP-006"],"targetedChecks":["Tenant scope, expiry, archive content, and audit tests"],"acceptance":["Exports contain only the authenticated subject's permitted data"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-9.7-security-audit","stage":"9","title":"Security and audit hardening","objective":"Complete CSRF, CSP, WAF assumptions, secret hygiene, upload protection, retention, and security audit coverage.","prerequisites":["WP-9.6-data-export"],"successor":"WP-10.1-cloud-foundation","allowedAreas":["apps/web/","apps/api/","apps/worker/","packages/server-core/","packages/contracts/","scripts/","docs/architecture/"],"allowedDependencyFamilies":["fastify-security-plugins"],"deliverables":["Security gate and audit retention policy"],"parityIds":["OPS-007"],"targetedChecks":["Security headers, CSRF, upload, secret, tenant, and audit tests"],"acceptance":["No unresolved P0/P1 security finding remains"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-
-    {"id":"WP-10.1-cloud-foundation","stage":"10","title":"Alibaba Cloud foundation","objective":"Define production accounts, network, DNS, secrets, environments, and infrastructure runbooks.","prerequisites":["WP-9.7-security-audit"],"successor":"WP-10.2-rds","allowedAreas":["docs/deployment/","docs/architecture/","scripts/",".env.rewrite.example","package.json"],"allowedDependencyFamilies":["aliyun"],"deliverables":["Production environment and network plan"],"parityIds":["OPS-001","OPS-006","OPS-008"],"targetedChecks":["Production configuration dry run"],"acceptance":["No production secret is committed and network dependencies are explicit"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-10.2-rds","stage":"10","title":"RDS PostgreSQL","objective":"Provision, migrate, secure, monitor, back up, and restore production PostgreSQL.","prerequisites":["WP-10.1-cloud-foundation"],"successor":"WP-10.3-tair","allowedAreas":["packages/server-core/","scripts/","docs/deployment/","docs/architecture/"],"allowedDependencyFamilies":["postgresql","aliyun"],"deliverables":["RDS migration and operational runbook"],"parityIds":["OPS-003"],"targetedChecks":["Clean migration","Backup and restore drill","Connection and failover checks"],"acceptance":["RPO is at most 15 minutes and restore evidence exists"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-10.3-tair","stage":"10","title":"Tair Redis","objective":"Provision and verify sessions, rate limits, BullMQ, outage behavior, and recovery.","prerequisites":["WP-10.2-rds"],"successor":"WP-10.4-oss","allowedAreas":["apps/api/","apps/worker/","packages/server-core/","scripts/","docs/deployment/","docs/architecture/"],"allowedDependencyFamilies":["redis","bullmq","aliyun"],"deliverables":["Tair runtime and outage runbook"],"parityIds":["OPS-002","OPS-005"],"targetedChecks":["Redis outage, reconnect, duplicate delivery, and recovery drills"],"acceptance":["Business truth remains durable when Redis is lost"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-10.4-oss","stage":"10","title":"Private OSS","objective":"Provision private object storage, authorization, lifecycle, recovery, and audit.","prerequisites":["WP-10.3-tair"],"successor":"WP-10.5-sae","allowedAreas":["apps/api/","apps/worker/","packages/server-core/","scripts/","docs/deployment/","docs/architecture/"],"allowedDependencyFamilies":["oss","aliyun"],"deliverables":["Production OSS provider and recovery runbook"],"parityIds":["OPS-004","ASSET-007","MEDIA-009"],"targetedChecks":["Private read, signed access, lifecycle, and recovery drills"],"acceptance":["Objects are private, recoverable, and inaccessible across workspaces"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-10.5-sae","stage":"10","title":"SAE API and Worker","objective":"Deploy independent API and Worker services with health, scaling, and rollback.","prerequisites":["WP-10.4-oss"],"successor":"WP-10.6-observability","allowedAreas":["apps/api/","apps/worker/","packages/server-core/","scripts/","docs/deployment/","docs/architecture/","package.json"],"allowedDependencyFamilies":["aliyun"],"deliverables":["SAE deployment and rollback configuration"],"parityIds":["OPS-001","OPS-002"],"targetedChecks":["Two-instance API check","Worker restart and deployment rollback drills"],"acceptance":["API supports at least two instances and Worker recovers durable jobs"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-10.6-observability","stage":"10","title":"Observability","objective":"Integrate structured logs, metrics, traces, dashboards, and actionable alerts.","prerequisites":["WP-10.5-sae"],"successor":"WP-10.7-backup-restore-alerts","allowedAreas":["apps/api/","apps/worker/","packages/server-core/","scripts/","docs/deployment/","docs/architecture/"],"allowedDependencyFamilies":["aliyun-observability"],"deliverables":["SLS, ARMS, CloudMonitor dashboards and alerts"],"parityIds":["OPS-006"],"targetedChecks":["Synthetic failure and alert delivery checks"],"acceptance":["Auth, payment, queue, database, storage, and error-rate alerts are actionable"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-10.7-backup-restore-alerts","stage":"10","title":"Recovery and alert drills","objective":"Prove service, database, object, and deployment recovery against RPO/RTO.","prerequisites":["WP-10.6-observability"],"successor":"WP-11.1-full-parity","allowedAreas":["scripts/","docs/deployment/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Timestamped recovery and rollback evidence"],"parityIds":["OPS-003","OPS-004","OPS-005","OPS-006","OPS-012"],"targetedChecks":["Backup, restore, Redis outage, OSS recovery, and rollback drills"],"acceptance":["RPO is at most 15 minutes and RTO is at most 2 hours"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-
-    {"id":"WP-11.1-full-parity","stage":"11","title":"Full parity closure","objective":"Close every product parity item with automated and approved evidence.","prerequisites":["WP-10.7-backup-restore-alerts"],"successor":"WP-11.2-contract-e2e","allowedAreas":["apps/","packages/","scripts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Approved parity matrix"],"parityIds":["HOME-001","AUTH-001","PROJ-001","CANVAS-001","TOOL-001","MEDIA-001","CHAT-001","TASK-001","ASSET-001","BILL-001","COMP-001"],"targetedChecks":["Full desktop and mobile Playwright parity suite"],"acceptance":["Every parity matrix item is approved with evidence"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-11.2-contract-e2e","stage":"11","title":"Contract and end-to-end release suite","objective":"Prove complete user, project, generation, asset, billing, and data-rights flows.","prerequisites":["WP-11.1-full-parity"],"successor":"WP-11.3-performance","allowedAreas":["apps/","packages/","scripts/","docs/architecture/"],"allowedDependencyFamilies":["playwright"],"deliverables":["Production-like API and browser E2E suite"],"parityIds":["HOME-010","AUTH-008","PROJ-002","CHAT-006","BILL-002","COMP-005","COMP-006"],"targetedChecks":["OpenAPI compatibility","Production-like E2E"],"acceptance":["Critical happy and failure paths pass against production-like dependencies"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-LOCAL-DOCKER-ADMIN","deadlineStage":"11"}},
-    {"id":"WP-11.3-performance","stage":"11","title":"Performance release gate","objective":"Verify frontend, API, database, queue, and media performance budgets.","prerequisites":["WP-11.2-contract-e2e"],"successor":"WP-11.4-security-failure-drills","allowedAreas":["apps/","packages/","scripts/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Performance budgets and evidence"],"parityIds":["OPS-001","OPS-002"],"targetedChecks":["Load, latency, bundle, canvas, and queue benchmarks"],"acceptance":["Documented release budgets pass without hiding errors"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-11.4-security-failure-drills","stage":"11","title":"Security and failure drills","objective":"Complete security review and realistic dependency failure exercises.","prerequisites":["WP-11.3-performance"],"successor":"WP-11.5-external-approvals","allowedAreas":["apps/","packages/","scripts/","docs/architecture/","docs/deployment/"],"allowedDependencyFamilies":[],"deliverables":["Security review and failure drill evidence"],"parityIds":["OPS-005","OPS-007","OPS-012"],"targetedChecks":["Security review","Database, Redis, OSS, provider, and payment outage drills"],"acceptance":["No P0/P1 issue and every critical failure has an exercised response"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-11.5-external-approvals","stage":"11","title":"External approvals and blockers","objective":"Resolve ICP, licensing, model registration, payment approval, and cross-border policy evidence.","prerequisites":["WP-11.4-security-failure-drills"],"successor":"WP-11.6-release-candidate","allowedAreas":["docs/architecture/","docs/deployment/"],"allowedDependencyFamilies":[],"deliverables":["Authoritative approval and blocker evidence"],"parityIds":["COMP-007","OPS-008","OPS-009","OPS-010"],"targetedChecks":["Manual evidence audit"],"acceptance":["All production-cutover blockers are closed by authoritative evidence"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-    {"id":"WP-11.6-release-candidate","stage":"11","title":"Release candidate","objective":"Freeze a release candidate with complete deployment and rollback evidence.","prerequisites":["WP-11.5-external-approvals"],"successor":"WP-12.1-cutover-rehearsal","allowedAreas":["apps/","packages/","scripts/","docs/architecture/","docs/deployment/","package.json","package-lock.json"],"allowedDependencyFamilies":[],"deliverables":["Release candidate and cutoverAllowed decision"],"parityIds":["OPS-011","OPS-012"],"targetedChecks":["npm run check","npm run build","Full release E2E"],"acceptance":["No P0/P1 defect, all blockers closed, and cutoverAllowed is true"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"11"}},
-
-    {"id":"WP-12.1-cutover-rehearsal","stage":"12","title":"Cutover rehearsal","objective":"Rehearse empty-database launch, DNS switch, monitoring, and internal rollback.","prerequisites":["WP-11.6-release-candidate"],"successor":"WP-12.2-production-cutover","allowedAreas":["scripts/","docs/deployment/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Timestamped cutover rehearsal"],"parityIds":["OPS-011","OPS-012"],"targetedChecks":["Production-like cutover and rollback rehearsal"],"acceptance":["Every operator step, owner, signal, and rollback trigger is proven"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"12"}},
-    {"id":"WP-12.2-production-cutover","stage":"12","title":"Production cutover","objective":"Switch the public domain to the verified rewrite without legacy dual write.","prerequisites":["WP-12.1-cutover-rehearsal"],"successor":"WP-12.3-post-cutover-window","allowedAreas":["docs/deployment/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Production cutover evidence"],"parityIds":["OPS-011"],"targetedChecks":["Live health, auth, generation, payment, storage, and monitoring smoke tests"],"acceptance":["Rewrite serves production and legacy receives no new user data"],"legacyMutationAllowed":false,"externalVerification":{"mode":"required","blockerId":"BLOCK-EXTERNAL-APPROVALS","deadlineStage":"12"}},
-    {"id":"WP-12.3-post-cutover-window","stage":"12","title":"Post-cutover rollback window","objective":"Operate the defined observation and rewrite-only rollback window.","prerequisites":["WP-12.2-production-cutover"],"successor":"WP-13.1-observation","allowedAreas":["docs/deployment/","docs/architecture/"],"allowedDependencyFamilies":[],"deliverables":["Post-cutover incident and rollback log"],"parityIds":["OPS-012"],"targetedChecks":["Live SLO and rollback-trigger review"],"acceptance":["No unresolved release-severity incident remains"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-
-    {"id":"WP-13.1-observation","stage":"13","title":"Stable observation","objective":"Complete the approved stability period with monitored production evidence.","prerequisites":["WP-12.3-post-cutover-window"],"successor":"WP-13.2-legacy-reachability-audit","allowedAreas":["docs/architecture/","docs/deployment/"],"allowedDependencyFamilies":[],"deliverables":["Stability evidence and deletion readiness decision"],"parityIds":[],"targetedChecks":["SLO, incident, payment, queue, database, and storage review"],"acceptance":["Observation period passes without unresolved release blocker"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-13.2-legacy-reachability-audit","stage":"13","title":"Legacy reachability audit","objective":"Prove legacy runtime, styles, assets, and deploy paths are no longer required.","prerequisites":["WP-13.1-observation"],"successor":"WP-13.3-legacy-delete","allowedAreas":["scripts/","docs/architecture/","docs/deployment/"],"allowedDependencyFamilies":[],"deliverables":["Static, runtime, parity, and rollback deletion evidence"],"parityIds":[],"targetedChecks":["Reachability, style entry, deployment, and production-reference audits"],"acceptance":["Every deletion candidate has static and runtime proof plus a rollback point"],"legacyMutationAllowed":false,"externalVerification":{"mode":"none"}},
-    {"id":"WP-13.3-legacy-delete","stage":"13","title":"Legacy deletion","objective":"Delete only proven legacy files in one audited final package.","prerequisites":["WP-13.2-legacy-reachability-audit"],"successor":null,"allowedAreas":["app.js","server.js","src/","styles/","index.html","styles.css","vite.config.js","scripts/","package.json","package-lock.json","docs/architecture/","docs/deployment/"],"allowedDependencyFamilies":[],"deliverables":["Rewrite-only repository and final rollback commit"],"parityIds":[],"targetedChecks":["npm run check","npm run build","Full production E2E after deletion"],"acceptance":["Rewrite is the only runtime and all deletion evidence remains available"],"legacyMutationAllowed":true,"externalVerification":{"mode":"none"}}
+    {
+      "id": "WP-0.1-governance-baseline",
+      "stage": "0",
+      "title": "Governance baseline",
+      "objective": "Establish the rewrite authority documents.",
+      "prerequisites": [],
+      "successor": "WP-0.2-governance-check",
+      "allowedAreas": [
+        "AGENTS.md",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Authoritative PRD and operating rules"
+      ],
+      "parityIds": [],
+      "targetedChecks": [
+        "git diff --check"
+      ],
+      "acceptance": [
+        "Governance documents are UTF-8 and internally consistent"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "docs",
+      "verificationCommands": [
+        "git diff --check"
+      ],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-0.2-governance-check",
+      "stage": "0",
+      "title": "Governance check",
+      "objective": "Make governance rules machine verifiable.",
+      "prerequisites": [
+        "WP-0.1-governance-baseline"
+      ],
+      "successor": "WP-1.1-workspace-scaffold",
+      "allowedAreas": [
+        "scripts/",
+        "package.json",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Root governance check"
+      ],
+      "parityIds": [],
+      "targetedChecks": [
+        "npm run governance:check"
+      ],
+      "acceptance": [
+        "Conflicting architecture rules fail the check"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "docs",
+      "verificationCommands": [
+        "npm run governance:check"
+      ],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-1.1-workspace-scaffold",
+      "stage": "1",
+      "title": "Workspace scaffold",
+      "objective": "Create isolated rewrite workspaces and strict tooling.",
+      "prerequisites": [
+        "WP-0.2-governance-check"
+      ],
+      "successor": "WP-2.1-backend-platform",
+      "allowedAreas": [
+        "apps/",
+        "packages/",
+        "package.json",
+        "package-lock.json",
+        "compose.rewrite.yml",
+        "tsconfig.base.json",
+        "eslint.config.js",
+        "prettier.config.js",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [
+        "react",
+        "nestjs",
+        "typescript",
+        "testing"
+      ],
+      "deliverables": [
+        "Web, API, Worker, and shared package workspaces"
+      ],
+      "parityIds": [],
+      "targetedChecks": [
+        "npm run check:rewrite",
+        "npm run build:rewrite"
+      ],
+      "acceptance": [
+        "Rewrite builds independently and legacy defaults remain unchanged"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "stage-gate",
+      "verificationCommands": [
+        "npm run check:rewrite",
+        "npm run build:rewrite"
+      ],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-2.1-backend-platform",
+      "stage": "2",
+      "title": "Backend platform",
+      "objective": "Establish NestJS, PostgreSQL, Redis, queue, storage, and health foundations.",
+      "prerequisites": [
+        "WP-1.1-workspace-scaffold"
+      ],
+      "successor": "WP-3.1-home-api",
+      "allowedAreas": [
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "package.json",
+        "package-lock.json",
+        "compose.rewrite.yml",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [
+        "nestjs",
+        "postgresql",
+        "redis",
+        "bullmq",
+        "oss"
+      ],
+      "deliverables": [
+        "Production-fail-closed backend platform"
+      ],
+      "parityIds": [
+        "OPS-001",
+        "OPS-002",
+        "OPS-005"
+      ],
+      "targetedChecks": [
+        "npm run check:rewrite"
+      ],
+      "acceptance": [
+        "API and Worker compose independently with strict production config"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "deferred",
+        "blockerId": "BLOCK-LOCAL-DOCKER-ADMIN",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "stage-gate",
+      "verificationCommands": [
+        "npm run check:rewrite"
+      ],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-3.1-home-api",
+      "stage": "3",
+      "title": "Home platform APIs",
+      "objective": "Provide auth, models, credits, projects, uploads, jobs, and feed APIs.",
+      "prerequisites": [
+        "WP-2.1-backend-platform"
+      ],
+      "successor": "WP-3.2-ai-job-worker",
+      "allowedAreas": [
+        "apps/api/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Workspace-scoped home APIs"
+      ],
+      "parityIds": [
+        "AUTH-001",
+        "HOME-005",
+        "HOME-006",
+        "PROJ-001"
+      ],
+      "targetedChecks": [
+        "npm run test --workspace @ai-studio/server-core",
+        "npm run test --workspace @ai-studio/api"
+      ],
+      "acceptance": [
+        "Home APIs use stable contracts and tenant scoping"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "deferred",
+        "blockerId": "BLOCK-LOCAL-DOCKER-ADMIN",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [
+        "npm run test --workspace @ai-studio/server-core",
+        "npm run test --workspace @ai-studio/api"
+      ],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-3.2-ai-job-worker",
+      "stage": "3",
+      "title": "Durable AI worker",
+      "objective": "Execute durable image jobs with exactly-once credit effects.",
+      "prerequisites": [
+        "WP-3.1-home-api"
+      ],
+      "successor": "WP-3.3-react-home",
+      "allowedAreas": [
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Outbox dispatch, recovery, and image provider execution"
+      ],
+      "parityIds": [
+        "TASK-002",
+        "MEDIA-002",
+        "MEDIA-003"
+      ],
+      "targetedChecks": [
+        "npm run test --workspace @ai-studio/worker",
+        "npm run test --workspace @ai-studio/server-core"
+      ],
+      "acceptance": [
+        "Duplicate delivery cannot duplicate charges"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "deferred",
+        "blockerId": "BLOCK-LOCAL-DOCKER-ADMIN",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [
+        "npm run test --workspace @ai-studio/worker",
+        "npm run test --workspace @ai-studio/server-core"
+      ],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-3.3-react-home",
+      "stage": "3",
+      "title": "React home",
+      "objective": "Rebuild the full home experience with visual and behavioral parity.",
+      "prerequisites": [
+        "WP-3.2-ai-job-worker"
+      ],
+      "successor": "WP-3.4-minimal-react-canvas",
+      "allowedAreas": [
+        "apps/web/",
+        "packages/contracts/",
+        "packages/server-core/src/home/",
+        "docs/architecture/",
+        "package.json",
+        "package-lock.json"
+      ],
+      "allowedDependencyFamilies": [
+        "react",
+        "tanstack-query",
+        "zustand"
+      ],
+      "deliverables": [
+        "Responsive React home"
+      ],
+      "parityIds": [
+        "HOME-001",
+        "HOME-002",
+        "HOME-003",
+        "HOME-004",
+        "HOME-005",
+        "HOME-006",
+        "HOME-007",
+        "HOME-008",
+        "HOME-009",
+        "HOME-011"
+      ],
+      "targetedChecks": [
+        "npm run test --workspace @ai-studio/web",
+        "Playwright desktop and mobile comparison"
+      ],
+      "acceptance": [
+        "Existing home UI and interactions remain equivalent"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [
+        "npm run test --workspace @ai-studio/web"
+      ],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-3.4-minimal-react-canvas",
+      "stage": "3",
+      "title": "Minimal React canvas receiver",
+      "objective": "Receive pending and completed home jobs in a versioned canvas document.",
+      "prerequisites": [
+        "WP-3.3-react-home"
+      ],
+      "successor": "WP-G.1-autonomous-catalog",
+      "allowedAreas": [
+        "apps/web/",
+        "packages/canvas-engine/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/",
+        "package.json",
+        "package-lock.json"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Pending and result receiver"
+      ],
+      "parityIds": [
+        "HOME-010",
+        "PROJ-003",
+        "PROJ-005",
+        "PROJ-007",
+        "MEDIA-002",
+        "MEDIA-003"
+      ],
+      "targetedChecks": [
+        "npm run test --workspace @ai-studio/web",
+        "npm run test --workspace @ai-studio/canvas-engine",
+        "Playwright pending and result checks"
+      ],
+      "acceptance": [
+        "Pending becomes a stable persisted result without temporary nodes"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "deferred",
+        "blockerId": "BLOCK-LOCAL-DOCKER-ADMIN",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [
+        "npm run test --workspace @ai-studio/web",
+        "npm run test --workspace @ai-studio/canvas-engine"
+      ],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-G.1-autonomous-catalog",
+      "stage": "0",
+      "title": "Autonomous work-package catalog",
+      "objective": "Make the complete migration sequence decision-complete and machine verifiable.",
+      "prerequisites": [
+        "WP-3.4-minimal-react-canvas"
+      ],
+      "successor": "WP-G.2-motion-verification-policy",
+      "allowedAreas": [
+        "AGENTS.md",
+        "docs/architecture/",
+        "scripts/check-react-nest-governance.js",
+        "scripts/check-work-package-scope.js",
+        "package.json"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Complete package catalog",
+        "Dependency and parity validation",
+        "Staged scope gate",
+        "Commit trailer policy"
+      ],
+      "parityIds": [],
+      "targetedChecks": [
+        "npm run governance:check",
+        "npm run governance:scope -- WP-G.1-autonomous-catalog --cached"
+      ],
+      "acceptance": [
+        "Every package has paths, checks, acceptance, rollback, blockers, and one successor",
+        "The next package is catalog-backed and unblocked"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "docs",
+      "verificationCommands": [
+        "npm run governance:check"
+      ],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-G.2-motion-verification-policy",
+      "stage": "0",
+      "title": "Motion and tiered verification policy",
+      "objective": "Authorize bounded rewrite polish and replace repeated full-repository checks with risk-tiered verification.",
+      "prerequisites": [
+        "WP-G.1-autonomous-catalog"
+      ],
+      "successor": "WP-3.4.1-react-ios-polish",
+      "allowedAreas": [
+        "AGENTS.md",
+        "docs/architecture/",
+        "scripts/check-react-nest-governance.js",
+        "scripts/verify-work-package.js",
+        "package.json"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Machine-readable visual-delta allowlist",
+        "Catalog verification profiles",
+        "Staged-diff workspace verifier",
+        "Mid-stage push and stage-gate rules"
+      ],
+      "parityIds": [],
+      "targetedChecks": [
+        "npm run governance:check",
+        "npm run governance:verify -- WP-G.2-motion-verification-policy"
+      ],
+      "acceptance": [
+        "Only approved rewrite visual deltas are permitted and Legacy remains read-only",
+        "Every catalog package has a verification tier and executable command source",
+        "Affected workspaces are derived from staged paths and local dependents",
+        "Stage and release gates retain full repository checks"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "docs",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-3.4.1-react-ios-polish",
+      "stage": "3",
+      "title": "React iOS-style polish",
+      "objective": "Apply one bounded rewrite-only icon, motion, spacing, overflow, touch-target, and safe-area polish pass.",
+      "prerequisites": [
+        "WP-G.2-motion-verification-policy"
+      ],
+      "successor": "WP-3.5.1-capability-registry",
+      "allowedAreas": [
+        "apps/web/",
+        "package-lock.json",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [
+        "lucide-react"
+      ],
+      "deliverables": [
+        "Lucide rewrite icon baseline",
+        "Reduced-motion-safe micro interactions",
+        "Desktop and mobile visual evidence",
+        "Touch-target, overflow, and safe-area corrections"
+      ],
+      "parityIds": [
+        "HOME-001",
+        "HOME-002",
+        "HOME-003",
+        "HOME-004",
+        "HOME-006",
+        "HOME-007",
+        "HOME-008",
+        "HOME-009",
+        "HOME-010",
+        "HOME-011",
+        "AUTH-001",
+        "AUTH-006",
+        "MEDIA-002",
+        "MEDIA-003"
+      ],
+      "targetedChecks": [
+        "npm run test --workspace @ai-studio/web",
+        "npm run test:e2e --workspace @ai-studio/web",
+        "Playwright 1440x1000 and 390x844 screenshots for home, menus, attachments, and pending/result canvas"
+      ],
+      "acceptance": [
+        "Existing React structure, routes, behavior, generation flow, canvas coordinates, and breakpoints remain unchanged",
+        "Only catalogued visual delta IDs differ from the legacy reference",
+        "Lucide icons are named imports with accessible labels and no whole-library chunk",
+        "Reduced motion, keyboard focus, 44px touch targets, safe areas, and text overflow pass",
+        "Legacy files remain unchanged"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "stage-gate",
+      "verificationCommands": [
+        "npm run test:e2e --workspace @ai-studio/web"
+      ],
+      "visualDeltaIds": [
+        "lucide-icon-replacement",
+        "micro-interaction-motion",
+        "spacing-overflow-correction",
+        "touch-target-safe-area"
+      ]
+    },
+    {
+      "id": "WP-3.5.1-capability-registry",
+      "stage": "3.5",
+      "title": "Capability registry",
+      "objective": "Expose fail-closed external-service readiness without leaking credentials.",
+      "prerequisites": [
+        "WP-3.4.1-react-ios-polish"
+      ],
+      "successor": "WP-3.5.2-identity-provider-seams",
+      "allowedAreas": [
+        "apps/api/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Capability registry and /api/v1/capabilities"
+      ],
+      "parityIds": [],
+      "targetedChecks": [
+        "npm run test --workspace @ai-studio/server-core",
+        "npm run test --workspace @ai-studio/api"
+      ],
+      "acceptance": [
+        "Capabilities are disabled, development, configured, or verified; production actions require verified"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [
+        "npm run test --workspace @ai-studio/server-core",
+        "npm run test --workspace @ai-studio/api"
+      ],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-3.5.2-identity-provider-seams",
+      "stage": "3.5",
+      "title": "Identity provider seams",
+      "objective": "Add email, SMS, WeChat, QQ, captcha, and risk provider contracts.",
+      "prerequisites": [
+        "WP-3.5.1-capability-registry"
+      ],
+      "successor": "WP-3.5.3-moderation-notification-audit",
+      "allowedAreas": [
+        "apps/api/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/",
+        "package.json",
+        "package-lock.json"
+      ],
+      "allowedDependencyFamilies": [
+        "aliyun",
+        "narrow-http-adapters"
+      ],
+      "deliverables": [
+        "Identity provider contracts and deterministic development implementations"
+      ],
+      "parityIds": [
+        "AUTH-002",
+        "AUTH-003",
+        "AUTH-004",
+        "AUTH-005",
+        "AUTH-007",
+        "AUTH-008"
+      ],
+      "targetedChecks": [
+        "npm run test --workspace @ai-studio/server-core",
+        "npm run test --workspace @ai-studio/api"
+      ],
+      "acceptance": [
+        "Unconfigured production providers fail with PROVIDER_NOT_CONFIGURED and HTTP 503"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "deferred",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [
+        "npm run test --workspace @ai-studio/server-core",
+        "npm run test --workspace @ai-studio/api"
+      ],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-3.5.3-moderation-notification-audit",
+      "stage": "3.5",
+      "title": "Moderation, notification, and audit seams",
+      "objective": "Create durable moderation, delivery, and audit boundaries.",
+      "prerequisites": [
+        "WP-3.5.2-identity-provider-seams"
+      ],
+      "successor": "WP-3.5.4-billing-domain-foundation",
+      "allowedAreas": [
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [
+        "aliyun",
+        "narrow-http-adapters"
+      ],
+      "deliverables": [
+        "Provider contracts, durable records, retry states"
+      ],
+      "parityIds": [
+        "COMP-003",
+        "OPS-006",
+        "OPS-007"
+      ],
+      "targetedChecks": [
+        "npm run test --workspace @ai-studio/server-core",
+        "npm run test --workspace @ai-studio/worker"
+      ],
+      "acceptance": [
+        "Failures are durable and retryable; audit events are immutable"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "deferred",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [
+        "npm run test --workspace @ai-studio/server-core",
+        "npm run test --workspace @ai-studio/worker"
+      ],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-3.5.4-billing-domain-foundation",
+      "stage": "3.5",
+      "title": "Billing domain foundation",
+      "objective": "Build payment-independent commercial state machines and ledgers.",
+      "prerequisites": [
+        "WP-3.5.3-moderation-notification-audit"
+      ],
+      "successor": "WP-3.5.5-payment-provider-contracts",
+      "allowedAreas": [
+        "apps/api/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Plans, prices, orders, payments, subscriptions, mandates, entitlements, refunds, and invoices"
+      ],
+      "parityIds": [
+        "BILL-001",
+        "BILL-003",
+        "BILL-004",
+        "BILL-005",
+        "BILL-006",
+        "BILL-007",
+        "BILL-008"
+      ],
+      "targetedChecks": [
+        "npm run test --workspace @ai-studio/server-core",
+        "Clean PostgreSQL migration and transaction checks"
+      ],
+      "acceptance": [
+        "Money uses integer fen; commercial history is append-only and idempotent"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "deferred",
+        "blockerId": "BLOCK-LOCAL-DOCKER-ADMIN",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [
+        "npm run test --workspace @ai-studio/server-core"
+      ],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-3.5.5-payment-provider-contracts",
+      "stage": "3.5",
+      "title": "Payment provider contracts",
+      "objective": "Define WeChat Pay, Alipay, renewal, webhook, refund, query, and reconciliation contracts.",
+      "prerequisites": [
+        "WP-3.5.4-billing-domain-foundation"
+      ],
+      "successor": "WP-3.5.6-commercial-pages",
+      "allowedAreas": [
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/",
+        "package.json",
+        "package-lock.json"
+      ],
+      "allowedDependencyFamilies": [
+        "wechat-pay",
+        "alipay",
+        "narrow-http-adapters"
+      ],
+      "deliverables": [
+        "Fail-closed payment provider interfaces and official signature fixtures"
+      ],
+      "parityIds": [
+        "BILL-002",
+        "BILL-004",
+        "BILL-007",
+        "OPS-010"
+      ],
+      "targetedChecks": [
+        "Provider contract tests for signatures, replay, refund, and reconciliation"
+      ],
+      "acceptance": [
+        "Missing credentials cannot create a successful payment or entitlement"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "deferred",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-3.5.6-commercial-pages",
+      "stage": "3.5",
+      "title": "Commercial pages",
+      "objective": "Add complete account and commercial pages using existing visual language.",
+      "prerequisites": [
+        "WP-3.5.5-payment-provider-contracts"
+      ],
+      "successor": "WP-3.5.7-compliance-pages",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [
+        "react",
+        "tanstack-query"
+      ],
+      "deliverables": [
+        "Pricing, account, billing, credits, security, and data pages",
+        "Upgrade, credits, and account entries"
+      ],
+      "parityIds": [
+        "AUTH-006",
+        "BILL-001",
+        "BILL-002",
+        "BILL-003",
+        "BILL-004",
+        "BILL-006",
+        "BILL-007",
+        "BILL-008"
+      ],
+      "targetedChecks": [
+        "npm run test --workspace @ai-studio/web",
+        "Playwright desktop and mobile additive-entry comparison"
+      ],
+      "acceptance": [
+        "Existing surfaces are unchanged except approved entries; unavailable payments are clearly disabled"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [
+        "npm run test --workspace @ai-studio/web"
+      ],
+      "visualDeltaIds": [
+        "approved-commercial-compliance-surface"
+      ]
+    },
+    {
+      "id": "WP-3.5.7-compliance-pages",
+      "stage": "3.5",
+      "title": "Compliance pages and data rights",
+      "objective": "Add legal, report, appeal, deletion, and export workflows without pretending regulatory approval.",
+      "prerequisites": [
+        "WP-3.5.6-commercial-pages"
+      ],
+      "successor": "WP-4.1-canvas-document-registry",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Terms, privacy, refund, AI disclosure, report, appeal, deletion, and export surfaces"
+      ],
+      "parityIds": [
+        "COMP-001",
+        "COMP-002",
+        "COMP-005",
+        "COMP-006",
+        "COMP-007"
+      ],
+      "targetedChecks": [
+        "npm run test --workspace @ai-studio/web",
+        "npm run test --workspace @ai-studio/server-core",
+        "Playwright legal-link checks"
+      ],
+      "acceptance": [
+        "Data-rights requests are authenticated, durable, auditable, and fail closed"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "deferred",
+        "blockerId": "BLOCK-CROSS-BORDER-PERSONAL-DATA",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "stage-gate",
+      "verificationCommands": [
+        "npm run test --workspace @ai-studio/web",
+        "npm run test --workspace @ai-studio/server-core"
+      ],
+      "visualDeltaIds": [
+        "approved-commercial-compliance-surface"
+      ]
+    },
+    {
+      "id": "WP-4.1-canvas-document-registry",
+      "stage": "4",
+      "title": "Canvas document and node registry",
+      "objective": "Define versioned nodes, serializers, migrations, and validation.",
+      "prerequisites": [
+        "WP-3.5.7-compliance-pages"
+      ],
+      "successor": "WP-4.2-viewport-coordinate-system",
+      "allowedAreas": [
+        "packages/canvas-engine/",
+        "packages/contracts/",
+        "apps/web/app/features/canvas/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Node registry and snapshot migration registry"
+      ],
+      "parityIds": [
+        "PROJ-005",
+        "PROJ-007",
+        "MEDIA-001",
+        "MEDIA-002",
+        "MEDIA-003"
+      ],
+      "targetedChecks": [
+        "npm run test --workspace @ai-studio/canvas-engine"
+      ],
+      "acceptance": [
+        "Unknown or temporary nodes cannot corrupt restored documents"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [
+        "npm run test --workspace @ai-studio/canvas-engine"
+      ],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-4.2-viewport-coordinate-system",
+      "stage": "4",
+      "title": "Viewport coordinate system",
+      "objective": "Implement pan, zoom, fit, and pointer/world transforms.",
+      "prerequisites": [
+        "WP-4.1-canvas-document-registry"
+      ],
+      "successor": "WP-4.3-command-history",
+      "allowedAreas": [
+        "packages/canvas-engine/",
+        "apps/web/app/features/canvas/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Deterministic viewport math"
+      ],
+      "parityIds": [
+        "CANVAS-001",
+        "CANVAS-002"
+      ],
+      "targetedChecks": [
+        "Canvas geometry and pointer round-trip tests"
+      ],
+      "acceptance": [
+        "Pointer and world coordinates do not drift at supported zoom levels"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-4.3-command-history",
+      "stage": "4",
+      "title": "Command and history",
+      "objective": "Implement reversible editor commands and bounded undo/redo.",
+      "prerequisites": [
+        "WP-4.2-viewport-coordinate-system"
+      ],
+      "successor": "WP-4.4-selection-model",
+      "allowedAreas": [
+        "packages/canvas-engine/",
+        "apps/web/app/features/canvas/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Command registry and history"
+      ],
+      "parityIds": [
+        "CANVAS-006",
+        "CANVAS-007",
+        "CANVAS-008"
+      ],
+      "targetedChecks": [
+        "Command inversion and history boundary tests"
+      ],
+      "acceptance": [
+        "Undo and redo preserve document identity and selection invariants"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-4.4-selection-model",
+      "stage": "4",
+      "title": "Selection model",
+      "objective": "Implement single, multi, marquee, clear, and focus-safe selection.",
+      "prerequisites": [
+        "WP-4.3-command-history"
+      ],
+      "successor": "WP-4.5-drag-resize",
+      "allowedAreas": [
+        "packages/canvas-engine/",
+        "apps/web/app/features/canvas/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Selection state machine"
+      ],
+      "parityIds": [
+        "CANVAS-003",
+        "CANVAS-010"
+      ],
+      "targetedChecks": [
+        "Selection and focus-exclusion tests"
+      ],
+      "acceptance": [
+        "Selection matches legacy click, modifier, and marquee behavior"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-4.5-drag-resize",
+      "stage": "4",
+      "title": "Drag and resize",
+      "objective": "Implement pointer-driven node and multi-node transforms.",
+      "prerequisites": [
+        "WP-4.4-selection-model"
+      ],
+      "successor": "WP-4.6-react-canvas-adapter",
+      "allowedAreas": [
+        "packages/canvas-engine/",
+        "apps/web/app/features/canvas/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Drag, resize, bounds, and aspect rules"
+      ],
+      "parityIds": [
+        "CANVAS-004",
+        "CANVAS-005"
+      ],
+      "targetedChecks": [
+        "Pointer path, bounds, aspect, and multi-node transform tests"
+      ],
+      "acceptance": [
+        "Transforms follow the actual pointer and produce stable commands"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-4.6-react-canvas-adapter",
+      "stage": "4",
+      "title": "React canvas adapter",
+      "objective": "Render engine state through granular Zustand selectors.",
+      "prerequisites": [
+        "WP-4.5-drag-resize"
+      ],
+      "successor": "WP-4.7-canvas-performance-gate",
+      "allowedAreas": [
+        "apps/web/app/features/canvas/",
+        "packages/canvas-engine/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [
+        "react",
+        "zustand"
+      ],
+      "deliverables": [
+        "Canvas store adapter and node renderer registry"
+      ],
+      "parityIds": [
+        "CANVAS-001",
+        "CANVAS-003",
+        "CANVAS-004",
+        "CANVAS-005"
+      ],
+      "targetedChecks": [
+        "npm run test --workspace @ai-studio/web",
+        "Playwright pointer and visual checks"
+      ],
+      "acceptance": [
+        "High-frequency pointer movement does not rerender the full React tree"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [
+        "npm run test --workspace @ai-studio/web"
+      ],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-4.7-canvas-performance-gate",
+      "stage": "4",
+      "title": "Canvas performance gate",
+      "objective": "Establish measurable interaction budgets for 500 nodes.",
+      "prerequisites": [
+        "WP-4.6-react-canvas-adapter"
+      ],
+      "successor": "WP-5.1-tool-rail",
+      "allowedAreas": [
+        "apps/web/",
+        "packages/canvas-engine/",
+        "packages/test-support/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [
+        "playwright"
+      ],
+      "deliverables": [
+        "500-node benchmark and regression gate"
+      ],
+      "parityIds": [
+        "CANVAS-001",
+        "CANVAS-004",
+        "CANVAS-005"
+      ],
+      "targetedChecks": [
+        "Playwright 500-node interaction benchmark"
+      ],
+      "acceptance": [
+        "Pan, zoom, selection, drag, and resize remain interactive at the documented budget"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "stage-gate",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-5.1-tool-rail",
+      "stage": "5",
+      "title": "Canvas tool rail",
+      "objective": "Restore original icons, colors, active states, collapse, and submenu behavior.",
+      "prerequisites": [
+        "WP-4.7-canvas-performance-gate"
+      ],
+      "successor": "WP-5.2-shapes-arrows",
+      "allowedAreas": [
+        "apps/web/app/features/canvas/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Parity tool rail"
+      ],
+      "parityIds": [
+        "TOOL-001"
+      ],
+      "targetedChecks": [
+        "Playwright desktop and mobile tool-rail comparison"
+      ],
+      "acceptance": [
+        "No icon, color, layout, hover, click, or submenu drift"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-5.2-shapes-arrows",
+      "stage": "5",
+      "title": "Shapes and arrows",
+      "objective": "Migrate all shape and arrow creation and formatting.",
+      "prerequisites": [
+        "WP-5.1-tool-rail"
+      ],
+      "successor": "WP-5.3-text-tool",
+      "allowedAreas": [
+        "apps/web/app/features/canvas/",
+        "packages/canvas-engine/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Shape registry, menus, arrow geometry"
+      ],
+      "parityIds": [
+        "TOOL-002",
+        "TOOL-003",
+        "TOOL-008"
+      ],
+      "targetedChecks": [
+        "Shape geometry tests",
+        "Playwright shape-menu and pointer-path checks"
+      ],
+      "acceptance": [
+        "All legacy shapes and arrows match creation and formatting behavior"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-5.3-text-tool",
+      "stage": "5",
+      "title": "Text tool",
+      "objective": "Migrate text creation, editing, selection, and formatting.",
+      "prerequisites": [
+        "WP-5.2-shapes-arrows"
+      ],
+      "successor": "WP-5.4-pen-tool",
+      "allowedAreas": [
+        "apps/web/app/features/canvas/",
+        "packages/canvas-engine/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Text nodes and toolbar"
+      ],
+      "parityIds": [
+        "TOOL-004",
+        "TOOL-009"
+      ],
+      "targetedChecks": [
+        "Text edit and keyboard tests",
+        "Playwright toolbar comparison"
+      ],
+      "acceptance": [
+        "Fonts, style, size, color, editing, and focus match legacy"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-5.4-pen-tool",
+      "stage": "5",
+      "title": "Pen tool",
+      "objective": "Migrate pointer-following freehand drawing and formatting.",
+      "prerequisites": [
+        "WP-5.3-text-tool"
+      ],
+      "successor": "WP-5.5-laser-eraser",
+      "allowedAreas": [
+        "apps/web/app/features/canvas/",
+        "packages/canvas-engine/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Pen path state machine"
+      ],
+      "parityIds": [
+        "TOOL-005"
+      ],
+      "targetedChecks": [
+        "Recorded pointer-path tests",
+        "Playwright color and width checks"
+      ],
+      "acceptance": [
+        "Rendered path follows recorded user pointer samples"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-5.5-laser-eraser",
+      "stage": "5",
+      "title": "Laser pen and eraser",
+      "objective": "Migrate transient laser animation and eraser hit testing.",
+      "prerequisites": [
+        "WP-5.4-pen-tool"
+      ],
+      "successor": "WP-5.6-format-toolbars",
+      "allowedAreas": [
+        "apps/web/app/features/canvas/",
+        "packages/canvas-engine/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Laser and eraser pointer state machines"
+      ],
+      "parityIds": [
+        "TOOL-006",
+        "TOOL-007"
+      ],
+      "targetedChecks": [
+        "Animation timing and hit-test tests",
+        "Playwright pointer-path checks"
+      ],
+      "acceptance": [
+        "Animation and erasure follow actual pointer coordinates and legacy timing"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-5.6-format-toolbars",
+      "stage": "5",
+      "title": "Formatting toolbars",
+      "objective": "Complete shape and text formatting controls and selection binding.",
+      "prerequisites": [
+        "WP-5.5-laser-eraser"
+      ],
+      "successor": "WP-5.7-image-toolbar",
+      "allowedAreas": [
+        "apps/web/app/features/canvas/",
+        "packages/canvas-engine/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Stable formatting toolbars"
+      ],
+      "parityIds": [
+        "TOOL-008",
+        "TOOL-009"
+      ],
+      "targetedChecks": [
+        "Toolbar state tests",
+        "Playwright layout and interaction comparison"
+      ],
+      "acceptance": [
+        "Controls remain aligned, complete, and bound to selected nodes"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-5.7-image-toolbar",
+      "stage": "5",
+      "title": "Image toolbar",
+      "objective": "Migrate image action toolbar and command routing.",
+      "prerequisites": [
+        "WP-5.6-format-toolbars"
+      ],
+      "successor": "WP-5.8-crop-upscale-expand",
+      "allowedAreas": [
+        "apps/web/app/features/canvas/",
+        "packages/canvas-engine/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Image action toolbar"
+      ],
+      "parityIds": [
+        "MEDIA-004"
+      ],
+      "targetedChecks": [
+        "Toolbar command tests",
+        "Playwright selected-image comparison"
+      ],
+      "acceptance": [
+        "Crop, upscale, background, expand, text, and 3D entries match legacy"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-5.8-crop-upscale-expand",
+      "stage": "5",
+      "title": "Crop, upscale, and expand",
+      "objective": "Migrate image transformation overlays and job handoff.",
+      "prerequisites": [
+        "WP-5.7-image-toolbar"
+      ],
+      "successor": "WP-5.9-model-3d",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "apps/worker/",
+        "packages/canvas-engine/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Crop, upscale, background, expand, and text workflows"
+      ],
+      "parityIds": [
+        "MEDIA-004",
+        "MEDIA-006"
+      ],
+      "targetedChecks": [
+        "Workflow tests",
+        "Playwright overlay and result checks"
+      ],
+      "acceptance": [
+        "Existing image commands retain geometry, save timing, and failure behavior"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-5.9-model-3d",
+      "stage": "5",
+      "title": "3D action and model nodes",
+      "objective": "Migrate 3D action entry, model nodes, and lazy preview shell.",
+      "prerequisites": [
+        "WP-5.8-crop-upscale-expand"
+      ],
+      "successor": "WP-5.10-keyboard-stack",
+      "allowedAreas": [
+        "apps/web/",
+        "packages/canvas-engine/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [
+        "three"
+      ],
+      "deliverables": [
+        "Lazy model node and 3D entry"
+      ],
+      "parityIds": [
+        "MEDIA-008"
+      ],
+      "targetedChecks": [
+        "Lazy-load checks",
+        "Playwright canvas-pixel and control checks"
+      ],
+      "acceptance": [
+        "3D remains lazy, visible, framed, and behaviorally equivalent"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-5.10-keyboard-stack",
+      "stage": "5",
+      "title": "Keyboard, stack, and editor commands",
+      "objective": "Complete shortcuts, stacking, alignment, clipboard, and deletion.",
+      "prerequisites": [
+        "WP-5.9-model-3d"
+      ],
+      "successor": "WP-6.1-chat-composer",
+      "allowedAreas": [
+        "apps/web/app/features/canvas/",
+        "packages/canvas-engine/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Complete editor command surface"
+      ],
+      "parityIds": [
+        "CANVAS-007",
+        "CANVAS-008",
+        "CANVAS-009",
+        "CANVAS-010"
+      ],
+      "targetedChecks": [
+        "Keyboard focus and command tests",
+        "Playwright stack and clipboard checks"
+      ],
+      "acceptance": [
+        "All existing shortcuts and stacking operations are equivalent"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "stage-gate",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-6.1-chat-composer",
+      "stage": "6",
+      "title": "Chat composer",
+      "objective": "Migrate prompt, files, model selection, and send behavior.",
+      "prerequisites": [
+        "WP-5.10-keyboard-stack"
+      ],
+      "successor": "WP-6.2-canvas-reference",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Parity chat composer"
+      ],
+      "parityIds": [
+        "CHAT-001"
+      ],
+      "targetedChecks": [
+        "Composer tests",
+        "Playwright desktop and mobile comparison"
+      ],
+      "acceptance": [
+        "Input, files, model, send, focus, and errors match legacy"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-6.2-canvas-reference",
+      "stage": "6",
+      "title": "Canvas reference images",
+      "objective": "Synchronize selected canvas images into chat references.",
+      "prerequisites": [
+        "WP-6.1-chat-composer"
+      ],
+      "successor": "WP-6.3-conversation-persistence",
+      "allowedAreas": [
+        "apps/web/",
+        "packages/canvas-engine/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Selection-to-reference adapter"
+      ],
+      "parityIds": [
+        "CHAT-002"
+      ],
+      "targetedChecks": [
+        "Selection/reference state tests",
+        "Playwright thumbnail timing checks"
+      ],
+      "acceptance": [
+        "Selection instantly produces the expected removable reference thumbnail"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-6.3-conversation-persistence",
+      "stage": "6",
+      "title": "Conversation persistence",
+      "objective": "Persist workspace-scoped conversations, messages, and recovery state.",
+      "prerequisites": [
+        "WP-6.2-canvas-reference"
+      ],
+      "successor": "WP-6.4-image-generation",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Conversation repositories and UI restore"
+      ],
+      "parityIds": [
+        "CHAT-003",
+        "CHAT-004",
+        "CHAT-005",
+        "CHAT-006"
+      ],
+      "targetedChecks": [
+        "Tenant isolation tests",
+        "Conversation restore browser tests"
+      ],
+      "acceptance": [
+        "Refresh restores messages and active jobs without cross-workspace access"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "deferred",
+        "blockerId": "BLOCK-LOCAL-DOCKER-ADMIN",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-6.4-image-generation",
+      "stage": "6",
+      "title": "Image generation workflow",
+      "objective": "Migrate image generator, references, pending, results, and billing.",
+      "prerequisites": [
+        "WP-6.3-conversation-persistence"
+      ],
+      "successor": "WP-6.5-image-edit",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Complete image generation workflow"
+      ],
+      "parityIds": [
+        "MEDIA-005",
+        "MEDIA-002",
+        "MEDIA-003",
+        "CHAT-003",
+        "CHAT-004"
+      ],
+      "targetedChecks": [
+        "Job and credit tests",
+        "Playwright generation and recovery checks"
+      ],
+      "acceptance": [
+        "Pending replacement, charges, save timing, and errors match legacy"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "deferred",
+        "blockerId": "BLOCK-LOCAL-DOCKER-ADMIN",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-6.5-image-edit",
+      "stage": "6",
+      "title": "Image edit workflow",
+      "objective": "Migrate image editing, references, replacement, and recovery.",
+      "prerequisites": [
+        "WP-6.4-image-generation"
+      ],
+      "successor": "WP-6.6-video-generation",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Complete image edit workflow"
+      ],
+      "parityIds": [
+        "MEDIA-006",
+        "CHAT-004",
+        "CHAT-006"
+      ],
+      "targetedChecks": [
+        "Edit job tests",
+        "Playwright edit and failure checks"
+      ],
+      "acceptance": [
+        "Edit output, replacement, metadata, and recovery match legacy"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-6.6-video-generation",
+      "stage": "6",
+      "title": "Video generation workflow",
+      "objective": "Migrate lazy video generation, polling, output, and recovery.",
+      "prerequisites": [
+        "WP-6.5-image-edit"
+      ],
+      "successor": "WP-6.7-heavy-3d-viewer",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Complete lazy video workflow"
+      ],
+      "parityIds": [
+        "MEDIA-007",
+        "CHAT-004",
+        "CHAT-006"
+      ],
+      "targetedChecks": [
+        "Video job state tests",
+        "Lazy-load and Playwright recovery checks"
+      ],
+      "acceptance": [
+        "Video jobs survive refresh and preserve existing UI behavior"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "deferred",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-6.7-heavy-3d-viewer",
+      "stage": "6",
+      "title": "Heavy 3D viewer",
+      "objective": "Complete lazy Three.js viewer, controls, loading, and failure states.",
+      "prerequisites": [
+        "WP-6.6-video-generation"
+      ],
+      "successor": "WP-6.8-task-log-recovery",
+      "allowedAreas": [
+        "apps/web/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [
+        "three"
+      ],
+      "deliverables": [
+        "Production lazy 3D viewer"
+      ],
+      "parityIds": [
+        "MEDIA-008"
+      ],
+      "targetedChecks": [
+        "Bundle lazy-load gate",
+        "Playwright screenshots, canvas pixels, and controls"
+      ],
+      "acceptance": [
+        "Viewer is nonblank, correctly framed, interactive, and lazy"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-6.8-task-log-recovery",
+      "stage": "6",
+      "title": "Task log and job recovery",
+      "objective": "Migrate task list, filters, detail, refresh, and durable recovery.",
+      "prerequisites": [
+        "WP-6.7-heavy-3d-viewer"
+      ],
+      "successor": "WP-7.1-project-crud",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Task log and recovery UI"
+      ],
+      "parityIds": [
+        "TASK-001",
+        "TASK-002",
+        "CHAT-006"
+      ],
+      "targetedChecks": [
+        "Worker recovery tests",
+        "Playwright task-log parity checks"
+      ],
+      "acceptance": [
+        "Queued, running, success, failed, and cancelled states recover correctly"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "deferred",
+        "blockerId": "BLOCK-LOCAL-DOCKER-ADMIN",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "stage-gate",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-7.1-project-crud",
+      "stage": "7",
+      "title": "Project CRUD",
+      "objective": "Complete create, list, open, update, delete, and conflict behavior.",
+      "prerequisites": [
+        "WP-6.8-task-log-recovery"
+      ],
+      "successor": "WP-7.2-snapshot-versioning",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Backend-truth project workflows"
+      ],
+      "parityIds": [
+        "PROJ-001",
+        "PROJ-002",
+        "PROJ-003",
+        "PROJ-004"
+      ],
+      "targetedChecks": [
+        "Repository isolation and version-conflict tests",
+        "Playwright project flows"
+      ],
+      "acceptance": [
+        "Save and delete claims follow backend results and rollback on failure"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "deferred",
+        "blockerId": "BLOCK-LOCAL-DOCKER-ADMIN",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-7.2-snapshot-versioning",
+      "stage": "7",
+      "title": "Snapshot versioning",
+      "objective": "Complete CanvasDocument migrations, optimistic saves, and recovery.",
+      "prerequisites": [
+        "WP-7.1-project-crud"
+      ],
+      "successor": "WP-7.3-protected-media",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "packages/canvas-engine/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Versioned snapshot lifecycle"
+      ],
+      "parityIds": [
+        "PROJ-002",
+        "PROJ-005",
+        "PROJ-007"
+      ],
+      "targetedChecks": [
+        "Migration fixture tests",
+        "Concurrent save and restore tests"
+      ],
+      "acceptance": [
+        "Old supported snapshots upgrade safely and temporary nodes never persist"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-7.3-protected-media",
+      "stage": "7",
+      "title": "Protected media",
+      "objective": "Enforce workspace-scoped upload, read, download, and metadata access.",
+      "prerequisites": [
+        "WP-7.2-snapshot-versioning"
+      ],
+      "successor": "WP-7.4-asset-collections",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Protected media APIs and stable downloads"
+      ],
+      "parityIds": [
+        "MEDIA-001",
+        "MEDIA-009",
+        "ASSET-001",
+        "ASSET-007"
+      ],
+      "targetedChecks": [
+        "Cross-workspace access and signed-source tests"
+      ],
+      "acceptance": [
+        "Unauthorized media access is denied without leaking storage keys"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-7.4-asset-collections",
+      "stage": "7",
+      "title": "Asset collections",
+      "objective": "Migrate asset library, collections, move, favorite, preview, and insertion.",
+      "prerequisites": [
+        "WP-7.3-protected-media"
+      ],
+      "successor": "WP-7.5-thumbnails",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "packages/canvas-engine/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Complete asset library"
+      ],
+      "parityIds": [
+        "ASSET-001",
+        "ASSET-002",
+        "ASSET-003",
+        "ASSET-004",
+        "ASSET-005",
+        "ASSET-006"
+      ],
+      "targetedChecks": [
+        "Asset repository tests",
+        "Playwright library and canvas insertion checks"
+      ],
+      "acceptance": [
+        "Library workflows and insertion coordinates match legacy"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-7.5-thumbnails",
+      "stage": "7",
+      "title": "Project thumbnails",
+      "objective": "Generate and restore stable home and project-library thumbnails.",
+      "prerequisites": [
+        "WP-7.4-asset-collections"
+      ],
+      "successor": "WP-7.6-orphan-audit",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Durable thumbnail pipeline"
+      ],
+      "parityIds": [
+        "PROJ-006"
+      ],
+      "targetedChecks": [
+        "Thumbnail persistence tests",
+        "Playwright home/library comparison"
+      ],
+      "acceptance": [
+        "Thumbnail URLs are stable, protected, and environment independent"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-7.6-orphan-audit",
+      "stage": "7",
+      "title": "Orphan media audit",
+      "objective": "Detect unreferenced objects without unsafe automatic deletion.",
+      "prerequisites": [
+        "WP-7.5-thumbnails"
+      ],
+      "successor": "WP-8.1-plan-entitlement",
+      "allowedAreas": [
+        "apps/worker/",
+        "packages/server-core/",
+        "scripts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Read-only orphan audit and guarded cleanup contract"
+      ],
+      "parityIds": [
+        "ASSET-006",
+        "ASSET-007"
+      ],
+      "targetedChecks": [
+        "Reference graph and dry-run audit tests"
+      ],
+      "acceptance": [
+        "Referenced files are never classified as deletable"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "stage-gate",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-8.1-plan-entitlement",
+      "stage": "8",
+      "title": "Plans and entitlements",
+      "objective": "Activate authoritative plan catalogs and entitlement evaluation.",
+      "prerequisites": [
+        "WP-7.6-orphan-audit"
+      ],
+      "successor": "WP-8.2-order-payment",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Production plan and entitlement rules"
+      ],
+      "parityIds": [
+        "BILL-001",
+        "BILL-003"
+      ],
+      "targetedChecks": [
+        "Catalog version and entitlement tests"
+      ],
+      "acceptance": [
+        "Production catalog is explicit, versioned, and not seeded from development defaults"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": [
+        "approved-commercial-compliance-surface"
+      ]
+    },
+    {
+      "id": "WP-8.2-order-payment",
+      "stage": "8",
+      "title": "Order and payment orchestration",
+      "objective": "Connect orders, payment attempts, webhooks, ledger, and entitlements.",
+      "prerequisites": [
+        "WP-8.1-plan-entitlement"
+      ],
+      "successor": "WP-8.3-wechat-pay",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Provider-neutral payment orchestration"
+      ],
+      "parityIds": [
+        "BILL-002",
+        "BILL-003"
+      ],
+      "targetedChecks": [
+        "Idempotency, duplicate webhook, and entitlement tests"
+      ],
+      "acceptance": [
+        "Only verified provider results grant paid entitlements"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": [
+        "approved-commercial-compliance-surface"
+      ]
+    },
+    {
+      "id": "WP-8.3-wechat-pay",
+      "stage": "8",
+      "title": "WeChat Pay adapter",
+      "objective": "Implement and verify WeChat Pay, refund, query, and renewal mandate integration.",
+      "prerequisites": [
+        "WP-8.2-order-payment"
+      ],
+      "successor": "WP-8.4-alipay",
+      "allowedAreas": [
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/",
+        "package.json",
+        "package-lock.json"
+      ],
+      "allowedDependencyFamilies": [
+        "wechat-pay",
+        "narrow-http-adapters"
+      ],
+      "deliverables": [
+        "WeChat Pay production adapter"
+      ],
+      "parityIds": [
+        "BILL-002",
+        "BILL-004",
+        "BILL-007",
+        "OPS-010"
+      ],
+      "targetedChecks": [
+        "Official signature fixtures",
+        "Sandbox or merchant-environment smoke tests"
+      ],
+      "acceptance": [
+        "Signatures, callbacks, queries, refunds, and mandates pass live verification"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-8.4-alipay",
+      "stage": "8",
+      "title": "Alipay adapter",
+      "objective": "Implement and verify Alipay, refund, query, and renewal agreement integration.",
+      "prerequisites": [
+        "WP-8.3-wechat-pay"
+      ],
+      "successor": "WP-8.5-subscriptions",
+      "allowedAreas": [
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/",
+        "package.json",
+        "package-lock.json"
+      ],
+      "allowedDependencyFamilies": [
+        "alipay",
+        "narrow-http-adapters"
+      ],
+      "deliverables": [
+        "Alipay production adapter"
+      ],
+      "parityIds": [
+        "BILL-002",
+        "BILL-004",
+        "BILL-007",
+        "OPS-010"
+      ],
+      "targetedChecks": [
+        "Official signature fixtures",
+        "Sandbox or merchant-environment smoke tests"
+      ],
+      "acceptance": [
+        "Signatures, callbacks, queries, refunds, and agreements pass live verification"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-8.5-subscriptions",
+      "stage": "8",
+      "title": "Subscriptions and renewal",
+      "objective": "Complete sign-up, renewal, grace, reminder, cancellation, and entitlement transitions.",
+      "prerequisites": [
+        "WP-8.4-alipay"
+      ],
+      "successor": "WP-8.6-refunds-invoices",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Subscription lifecycle"
+      ],
+      "parityIds": [
+        "BILL-004",
+        "BILL-005",
+        "BILL-006"
+      ],
+      "targetedChecks": [
+        "Time-controlled renewal, grace, reminder, and cancellation tests"
+      ],
+      "acceptance": [
+        "Cancellation is immediately accessible and renewal evidence is auditable"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": [
+        "approved-commercial-compliance-surface"
+      ]
+    },
+    {
+      "id": "WP-8.6-refunds-invoices",
+      "stage": "8",
+      "title": "Refunds and invoices",
+      "objective": "Complete refund requests, provider outcomes, ledgers, and invoice workflows.",
+      "prerequisites": [
+        "WP-8.5-subscriptions"
+      ],
+      "successor": "WP-8.7-reconciliation",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Refund and invoice lifecycle"
+      ],
+      "parityIds": [
+        "BILL-007",
+        "BILL-008"
+      ],
+      "targetedChecks": [
+        "Partial/full refund and invoice status tests"
+      ],
+      "acceptance": [
+        "Provider result and local ledger remain reconcilable and append-only"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "deferred",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": [
+        "approved-commercial-compliance-surface"
+      ]
+    },
+    {
+      "id": "WP-8.7-reconciliation",
+      "stage": "8",
+      "title": "Payment reconciliation",
+      "objective": "Reconcile orders, provider statements, subscriptions, refunds, and ledgers.",
+      "prerequisites": [
+        "WP-8.6-refunds-invoices"
+      ],
+      "successor": "WP-8.8-commercial-activation",
+      "allowedAreas": [
+        "apps/worker/",
+        "packages/server-core/",
+        "apps/api/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Scheduled reconciliation and discrepancy workflow"
+      ],
+      "parityIds": [
+        "BILL-003",
+        "BILL-004",
+        "BILL-007",
+        "OPS-010"
+      ],
+      "targetedChecks": [
+        "Missing, duplicate, and mismatched statement fixture tests"
+      ],
+      "acceptance": [
+        "Discrepancies are durable, alertable, and never silently corrected"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-8.8-commercial-activation",
+      "stage": "8",
+      "title": "Commercial activation",
+      "objective": "Enable verified commercial capabilities and complete account flows.",
+      "prerequisites": [
+        "WP-8.7-reconciliation"
+      ],
+      "successor": "WP-9.1-legal-documents",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Verified checkout, billing, subscription, refund, and invoice UI"
+      ],
+      "parityIds": [
+        "BILL-001",
+        "BILL-002",
+        "BILL-003",
+        "BILL-004",
+        "BILL-005",
+        "BILL-006",
+        "BILL-007",
+        "BILL-008"
+      ],
+      "targetedChecks": [
+        "Production-like payment E2E",
+        "Desktop and mobile commercial-page checks"
+      ],
+      "acceptance": [
+        "All commercial actions are backed by verified provider and ledger truth"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "stage-gate",
+      "verificationCommands": [],
+      "visualDeltaIds": [
+        "approved-commercial-compliance-surface"
+      ]
+    },
+    {
+      "id": "WP-9.1-legal-documents",
+      "stage": "9",
+      "title": "Legal documents and acceptance",
+      "objective": "Version legal texts and record authenticated acceptance evidence.",
+      "prerequisites": [
+        "WP-8.8-commercial-activation"
+      ],
+      "successor": "WP-9.2-content-moderation",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Versioned terms, privacy, refund, and disclosure"
+      ],
+      "parityIds": [
+        "COMP-001",
+        "COMP-002"
+      ],
+      "targetedChecks": [
+        "Document version and acceptance evidence tests"
+      ],
+      "acceptance": [
+        "Required legal versions and acceptance timestamps are auditable"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": [
+        "approved-commercial-compliance-surface"
+      ]
+    },
+    {
+      "id": "WP-9.2-content-moderation",
+      "stage": "9",
+      "title": "Content moderation",
+      "objective": "Moderate inputs and outputs with durable decisions and appeals.",
+      "prerequisites": [
+        "WP-9.1-legal-documents"
+      ],
+      "successor": "WP-9.3-ai-labeling",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/",
+        "package.json",
+        "package-lock.json"
+      ],
+      "allowedDependencyFamilies": [
+        "aliyun",
+        "narrow-http-adapters"
+      ],
+      "deliverables": [
+        "Production moderation adapter and case workflow"
+      ],
+      "parityIds": [
+        "COMP-003"
+      ],
+      "targetedChecks": [
+        "Allow, reject, timeout, retry, and appeal tests",
+        "Live provider verification"
+      ],
+      "acceptance": [
+        "Unsafe content fails closed according to documented policy"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-9.3-ai-labeling",
+      "stage": "9",
+      "title": "AI content labeling",
+      "objective": "Apply visible and metadata labels to generated exports.",
+      "prerequisites": [
+        "WP-9.2-content-moderation"
+      ],
+      "successor": "WP-9.4-complaints-appeals",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Visible and metadata labeling pipeline"
+      ],
+      "parityIds": [
+        "COMP-004",
+        "MEDIA-009"
+      ],
+      "targetedChecks": [
+        "Image, video, and model export label tests"
+      ],
+      "acceptance": [
+        "All required exports carry durable visible and metadata labels"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-9.4-complaints-appeals",
+      "stage": "9",
+      "title": "Complaints and appeals",
+      "objective": "Complete report, complaint, appeal, evidence, and resolution workflows.",
+      "prerequisites": [
+        "WP-9.3-ai-labeling"
+      ],
+      "successor": "WP-9.5-account-deletion",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Durable complaints and appeals"
+      ],
+      "parityIds": [
+        "COMP-003"
+      ],
+      "targetedChecks": [
+        "Authorization, evidence, status, and audit tests"
+      ],
+      "acceptance": [
+        "Cases are workspace scoped, traceable, and cannot be silently discarded"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": [
+        "approved-commercial-compliance-surface"
+      ]
+    },
+    {
+      "id": "WP-9.5-account-deletion",
+      "stage": "9",
+      "title": "Account deletion",
+      "objective": "Implement confirmation, revocation, retention, and deletion orchestration.",
+      "prerequisites": [
+        "WP-9.4-complaints-appeals"
+      ],
+      "successor": "WP-9.6-data-export",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Account deletion lifecycle"
+      ],
+      "parityIds": [
+        "COMP-005"
+      ],
+      "targetedChecks": [
+        "Re-authentication, cancellation, retention, and deletion tests"
+      ],
+      "acceptance": [
+        "Sessions revoke immediately and retained records follow documented policy"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": [
+        "approved-commercial-compliance-surface"
+      ]
+    },
+    {
+      "id": "WP-9.6-data-export",
+      "stage": "9",
+      "title": "Data export",
+      "objective": "Produce authenticated, scoped, expiring user data exports.",
+      "prerequisites": [
+        "WP-9.5-account-deletion"
+      ],
+      "successor": "WP-9.7-security-audit",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Durable export jobs and protected downloads"
+      ],
+      "parityIds": [
+        "COMP-006"
+      ],
+      "targetedChecks": [
+        "Tenant scope, expiry, archive content, and audit tests"
+      ],
+      "acceptance": [
+        "Exports contain only the authenticated subject's permitted data"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": [
+        "approved-commercial-compliance-surface"
+      ]
+    },
+    {
+      "id": "WP-9.7-security-audit",
+      "stage": "9",
+      "title": "Security and audit hardening",
+      "objective": "Complete CSRF, CSP, WAF assumptions, secret hygiene, upload protection, retention, and security audit coverage.",
+      "prerequisites": [
+        "WP-9.6-data-export"
+      ],
+      "successor": "WP-10.1-cloud-foundation",
+      "allowedAreas": [
+        "apps/web/",
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "packages/contracts/",
+        "scripts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [
+        "fastify-security-plugins"
+      ],
+      "deliverables": [
+        "Security gate and audit retention policy"
+      ],
+      "parityIds": [
+        "OPS-007"
+      ],
+      "targetedChecks": [
+        "Security headers, CSRF, upload, secret, tenant, and audit tests"
+      ],
+      "acceptance": [
+        "No unresolved P0/P1 security finding remains"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "stage-gate",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-10.1-cloud-foundation",
+      "stage": "10",
+      "title": "Alibaba Cloud foundation",
+      "objective": "Define production accounts, network, DNS, secrets, environments, and infrastructure runbooks.",
+      "prerequisites": [
+        "WP-9.7-security-audit"
+      ],
+      "successor": "WP-10.2-rds",
+      "allowedAreas": [
+        "docs/deployment/",
+        "docs/architecture/",
+        "scripts/",
+        ".env.rewrite.example",
+        "package.json"
+      ],
+      "allowedDependencyFamilies": [
+        "aliyun"
+      ],
+      "deliverables": [
+        "Production environment and network plan"
+      ],
+      "parityIds": [
+        "OPS-001",
+        "OPS-006",
+        "OPS-008"
+      ],
+      "targetedChecks": [
+        "Production configuration dry run"
+      ],
+      "acceptance": [
+        "No production secret is committed and network dependencies are explicit"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-10.2-rds",
+      "stage": "10",
+      "title": "RDS PostgreSQL",
+      "objective": "Provision, migrate, secure, monitor, back up, and restore production PostgreSQL.",
+      "prerequisites": [
+        "WP-10.1-cloud-foundation"
+      ],
+      "successor": "WP-10.3-tair",
+      "allowedAreas": [
+        "packages/server-core/",
+        "scripts/",
+        "docs/deployment/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [
+        "postgresql",
+        "aliyun"
+      ],
+      "deliverables": [
+        "RDS migration and operational runbook"
+      ],
+      "parityIds": [
+        "OPS-003"
+      ],
+      "targetedChecks": [
+        "Clean migration",
+        "Backup and restore drill",
+        "Connection and failover checks"
+      ],
+      "acceptance": [
+        "RPO is at most 15 minutes and restore evidence exists"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-10.3-tair",
+      "stage": "10",
+      "title": "Tair Redis",
+      "objective": "Provision and verify sessions, rate limits, BullMQ, outage behavior, and recovery.",
+      "prerequisites": [
+        "WP-10.2-rds"
+      ],
+      "successor": "WP-10.4-oss",
+      "allowedAreas": [
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "scripts/",
+        "docs/deployment/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [
+        "redis",
+        "bullmq",
+        "aliyun"
+      ],
+      "deliverables": [
+        "Tair runtime and outage runbook"
+      ],
+      "parityIds": [
+        "OPS-002",
+        "OPS-005"
+      ],
+      "targetedChecks": [
+        "Redis outage, reconnect, duplicate delivery, and recovery drills"
+      ],
+      "acceptance": [
+        "Business truth remains durable when Redis is lost"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-10.4-oss",
+      "stage": "10",
+      "title": "Private OSS",
+      "objective": "Provision private object storage, authorization, lifecycle, recovery, and audit.",
+      "prerequisites": [
+        "WP-10.3-tair"
+      ],
+      "successor": "WP-10.5-sae",
+      "allowedAreas": [
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "scripts/",
+        "docs/deployment/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [
+        "oss",
+        "aliyun"
+      ],
+      "deliverables": [
+        "Production OSS provider and recovery runbook"
+      ],
+      "parityIds": [
+        "OPS-004",
+        "ASSET-007",
+        "MEDIA-009"
+      ],
+      "targetedChecks": [
+        "Private read, signed access, lifecycle, and recovery drills"
+      ],
+      "acceptance": [
+        "Objects are private, recoverable, and inaccessible across workspaces"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-10.5-sae",
+      "stage": "10",
+      "title": "SAE API and Worker",
+      "objective": "Deploy independent API and Worker services with health, scaling, and rollback.",
+      "prerequisites": [
+        "WP-10.4-oss"
+      ],
+      "successor": "WP-10.6-observability",
+      "allowedAreas": [
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "scripts/",
+        "docs/deployment/",
+        "docs/architecture/",
+        "package.json"
+      ],
+      "allowedDependencyFamilies": [
+        "aliyun"
+      ],
+      "deliverables": [
+        "SAE deployment and rollback configuration"
+      ],
+      "parityIds": [
+        "OPS-001",
+        "OPS-002"
+      ],
+      "targetedChecks": [
+        "Two-instance API check",
+        "Worker restart and deployment rollback drills"
+      ],
+      "acceptance": [
+        "API supports at least two instances and Worker recovers durable jobs"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-10.6-observability",
+      "stage": "10",
+      "title": "Observability",
+      "objective": "Integrate structured logs, metrics, traces, dashboards, and actionable alerts.",
+      "prerequisites": [
+        "WP-10.5-sae"
+      ],
+      "successor": "WP-10.7-backup-restore-alerts",
+      "allowedAreas": [
+        "apps/api/",
+        "apps/worker/",
+        "packages/server-core/",
+        "scripts/",
+        "docs/deployment/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [
+        "aliyun-observability"
+      ],
+      "deliverables": [
+        "SLS, ARMS, CloudMonitor dashboards and alerts"
+      ],
+      "parityIds": [
+        "OPS-006"
+      ],
+      "targetedChecks": [
+        "Synthetic failure and alert delivery checks"
+      ],
+      "acceptance": [
+        "Auth, payment, queue, database, storage, and error-rate alerts are actionable"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "multi-workspace",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-10.7-backup-restore-alerts",
+      "stage": "10",
+      "title": "Recovery and alert drills",
+      "objective": "Prove service, database, object, and deployment recovery against RPO/RTO.",
+      "prerequisites": [
+        "WP-10.6-observability"
+      ],
+      "successor": "WP-11.1-full-parity",
+      "allowedAreas": [
+        "scripts/",
+        "docs/deployment/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Timestamped recovery and rollback evidence"
+      ],
+      "parityIds": [
+        "OPS-003",
+        "OPS-004",
+        "OPS-005",
+        "OPS-006",
+        "OPS-012"
+      ],
+      "targetedChecks": [
+        "Backup, restore, Redis outage, OSS recovery, and rollback drills"
+      ],
+      "acceptance": [
+        "RPO is at most 15 minutes and RTO is at most 2 hours"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "stage-gate",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-11.1-full-parity",
+      "stage": "11",
+      "title": "Full parity closure",
+      "objective": "Close every product parity item with automated and approved evidence.",
+      "prerequisites": [
+        "WP-10.7-backup-restore-alerts"
+      ],
+      "successor": "WP-11.2-contract-e2e",
+      "allowedAreas": [
+        "apps/",
+        "packages/",
+        "scripts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Approved parity matrix"
+      ],
+      "parityIds": [
+        "HOME-001",
+        "AUTH-001",
+        "PROJ-001",
+        "CANVAS-001",
+        "TOOL-001",
+        "MEDIA-001",
+        "CHAT-001",
+        "TASK-001",
+        "ASSET-001",
+        "BILL-001",
+        "COMP-001"
+      ],
+      "targetedChecks": [
+        "Full desktop and mobile Playwright parity suite"
+      ],
+      "acceptance": [
+        "Every parity matrix item is approved with evidence"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "release-gate",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-11.2-contract-e2e",
+      "stage": "11",
+      "title": "Contract and end-to-end release suite",
+      "objective": "Prove complete user, project, generation, asset, billing, and data-rights flows.",
+      "prerequisites": [
+        "WP-11.1-full-parity"
+      ],
+      "successor": "WP-11.3-performance",
+      "allowedAreas": [
+        "apps/",
+        "packages/",
+        "scripts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [
+        "playwright"
+      ],
+      "deliverables": [
+        "Production-like API and browser E2E suite"
+      ],
+      "parityIds": [
+        "HOME-010",
+        "AUTH-008",
+        "PROJ-002",
+        "CHAT-006",
+        "BILL-002",
+        "COMP-005",
+        "COMP-006"
+      ],
+      "targetedChecks": [
+        "OpenAPI compatibility",
+        "Production-like E2E"
+      ],
+      "acceptance": [
+        "Critical happy and failure paths pass against production-like dependencies"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-LOCAL-DOCKER-ADMIN",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "release-gate",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-11.3-performance",
+      "stage": "11",
+      "title": "Performance release gate",
+      "objective": "Verify frontend, API, database, queue, and media performance budgets.",
+      "prerequisites": [
+        "WP-11.2-contract-e2e"
+      ],
+      "successor": "WP-11.4-security-failure-drills",
+      "allowedAreas": [
+        "apps/",
+        "packages/",
+        "scripts/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Performance budgets and evidence"
+      ],
+      "parityIds": [
+        "OPS-001",
+        "OPS-002"
+      ],
+      "targetedChecks": [
+        "Load, latency, bundle, canvas, and queue benchmarks"
+      ],
+      "acceptance": [
+        "Documented release budgets pass without hiding errors"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "release-gate",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-11.4-security-failure-drills",
+      "stage": "11",
+      "title": "Security and failure drills",
+      "objective": "Complete security review and realistic dependency failure exercises.",
+      "prerequisites": [
+        "WP-11.3-performance"
+      ],
+      "successor": "WP-11.5-external-approvals",
+      "allowedAreas": [
+        "apps/",
+        "packages/",
+        "scripts/",
+        "docs/architecture/",
+        "docs/deployment/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Security review and failure drill evidence"
+      ],
+      "parityIds": [
+        "OPS-005",
+        "OPS-007",
+        "OPS-012"
+      ],
+      "targetedChecks": [
+        "Security review",
+        "Database, Redis, OSS, provider, and payment outage drills"
+      ],
+      "acceptance": [
+        "No P0/P1 issue and every critical failure has an exercised response"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "release-gate",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-11.5-external-approvals",
+      "stage": "11",
+      "title": "External approvals and blockers",
+      "objective": "Resolve ICP, licensing, model registration, payment approval, and cross-border policy evidence.",
+      "prerequisites": [
+        "WP-11.4-security-failure-drills"
+      ],
+      "successor": "WP-11.6-release-candidate",
+      "allowedAreas": [
+        "docs/architecture/",
+        "docs/deployment/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Authoritative approval and blocker evidence"
+      ],
+      "parityIds": [
+        "COMP-007",
+        "OPS-008",
+        "OPS-009",
+        "OPS-010"
+      ],
+      "targetedChecks": [
+        "Manual evidence audit"
+      ],
+      "acceptance": [
+        "All production-cutover blockers are closed by authoritative evidence"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "release-gate",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-11.6-release-candidate",
+      "stage": "11",
+      "title": "Release candidate",
+      "objective": "Freeze a release candidate with complete deployment and rollback evidence.",
+      "prerequisites": [
+        "WP-11.5-external-approvals"
+      ],
+      "successor": "WP-12.1-cutover-rehearsal",
+      "allowedAreas": [
+        "apps/",
+        "packages/",
+        "scripts/",
+        "docs/architecture/",
+        "docs/deployment/",
+        "package.json",
+        "package-lock.json"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Release candidate and cutoverAllowed decision"
+      ],
+      "parityIds": [
+        "OPS-011",
+        "OPS-012"
+      ],
+      "targetedChecks": [
+        "npm run check",
+        "npm run build",
+        "Full release E2E"
+      ],
+      "acceptance": [
+        "No P0/P1 defect, all blockers closed, and cutoverAllowed is true"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "11"
+      },
+      "verificationTier": "release-gate",
+      "verificationCommands": [
+        "npm run check",
+        "npm run build"
+      ],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-12.1-cutover-rehearsal",
+      "stage": "12",
+      "title": "Cutover rehearsal",
+      "objective": "Rehearse empty-database launch, DNS switch, monitoring, and internal rollback.",
+      "prerequisites": [
+        "WP-11.6-release-candidate"
+      ],
+      "successor": "WP-12.2-production-cutover",
+      "allowedAreas": [
+        "scripts/",
+        "docs/deployment/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Timestamped cutover rehearsal"
+      ],
+      "parityIds": [
+        "OPS-011",
+        "OPS-012"
+      ],
+      "targetedChecks": [
+        "Production-like cutover and rollback rehearsal"
+      ],
+      "acceptance": [
+        "Every operator step, owner, signal, and rollback trigger is proven"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "12"
+      },
+      "verificationTier": "release-gate",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-12.2-production-cutover",
+      "stage": "12",
+      "title": "Production cutover",
+      "objective": "Switch the public domain to the verified rewrite without legacy dual write.",
+      "prerequisites": [
+        "WP-12.1-cutover-rehearsal"
+      ],
+      "successor": "WP-12.3-post-cutover-window",
+      "allowedAreas": [
+        "docs/deployment/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Production cutover evidence"
+      ],
+      "parityIds": [
+        "OPS-011"
+      ],
+      "targetedChecks": [
+        "Live health, auth, generation, payment, storage, and monitoring smoke tests"
+      ],
+      "acceptance": [
+        "Rewrite serves production and legacy receives no new user data"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "required",
+        "blockerId": "BLOCK-EXTERNAL-APPROVALS",
+        "deadlineStage": "12"
+      },
+      "verificationTier": "release-gate",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-12.3-post-cutover-window",
+      "stage": "12",
+      "title": "Post-cutover rollback window",
+      "objective": "Operate the defined observation and rewrite-only rollback window.",
+      "prerequisites": [
+        "WP-12.2-production-cutover"
+      ],
+      "successor": "WP-13.1-observation",
+      "allowedAreas": [
+        "docs/deployment/",
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Post-cutover incident and rollback log"
+      ],
+      "parityIds": [
+        "OPS-012"
+      ],
+      "targetedChecks": [
+        "Live SLO and rollback-trigger review"
+      ],
+      "acceptance": [
+        "No unresolved release-severity incident remains"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "release-gate",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-13.1-observation",
+      "stage": "13",
+      "title": "Stable observation",
+      "objective": "Complete the approved stability period with monitored production evidence.",
+      "prerequisites": [
+        "WP-12.3-post-cutover-window"
+      ],
+      "successor": "WP-13.2-legacy-reachability-audit",
+      "allowedAreas": [
+        "docs/architecture/",
+        "docs/deployment/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Stability evidence and deletion readiness decision"
+      ],
+      "parityIds": [],
+      "targetedChecks": [
+        "SLO, incident, payment, queue, database, and storage review"
+      ],
+      "acceptance": [
+        "Observation period passes without unresolved release blocker"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "release-gate",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-13.2-legacy-reachability-audit",
+      "stage": "13",
+      "title": "Legacy reachability audit",
+      "objective": "Prove legacy runtime, styles, assets, and deploy paths are no longer required.",
+      "prerequisites": [
+        "WP-13.1-observation"
+      ],
+      "successor": "WP-13.3-legacy-delete",
+      "allowedAreas": [
+        "scripts/",
+        "docs/architecture/",
+        "docs/deployment/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Static, runtime, parity, and rollback deletion evidence"
+      ],
+      "parityIds": [],
+      "targetedChecks": [
+        "Reachability, style entry, deployment, and production-reference audits"
+      ],
+      "acceptance": [
+        "Every deletion candidate has static and runtime proof plus a rollback point"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "release-gate",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
+      "id": "WP-13.3-legacy-delete",
+      "stage": "13",
+      "title": "Legacy deletion",
+      "objective": "Delete only proven legacy files in one audited final package.",
+      "prerequisites": [
+        "WP-13.2-legacy-reachability-audit"
+      ],
+      "successor": null,
+      "allowedAreas": [
+        "app.js",
+        "server.js",
+        "src/",
+        "styles/",
+        "index.html",
+        "styles.css",
+        "vite.config.js",
+        "scripts/",
+        "package.json",
+        "package-lock.json",
+        "docs/architecture/",
+        "docs/deployment/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Rewrite-only repository and final rollback commit"
+      ],
+      "parityIds": [],
+      "targetedChecks": [
+        "npm run check",
+        "npm run build",
+        "Full production E2E after deletion"
+      ],
+      "acceptance": [
+        "Rewrite is the only runtime and all deletion evidence remains available"
+      ],
+      "legacyMutationAllowed": true,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "release-gate",
+      "verificationCommands": [
+        "npm run check",
+        "npm run build"
+      ],
+      "visualDeltaIds": []
+    }
+  ],
+  "verificationProfiles": {
+    "docs": {
+      "description": "Governance, UTF-8/JSON, staged scope, and staged diff checks.",
+      "commands": [
+        "npm run governance:check",
+        "git diff --cached --check"
+      ],
+      "fullRepository": false
+    },
+    "workspace": {
+      "description": "Affected workspace typecheck, test, lint, and build.",
+      "commands": [
+        "workspace:typecheck",
+        "workspace:test",
+        "workspace:lint",
+        "workspace:build",
+        "git diff --cached --check"
+      ],
+      "fullRepository": false
+    },
+    "multi-workspace": {
+      "description": "Affected workspace graph plus package-specific contract, schema, transaction, or recovery checks.",
+      "commands": [
+        "workspace:typecheck",
+        "workspace:test",
+        "workspace:lint",
+        "workspace:build",
+        "git diff --cached --check"
+      ],
+      "fullRepository": false
+    },
+    "stage-gate": {
+      "description": "Full repository check/build plus stage acceptance and E2E evidence.",
+      "commands": [
+        "npm run check",
+        "npm run build",
+        "git diff --cached --check"
+      ],
+      "fullRepository": true
+    },
+    "release-gate": {
+      "description": "Full repository and release, security, failure, and rollback evidence.",
+      "commands": [
+        "npm run check",
+        "npm run build",
+        "git diff --cached --check"
+      ],
+      "fullRepository": true
+    }
+  },
+  "stageGateWorkPackages": [
+    "WP-3.4.1-react-ios-polish",
+    "WP-3.5.7-compliance-pages",
+    "WP-4.7-canvas-performance-gate",
+    "WP-5.10-keyboard-stack",
+    "WP-6.8-task-log-recovery",
+    "WP-7.6-orphan-audit",
+    "WP-8.8-commercial-activation",
+    "WP-9.7-security-audit",
+    "WP-10.7-backup-restore-alerts"
   ]
 }

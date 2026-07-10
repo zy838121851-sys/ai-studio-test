@@ -1,11 +1,11 @@
 {
   "schemaVersion": 2,
   "program": "react-nest-rewrite",
-  "catalogVersion": 1,
+  "catalogVersion": 2,
   "programStatus": "active",
-  "activeStage": "3.5",
+  "activeStage": "3",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-3.5.1-capability-registry",
+  "nextWorkPackage": "WP-3.4.1-react-ios-polish",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -15,19 +15,16 @@
     "WP-3.2-ai-job-worker",
     "WP-3.3-react-home",
     "WP-3.4-minimal-react-canvas",
-    "WP-G.1-autonomous-catalog"
+    "WP-G.1-autonomous-catalog",
+    "WP-G.2-motion-verification-policy"
   ],
-  "lastCompletedWorkPackage": "WP-G.1-autonomous-catalog",
+  "lastCompletedWorkPackage": "WP-G.2-motion-verification-policy",
   "lastVerification": {
-    "workPackage": "WP-G.1-autonomous-catalog",
+    "workPackage": "WP-G.2-motion-verification-policy",
     "commands": [
-      "npm run governance:check",
-      "npm run check",
-      "npm run build",
-      "git diff --check",
-      "npm run governance:scope -- WP-G.1-autonomous-catalog --cached"
+      "npm run governance:verify -- WP-G.2-motion-verification-policy"
     ],
-    "result": "passed-with-local-infrastructure-blocker",
+    "result": "passed",
     "verifiedAt": "2026-07-11"
   },
   "deferredExternalWorkPackages": [],
@@ -77,6 +74,8 @@
     "Rewrite uses a fresh database and does not migrate legacy SQLite or uploads.",
     "The React home and minimal canvas receiver implementations are complete; authenticated end-to-end integration remains covered by the local Docker blocker.",
     "The machine-readable work-package catalog is authoritative for scope, checks, acceptance, blockers, and successors.",
+    "Risk-tiered verification derives affected workspaces from staged paths; full repository check/build remains mandatory at stage and release gates and before a mid-stage push.",
+    "Rewrite-only visual polish is constrained by react-visual-delta-allowlist.json; Legacy remains read-only.",
     "Stage 3.5 builds fail-closed SaaS provider, commercial, and compliance foundations before full canvas migration.",
     "The legacy runtime remains the default and is unchanged."
   ]

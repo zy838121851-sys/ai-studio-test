@@ -11,6 +11,7 @@ const requiredFiles = [
   "docs/architecture/react-nest-target-architecture.md",
   "docs/architecture/react-nest-execution-runbook.md",
   "docs/architecture/react-nest-parity-matrix.md",
+  "docs/architecture/react-visual-delta-allowlist.json",
   "docs/architecture/react-nest-migration-state.json",
   "docs/architecture/react-nest-work-packages.json"
 ];
@@ -20,6 +21,10 @@ const agents = contents.get("AGENTS.md");
 const prd = contents.get("docs/architecture/saas-governance-prd.md");
 const currentState = contents.get("docs/architecture/current-state.md");
 const parityMatrix = contents.get("docs/architecture/react-nest-parity-matrix.md");
+const visualPolicy = parseJson(
+  contents.get("docs/architecture/react-visual-delta-allowlist.json"),
+  "React visual-delta allowlist"
+);
 const state = parseJson(
   contents.get("docs/architecture/react-nest-migration-state.json"),
   "Migration state"
@@ -33,6 +38,9 @@ assertIncludes(agents, "React + TypeScript", "AGENTS target frontend");
 assertIncludes(agents, "NestJS + Fastify", "AGENTS target backend");
 assertIncludes(agents, "react-nest-work-packages.json", "AGENTS work-package authority");
 assertIncludes(agents, "Work-Package: <id>", "AGENTS commit trailer rule");
+assertIncludes(agents, "governance:verify", "AGENTS tiered verification entry point");
+assertIncludes(agents, "react-visual-delta-allowlist.json", "AGENTS visual-delta authority");
+assertIncludes(agents, "lucide-react", "AGENTS rewrite icon policy");
 assertExcludes(agents, "Do not directly switch to Next.js, React, Vue", "obsolete framework ban");
 
 assertIncludes(prd, "# AI Studio React/NestJS SaaS 重建 PRD", "PRD title");
@@ -40,6 +48,8 @@ assertIncludes(prd, "Stage 3.5", "PRD SaaS foundation stage");
 assertIncludes(prd, "Stage 13", "PRD final stage");
 assertIncludes(prd, "Program Definition Of Done", "PRD completion definition");
 assertIncludes(prd, "react-nest-work-packages.json", "PRD work-package authority");
+assertIncludes(prd, "Stage 3.4", "PRD concentrated React polish stage");
+assertIncludes(prd, "governance:verify", "PRD tiered verification entry point");
 
 if (Buffer.byteLength(currentState, "utf8") > 20_000) {
   fail("current-state.md must remain a concise required-reading document");
@@ -48,7 +58,8 @@ if (Buffer.byteLength(currentState, "utf8") > 20_000) {
 const parityIds = new Set(
   [...parityMatrix.matchAll(/^\|\s*([A-Z]+-\d{3})\s*\|/gm)].map((match) => match[1])
 );
-const catalogResult = validateCatalog(catalog, parityIds);
+const visualDeltaIds = validateVisualPolicy(visualPolicy);
+const catalogResult = validateCatalog(catalog, parityIds, visualDeltaIds);
 validateState(state, catalogResult);
 validateCommitTrailerWhenClean(state);
 
@@ -60,8 +71,8 @@ console.log(
   "cutoverAllowed=" + state.cutoverAllowed
 );
 
-function validateCatalog(value, knownParityIds) {
-  if (value.schemaVersion !== 1) fail("Work-package catalog schemaVersion must be 1");
+function validateCatalog(value, knownParityIds, knownVisualDeltaIds) {
+  if (value.schemaVersion !== 2) fail("Work-package catalog schemaVersion must be 2");
   if (value.program !== "react-nest-rewrite") fail("Work-package catalog program is invalid");
   if (!Array.isArray(value.packages) || value.packages.length === 0) {
     fail("Work-package catalog packages must be a non-empty array");
@@ -69,6 +80,16 @@ function validateCatalog(value, knownParityIds) {
   if (!value.defaults || typeof value.defaults !== "object") {
     fail("Work-package catalog defaults are required");
   }
+  const verificationTiers = ["docs", "workspace", "multi-workspace", "stage-gate", "release-gate"];
+  if (!value.verificationProfiles || typeof value.verificationProfiles !== "object") {
+    fail("Work-package catalog verificationProfiles are required");
+  }
+  for (const tier of verificationTiers) {
+    const profile = value.verificationProfiles[tier];
+    if (!profile || typeof profile !== "object") fail("Missing verification profile: " + tier);
+    requireStringArray(profile.commands, "verificationProfiles." + tier + ".commands");
+  }
+  requireStringArray(value.stageGateWorkPackages, "stageGateWorkPackages");
 
   const byId = new Map();
   for (const workPackage of value.packages) {
@@ -92,6 +113,15 @@ function validateCatalog(value, knownParityIds) {
     requireStringArray(workPackage.parityIds, workPackage.id + ".parityIds", true);
     requireStringArray(workPackage.targetedChecks, workPackage.id + ".targetedChecks");
     requireStringArray(workPackage.acceptance, workPackage.id + ".acceptance");
+    if (!verificationTiers.includes(workPackage.verificationTier)) {
+      fail(workPackage.id + ".verificationTier is invalid");
+    }
+    requireStringArray(
+      workPackage.verificationCommands,
+      workPackage.id + ".verificationCommands",
+      true
+    );
+    requireStringArray(workPackage.visualDeltaIds, workPackage.id + ".visualDeltaIds", true);
     if (typeof workPackage.legacyMutationAllowed !== "boolean") {
       fail(workPackage.id + ".legacyMutationAllowed must be boolean");
     }
@@ -107,6 +137,17 @@ function validateCatalog(value, knownParityIds) {
     }
     for (const parityId of workPackage.parityIds) {
       if (!knownParityIds.has(parityId)) fail(workPackage.id + " references unknown parity ID " + parityId);
+    }
+    for (const visualDeltaId of workPackage.visualDeltaIds) {
+      if (!knownVisualDeltaIds.has(visualDeltaId)) {
+        fail(workPackage.id + " references unknown visual delta ID " + visualDeltaId);
+      }
+      if (!workPackage.allowedAreas.some((area) => area.startsWith("apps/web"))) {
+        fail(workPackage.id + " declares a visual delta without rewrite web scope");
+      }
+    }
+    if (Number(workPackage.stage) >= 11 && workPackage.verificationTier !== "release-gate") {
+      fail(workPackage.id + " must use release-gate verification in Stage 11 or later");
     }
   }
 
@@ -157,12 +198,73 @@ function validateCatalog(value, knownParityIds) {
     }
   }
 
+  const stageGateIds = new Set(value.stageGateWorkPackages);
+  for (const id of stageGateIds) {
+    const workPackage = byId.get(id);
+    if (!workPackage) fail("Unknown stage-gate work package: " + id);
+    if (workPackage.verificationTier !== "stage-gate") {
+      fail(id + " must use stage-gate verification");
+    }
+  }
+  for (const stage of ["3", "3.5", "4", "5", "6", "7", "8", "9", "10"]) {
+    const stageTail = [...chain].reverse().find((id) => byId.get(id).stage === stage);
+    if (!stageTail || !stageGateIds.has(stageTail)) {
+      fail("Stage " + stage + " must end with a catalogued stage-gate package");
+    }
+  }
+
   return { byId, chain };
+}
+
+function validateVisualPolicy(value) {
+  if (value.schemaVersion !== 1) fail("React visual-delta allowlist schemaVersion must be 1");
+  if (value.program !== "react-nest-rewrite") fail("React visual-delta allowlist program is invalid");
+  if (value.scope !== "rewrite-only" || value.legacyMutationAllowed !== false) {
+    fail("React visual-delta allowlist must keep Legacy read-only");
+  }
+  if (value.theme?.mode !== "light-only") fail("React visual policy must remain light-only");
+  if (value.iconPolicy?.package !== "lucide-react" || value.iconPolicy?.exclusive !== true) {
+    fail("lucide-react must be the exclusive rewrite icon library");
+  }
+  if (JSON.stringify(value.iconPolicy?.sizesPx) !== JSON.stringify([16, 18, 20])) {
+    fail("React icon sizes must be 16, 18, and 20 pixels");
+  }
+  const motionProperties = value.motionPolicy?.cssProperties;
+  if (
+    !Array.isArray(motionProperties) ||
+    motionProperties.length === 0 ||
+    motionProperties.some((property) => !["transform", "opacity"].includes(property))
+  ) {
+    fail("React motion may use only transform and opacity");
+  }
+  if (value.motionPolicy?.prefersReducedMotionRequired !== true) {
+    fail("React visual policy must require prefers-reduced-motion");
+  }
+  if (value.motionPolicy?.pointerDrivenCanvasPathsUseRealSamples !== true) {
+    fail("Canvas path tools must retain real pointer samples");
+  }
+  const viewports = new Set(
+    (value.baselineViewports ?? []).map((viewport) => `${viewport.width}x${viewport.height}`)
+  );
+  for (const viewport of ["1440x1000", "390x844"]) {
+    if (!viewports.has(viewport)) fail("Missing React visual baseline viewport: " + viewport);
+  }
+  if (!Array.isArray(value.allowedDeltas) || value.allowedDeltas.length === 0) {
+    fail("React visual-delta allowlist must contain allowed deltas");
+  }
+  const ids = new Set();
+  for (const delta of value.allowedDeltas) {
+    requireString(delta?.id, "React visual delta id");
+    requireString(delta?.description, "React visual delta description");
+    if (ids.has(delta.id)) fail("Duplicate React visual delta id: " + delta.id);
+    ids.add(delta.id);
+  }
+  return ids;
 }
 
 function validateState(value, catalogResult) {
   if (value.schemaVersion !== 2) fail("Migration state schemaVersion must be 2");
-  if (value.catalogVersion !== 1) fail("Migration state catalogVersion must be 1");
+  if (value.catalogVersion !== 2) fail("Migration state catalogVersion must be 2");
   if (value.program !== "react-nest-rewrite") fail("Migration state program is invalid");
   if (!['planned', 'active', 'blocked', 'complete'].includes(value.programStatus)) {
     fail("Migration state programStatus is invalid");

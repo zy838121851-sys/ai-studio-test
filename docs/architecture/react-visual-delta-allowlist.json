@@ -1,0 +1,95 @@
+{
+  "schemaVersion": 1,
+  "program": "react-nest-rewrite",
+  "scope": "rewrite-only",
+  "legacyMutationAllowed": false,
+  "theme": {
+    "mode": "light-only",
+    "principles": [
+      "system typography",
+      "white and light-gray surfaces",
+      "thin separators",
+      "existing system blue",
+      "restrained shadows",
+      "light blur on overlays and top bars only"
+    ],
+    "forbiddenDecorations": [
+      "gradient-orbs",
+      "decorative-light-blobs",
+      "bokeh-backgrounds",
+      "new-visual-system"
+    ]
+  },
+  "iconPolicy": {
+    "package": "lucide-react",
+    "exclusive": true,
+    "importMode": "named-tree-shakeable",
+    "sizesPx": [16, 18, 20],
+    "strokeWidthsPx": [1.75, 2],
+    "ariaNameRequired": true,
+    "tooltipRequiredForUnfamiliarIcons": true
+  },
+  "motionPolicy": {
+    "cssProperties": ["transform", "opacity"],
+    "press": {
+      "durationMs": 120,
+      "scale": 0.98
+    },
+    "menuPopover": {
+      "durationMs": 180,
+      "translateYPx": [4, 6]
+    },
+    "modalToast": {
+      "durationMs": [200, 240]
+    },
+    "pageTransition": "no-large-translation",
+    "prefersReducedMotionRequired": true,
+    "pointerDrivenCanvasPathsUseRealSamples": true
+  },
+  "baselineViewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "allowedDeltas": [
+    {
+      "id": "lucide-icon-replacement",
+      "description": "Replace character or inconsistent rewrite-only icons without changing the command or control location."
+    },
+    {
+      "id": "micro-interaction-motion",
+      "description": "Add restrained press, menu, popover, modal, toast, and loading feedback within the motion policy."
+    },
+    {
+      "id": "spacing-overflow-correction",
+      "description": "Correct local spacing, alignment, and text overflow without changing information architecture or content order."
+    },
+    {
+      "id": "touch-target-safe-area",
+      "description": "Restore 44px touch targets and mobile safe-area padding without changing breakpoints or workflows."
+    },
+    {
+      "id": "approved-commercial-compliance-surface",
+      "description": "Add PRD-approved commercial or compliance pages and reuse existing account, upgrade, credit, terms, and privacy entry points."
+    }
+  ],
+  "forbiddenDeltas": [
+    "legacy-ui-or-style-mutation",
+    "information-architecture-change",
+    "content-order-change",
+    "route-or-workflow-change",
+    "generation-logic-change",
+    "canvas-coordinate-change",
+    "pointer-sampling-change",
+    "mobile-breakpoint-change",
+    "dark-mode",
+    "second-icon-library"
+  ]
+}
