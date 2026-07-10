@@ -89,6 +89,7 @@ export function normalizeCanvasDocument(value: unknown, projectId: string): Canv
 
 export { CANVAS_NODE_REGISTRY, CANVAS_SNAPSHOT_MIGRATIONS, CURRENT_CANVAS_SCHEMA_VERSION, isRegisteredCanvasNodeKind, migrateCanvasSnapshot, serializeCanvasDocument } from "./document-registry.js";
 export * from "./viewport.js";
+export * from "./history.js";
 
 export function fitCanvasNodeSize(
   width: number,
