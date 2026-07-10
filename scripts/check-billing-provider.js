@@ -22,7 +22,10 @@ try {
     calculateCreditReservation,
     calculateReservedCreditCharge,
     calculateReservedCreditRelease,
-    getDefaultBillingProvider
+    getBillingProviderCapabilities,
+    getDefaultBillingProvider,
+    resetDefaultBillingProvider,
+    setDefaultBillingProvider
   } = await import("../src/server/services/billing.service.js");
   const {
     normalizeBillingAccountBalance
@@ -51,6 +54,13 @@ try {
   assert(defaultProvider?.reserve, "Billing service should expose a default provider with reserve");
   assert(defaultProvider?.chargeReserved, "Billing service should expose a default provider with chargeReserved");
   assert(defaultProvider?.releaseReserved, "Billing service should expose a default provider with releaseReserved");
+  assert(defaultProvider.id === "local-credit-ledger", "Local billing provider should expose a stable id");
+  const defaultCapabilities = getBillingProviderCapabilities();
+  assert(defaultCapabilities.creditLedger === true, "Local billing provider should declare credit ledger support");
+  assert(defaultCapabilities.orders === false, "Local billing provider should not claim order support");
+  assert(defaultCapabilities.payments === false, "Local billing provider should not claim payment support");
+  assert(defaultCapabilities.refunds === false, "Local billing provider should not claim refund support");
+  assert(defaultCapabilities.invoices === false, "Local billing provider should not claim invoice support");
   const normalizedBalance = normalizeBillingAccountBalance({
     balance_credits: "500",
     reserved_credits: "10"
@@ -84,6 +94,54 @@ try {
   });
   assert(serviceRelease.balance === 480, "Billing service release should preserve balance");
   assert(serviceRelease.nextReserved === 5, "Billing service release should reduce reserved credits");
+
+  const injectedCalls = [];
+  const injectedProvider = {
+    capabilities: {
+      creditLedger: true,
+      orders: true,
+      payments: true,
+      refunds: true,
+      invoices: false
+    },
+    reserve(input) {
+      injectedCalls.push({ method: "reserve", input });
+      return { balance: 10, nextReserved: 2 };
+    },
+    chargeReserved(input) {
+      injectedCalls.push({ method: "chargeReserved", input });
+      return { nextBalance: 8, nextReserved: 0, reservedReduction: 2 };
+    },
+    releaseReserved(input) {
+      injectedCalls.push({ method: "releaseReserved", input });
+      return { balance: 10, nextReserved: 0 };
+    }
+  };
+  setDefaultBillingProvider(injectedProvider);
+  assert(getDefaultBillingProvider() === injectedProvider, "Billing services should support provider replacement");
+  assert(calculateCreditReservation({ credits: 2 }).nextReserved === 2, "Billing services should reserve through injected providers");
+  assert(calculateReservedCreditCharge({ chargeCredits: 2 }).nextBalance === 8, "Billing services should charge through injected providers");
+  assert(calculateReservedCreditRelease({ credits: 2 }).nextReserved === 0, "Billing services should release through injected providers");
+  assert(injectedCalls.map((entry) => entry.method).join(",") === "reserve,chargeReserved,releaseReserved", "Billing services should preserve provider operation order");
+  const injectedCapabilities = getBillingProviderCapabilities();
+  assert(injectedCapabilities.orders === true, "Billing capabilities should reflect injected order support");
+  assert(injectedCapabilities.payments === true, "Billing capabilities should reflect injected payment support");
+  assert(injectedCapabilities.refunds === true, "Billing capabilities should reflect injected refund support");
+  assert(injectedCapabilities.invoices === false, "Billing capabilities should preserve unsupported invoice capability");
+  resetDefaultBillingProvider();
+  assert(getDefaultBillingProvider() === defaultProvider, "Billing services should restore the local provider");
+
+  let invalidProviderError = null;
+  try {
+    setDefaultBillingProvider({ reserve() {}, chargeReserved() {} });
+  } catch (error) {
+    invalidProviderError = error;
+  }
+  assert(
+    invalidProviderError?.message === "Billing provider must implement releaseReserved()",
+    "Billing services should reject incomplete providers"
+  );
+  resetDefaultBillingProvider();
 
   const reservation = reserveCredits({
     userId: user.id,
@@ -173,6 +231,12 @@ try {
   closeDatabase();
   console.log("Billing provider checks passed.");
 } finally {
+  try {
+    const { resetDefaultBillingProvider } = await import("../src/server/services/billing.service.js");
+    resetDefaultBillingProvider();
+  } catch {
+    // Ignore provider cleanup errors.
+  }
   try {
     closeDatabaseRef?.();
   } catch {

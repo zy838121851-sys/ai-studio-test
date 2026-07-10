@@ -7,6 +7,14 @@ export function normalizeBillingAccountBalance(account = {}) {
 
 export function createLocalBillingProvider() {
   return {
+    id: "local-credit-ledger",
+    capabilities: Object.freeze({
+      creditLedger: true,
+      orders: false,
+      payments: false,
+      refunds: false,
+      invoices: false
+    }),
     reserve({ account, credits }) {
       const { balance, reserved } = normalizeBillingAccountBalance(account);
       return {
