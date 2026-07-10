@@ -1,0 +1,12 @@
+node_modules
+dist
+apps/*/dist
+apps/web/build
+packages/*/dist
+coverage
+src
+styles
+scripts
+docs
+index.html
+package-lock.json

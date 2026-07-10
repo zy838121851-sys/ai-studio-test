@@ -3,6 +3,11 @@
 !.env.example
 node_modules/
 dist/
+apps/*/dist/
+apps/web/build/
+packages/*/dist/
+coverage/
+.react-router/
 data/
 data/*.sqlite
 data/*.sqlite-shm

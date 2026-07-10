@@ -2,17 +2,19 @@
   "schemaVersion": 1,
   "program": "react-nest-rewrite",
   "programStatus": "active",
-  "activeStage": 1,
+  "activeStage": 2,
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-1.1-workspace-scaffold",
+  "nextWorkPackage": "WP-2.1-backend-platform",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
-    "WP-0.2-governance-check"
+    "WP-0.2-governance-check",
+    "WP-1.1-workspace-scaffold"
   ],
   "lastVerification": {
-    "workPackage": "WP-0.2-governance-check",
+    "workPackage": "WP-1.1-workspace-scaffold",
     "commands": [
-      "npm run governance:check",
+      "npm run check:rewrite",
+      "npm run build:rewrite",
       "npm run check",
       "npm run build",
       "git diff --check"
@@ -20,7 +22,7 @@
     "result": "passed",
     "verifiedAt": "2026-07-10"
   },
-  "lastCommit": "0d7a25d3",
+  "lastCommit": "f7b6fbee",
   "cutoverAllowed": false,
   "blockers": [
     {
@@ -40,8 +42,8 @@
   ],
   "stageStatus": {
     "0": "completed",
-    "1": "in-progress",
-    "2": "not-started",
+    "1": "completed",
+    "2": "in-progress",
     "3": "not-started",
     "4": "not-started",
     "5": "not-started",

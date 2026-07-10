@@ -1,0 +1,40 @@
+:root {
+  color: #1b2330;
+  background: #f7f8fa;
+  font-family: Inter, "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-synthesis: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+}
+
+.rewrite-placeholder,
+.rewrite-error {
+  width: min(720px, calc(100% - 40px));
+  margin: 18vh auto 0;
+}
+
+.rewrite-placeholder__eyebrow {
+  color: #64748b;
+  font-size: 13px;
+}
+
+.rewrite-placeholder h1,
+.rewrite-error h1 {
+  margin: 8px 0 12px;
+  font-size: 32px;
+  letter-spacing: 0;
+}
+
+.rewrite-placeholder p,
+.rewrite-error p {
+  color: #526071;
+  line-height: 1.7;
+}
