@@ -79,6 +79,7 @@ const restoreConsole = suppressAuditLogs();
 
 try {
   assertNoInlineMessageErrorResponses();
+  assertNoDirectRouteRequestDataAccess();
   assertCaughtErrorResponseHelpers();
   assertAIErrorClassification();
   assertAIErrorResponseBody();
@@ -1584,6 +1585,28 @@ function assertNoInlineMessageErrorResponses() {
     offenders.length === 0,
     [
       "Route error responses should use sendErrorResponse/sendCaughtErrorResponse instead of inline { message } JSON.",
+      ...offenders
+    ].join("\n")
+  );
+}
+
+function assertNoDirectRouteRequestDataAccess() {
+  const routesRoot = join(process.cwd(), "src", "server", "routes");
+  const directRequestProperty = /\breq\.(body|query|params|headers|auth|path|originalUrl|method|ip|socket|accepts)\b/;
+  const offenders = [];
+  for (const filePath of listJavaScriptFiles(routesRoot)) {
+    const source = readFileSync(filePath, "utf8");
+    const lines = source.split(/\r?\n/);
+    lines.forEach((line, index) => {
+      const match = line.match(directRequestProperty);
+      if (match) offenders.push(`${filePath}:${index + 1} (${match[1]})`);
+    });
+  }
+
+  assert(
+    offenders.length === 0,
+    [
+      "Routes should read request data through route-request/request-auth helpers.",
       ...offenders
     ].join("\n")
   );
