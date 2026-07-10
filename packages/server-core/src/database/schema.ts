@@ -53,6 +53,13 @@ export const notificationStatus = pgEnum("notification_status", [
   "failed"
 ]);
 export const notificationChannel = pgEnum("notification_channel", ["email", "sms", "in_app"]);
+export const billingOrderStatus = pgEnum("billing_order_status", ["pending", "paid", "cancelled", "expired", "refunded"]);
+export const paymentStatus = pgEnum("payment_status", ["pending", "succeeded", "failed", "refunded", "cancelled"]);
+export const subscriptionStatus = pgEnum("subscription_status", ["pending", "active", "paused", "cancelled", "expired"]);
+export const mandateStatus = pgEnum("mandate_status", ["pending", "active", "revoked", "expired"]);
+export const entitlementStatus = pgEnum("entitlement_status", ["pending", "active", "expired", "revoked"]);
+export const refundStatus = pgEnum("refund_status", ["pending", "succeeded", "failed", "cancelled"]);
+export const invoiceRequestStatus = pgEnum("invoice_request_status", ["pending", "issued", "rejected"]);
 
 export const users = pgTable(
   "users",
@@ -357,4 +364,163 @@ export const auditEvents = pgTable(
     createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
   },
   (table) => [index("audit_events_workspace_idx").on(table.workspaceId, table.createdAt)]
+);
+
+export const plans = pgTable(
+  "plans",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    code: varchar("code", { length: 80 }).notNull(),
+    name: varchar("name", { length: 120 }).notNull(),
+    description: text("description").default("").notNull(),
+    active: integer("active").default(1).notNull(),
+    metadata: jsonb("metadata").$type<Record<string, unknown>>().default({}).notNull(),
+    ...timestamps
+  },
+  (table) => [uniqueIndex("plans_code_unique").on(table.code)]
+);
+
+export const prices = pgTable(
+  "prices",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    planId: uuid("plan_id").notNull().references(() => plans.id, { onDelete: "restrict" }),
+    code: varchar("code", { length: 80 }).notNull(),
+    currency: varchar("currency", { length: 3 }).notNull(),
+    amountFen: integer("amount_fen").notNull(),
+    credits: integer("credits").default(0).notNull(),
+    interval: varchar("interval", { length: 20 }),
+    active: integer("active").default(1).notNull(),
+    ...timestamps
+  },
+  (table) => [uniqueIndex("prices_code_unique").on(table.code), index("prices_plan_idx").on(table.planId)]
+);
+
+export const billingOrders = pgTable(
+  "billing_orders",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull().references(() => workspaces.id, { onDelete: "restrict" }),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+    priceId: uuid("price_id").notNull().references(() => prices.id, { onDelete: "restrict" }),
+    status: billingOrderStatus("status").default("pending").notNull(),
+    currency: varchar("currency", { length: 3 }).notNull(),
+    amountFen: integer("amount_fen").notNull(),
+    credits: integer("credits").default(0).notNull(),
+    idempotencyKey: varchar("idempotency_key", { length: 160 }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    ...timestamps
+  },
+  (table) => [uniqueIndex("billing_orders_idempotency_unique").on(table.workspaceId, table.idempotencyKey), index("billing_orders_workspace_idx").on(table.workspaceId, table.createdAt)]
+);
+
+export const payments = pgTable(
+  "payments",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orderId: uuid("order_id").notNull().references(() => billingOrders.id, { onDelete: "restrict" }),
+    provider: varchar("provider", { length: 40 }).notNull(),
+    providerPaymentId: varchar("provider_payment_id", { length: 160 }),
+    status: paymentStatus("status").default("pending").notNull(),
+    amountFen: integer("amount_fen").notNull(),
+    currency: varchar("currency", { length: 3 }).notNull(),
+    idempotencyKey: varchar("idempotency_key", { length: 160 }).notNull(),
+    rawResult: jsonb("raw_result").$type<Record<string, unknown>>().default({}).notNull(),
+    ...timestamps
+  },
+  (table) => [uniqueIndex("payments_idempotency_unique").on(table.idempotencyKey), index("payments_order_idx").on(table.orderId)]
+);
+
+export const subscriptions = pgTable(
+  "subscriptions",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull().references(() => workspaces.id, { onDelete: "restrict" }),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+    priceId: uuid("price_id").notNull().references(() => prices.id, { onDelete: "restrict" }),
+    status: subscriptionStatus("status").default("pending").notNull(),
+    provider: varchar("provider", { length: 40 }).notNull(),
+    providerSubscriptionId: varchar("provider_subscription_id", { length: 160 }),
+    currentPeriodEnd: timestamp("current_period_end", { withTimezone: true }),
+    cancelAtPeriodEnd: integer("cancel_at_period_end").default(0).notNull(),
+    ...timestamps
+  },
+  (table) => [index("subscriptions_workspace_idx").on(table.workspaceId, table.status)]
+);
+
+export const mandates = pgTable(
+  "mandates",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull().references(() => workspaces.id, { onDelete: "restrict" }),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+    provider: varchar("provider", { length: 40 }).notNull(),
+    providerMandateId: varchar("provider_mandate_id", { length: 160 }),
+    status: mandateStatus("status").default("pending").notNull(),
+    ...timestamps
+  },
+  (table) => [index("mandates_workspace_idx").on(table.workspaceId, table.status)]
+);
+
+export const entitlements = pgTable(
+  "entitlements",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull().references(() => workspaces.id, { onDelete: "restrict" }),
+    sourceType: varchar("source_type", { length: 40 }).notNull(),
+    sourceId: uuid("source_id").notNull(),
+    entitlementKey: varchar("entitlement_key", { length: 100 }).notNull(),
+    quantity: integer("quantity").default(0).notNull(),
+    status: entitlementStatus("status").default("pending").notNull(),
+    startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }),
+    ...timestamps
+  },
+  (table) => [uniqueIndex("entitlements_source_key_unique").on(table.sourceType, table.sourceId, table.entitlementKey), index("entitlements_workspace_idx").on(table.workspaceId, table.status)]
+);
+
+export const refunds = pgTable(
+  "refunds",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    paymentId: uuid("payment_id").notNull().references(() => payments.id, { onDelete: "restrict" }),
+    provider: varchar("provider", { length: 40 }).notNull(),
+    providerRefundId: varchar("provider_refund_id", { length: 160 }),
+    status: refundStatus("status").default("pending").notNull(),
+    amountFen: integer("amount_fen").notNull(),
+    reason: text("reason").default("").notNull(),
+    idempotencyKey: varchar("idempotency_key", { length: 160 }).notNull(),
+    ...timestamps
+  },
+  (table) => [uniqueIndex("refunds_idempotency_unique").on(table.idempotencyKey), index("refunds_payment_idx").on(table.paymentId)]
+);
+
+export const invoiceRequests = pgTable(
+  "invoice_requests",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id").notNull().references(() => workspaces.id, { onDelete: "restrict" }),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "restrict" }),
+    orderId: uuid("order_id").notNull().references(() => billingOrders.id, { onDelete: "restrict" }),
+    status: invoiceRequestStatus("status").default("pending").notNull(),
+    invoiceType: varchar("invoice_type", { length: 30 }).notNull(),
+    recipient: jsonb("recipient").$type<Record<string, unknown>>().notNull(),
+    providerInvoiceId: varchar("provider_invoice_id", { length: 160 }),
+    ...timestamps
+  },
+  (table) => [index("invoice_requests_workspace_idx").on(table.workspaceId, table.createdAt)]
+);
+
+export const paymentEvents = pgTable(
+  "payment_events",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    provider: varchar("provider", { length: 40 }).notNull(),
+    providerEventId: varchar("provider_event_id", { length: 200 }).notNull(),
+    eventType: varchar("event_type", { length: 100 }).notNull(),
+    payload: jsonb("payload").$type<Record<string, unknown>>().notNull(),
+    processedAt: timestamp("processed_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [uniqueIndex("payment_events_provider_unique").on(table.provider, table.providerEventId)]
 );

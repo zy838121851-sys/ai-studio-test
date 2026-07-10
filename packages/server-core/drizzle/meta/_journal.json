@@ -15,6 +15,13 @@
       "when": 1783709350722,
       "tag": "0001_amused_mister_fear",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783709621325,
+      "tag": "0002_marvelous_quentin_quire",
+      "breakpoints": true
     }
   ]
 }
