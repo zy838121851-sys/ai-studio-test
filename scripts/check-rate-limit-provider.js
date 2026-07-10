@@ -6,7 +6,9 @@ import {
   getRateLimitBucketTtl,
   getRateLimitRetryAfterSeconds,
   hitRateLimitBucket,
-  resetRateLimitBucket
+  resetDefaultRateLimitStore,
+  resetRateLimitBucket,
+  setDefaultRateLimitStore
 } from "../src/server/services/rate-limit.service.js";
 
 function assert(condition, message) {
@@ -16,6 +18,7 @@ function assert(condition, message) {
 checkStoreWindowBehavior();
 checkServiceStoreBehavior();
 checkMiddlewareLimitResponse();
+checkProviderReplacement();
 
 console.log("Rate limit provider checks passed.");
 
@@ -55,9 +58,50 @@ function checkServiceStoreBehavior() {
   assert(getRateLimitBucketTtl(store, bucketKey, 2500) === 0, "Rate limit service should expose reset");
 
   const defaultStore = getDefaultRateLimitStore();
-  assert(defaultStore?.hit, "Rate limit service should expose a default store with hit");
+  assert(defaultStore?.increment, "Rate limit service should expose a default store with increment");
+  assert(defaultStore?.hit, "Memory rate limit stores should preserve the hit compatibility alias");
   assert(defaultStore?.reset, "Rate limit service should expose a default store with reset");
   assert(defaultStore?.ttl, "Rate limit service should expose a default store with ttl");
+}
+
+function checkProviderReplacement() {
+  const defaultStore = getDefaultRateLimitStore();
+  const dynamicLimiter = createRateLimiter({
+    namespace: "dynamic",
+    windowMs: 2000,
+    max: 1
+  });
+  let incrementCalls = 0;
+  const injectedStore = {
+    increment(key, now, windowMs) {
+      incrementCalls += 1;
+      return { count: 1, resetAt: now + windowMs, key };
+    },
+    reset() {},
+    ttl() {
+      return 0;
+    }
+  };
+
+  setDefaultRateLimitStore(injectedStore);
+  assert(getDefaultRateLimitStore() === injectedStore, "Rate limit services should support store replacement");
+  const result = invokeLimiter(dynamicLimiter);
+  assert(result.nextCalls === 1, "Existing limiters should resolve replaced default stores at request time");
+  assert(incrementCalls === 1, "Existing limiters should increment through replaced stores");
+  resetDefaultRateLimitStore();
+  assert(getDefaultRateLimitStore() === defaultStore, "Rate limit services should restore the memory store");
+
+  let invalidStoreError = null;
+  try {
+    setDefaultRateLimitStore({ increment() {}, reset() {} });
+  } catch (error) {
+    invalidStoreError = error;
+  }
+  assert(
+    invalidStoreError?.message === "Rate limit store must implement ttl()",
+    "Rate limit services should reject incomplete stores"
+  );
+  resetDefaultRateLimitStore();
 }
 
 function checkMiddlewareLimitResponse() {

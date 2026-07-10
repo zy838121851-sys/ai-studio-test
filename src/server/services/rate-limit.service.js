@@ -1,7 +1,25 @@
 import { memoryRateLimitStore } from "../providers/rate-limit/memory-rate-limit-store.js";
 
+const RATE_LIMIT_STORE_METHODS = ["increment", "reset", "ttl"];
+let defaultRateLimitStore = memoryRateLimitStore;
+
 export function getDefaultRateLimitStore() {
-  return memoryRateLimitStore;
+  return defaultRateLimitStore;
+}
+
+export function setDefaultRateLimitStore(store) {
+  for (const method of RATE_LIMIT_STORE_METHODS) {
+    if (typeof store?.[method] !== "function") {
+      throw new TypeError(`Rate limit store must implement ${method}()`);
+    }
+  }
+  defaultRateLimitStore = store;
+  return defaultRateLimitStore;
+}
+
+export function resetDefaultRateLimitStore() {
+  defaultRateLimitStore = memoryRateLimitStore;
+  return defaultRateLimitStore;
 }
 
 export function createRateLimitBucketKey(namespace, clientAddress) {
@@ -9,7 +27,7 @@ export function createRateLimitBucketKey(namespace, clientAddress) {
 }
 
 export function hitRateLimitBucket(store, key, now, windowMs) {
-  return store.hit(key, now, windowMs);
+  return store.increment(key, now, windowMs);
 }
 
 export function resetRateLimitBucket(store, key) {

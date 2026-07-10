@@ -12,12 +12,12 @@ export function createRateLimiter({
   windowMs,
   max,
   message = "Too many requests",
-  store = getDefaultRateLimitStore()
+  store = null
 }) {
   return (req, res, next) => {
     const now = Date.now();
     const key = createRateLimitBucketKey(namespace, getRequestClientAddress(req));
-    const current = hitRateLimitBucket(store, key, now, windowMs);
+    const current = hitRateLimitBucket(store || getDefaultRateLimitStore(), key, now, windowMs);
     if (current.count <= max) {
       next();
       return;
