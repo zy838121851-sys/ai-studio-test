@@ -1,29 +1,12 @@
 import "dotenv/config";
-import { copyFileSync, cpSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import { databasePath } from "../src/server/db/sqlite.js";
+import { closeDatabase } from "../src/server/db/sqlite.js";
+import { createDataBackup } from "../src/server/services/data-backup.service.js";
 
-function timestamp() {
-  return new Date().toISOString().replace(/[:.]/g, "-");
+try {
+  const { backupRoot, manifest } = await createDataBackup();
+  console.log(`Backup created at ${backupRoot}`);
+  console.log(`database_sha256=${manifest.database.sha256}`);
+  console.log(`uploads=${manifest.uploads.fileCount} files, ${manifest.uploads.totalBytes} bytes`);
+} finally {
+  closeDatabase();
 }
-
-const backupRoot = join(process.cwd(), "data", "backups", timestamp());
-mkdirSync(backupRoot, { recursive: true });
-
-if (existsSync(databasePath)) {
-  copyFileSync(databasePath, join(backupRoot, "ai-studio.sqlite"));
-}
-
-const uploadsPath = join(process.cwd(), "uploads");
-if (existsSync(uploadsPath)) {
-  cpSync(uploadsPath, join(backupRoot, "uploads"), { recursive: true });
-}
-
-writeFileSync(join(backupRoot, "manifest.json"), JSON.stringify({
-  createdAt: new Date().toISOString(),
-  databasePath,
-  databaseBackedUp: existsSync(join(backupRoot, "ai-studio.sqlite")),
-  uploadsBackedUp: existsSync(join(backupRoot, "uploads"))
-}, null, 2));
-
-console.log(`Backup created at ${backupRoot}`);

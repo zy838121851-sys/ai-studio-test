@@ -42,6 +42,15 @@ export function closeDatabase() {
   connection = null;
 }
 
+export async function backupDatabaseTo(destinationPath) {
+  const targetPath = String(destinationPath || "").trim();
+  if (!targetPath) throw new Error("SQLite backup destination is required");
+  const targetDirectory = dirname(targetPath);
+  if (!existsSync(targetDirectory)) mkdirSync(targetDirectory, { recursive: true });
+  await getConnection().backup(targetPath);
+  return targetPath;
+}
+
 export function sqlValue(value) {
   if (value === null || value === undefined) return "NULL";
   if (typeof value === "number") {
