@@ -17,28 +17,28 @@ An item is complete only when its status is approved and evidence points to pass
 
 | ID | Surface | Required Behavior | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| HOME-001 | Home shell | Existing nav, title, prompt, history and community layout | not-started | |
-| HOME-002 | Prompt input | Autosize, focus and submit behavior | not-started | |
-| HOME-003 | Attachments | Upload, thumbnail preview, remove and submit | not-started | |
-| HOME-004 | Model picker | Full model list, selected state, scroll and close behavior | not-started | |
-| HOME-005 | Credit quote | Quote follows selected model | not-started | |
-| HOME-006 | Recent projects | New tile, thumbnails, title, time and open behavior | not-started | |
-| HOME-007 | Channels | Active channel and horizontal scroll behavior | not-started | |
-| HOME-008 | Inspiration feed | Masonry sizing, filtering and incremental load | not-started | |
-| HOME-009 | Back to top | Visibility and smooth scroll | not-started | |
-| HOME-010 | Generation handoff | Create project, enter canvas, pending then result | not-started | |
-| HOME-011 | Responsive | Desktop, tablet and mobile match legacy | not-started | |
+| HOME-001 | Home shell | Existing nav, title, prompt, history and community layout | automated | React route test and desktop/mobile Playwright screenshots |
+| HOME-002 | Prompt input | Autosize, focus and submit behavior | automated | `apps/web/app/routes/home.test.tsx` |
+| HOME-003 | Attachments | Upload, thumbnail preview, remove and submit | automated | Attachment preview/remove component test; authenticated upload integration pending local infrastructure |
+| HOME-004 | Model picker | Full model list, selected state, scroll and close behavior | automated | Component test plus Playwright list overflow check with five image models |
+| HOME-005 | Credit quote | Quote follows selected model | automated | Model switch test verifies 8 to 10 credit display |
+| HOME-006 | Recent projects | New tile, thumbnails, title, time and open behavior | in-progress | Signed-out/new tile rendered; authenticated PostgreSQL integration pending |
+| HOME-007 | Channels | Active channel and horizontal scroll behavior | automated | React implementation and desktop/mobile Playwright screenshots |
+| HOME-008 | Inspiration feed | Masonry sizing, filtering and incremental load | automated | Local image feed and desktop/mobile Playwright screenshots |
+| HOME-009 | Back to top | Visibility and smooth scroll | in-progress | React implementation present; dedicated browser assertion pending |
+| HOME-010 | Generation handoff | Create project, enter canvas, pending then result | in-progress | API/worker flow implemented; PostgreSQL/Redis integration and canvas receiver pending |
+| HOME-011 | Responsive | Desktop, tablet and mobile match legacy | automated | Compared at 1440x1000 and 390x844 against captured legacy geometry |
 
 ## Authentication And Account
 
 | ID | Surface | Required Behavior | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| AUTH-001 | Auth entry | Signed-out and signed-in states | not-started | |
+| AUTH-001 | Auth entry | Signed-out and signed-in states | in-progress | Signed-out gate automated; signed-in integration pending PostgreSQL/Redis |
 | AUTH-002 | Password | Register, login, errors and session cookie | not-started | |
 | AUTH-003 | Email code | Send, verify, throttle and expiry | not-started | |
 | AUTH-004 | SMS code | Send, verify, throttle and expiry | not-started | |
 | AUTH-005 | OAuth | WeChat and QQ provider availability and callback | not-started | |
-| AUTH-006 | Account popover | Profile, points, upgrade and logout | not-started | |
+| AUTH-006 | Account popover | Profile, points, upgrade and logout | in-progress | React states implemented; authenticated integration pending |
 | AUTH-007 | Session restore | Refresh restores the current user | not-started | |
 | AUTH-008 | Isolation | Cross-user/workspace resources are hidden | not-started | |
 

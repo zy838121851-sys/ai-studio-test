@@ -2,12 +2,12 @@ import type { PaginatedHomeFeedDto } from "@ai-studio/contracts";
 
 const CHANNELS = ["推荐", "平面设计", "电商", "摄影", "建筑", "角色", "3D"] as const;
 const IMAGE_URLS = [
-  "https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&w=900&q=82",
-  "https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=900&q=82",
-  "https://images.unsplash.com/photo-1513364776144-60967b0f800f?auto=format&fit=crop&w=900&q=82",
-  "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=900&q=82",
-  "https://images.unsplash.com/photo-1541961017774-22349e4a1262?auto=format&fit=crop&w=900&q=82",
-  "https://images.unsplash.com/photo-1547891654-e66ed7ebb968?auto=format&fit=crop&w=900&q=82"
+  "/inspiration/inspiration-1.jpg",
+  "/inspiration/inspiration-2.jpg",
+  "/inspiration/inspiration-3.jpg",
+  "/inspiration/inspiration-4.jpg",
+  "/inspiration/inspiration-5.jpg",
+  "/inspiration/inspiration-6.jpg"
 ] as const;
 
 export function listHomeFeed(

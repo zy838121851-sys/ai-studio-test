@@ -4,31 +4,32 @@
   "programStatus": "active",
   "activeStage": 3,
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-3.3-react-home",
+  "nextWorkPackage": "WP-3.4-minimal-react-canvas",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
     "WP-1.1-workspace-scaffold",
     "WP-2.1-backend-platform",
     "WP-3.1-home-api",
-    "WP-3.2-ai-job-worker"
+    "WP-3.2-ai-job-worker",
+    "WP-3.3-react-home"
   ],
   "lastVerification": {
-    "workPackage": "WP-3.2-ai-job-worker",
+    "workPackage": "WP-3.3-react-home",
     "commands": [
-      "npm run check:rewrite",
-      "npm run build:rewrite",
+      "npm run typecheck --workspace @ai-studio/web",
+      "npm run test --workspace @ai-studio/web",
+      "npm run lint --workspace @ai-studio/web",
+      "npm run build --workspace @ai-studio/web",
+      "Playwright desktop and mobile visual and interaction checks",
       "npm run check",
       "npm run build",
-      "git diff --check",
-      "npm run test --workspace @ai-studio/server-core",
-      "npm run typecheck --workspace @ai-studio/worker",
-      "npm run lint --workspace @ai-studio/worker"
+      "git diff --check"
     ],
     "result": "passed-with-local-infrastructure-blocker",
     "verifiedAt": "2026-07-10"
   },
-  "lastCommit": "cf6c4007",
+  "lastCommit": "abe39928",
   "cutoverAllowed": false,
   "blockers": [
     {
@@ -72,6 +73,7 @@
   "notes": [
     "Legacy remains the default runtime until Stage 12.",
     "Rewrite uses a fresh database and does not migrate legacy SQLite or uploads.",
-    "The first vertical slice is a fully functional React home plus a minimal React canvas receiver."
+    "The React home implementation and visual parity checks are complete; authenticated integration remains covered by the local Docker blocker.",
+    "The next package is the minimal React canvas receiver; the legacy runtime remains unchanged."
   ]
 }

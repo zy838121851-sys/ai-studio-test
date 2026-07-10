@@ -11,6 +11,8 @@
     "lint": "eslint app"
   },
   "dependencies": {
+    "@ai-studio/canvas-engine": "*",
+    "@ai-studio/contracts": "*",
     "@react-router/node": "^7.0.0",
     "@tanstack/react-query": "^5.0.0",
     "isbot": "^5.0.0",
