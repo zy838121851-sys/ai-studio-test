@@ -2097,9 +2097,11 @@
       ],
       "successor": "WP-8.1-plan-entitlement",
       "allowedAreas": [
+        "apps/web/",
         "apps/worker/",
         "packages/server-core/",
         "scripts/",
+        "package.json",
         "docs/architecture/"
       ],
       "allowedDependencyFamilies": [],

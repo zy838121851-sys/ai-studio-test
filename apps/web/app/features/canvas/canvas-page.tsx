@@ -5,7 +5,13 @@ import type { AiJobDto } from "@ai-studio/contracts";
 import { ArrowLeft, CircleAlert, LoaderCircle } from "lucide-react";
 import { Link, useParams, useSearchParams } from "react-router";
 
-import { ApiClientError, createAiJob, listAssets, updateProject, uploadReference } from "../../lib/api-client.js";
+import {
+  ApiClientError,
+  createAiJob,
+  listAssets,
+  updateProject,
+  uploadReference
+} from "../../lib/api-client.js";
 import { useModelsQuery } from "../home/home-api.js";
 import {
   useCanvasConversationQuery,
@@ -78,14 +84,25 @@ export function CanvasPage() {
     mutationFn: async (asset: { uploadId: string; url: string; name: string }) => {
       if (!document || !projectQuery.data) throw new Error("Project document is unavailable.");
       const next = upsertCanvasNode(document, {
-        id: crypto.randomUUID(), kind: "image", sourceUrl: asset.url, alt: asset.name,
-        x: 180 + (document.nodes.length % 5) * 32, y: 140 + (document.nodes.length % 5) * 32,
-        width: 480, height: 480
+        id: crypto.randomUUID(),
+        kind: "image",
+        sourceUrl: asset.url,
+        alt: asset.name,
+        x: 180 + (document.nodes.length % 5) * 32,
+        y: 140 + (document.nodes.length % 5) * 32,
+        width: 480,
+        height: 480
       });
-      const saved = await updateProject(projectId, { expectedVersion: projectQuery.data.version, canvasDocument: next });
+      const saved = await updateProject(projectId, {
+        expectedVersion: projectQuery.data.version,
+        canvasDocument: next
+      });
       return saved.canvasDocument;
     },
-    onSuccess: (canvasDocument) => { hydrate(canvasDocument, projectId); void projectQuery.refetch(); }
+    onSuccess: (canvasDocument) => {
+      hydrate(canvasDocument, projectId);
+      void projectQuery.refetch();
+    }
   });
   const submitImageCommand = async (command: ImageToolbarCommand) => {
     if (command.action === "edit-text") {
@@ -215,7 +232,16 @@ export function CanvasPage() {
         />
       </aside>
       <aside className="canvas-asset-panel" aria-label="Project assets">
-        {assetsQuery.data?.map((asset) => <button key={asset.id} type="button" title={`Insert ${asset.name}`} onClick={() => insertAssetMutation.mutate(asset)}><img src={asset.url} alt={asset.name}/></button>)}
+        {assetsQuery.data?.map((asset) => (
+          <button
+            key={asset.id}
+            type="button"
+            title={`Insert ${asset.name}`}
+            onClick={() => insertAssetMutation.mutate(asset)}
+          >
+            <img src={asset.url} alt={asset.name} />
+          </button>
+        ))}
       </aside>
       <ImageEditDialog
         open={Boolean(editNodeId)}

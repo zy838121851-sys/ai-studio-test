@@ -142,14 +142,45 @@ export function getAiJob(jobId: string): Promise<AiJobDto> {
   return request(`/api/v1/ai-jobs/${encodeURIComponent(jobId)}`);
 }
 
-export interface AssetItemDto { id: string; collectionId: string | null; favorite: boolean; uploadId: string; name: string; contentType: string; byteSize: number; url: string; createdAt: string; }
-export interface AssetCollectionDto { id: string; name: string; createdAt: string; updatedAt: string; }
+export interface AssetItemDto {
+  id: string;
+  collectionId: string | null;
+  favorite: boolean;
+  uploadId: string;
+  name: string;
+  contentType: string;
+  byteSize: number;
+  url: string;
+  createdAt: string;
+}
+export interface AssetCollectionDto {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+}
 
-export function listAssets(): Promise<AssetItemDto[]> { return request("/api/v1/assets"); }
-export function listAssetCollections(): Promise<AssetCollectionDto[]> { return request("/api/v1/assets/collections"); }
-export function createAssetCollection(name: string): Promise<AssetCollectionDto> { return request("/api/v1/assets/collections", { method: "POST", body: JSON.stringify({ name }) }); }
-export function updateAsset(assetId: string, input: { collectionId?: string | null; favorite?: boolean }): Promise<{ id: string; collectionId: string | null; favorite: boolean }> { return request(`/api/v1/assets/${encodeURIComponent(assetId)}`, { method: "PATCH", body: JSON.stringify(input) }); }
-export function deleteAsset(assetId: string): Promise<{ deleted: true }> { return request(`/api/v1/assets/${encodeURIComponent(assetId)}`, { method: "DELETE" }); }
+export function listAssets(): Promise<AssetItemDto[]> {
+  return request("/api/v1/assets");
+}
+export function listAssetCollections(): Promise<AssetCollectionDto[]> {
+  return request("/api/v1/assets/collections");
+}
+export function createAssetCollection(name: string): Promise<AssetCollectionDto> {
+  return request("/api/v1/assets/collections", { method: "POST", body: JSON.stringify({ name }) });
+}
+export function updateAsset(
+  assetId: string,
+  input: { collectionId?: string | null; favorite?: boolean }
+): Promise<{ id: string; collectionId: string | null; favorite: boolean }> {
+  return request(`/api/v1/assets/${encodeURIComponent(assetId)}`, {
+    method: "PATCH",
+    body: JSON.stringify(input)
+  });
+}
+export function deleteAsset(assetId: string): Promise<{ deleted: true }> {
+  return request(`/api/v1/assets/${encodeURIComponent(assetId)}`, { method: "DELETE" });
+}
 
 export function listAiJobs(
   input: { limit?: number; offset?: number; status?: string; modelId?: string } = {}

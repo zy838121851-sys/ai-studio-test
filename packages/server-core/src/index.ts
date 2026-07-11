@@ -1,6 +1,7 @@
 export * from "./application/application-error.js";
 export * from "./application/auth-context.js";
 export * from "./assets/asset-service.js";
+export * from "./assets/orphan-audit.js";
 export * from "./capabilities/capability-registry.js";
 export * from "./billing/billing-domain.js";
 export * from "./billing/payment-providers.js";

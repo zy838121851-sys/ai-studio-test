@@ -54,7 +54,8 @@
     "rewrite:infra:up": "docker compose -f compose.rewrite.yml up -d",
     "rewrite:infra:down": "docker compose -f compose.rewrite.yml down",
     "rewrite:db:migrate": "npm run db:migrate --workspace @ai-studio/server-core",
-    "rewrite:infra:check": "npm run infra:check --workspace @ai-studio/server-core"
+    "rewrite:infra:check": "npm run infra:check --workspace @ai-studio/server-core",
+    "rewrite:media:audit": "tsx scripts/audit-rewrite-orphan-media.ts"
   },
   "dependencies": {
     "@alicloud/dm20151123": "^1.10.1",

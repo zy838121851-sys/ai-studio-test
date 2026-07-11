@@ -771,8 +771,22 @@
   backdrop-filter: blur(14px);
 }
 
-.canvas-asset-panel button { width: 52px; height: 52px; padding: 0; overflow: hidden; border: 1px solid #e4e8ee; border-radius: 8px; background: #f5f7fa; cursor: pointer; }
-.canvas-asset-panel img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.canvas-asset-panel button {
+  width: 52px;
+  height: 52px;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #e4e8ee;
+  border-radius: 8px;
+  background: #f5f7fa;
+  cursor: pointer;
+}
+.canvas-asset-panel img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
 .canvas-tool-rail {
   position: fixed;

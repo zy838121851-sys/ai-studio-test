@@ -3,9 +3,9 @@
   "program": "react-nest-rewrite",
   "catalogVersion": 2,
   "programStatus": "active",
-  "activeStage": "7",
+  "activeStage": "8",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-7.6-orphan-audit",
+  "nextWorkPackage": "WP-8.1-plan-entitlement",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -55,13 +55,14 @@
     "WP-7.2-snapshot-versioning",
     "WP-7.3-protected-media",
     "WP-7.4-asset-collections",
-    "WP-7.5-thumbnails"
+    "WP-7.5-thumbnails",
+    "WP-7.6-orphan-audit"
   ],
-  "lastCompletedWorkPackage": "WP-7.5-thumbnails",
+  "lastCompletedWorkPackage": "WP-7.6-orphan-audit",
   "lastVerification": {
-    "workPackage": "WP-7.5-thumbnails",
+    "workPackage": "WP-7.6-orphan-audit",
     "commands": [
-      "npm run governance:verify -- WP-7.5-thumbnails"
+      "npm run governance:verify -- WP-7.6-orphan-audit"
     ],
     "result": "passed",
     "verifiedAt": "2026-07-11"
@@ -105,8 +106,8 @@
     "4": "completed",
     "5": "completed",
     "6": "completed",
-    "7": "in-progress",
-    "8": "not-started",
+    "7": "completed",
+    "8": "in-progress",
     "9": "not-started",
     "10": "not-started",
     "11": "not-started",
