@@ -23,6 +23,33 @@ test.beforeEach(async ({ page }) => {
       });
       return;
     }
+    if (path === "/api/v1/projects/project-chat-image") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          ...project,
+          id: "project-chat-image",
+          canvasDocument: {
+            schemaVersion: 1,
+            projectId: "project-chat-image",
+            nodes: [
+              {
+                id: "image-1",
+                kind: "image",
+                sourceUrl: "/uploads/canvas-image.png",
+                alt: "Generated canvas image",
+                x: 100,
+                y: 100,
+                width: 180,
+                height: 120
+              }
+            ]
+          }
+        })
+      });
+      return;
+    }
     if (path === "/api/v1/models") {
       await route.fulfill({
         status: 200,
@@ -129,4 +156,17 @@ test("canvas composer remains visible and touch-sized on mobile", async ({ page 
   expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
   await composer.getByLabel("Prompt").focus();
   await expect(composer.getByLabel("Prompt")).toBeFocused();
+});
+
+test("selected canvas image instantly becomes a removable chat reference", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/canvas/project-chat-image");
+  const composer = page.getByRole("form", { name: "Chat composer" });
+  await expect(composer.getByRole("img", { name: "Generated canvas image" })).toHaveCount(0);
+
+  await page.locator('[data-node-kind="image"]').click({ position: { x: 40, y: 40 } });
+  const reference = composer.getByRole("img", { name: "Generated canvas image" });
+  await expect(reference).toBeVisible();
+  await composer.getByRole("button", { name: "Remove Generated canvas image" }).click();
+  await expect(reference).toHaveCount(0);
 });

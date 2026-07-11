@@ -39,6 +39,7 @@ import { CircleAlert, LoaderCircle } from "lucide-react";
 
 import { useCanvasReceiverStore } from "./canvas-store.js";
 import { ImageToolbar, type ImageToolbarCommand } from "./image-toolbar.js";
+import { selectedCanvasImageReferences, type CanvasImageReference } from "./canvas-reference.js";
 
 const ModelPreview = lazy(() =>
   import("./model-preview.js").then((module) => ({ default: module.ModelPreview }))
@@ -48,12 +49,14 @@ export function CanvasAdapter({
   document,
   job,
   activeTool = "select",
-  onImageCommand
+  onImageCommand,
+  onImageReferencesChange
 }: {
   document: CanvasDocument;
   job: AiJobDto | undefined;
   activeTool?: string;
   onImageCommand?: (command: ImageToolbarCommand) => void;
+  onImageReferencesChange?: (references: CanvasImageReference[]) => void;
 }) {
   const setDocument = useCanvasReceiverStore((state) => state.setDocument);
   const [selection, setSelection] = useState<SelectionState>({ selectedIds: [], focusedId: null });
@@ -74,6 +77,9 @@ export function CanvasAdapter({
   useEffect(() => {
     documentRef.current = document;
   }, [document]);
+  useEffect(() => {
+    onImageReferencesChange?.(selectedCanvasImageReferences(document, selection));
+  }, [document, onImageReferencesChange, selection]);
   useEffect(() => {
     const newest = laserPoints.at(-1);
     if (!newest) return;

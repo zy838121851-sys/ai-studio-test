@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "6",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-6.2-canvas-reference",
+  "nextWorkPackage": "WP-6.3-conversation-persistence",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -42,13 +42,14 @@
     "WP-5.8-crop-upscale-expand",
     "WP-5.9-model-3d",
     "WP-5.10-keyboard-stack",
-    "WP-6.1-chat-composer"
+    "WP-6.1-chat-composer",
+    "WP-6.2-canvas-reference"
   ],
-  "lastCompletedWorkPackage": "WP-6.1-chat-composer",
+  "lastCompletedWorkPackage": "WP-6.2-canvas-reference",
   "lastVerification": {
-    "workPackage": "WP-6.1-chat-composer",
+    "workPackage": "WP-6.2-canvas-reference",
     "commands": [
-      "npm run governance:verify -- WP-6.1-chat-composer"
+      "npm run governance:verify -- WP-6.2-canvas-reference"
     ],
     "result": "passed",
     "verifiedAt": "2026-07-11"

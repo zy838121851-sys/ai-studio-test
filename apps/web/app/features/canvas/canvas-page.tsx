@@ -9,6 +9,7 @@ import { ApiClientError, createAiJob, uploadReference } from "../../lib/api-clie
 import { useModelsQuery } from "../home/home-api.js";
 import { useCanvasJobQuery, useCanvasProjectQuery } from "./canvas-api.js";
 import { CanvasChatComposer, type ChatAttachment } from "./chat-composer.js";
+import type { CanvasImageReference } from "./canvas-reference.js";
 import { useCanvasReceiverStore } from "./canvas-store.js";
 import { CanvasAdapter } from "./canvas-adapter.js";
 import type { ImageToolbarCommand } from "./image-toolbar.js";
@@ -18,6 +19,7 @@ import "./canvas.css";
 
 export function CanvasPage() {
   const [activeTool, setActiveTool] = useState("select");
+  const [canvasReferences, setCanvasReferences] = useState<CanvasImageReference[]>([]);
   const { projectId = "" } = useParams();
   const [searchParameters] = useSearchParams();
   const requestedJobId = searchParameters.get("jobId") ?? "";
@@ -43,7 +45,11 @@ export function CanvasPage() {
       attachments: ChatAttachment[];
     }) => {
       const uploaded = await Promise.all(
-        input.attachments.map((attachment) => uploadReference(attachment.file))
+        input.attachments.map(async (attachment) =>
+          uploadReference(
+            attachment.kind === "upload" ? attachment.file : await canvasReferenceFile(attachment)
+          )
+        )
       );
       return createAiJob({
         projectId,
@@ -144,6 +150,7 @@ export function CanvasPage() {
               job={job}
               activeTool={activeTool}
               onImageCommand={(command) => void submitImageCommand(command)}
+              onImageReferencesChange={setCanvasReferences}
             />
           ) : null}
           {document && document.nodes.length === 0 ? (
@@ -154,10 +161,20 @@ export function CanvasPage() {
       <CanvasChatComposer
         models={modelsQuery.data ?? []}
         submitting={chatGenerationMutation.isPending}
+        canvasReferences={canvasReferences}
         onSubmit={(input) => chatGenerationMutation.mutateAsync(input).then(() => undefined)}
       />
     </main>
   );
+}
+
+async function canvasReferenceFile(attachment: Extract<ChatAttachment, { kind: "canvas" }>) {
+  const response = await fetch(attachment.sourceUrl, { credentials: "include" });
+  if (!response.ok) throw new Error("Unable to read the selected canvas image.");
+  const blob = await response.blob();
+  return new File([blob], attachment.name || "canvas-reference", {
+    type: blob.type || "image/png"
+  });
 }
 
 // Kept as the legacy-compatible renderer reference while the adapter rolls out.

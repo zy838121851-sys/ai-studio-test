@@ -102,7 +102,7 @@ An item is complete only when its status is approved and evidence points to pass
 | ID | Surface | Required Behavior | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | CHAT-001 | Composer | Prompt, files, model and send | not-started | |
-| CHAT-002 | Canvas reference | Selected image appears as reference thumbnail | not-started | |
+| CHAT-002 | Canvas reference | Selected image appears as reference thumbnail | automated | Canvas selection adapter unit test plus `chat-composer.spec.ts` verifies instant thumbnail creation and removal. |
 | CHAT-003 | Thinking | Step status and failure progression | not-started | |
 | CHAT-004 | Results | Image/video/model result cards | not-started | |
 | CHAT-005 | History | Conversation persistence and selection | not-started | |

@@ -9,16 +9,28 @@ import {
 import type { ModelCatalogEntryDto } from "@ai-studio/contracts";
 import { ImagePlus, LoaderCircle, Send, X } from "lucide-react";
 
-export interface ChatAttachment {
+import type { CanvasImageReference } from "./canvas-reference.js";
+
+interface UploadedChatAttachment {
+  kind: "upload";
   id: string;
   file: File;
   previewUrl: string;
 }
 
+interface CanvasChatAttachment extends CanvasImageReference {
+  kind: "canvas";
+  id: string;
+  previewUrl: string;
+}
+
+export type ChatAttachment = UploadedChatAttachment | CanvasChatAttachment;
+
 export function CanvasChatComposer({
   models,
   submitting,
-  onSubmit
+  onSubmit,
+  canvasReferences
 }: {
   models: ModelCatalogEntryDto[];
   submitting: boolean;
@@ -27,15 +39,28 @@ export function CanvasChatComposer({
     modelId: string;
     attachments: ChatAttachment[];
   }) => Promise<void>;
+  canvasReferences: CanvasImageReference[];
 }) {
   const [prompt, setPrompt] = useState("");
-  const [attachments, setAttachments] = useState<ChatAttachment[]>([]);
+  const [attachments, setAttachments] = useState<UploadedChatAttachment[]>([]);
   const [modelId, setModelId] = useState("");
   const [error, setError] = useState("");
+  const [dismissedCanvasReferenceIds, setDismissedCanvasReferenceIds] = useState<Set<string>>(
+    new Set()
+  );
   const inputRef = useRef<HTMLInputElement>(null);
-  const attachmentsRef = useRef<ChatAttachment[]>([]);
+  const attachmentsRef = useRef<UploadedChatAttachment[]>([]);
   const imageModels = models.filter((model) => model.modality === "image" && model.enabled);
   const selectedModel = imageModels.find((model) => model.id === modelId) ?? imageModels[0];
+  const visibleCanvasReferences = canvasReferences
+    .filter((reference) => !dismissedCanvasReferenceIds.has(reference.nodeId))
+    .map<CanvasChatAttachment>((reference) => ({
+      ...reference,
+      id: `canvas:${reference.nodeId}`,
+      kind: "canvas",
+      previewUrl: reference.sourceUrl
+    }));
+  const visibleAttachments = [...visibleCanvasReferences, ...attachments];
 
   useEffect(() => {
     if (!modelId && selectedModel) setModelId(selectedModel.id);
@@ -43,6 +68,13 @@ export function CanvasChatComposer({
   useEffect(() => {
     attachmentsRef.current = attachments;
   }, [attachments]);
+  useEffect(() => {
+    setDismissedCanvasReferenceIds((current) => {
+      const currentCanvasIds = new Set(canvasReferences.map((reference) => reference.nodeId));
+      const next = new Set([...current].filter((nodeId) => currentCanvasIds.has(nodeId)));
+      return next.size === current.size ? current : next;
+    });
+  }, [canvasReferences]);
   useEffect(
     () => () =>
       attachmentsRef.current.forEach((attachment) => URL.revokeObjectURL(attachment.previewUrl)),
@@ -53,15 +85,24 @@ export function CanvasChatComposer({
     const accepted = Array.from(event.target.files ?? [])
       .filter((file) => file.type.startsWith("image/"))
       .slice(0, Math.max(0, 8 - attachments.length))
-      .map((file) => ({ id: crypto.randomUUID(), file, previewUrl: URL.createObjectURL(file) }));
+      .map((file) => ({
+        kind: "upload" as const,
+        id: crypto.randomUUID(),
+        file,
+        previewUrl: URL.createObjectURL(file)
+      }));
     if (accepted.length) setAttachments((current) => [...current, ...accepted]);
     event.target.value = "";
   };
-  const remove = (id: string) => {
+  const remove = (attachment: ChatAttachment) => {
+    if (attachment.kind === "canvas") {
+      setDismissedCanvasReferenceIds((current) => new Set(current).add(attachment.nodeId));
+      return;
+    }
     setAttachments((current) => {
-      const target = current.find((attachment) => attachment.id === id);
+      const target = current.find((candidate) => candidate.id === attachment.id);
       if (target) URL.revokeObjectURL(target.previewUrl);
-      return current.filter((attachment) => attachment.id !== id);
+      return current.filter((candidate) => candidate.id !== attachment.id);
     });
   };
   const submit = async (event?: FormEvent<HTMLFormElement>) => {
@@ -69,7 +110,11 @@ export function CanvasChatComposer({
     if (!prompt.trim() || !selectedModel || submitting) return;
     setError("");
     try {
-      await onSubmit({ prompt: prompt.trim(), modelId: selectedModel.id, attachments });
+      await onSubmit({
+        prompt: prompt.trim(),
+        modelId: selectedModel.id,
+        attachments: visibleAttachments
+      });
       attachments.forEach((attachment) => URL.revokeObjectURL(attachment.previewUrl));
       setPrompt("");
       setAttachments([]);
@@ -83,16 +128,16 @@ export function CanvasChatComposer({
 
   return (
     <form className="canvas-chat-composer" onSubmit={submit} aria-label="Chat composer">
-      {attachments.length ? (
+      {visibleAttachments.length ? (
         <div className="canvas-chat-composer__attachments" aria-label="Reference images">
-          {attachments.map((attachment) => (
+          {visibleAttachments.map((attachment) => (
             <figure key={attachment.id}>
-              <img src={attachment.previewUrl} alt={attachment.file.name} />
+              <img src={attachment.previewUrl} alt={attachmentName(attachment)} />
               <button
                 type="button"
                 title="Remove reference"
-                aria-label={`Remove ${attachment.file.name}`}
-                onClick={() => remove(attachment.id)}
+                aria-label={`Remove ${attachmentName(attachment)}`}
+                onClick={() => remove(attachment)}
               >
                 <X size={16} aria-hidden="true" />
               </button>
@@ -160,4 +205,8 @@ export function CanvasChatComposer({
       ) : null}
     </form>
   );
+}
+
+function attachmentName(attachment: ChatAttachment) {
+  return attachment.kind === "upload" ? attachment.file.name : attachment.name;
 }
