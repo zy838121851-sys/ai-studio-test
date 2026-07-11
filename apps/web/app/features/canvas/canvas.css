@@ -411,6 +411,17 @@
   line-height: 1.45;
 }
 
+.canvas-conversation-history__result {
+  display: block;
+  width: 100%;
+  max-height: 180px;
+  margin-top: 8px;
+  border: 1px solid #e2e7ee;
+  border-radius: 6px;
+  object-fit: contain;
+  background: #f5f7fa;
+}
+
 .canvas-conversation-history__message span {
   margin-top: 5px;
   color: #718096;

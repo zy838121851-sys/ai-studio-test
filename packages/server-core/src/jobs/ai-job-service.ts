@@ -79,7 +79,7 @@ export class AiJobService {
       }
 
       const [project] = await transaction
-        .select({ id: projects.id, version: projects.version })
+        .select({ id: projects.id, version: projects.version, canvasDocument: projects.canvasDocument })
         .from(projects)
         .where(
           and(eq(projects.id, input.projectId), eq(projects.workspaceId, context.workspaceId))
@@ -183,9 +183,9 @@ export class AiJobService {
         .update(projects)
         .set({
           canvasDocument: {
-            schemaVersion: 1,
-            projectId: project.id,
+            ...normalizeCanvasDocument(project.canvasDocument, project.id),
             nodes: [
+              ...normalizeCanvasDocument(project.canvasDocument, project.id).nodes,
               {
                 id: pendingNodeId,
                 kind: "pending-image",
@@ -196,7 +196,7 @@ export class AiJobService {
                 height: 640
               }
             ]
-          },
+          } as unknown as Record<string, unknown>,
           version: project.version + 1,
           updatedAt: new Date()
         })
@@ -487,26 +487,30 @@ export class AiJobService {
               .where(eq(projects.id, job.projectId));
             return updatedJob;
           }
+          const currentDocument = normalizeCanvasDocument(project.canvasDocument, job.projectId);
+          const completedDocument = {
+            ...currentDocument,
+            nodes: [
+              ...currentDocument.nodes.filter(
+                (node) => node.kind !== "pending-image" || node.jobId !== job.id
+              ),
+              {
+                id: `result-${job.id}`,
+                kind: "image" as const,
+                sourceUrl: output.url,
+                alt: "Generated image",
+                x: 120,
+                y: 100,
+                width: canvasNodeSize.width,
+                height: canvasNodeSize.height
+              }
+            ]
+          };
           await transaction
             .update(projects)
             .set({
               thumbnailStorageKey: storageKey,
-              canvasDocument: {
-                schemaVersion: 1,
-                projectId: job.projectId,
-                nodes: [
-                  {
-                    id: `result-${job.id}`,
-                    kind: "image",
-                    sourceUrl: output.url,
-                    alt: "生成图片",
-                    x: 120,
-                    y: 100,
-                    width: canvasNodeSize.width,
-                    height: canvasNodeSize.height
-                  }
-                ]
-              },
+              canvasDocument: completedDocument as unknown as Record<string, unknown>,
               version: project.version + 1,
               updatedAt: new Date()
             })

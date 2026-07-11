@@ -88,10 +88,10 @@ An item is complete only when its status is approved and evidence points to pass
 | ID | Surface | Required Behavior | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | MEDIA-001 | Upload node | Image/video/model node placement | not-started | |
-| MEDIA-002 | Pending image | Loading preview and status | automated | React route test plus `react-polish.spec.ts` centered pending-state and reduced-motion-safe loading evidence |
-| MEDIA-003 | Result image | Pending replacement, size and metadata | automated | Worker persists final node; React route test plus `react-polish.spec.ts` mobile result visibility evidence |
+| MEDIA-002 | Pending image | Loading preview and status | automated | Durable job creation appends its own pending node; React route and generation recovery evidence cover the restored status. |
+| MEDIA-003 | Result image | Pending replacement, size and metadata | automated | Worker replaces only its matching pending node, preserving other canvas nodes; route and result-history Playwright evidence cover restoration. |
 | MEDIA-004 | Image toolbar | Crop, upscale, background, expand, text and 3D | not-started | |
-| MEDIA-005 | Image generator | Form, references, model, count and result | not-started | |
+| MEDIA-005 | Image generator | Form, references, model, count and result | automated | Canvas composer accepts prompt, references and selected model; durable job/credit workflow restores pending and final results. |
 | MEDIA-006 | Image edit | References, prompt and replacement | not-started | |
 | MEDIA-007 | Video generator | Lazy form, pending, recovery and result | not-started | |
 | MEDIA-008 | 3D viewer | Lazy Three.js viewer and controls | not-started | |
@@ -103,8 +103,8 @@ An item is complete only when its status is approved and evidence points to pass
 | --- | --- | --- | --- | --- |
 | CHAT-001 | Composer | Prompt, files, model and send | not-started | |
 | CHAT-002 | Canvas reference | Selected image appears as reference thumbnail | automated | Canvas selection adapter unit test plus `chat-composer.spec.ts` verifies instant thumbnail creation and removal. |
-| CHAT-003 | Thinking | Step status and failure progression | partial | Durable queued/running/succeeded/failed state is restored in the conversation stream; detailed thinking steps remain with generation workflows. |
-| CHAT-004 | Results | Image/video/model result cards | partial | Assistant messages retain the linked durable job and terminal state; rich result cards remain with generation workflows. |
+| CHAT-003 | Thinking | Step status and failure progression | automated | Durable queued/running/succeeded/failed job state is restored in the conversation stream and actively polled. |
+| CHAT-004 | Results | Image/video/model result cards | automated | Assistant result cards render durable image output after restoration; video/model cards remain their dedicated workflow packages. |
 | CHAT-005 | History | Conversation persistence and selection | automated | Workspace-scoped project conversations and messages are persisted; `chat-composer.spec.ts` verifies restore. |
 | CHAT-006 | Recovery | Reload restores active/finished jobs | automated | Conversation retrieval joins workspace-scoped jobs and polls queued/running states; browser restore test covers an active job. |
 | TASK-001 | Task log | List, filters, details and refresh | not-started | |

@@ -15,9 +15,18 @@ export function CanvasConversationHistory({
         >
           <p>{message.content}</p>
           {message.role === "assistant" ? (
-            <span data-job-status={message.status}>
-              {jobStatus(message.status, message.job?.error?.message)}
-            </span>
+            <>
+              <span data-job-status={message.status}>
+                {jobStatus(message.status, message.job?.error?.message)}
+              </span>
+              {message.job?.output ? (
+                <img
+                  className="canvas-conversation-history__result"
+                  src={message.job.output.url}
+                  alt="Generated result"
+                />
+              ) : null}
+            </>
           ) : null}
         </article>
       ))}

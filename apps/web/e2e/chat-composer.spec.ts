@@ -62,11 +62,61 @@ test.beforeEach(async ({ page }) => {
       });
       return;
     }
+    if (path === "/api/v1/projects/project-chat-result/conversation") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: "conversation-result",
+          projectId: "project-chat-result",
+          createdAt: "2026-07-11T00:00:00.000Z",
+          updatedAt: "2026-07-11T00:00:00.000Z",
+          messages: [
+            {
+              id: "message-result",
+              role: "assistant",
+              status: "succeeded",
+              content: "Generated image",
+              attachmentUploadIds: [],
+              job: {
+                id: "job-result",
+                projectId: "project-chat-result",
+                modelId: "gpt-image-2",
+                status: "succeeded",
+                prompt: "A ceramic vase",
+                reservedCredits: 8,
+                chargedCredits: 8,
+                output: {
+                  uploadId: "upload-result",
+                  url: "/uploads/result.png",
+                  width: 1024,
+                  height: 1024
+                },
+                error: null,
+                createdAt: "2026-07-11T00:00:00.000Z",
+                updatedAt: "2026-07-11T00:00:00.000Z"
+              },
+              createdAt: "2026-07-11T00:00:00.000Z",
+              updatedAt: "2026-07-11T00:00:00.000Z"
+            }
+          ]
+        })
+      });
+      return;
+    }
     if (path === "/api/v1/projects/project-chat-history") {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
         body: JSON.stringify({ ...project, id: "project-chat-history" })
+      });
+      return;
+    }
+    if (path === "/api/v1/projects/project-chat-result") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...project, id: "project-chat-result" })
       });
       return;
     }
@@ -232,4 +282,15 @@ test("canvas restores persisted conversation messages and active job status", as
   const history = page.getByRole("region", { name: "Conversation history" });
   await expect(history.getByText("A ceramic vase")).toBeVisible();
   await expect(history.getByText("Generating", { exact: true })).toBeVisible();
+});
+
+test("canvas restores a completed image result in conversation history", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/canvas/project-chat-result");
+  const history = page.getByRole("region", { name: "Conversation history" });
+  await expect(history.getByText("Completed")).toBeVisible();
+  await expect(history.getByRole("img", { name: "Generated result" })).toHaveAttribute(
+    "src",
+    "/uploads/result.png"
+  );
 });
