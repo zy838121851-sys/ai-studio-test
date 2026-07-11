@@ -94,7 +94,7 @@ An item is complete only when its status is approved and evidence points to pass
 | MEDIA-005 | Image generator | Form, references, model, count and result | automated | Canvas composer accepts prompt, references and selected model; durable job/credit workflow restores pending and final results. |
 | MEDIA-006 | Image edit | References, prompt and replacement | automated | Source image is validated and supplied as a protected Worker reference; edit prompt, replacement and failure recovery are covered by browser tests. |
 | MEDIA-007 | Video generator | Lazy form, pending, recovery and result | partial | Canvas composer exposes enabled video models; APIMART task creation, polling, protected result storage, and persistent video nodes are implemented. Live provider verification remains deferred. |
-| MEDIA-008 | 3D viewer | Lazy Three.js viewer and controls | not-started | |
+| MEDIA-008 | 3D viewer | Lazy Three.js viewer and controls | partial | Three.js, GLTFLoader, and OrbitControls lazy-load only for model nodes; pointer controls, resize handling, double-click reset, fallback geometry, and failure status are preserved. |
 | MEDIA-009 | Download | Authenticated source and stable filename | not-started | |
 
 ## Chat And Task Log
