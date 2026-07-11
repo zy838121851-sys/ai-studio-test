@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { fitCanvasNodeSize, type CanvasNode } from "@ai-studio/canvas-engine";
 import type { AiJobDto } from "@ai-studio/contracts";
 import { ArrowLeft, CircleAlert, LoaderCircle } from "lucide-react";
 import { Link, useParams, useSearchParams } from "react-router";
 
-import { ApiClientError } from "../../lib/api-client.js";
-import { createAiJob } from "../../lib/api-client.js";
+import { ApiClientError, createAiJob, uploadReference } from "../../lib/api-client.js";
+import { useModelsQuery } from "../home/home-api.js";
 import { useCanvasJobQuery, useCanvasProjectQuery } from "./canvas-api.js";
+import { CanvasChatComposer, type ChatAttachment } from "./chat-composer.js";
 import { useCanvasReceiverStore } from "./canvas-store.js";
 import { CanvasAdapter } from "./canvas-adapter.js";
 import type { ImageToolbarCommand } from "./image-toolbar.js";
@@ -20,6 +22,7 @@ export function CanvasPage() {
   const [searchParameters] = useSearchParams();
   const requestedJobId = searchParameters.get("jobId") ?? "";
   const projectQuery = useCanvasProjectQuery(projectId);
+  const modelsQuery = useModelsQuery();
   const hydrate = useCanvasReceiverStore((state) => state.hydrate);
   const clear = useCanvasReceiverStore((state) => state.clear);
   const storedDocument = useCanvasReceiverStore((state) => state.document);
@@ -33,6 +36,25 @@ export function CanvasPage() {
   const activeJobId = requestedJobId || pendingJobId;
   const jobQuery = useCanvasJobQuery(activeJobId);
   const refreshedTerminalJob = useRef("");
+  const chatGenerationMutation = useMutation({
+    mutationFn: async (input: {
+      prompt: string;
+      modelId: string;
+      attachments: ChatAttachment[];
+    }) => {
+      const uploaded = await Promise.all(
+        input.attachments.map((attachment) => uploadReference(attachment.file))
+      );
+      return createAiJob({
+        projectId,
+        modelId: input.modelId,
+        prompt: input.prompt,
+        uploadIds: uploaded.map((item) => item.id),
+        idempotencyKey: crypto.randomUUID()
+      });
+    },
+    onSuccess: () => projectQuery.refetch()
+  });
   const submitImageCommand = async (command: ImageToolbarCommand) => {
     if (command.action === "generate-3d") {
       return;
@@ -129,6 +151,11 @@ export function CanvasPage() {
           ) : null}
         </div>
       </section>
+      <CanvasChatComposer
+        models={modelsQuery.data ?? []}
+        submitting={chatGenerationMutation.isPending}
+        onSubmit={(input) => chatGenerationMutation.mutateAsync(input).then(() => undefined)}
+      />
     </main>
   );
 }
