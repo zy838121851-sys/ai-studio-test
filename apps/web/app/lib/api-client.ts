@@ -89,6 +89,10 @@ export function getProject(projectId: string): Promise<ProjectDetailDto> {
   return request(`/api/v1/projects/${encodeURIComponent(projectId)}`);
 }
 
+export function deleteProject(projectId: string): Promise<{ deleted: true }> {
+  return request(`/api/v1/projects/${encodeURIComponent(projectId)}`, { method: "DELETE" });
+}
+
 export function updateProject(
   projectId: string,
   input: {

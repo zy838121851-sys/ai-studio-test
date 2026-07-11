@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "7",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-7.1-project-crud",
+  "nextWorkPackage": "WP-7.2-snapshot-versioning",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -50,13 +50,14 @@
     "WP-G.3-video-scope-correction",
     "WP-6.6-video-generation",
     "WP-6.7-heavy-3d-viewer",
-    "WP-6.8-task-log-recovery"
+    "WP-6.8-task-log-recovery",
+    "WP-7.1-project-crud"
   ],
-  "lastCompletedWorkPackage": "WP-6.8-task-log-recovery",
+  "lastCompletedWorkPackage": "WP-7.1-project-crud",
   "lastVerification": {
-    "workPackage": "WP-6.8-task-log-recovery",
+    "workPackage": "WP-7.1-project-crud",
     "commands": [
-      "npm run governance:verify -- WP-6.8-task-log-recovery"
+      "npm run governance:verify -- WP-7.1-project-crud"
     ],
     "result": "passed",
     "verifiedAt": "2026-07-11"
@@ -144,6 +145,7 @@
     "The legacy runtime remains the default and is unchanged.",
     "Video generation now reuses the existing APIMART task model through the rewrite Worker, persists a protected video result, and restores it as a typed Canvas video node; live provider verification remains deferred.",
     "The rewrite 3D viewer now preserves lazy Three.js loading, OrbitControls interaction, ResizeObserver sizing, double-click reset, and visible fallback/failure states without changing Legacy.",
-    "Rewrite task logs now list workspace-scoped jobs with filters, pagination, refresh, detail, output navigation, and durable Worker recovery; Stage 6 now reaches its validation gate."
+    "Rewrite task logs now list workspace-scoped jobs with filters, pagination, refresh, detail, output navigation, and durable Worker recovery; Stage 6 now reaches its validation gate.",
+    "Rewrite projects now expose workspace-scoped full listing and durable create, read, versioned update, and delete API operations; project-library UI migration remains in its dedicated successor work packages."
   ]
 }

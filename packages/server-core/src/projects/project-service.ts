@@ -3,7 +3,7 @@ import type {
   ProjectDetailDto,
   ProjectSummaryDto
 } from "@ai-studio/contracts";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 
 import { ApplicationError } from "../application/application-error.js";
 import type { AuthContext } from "../application/auth-context.js";
@@ -64,6 +64,24 @@ export class ProjectService {
     return Promise.all(rows.map((row) => this.toSummary(row)));
   }
 
+  async list(context: AuthContext, limit = 20, offset = 0): Promise<{
+    projects: ProjectSummaryDto[];
+    total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  }> {
+    const safeLimit = Number.isFinite(limit) ? Math.min(Math.max(Math.trunc(limit), 1), 50) : 20;
+    const safeOffset = Number.isFinite(offset) ? Math.max(Math.trunc(offset), 0) : 0;
+    const where = eq(projects.workspaceId, context.workspaceId);
+    const [rows, count] = await Promise.all([
+      this.database.select().from(projects).where(where).orderBy(desc(projects.updatedAt)).limit(safeLimit).offset(safeOffset),
+      this.database.select({ count: sql<number>`count(*)::int` }).from(projects).where(where)
+    ]);
+    const total = count[0]?.count ?? 0;
+    return { projects: await Promise.all(rows.map((row) => this.toSummary(row))), total, limit: safeLimit, offset: safeOffset, hasMore: safeOffset + rows.length < total };
+  }
+
   async get(context: AuthContext, projectId: string): Promise<ProjectDetailDto> {
     const [project] = await this.database
       .select()
@@ -114,6 +132,15 @@ export class ProjectService {
     }
 
     return this.toDetail(project);
+  }
+
+  async remove(context: AuthContext, projectId: string): Promise<{ deleted: true }> {
+    const [deleted] = await this.database
+      .delete(projects)
+      .where(and(eq(projects.id, projectId), eq(projects.workspaceId, context.workspaceId)))
+      .returning({ id: projects.id });
+    if (!deleted) throw new ApplicationError("PROJECT_NOT_FOUND", 404, "Project not found.");
+    return { deleted: true };
   }
 
   private async toSummary(row: ProjectRow): Promise<ProjectSummaryDto> {

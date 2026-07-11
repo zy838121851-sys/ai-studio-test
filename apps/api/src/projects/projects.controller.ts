@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Inject,
   Param,
@@ -47,6 +48,16 @@ export class ProjectsController {
     return this.platform.projects.listRecent(auth, limit);
   }
 
+  @Get()
+  @ApiOperation({ summary: "List workspace projects" })
+  list(
+    @CurrentAuth() auth: AuthContext,
+    @Query("limit", new ParseIntPipe({ optional: true })) limit = 20,
+    @Query("offset", new ParseIntPipe({ optional: true })) offset = 0
+  ) {
+    return this.platform.projects.list(auth, limit, offset);
+  }
+
   @Get(":projectId")
   @ApiOperation({ summary: "Get one workspace-scoped project" })
   get(
@@ -71,5 +82,11 @@ export class ProjectsController {
         ? { canvasDocument: body.canvasDocument as unknown as CanvasDocumentDto }
         : {})
     });
+  }
+
+  @Delete(":projectId")
+  @ApiOperation({ summary: "Delete one workspace-scoped project" })
+  remove(@CurrentAuth() auth: AuthContext, @Param("projectId") projectId: string) {
+    return this.platform.projects.remove(auth, projectId);
   }
 }

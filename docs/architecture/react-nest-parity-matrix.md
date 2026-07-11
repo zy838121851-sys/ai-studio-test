@@ -46,10 +46,10 @@ An item is complete only when its status is approved and evidence points to pass
 
 | ID | Surface | Required Behavior | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| PROJ-001 | Create | New project title, prompt and empty document | not-started | |
-| PROJ-002 | Save | Backend result is save truth | not-started | |
+| PROJ-001 | Create | New project title, prompt and empty document | automated | Workspace-scoped create persists an empty versioned document and returns backend truth. |
+| PROJ-002 | Save | Backend result is save truth | automated | Versioned update returns backend truth and rejects stale writes with a conflict response. |
 | PROJ-003 | Open | Document, thumbnail and recent time restore | automated | React receiver component tests restore project title and persisted document |
-| PROJ-004 | Delete | Confirm, backend delete and failure rollback | not-started | |
+| PROJ-004 | Delete | Confirm, backend delete and failure rollback | partial | Workspace-scoped delete now returns backend truth; project-library confirmation UI remains in the next project-library migration. |
 | PROJ-005 | Snapshot | Versioned CanvasDocument save and restore | automated | `canvas-engine` normalization tests and React receiver tests |
 | PROJ-006 | Thumbnail | Home/library thumbnail remains stable | not-started | |
 | PROJ-007 | Recovery | Invalid or temporary nodes do not restore | automated | `normalizeCanvasDocument` filters malformed and unsupported nodes |
