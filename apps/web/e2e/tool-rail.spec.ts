@@ -97,6 +97,38 @@ test.beforeEach(async ({ page }) => {
       });
       return;
     }
+    if (path === "/api/v1/projects/project-image") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: "project-image",
+          title: "Image",
+          prompt: "",
+          thumbnailUrl: null,
+          version: 1,
+          createdAt: "2026-07-10T00:00:00.000Z",
+          updatedAt: "2026-07-10T00:00:00.000Z",
+          canvasDocument: {
+            schemaVersion: 1,
+            projectId: "project-image",
+            nodes: [
+              {
+                id: "image-1",
+                kind: "image",
+                sourceUrl: "/image.png",
+                alt: "Generated image",
+                x: 100,
+                y: 100,
+                width: 180,
+                height: 120
+              }
+            ]
+          }
+        })
+      });
+      return;
+    }
     await route.fulfill({
       status: 404,
       contentType: "application/json",
@@ -187,4 +219,20 @@ test("shape and text formatting stay bound to the selected node", async ({ page 
   await expect(page.getByRole("toolbar", { name: "Text formatting" })).toBeVisible();
   await page.locator('[aria-label="Font size"]').selectOption("64");
   await expect(page.locator('[data-node-kind="text"]')).toHaveCSS("font-size", "64px");
+});
+
+test("selected image exposes the complete image action toolbar", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/canvas/project-image");
+  await page.locator('[data-node-kind="image"]').click({ position: { x: 40, y: 40 } });
+  const toolbar = page.getByRole("toolbar", { name: "图片工具" });
+  await expect(toolbar).toBeVisible();
+  for (const label of ["裁剪", "高清", "抠图", "扩图", "改字", "对比图", "3D"]) {
+    await expect(toolbar.getByRole("button", { name: label })).toBeVisible();
+  }
+  await toolbar.getByRole("button", { name: "高清" }).click();
+  await expect(page.getByRole("group", { name: "高清尺寸" })).toBeVisible();
+  await page.getByRole("button", { name: "4K" }).click();
+  await expect(page.getByRole("button", { name: "4K" })).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByRole("button", { name: "2K" })).toHaveAttribute("aria-pressed", "false");
 });

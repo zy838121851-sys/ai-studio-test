@@ -1374,6 +1374,7 @@
       "successor": "WP-5.8-crop-upscale-expand",
       "allowedAreas": [
         "apps/web/app/features/canvas/",
+        "apps/web/e2e/",
         "packages/canvas-engine/",
         "docs/architecture/"
       ],

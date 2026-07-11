@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "5",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-5.7-image-toolbar",
+  "nextWorkPackage": "WP-5.8-crop-upscale-expand",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -37,13 +37,14 @@
     "WP-5.3-text-tool",
     "WP-5.4-pen-tool",
     "WP-5.5-laser-eraser",
-    "WP-5.6-format-toolbars"
+    "WP-5.6-format-toolbars",
+    "WP-5.7-image-toolbar"
   ],
-  "lastCompletedWorkPackage": "WP-5.6-format-toolbars",
+  "lastCompletedWorkPackage": "WP-5.7-image-toolbar",
   "lastVerification": {
-    "workPackage": "WP-5.6-format-toolbars",
+    "workPackage": "WP-5.7-image-toolbar",
     "commands": [
-      "npm run governance:verify -- WP-5.6-format-toolbars"
+      "npm run governance:verify -- WP-5.7-image-toolbar"
     ],
     "result": "passed",
     "verifiedAt": "2026-07-11"
@@ -123,6 +124,7 @@
     "Rewrite Canvas pen now records actual pointer samples, commits a validated stroke on pointerup, and renders the same sampled SVG path.",
     "Rewrite Canvas laser and eraser now use the canvas-relative pointer coordinates for transient trails and circular node hit testing; the laser tail expires after 420 milliseconds.",
     "Rewrite Canvas shape and text format toolbars now appear only for a selected compatible node and update persistent node style fields without Legacy mutation.",
+    "Rewrite Canvas image nodes now expose the legacy action set through a typed toolbar command boundary; crop, upscale, expansion, and 3D execution remain in their dedicated successor packages.",
     "Stage 3.5 builds fail-closed SaaS provider, commercial, and compliance foundations before full canvas migration.",
     "The legacy runtime remains the default and is unchanged."
   ]

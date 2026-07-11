@@ -23,15 +23,18 @@ import type { AiJobDto } from "@ai-studio/contracts";
 import { CircleAlert, LoaderCircle } from "lucide-react";
 
 import { useCanvasReceiverStore } from "./canvas-store.js";
+import { ImageToolbar, type ImageToolbarCommand } from "./image-toolbar.js";
 
 export function CanvasAdapter({
   document,
   job,
-  activeTool = "select"
+  activeTool = "select",
+  onImageCommand
 }: {
   document: CanvasDocument;
   job: AiJobDto | undefined;
   activeTool?: string;
+  onImageCommand?: (command: ImageToolbarCommand) => void;
 }) {
   const setDocument = useCanvasReceiverStore((state) => state.setDocument);
   const [selection, setSelection] = useState<SelectionState>({ selectedIds: [], focusedId: null });
@@ -226,6 +229,13 @@ export function CanvasAdapter({
         <TextFormatToolbar
           node={selectedNode}
           onChange={(patch) => updateSelectedNode(updateTextNode(selectedNode, patch))}
+        />
+      ) : null}
+      {selectedNode?.kind === "image" ? (
+        <ImageToolbar
+          nodeId={selectedNode.id}
+          position={{ x: selectedNode.x, y: selectedNode.y }}
+          {...(onImageCommand ? { onCommand: onImageCommand } : {})}
         />
       ) : null}
       {laserPoints.length > 1 ? (
