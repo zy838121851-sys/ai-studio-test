@@ -1492,6 +1492,7 @@
       "successor": "WP-6.1-chat-composer",
       "allowedAreas": [
         "apps/web/app/features/canvas/",
+        "apps/web/e2e/",
         "packages/canvas-engine/",
         "docs/architecture/"
       ],

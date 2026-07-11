@@ -4,19 +4,27 @@ import {
   useEffect,
   useRef,
   useState,
+  type KeyboardEvent as ReactKeyboardEvent,
   type PointerEvent as ReactPointerEvent
 } from "react";
 import {
   LASER_TRAIL_MS,
+  alignNodes,
   appendLaserPoint,
   eraseAt,
   appendPenPoint,
   finishPenStroke,
   moveNodes,
+  copyNodes,
+  pasteNodes,
   penPathData,
   selectNode,
+  removeNodes,
+  reorderNodes,
+  resolveEditorShortcut,
   pruneLaserPoints,
   startPenStroke,
+  stackNodes,
   updateShapeStyle,
   upsertCanvasNode,
   updateTextNode,
@@ -62,6 +70,7 @@ export function CanvasAdapter({
     startY: number;
   } | null>(null);
   const penRef = useRef<ReturnType<typeof startPenStroke> | null>(null);
+  const clipboardRef = useRef<CanvasNode[]>([]);
   useEffect(() => {
     documentRef.current = document;
   }, [document]);
@@ -177,10 +186,55 @@ export function CanvasAdapter({
     documentRef.current = upsertCanvasNode(documentRef.current, node);
     setDocument(documentRef.current);
   };
+  const commitDocument = (next: CanvasDocument) => {
+    documentRef.current = next;
+    setDocument(next);
+  };
+  const onKeyDown = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    const target = event.target as HTMLElement;
+    if (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName)) return;
+    const command = resolveEditorShortcut(event);
+    if (!command) return;
+    event.preventDefault();
+    const selectedIds = selection.selectedIds;
+    if (command === "select-all")
+      return setSelection({
+        selectedIds: document.nodes.map((node) => node.id),
+        focusedId: document.nodes.at(-1)?.id ?? null
+      });
+    if (command === "copy") {
+      clipboardRef.current = copyNodes(documentRef.current, selectedIds);
+      return;
+    }
+    if (command === "paste" || command === "duplicate") {
+      const source =
+        command === "duplicate"
+          ? copyNodes(documentRef.current, selectedIds)
+          : clipboardRef.current;
+      const pasted = pasteNodes(documentRef.current, source, () => crypto.randomUUID());
+      commitDocument(pasted.document);
+      setSelection({ selectedIds: pasted.ids, focusedId: pasted.ids.at(-1) ?? null });
+      return;
+    }
+    if (command === "delete") {
+      commitDocument(removeNodes(documentRef.current, selectedIds));
+      setSelection({ selectedIds: [], focusedId: null });
+      return;
+    }
+    if (command === "stack") return commitDocument(stackNodes(documentRef.current, selectedIds));
+    if (command === "bring-front")
+      return commitDocument(reorderNodes(documentRef.current, selectedIds, "front"));
+    if (command === "send-back")
+      return commitDocument(reorderNodes(documentRef.current, selectedIds, "back"));
+    const mode = command.replace("align-", "") as "left" | "right" | "top" | "bottom";
+    commitDocument(alignNodes(documentRef.current, selectedIds, mode));
+  };
   return (
     <div
       ref={adapterRef}
       className="canvas-adapter"
+      tabIndex={0}
+      onKeyDown={onKeyDown}
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}

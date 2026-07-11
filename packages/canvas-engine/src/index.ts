@@ -108,6 +108,7 @@ export * from "./pen.js";
 export * from "./laser-eraser.js";
 export * from "./image-transform.js";
 export * from "./model.js";
+export * from "./editor-commands.js";
 
 export function fitCanvasNodeSize(
   width: number,

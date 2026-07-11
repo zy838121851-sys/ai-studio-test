@@ -285,3 +285,25 @@ test("model preview stays lazy, framed, and renders nonblank WebGL pixels", asyn
     )
     .toBe(true);
 });
+
+test("keyboard clipboard, duplicate, and delete commands preserve editor focus rules", async ({
+  page
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/canvas/project-format");
+  const shape = page.locator('[data-node-kind="shape"]');
+  await shape.click({ position: { x: 40, y: 40 } });
+  await page.keyboard.press("Control+d");
+  await expect(page.locator('[data-node-kind="shape"]')).toHaveCount(2);
+  await page.keyboard.press("Delete");
+  await expect(page.locator('[data-node-kind="shape"]')).toHaveCount(1);
+
+  const text = page.locator('[data-node-kind="text"]');
+  await text.click({ position: { x: 30, y: 30 } });
+  await page.keyboard.press("Control+d");
+  await expect(page.locator('[data-node-kind="text"]')).toHaveCount(1);
+  await page.locator(".canvas-adapter").focus();
+  await page.keyboard.press("Control+c");
+  await page.keyboard.press("Control+v");
+  await expect(page.locator('[data-node-kind="text"]')).toHaveCount(2);
+});
