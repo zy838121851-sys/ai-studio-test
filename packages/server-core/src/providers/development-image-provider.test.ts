@@ -17,4 +17,16 @@ describe("DevelopmentImageProvider", () => {
     expect(svg).toContain("product &lt;script&gt;");
     expect(svg).not.toContain("<script>");
   });
+
+  it("accepts the typed image transform request in development", async () => {
+    const result = await new DevelopmentImageProvider().transform({
+      jobId: "job-transform-1",
+      modelId: "gpt-image-2",
+      prompt: "remove background",
+      references: [],
+      kind: "remove-background",
+      sourceNodeId: "image-1"
+    });
+    expect(result.body.toString("utf8")).toContain("[remove-background]");
+  });
 });

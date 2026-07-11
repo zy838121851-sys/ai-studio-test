@@ -1,6 +1,10 @@
 import { createHash, randomUUID } from "node:crypto";
 
-import { fitCanvasNodeSize } from "@ai-studio/canvas-engine";
+import {
+  fitCanvasNodeSize,
+  normalizeCanvasDocument,
+  replaceImageTransformResult
+} from "@ai-studio/canvas-engine";
 import type { AiJobDto } from "@ai-studio/contracts";
 import { and, asc, eq, inArray, sql } from "drizzle-orm";
 
@@ -24,6 +28,8 @@ export interface CreateAiJobInput {
   prompt: string;
   uploadIds: string[];
   idempotencyKey: string;
+  transformSourceNodeId?: string;
+  transformKind?: "crop" | "upscale" | "remove-background" | "expand" | "edit-text";
 }
 
 export interface PendingOutboxEvent {
@@ -132,7 +138,12 @@ export class AiJobService {
           projectId: project.id,
           createdByUserId: context.userId,
           modelId: model.id,
-          input: { prompt, uploadIds },
+          input: {
+            prompt,
+            uploadIds,
+            ...(input.transformSourceNodeId ? { transformSourceNodeId: input.transformSourceNodeId } : {}),
+            ...(input.transformKind ? { transformKind: input.transformKind } : {})
+          },
           reservedCredits: quote.totalCredits,
           idempotencyKey
         })
@@ -241,6 +252,8 @@ export class AiJobService {
     modelId: string;
     status: AiJobRow["status"];
     references: { contentType: string; body: Buffer }[];
+    transformKind: "crop" | "upscale" | "remove-background" | "expand" | "edit-text" | null;
+    transformSourceNodeId: string | null;
   }> {
     const [job] = await this.database.select().from(aiJobs).where(eq(aiJobs.id, jobId)).limit(1);
     if (!job) {
@@ -273,7 +286,9 @@ export class AiJobService {
       prompt: input.prompt,
       modelId: job.modelId,
       status: job.status,
-      references
+      references,
+      transformKind: input.transformKind,
+      transformSourceNodeId: input.transformSourceNodeId
     };
   }
 
@@ -413,12 +428,30 @@ export class AiJobService {
         }
 
         const [project] = await transaction
-          .select({ version: projects.version })
+          .select({ version: projects.version, canvasDocument: projects.canvasDocument })
           .from(projects)
           .where(eq(projects.id, job.projectId))
           .for("update")
           .limit(1);
         if (project) {
+          const sourceNodeId = parseJobInput(job.input).transformSourceNodeId;
+          if (sourceNodeId) {
+            const canvasDocument = replaceImageTransformResult(
+              normalizeCanvasDocument(project.canvasDocument, job.projectId),
+              sourceNodeId,
+              { sourceUrl: output.url, alt: "Generated image" }
+            );
+            await transaction
+              .update(projects)
+              .set({
+                thumbnailStorageKey: storageKey,
+                canvasDocument: canvasDocument as unknown as Record<string, unknown>,
+                version: project.version + 1,
+                updatedAt: new Date()
+              })
+              .where(eq(projects.id, job.projectId));
+            return updatedJob;
+          }
           await transaction
             .update(projects)
             .set({
@@ -537,12 +570,27 @@ function normalizeIdempotencyKey(key: string): string {
   return normalized;
 }
 
-function parseJobInput(value: Record<string, unknown>): { prompt: string; uploadIds: string[] } {
+function parseJobInput(value: Record<string, unknown>): {
+  prompt: string;
+  uploadIds: string[];
+  transformSourceNodeId: string | null;
+  transformKind: "crop" | "upscale" | "remove-background" | "expand" | "edit-text" | null;
+} {
   return {
     prompt: typeof value.prompt === "string" ? value.prompt : "",
     uploadIds: Array.isArray(value.uploadIds)
       ? value.uploadIds.filter((item): item is string => typeof item === "string")
-      : []
+      : [],
+    transformSourceNodeId:
+      typeof value.transformSourceNodeId === "string" ? value.transformSourceNodeId : null,
+    transformKind:
+      value.transformKind === "crop" ||
+      value.transformKind === "upscale" ||
+      value.transformKind === "remove-background" ||
+      value.transformKind === "expand" ||
+      value.transformKind === "edit-text"
+        ? value.transformKind
+        : null
   };
 }
 

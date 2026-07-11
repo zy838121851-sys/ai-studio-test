@@ -21,9 +21,15 @@ export interface GeneratedImage {
   height: number;
 }
 
+export interface TransformImageRequest extends GenerateImageRequest {
+  kind: "crop" | "upscale" | "remove-background" | "expand" | "edit-text";
+  sourceNodeId: string;
+}
+
 export interface ImageProvider {
   readonly name: "development" | "apimart";
   generate(request: GenerateImageRequest): Promise<GeneratedImage>;
+  transform(request: TransformImageRequest): Promise<GeneratedImage>;
 }
 
 export function createImageProvider(config: RewriteConfig): ImageProvider {

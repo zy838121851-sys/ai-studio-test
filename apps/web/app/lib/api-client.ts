@@ -113,6 +113,8 @@ export function createAiJob(input: {
   prompt: string;
   uploadIds: string[];
   idempotencyKey: string;
+  transformSourceNodeId?: string;
+  transformKind?: "crop" | "upscale" | "remove-background" | "expand" | "edit-text";
 }): Promise<AiJobDto> {
   return request("/api/v1/ai-jobs", {
     method: "POST",
@@ -121,7 +123,11 @@ export function createAiJob(input: {
       projectId: input.projectId,
       modelId: input.modelId,
       prompt: input.prompt,
-      uploadIds: input.uploadIds
+      uploadIds: input.uploadIds,
+      ...(input.transformSourceNodeId
+        ? { transformSourceNodeId: input.transformSourceNodeId }
+        : {}),
+      ...(input.transformKind ? { transformKind: input.transformKind } : {})
     })
   });
 }

@@ -1,6 +1,11 @@
 import { createHash } from "node:crypto";
 
-import type { GenerateImageRequest, GeneratedImage, ImageProvider } from "./image-provider.js";
+import type {
+  GenerateImageRequest,
+  GeneratedImage,
+  ImageProvider,
+  TransformImageRequest
+} from "./image-provider.js";
 
 export class DevelopmentImageProvider implements ImageProvider {
   readonly name = "development" as const;
@@ -32,6 +37,10 @@ export class DevelopmentImageProvider implements ImageProvider {
       width: 1024,
       height: 1024
     };
+  }
+
+  transform(request: TransformImageRequest): Promise<GeneratedImage> {
+    return this.generate({ ...request, prompt: `[${request.kind}] ${request.prompt}` });
   }
 }
 

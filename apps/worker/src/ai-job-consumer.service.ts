@@ -90,12 +90,19 @@ export class AiJobConsumerService implements OnModuleInit, OnApplicationShutdown
 
     try {
       const input = await this.platform.aiJobs.getWorkerInput(job.data.jobId);
-      const image = await this.platform.imageProvider.generate({
+      const request = {
         jobId: input.id,
         modelId: input.modelId,
         prompt: input.prompt,
         references: input.references
-      });
+      };
+      const image = input.transformKind && input.transformSourceNodeId
+        ? await this.platform.imageProvider.transform({
+            ...request,
+            kind: input.transformKind,
+            sourceNodeId: input.transformSourceNodeId
+          })
+        : await this.platform.imageProvider.generate(request);
       await this.platform.aiJobs.completeWithImage(job.data.jobId, image);
     } catch (error) {
       const attempts = job.opts.attempts ?? 1;

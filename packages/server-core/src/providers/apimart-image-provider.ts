@@ -2,7 +2,11 @@ import { isIP } from "node:net";
 import { lookup } from "node:dns/promises";
 
 import { ApplicationError } from "../application/application-error.js";
-import type { GenerateImageRequest, GeneratedImage, ImageProvider } from "./image-provider.js";
+import type {
+  GenerateImageRequest,
+  GeneratedImage,
+  ImageProvider
+} from "./image-provider.js";
 
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
 const POLL_INTERVAL_MS = 3_000;
@@ -58,6 +62,14 @@ export class ApimartImageProvider implements ImageProvider {
     }
 
     return this.downloadImage(imageUrl);
+  }
+
+  async transform(): Promise<GeneratedImage> {
+    throw new ApplicationError(
+      "IMAGE_TRANSFORM_PROVIDER_NOT_CONFIGURED",
+      503,
+      "Image transform provider is not configured"
+    );
   }
 
   private async pollTask(initialPayload: unknown, requestId: string): Promise<string | null> {

@@ -5,9 +5,11 @@ import { ArrowLeft, CircleAlert, LoaderCircle } from "lucide-react";
 import { Link, useParams, useSearchParams } from "react-router";
 
 import { ApiClientError } from "../../lib/api-client.js";
+import { createAiJob } from "../../lib/api-client.js";
 import { useCanvasJobQuery, useCanvasProjectQuery } from "./canvas-api.js";
 import { useCanvasReceiverStore } from "./canvas-store.js";
 import { CanvasAdapter } from "./canvas-adapter.js";
+import type { ImageToolbarCommand } from "./image-toolbar.js";
 import { CanvasToolRail } from "./tool-rail.js";
 
 import "./canvas.css";
@@ -31,6 +33,31 @@ export function CanvasPage() {
   const activeJobId = requestedJobId || pendingJobId;
   const jobQuery = useCanvasJobQuery(activeJobId);
   const refreshedTerminalJob = useRef("");
+  const submitImageCommand = async (command: ImageToolbarCommand) => {
+    const transformKind =
+      command.action === "upscale"
+        ? "upscale"
+        : command.action === "remove-background"
+          ? "remove-background"
+          : command.action === "expand"
+            ? "expand"
+            : command.action === "edit-text"
+              ? "edit-text"
+              : command.action === "crop"
+                ? "crop"
+                : null;
+    if (!transformKind) return;
+    await createAiJob({
+      projectId,
+      modelId: "gpt-image-2",
+      prompt: `Apply ${transformKind} to the selected image.`,
+      uploadIds: [],
+      idempotencyKey: crypto.randomUUID(),
+      transformSourceNodeId: command.nodeId,
+      transformKind
+    });
+    await projectQuery.refetch();
+  };
 
   useEffect(() => {
     if (projectQuery.data) hydrate(projectQuery.data.canvasDocument, projectId);
@@ -86,7 +113,14 @@ export function CanvasPage() {
 
       <section className="canvas-receiver__surface" aria-label="项目画布">
         <div className="canvas-receiver__document">
-          {document ? <CanvasAdapter document={document} job={job} activeTool={activeTool} /> : null}
+          {document ? (
+            <CanvasAdapter
+              document={document}
+              job={job}
+              activeTool={activeTool}
+              onImageCommand={(command) => void submitImageCommand(command)}
+            />
+          ) : null}
           {document && document.nodes.length === 0 ? (
             <p className="canvas-receiver__empty">空白画布</p>
           ) : null}

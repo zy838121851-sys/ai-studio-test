@@ -1,5 +1,13 @@
 import { ApiProperty, ApiPropertyOptional } from "@nestjs/swagger";
-import { ArrayMaxSize, IsArray, IsOptional, IsString, MaxLength, MinLength } from "class-validator";
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsIn,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength
+} from "class-validator";
 
 export class CreateAiJobDto {
   @ApiProperty()
@@ -22,4 +30,14 @@ export class CreateAiJobDto {
   @ArrayMaxSize(8)
   @IsString({ each: true })
   uploadIds: string[] = [];
+
+  @ApiPropertyOptional()
+  @IsOptional()
+  @IsString()
+  transformSourceNodeId?: string;
+
+  @ApiPropertyOptional({ enum: ["crop", "upscale", "remove-background", "expand", "edit-text"] })
+  @IsOptional()
+  @IsIn(["crop", "upscale", "remove-background", "expand", "edit-text"])
+  transformKind?: "crop" | "upscale" | "remove-background" | "expand" | "edit-text";
 }
