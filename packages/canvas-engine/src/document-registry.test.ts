@@ -36,4 +36,9 @@ describe("canvas document registry", () => {
     const snapshot = { schemaVersion: CURRENT_CANVAS_SCHEMA_VERSION + 99, nodes: [] };
     expect(migrateCanvasSnapshot(snapshot, "project-1")).toBe(snapshot);
   });
+
+  it("upgrades supported unversioned snapshots before normalization", () => {
+    const migrated = migrateCanvasSnapshot({ nodes: [{ id: "image", kind: "image", sourceUrl: "/a.png", x: 0, y: 0, width: 10, height: 10 }] }, "project-1");
+    expect(normalizeCanvasDocument(migrated, "project-1").nodes).toHaveLength(1);
+  });
 });

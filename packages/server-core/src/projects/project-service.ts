@@ -3,6 +3,7 @@ import type {
   ProjectDetailDto,
   ProjectSummaryDto
 } from "@ai-studio/contracts";
+import { migrateCanvasSnapshot, normalizeCanvasDocument, serializeCanvasDocument } from "@ai-studio/canvas-engine";
 import { and, desc, eq, sql } from "drizzle-orm";
 
 import { ApplicationError } from "../application/application-error.js";
@@ -42,7 +43,7 @@ export class ProjectService {
         workspaceId: context.workspaceId,
         title,
         prompt,
-        canvasDocument: serializeCanvasDocument(canvasDocument)
+        canvasDocument: serializeProjectCanvasDocument(canvasDocument, projectId)
       })
       .returning();
     if (!project) {
@@ -108,8 +109,7 @@ export class ProjectService {
       updates.title = normalizeTitle(input.title);
     }
     if (input.canvasDocument !== undefined) {
-      assertCanvasDocument(input.canvasDocument, projectId);
-      updates.canvasDocument = serializeCanvasDocument(input.canvasDocument);
+      updates.canvasDocument = serializeProjectCanvasDocument(input.canvasDocument, projectId);
     }
 
     const [project] = await this.database
@@ -191,12 +191,22 @@ function assertCanvasDocument(document: CanvasDocumentDto, projectId: string): v
 }
 
 function parseCanvasDocument(value: Record<string, unknown>, projectId: string): CanvasDocumentDto {
-  const document = value as unknown as CanvasDocumentDto;
-  assertCanvasDocument(document, projectId);
-  return document;
+  const migrated = migrateCanvasSnapshot(value, projectId);
+  const document = normalizeCanvasDocument(migrated, projectId);
+  if (!document.nodes.length && hasUnrecognizedNodes(migrated)) {
+    throw new ApplicationError("CANVAS_SNAPSHOT_UNSUPPORTED", 409, "Canvas snapshot cannot be restored safely.");
+  }
+  return document as unknown as CanvasDocumentDto;
 }
 
-function serializeCanvasDocument(document: CanvasDocumentDto): Record<string, unknown> {
-  return document as unknown as Record<string, unknown>;
+function serializeProjectCanvasDocument(document: CanvasDocumentDto, projectId: string): Record<string, unknown> {
+  assertCanvasDocument(document, projectId);
+  return serializeCanvasDocument(normalizeCanvasDocument(document, projectId)) as unknown as Record<string, unknown>;
+}
+
+function hasUnrecognizedNodes(value: unknown): boolean {
+  if (!value || typeof value !== "object" || !("nodes" in value)) return false;
+  const nodes = (value as { nodes?: unknown }).nodes;
+  return Array.isArray(nodes) && nodes.length > 0;
 }
 import { randomUUID } from "node:crypto";

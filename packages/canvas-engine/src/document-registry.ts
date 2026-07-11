@@ -27,7 +27,16 @@ export interface CanvasSnapshotMigration {
   migrate(value: unknown, projectId: string): unknown;
 }
 
-export const CANVAS_SNAPSHOT_MIGRATIONS: readonly CanvasSnapshotMigration[] = [];
+export const CANVAS_SNAPSHOT_MIGRATIONS: readonly CanvasSnapshotMigration[] = [
+  {
+    fromVersion: 0,
+    toVersion: 1,
+    migrate(value, projectId) {
+      if (!isRecord(value) || !Array.isArray(value.nodes)) return value;
+      return { schemaVersion: 1, projectId, nodes: value.nodes };
+    }
+  }
+];
 
 export function isRegisteredCanvasNodeKind(value: unknown): value is CanvasNodeKind {
   return typeof value === "string" && value in CANVAS_NODE_REGISTRY;
