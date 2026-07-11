@@ -4,7 +4,7 @@ import type {
   ProjectSummaryDto
 } from "@ai-studio/contracts";
 import { migrateCanvasSnapshot, normalizeCanvasDocument, serializeCanvasDocument } from "@ai-studio/canvas-engine";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, or, sql } from "drizzle-orm";
 
 import { ApplicationError } from "../application/application-error.js";
 import type { AuthContext } from "../application/auth-context.js";
@@ -144,14 +144,18 @@ export class ProjectService {
   }
 
   private async toSummary(row: ProjectRow): Promise<ProjectSummaryDto> {
-    const [thumbnail] = row.thumbnailStorageKey
+    const thumbnailUploadId = thumbnailUploadIdFromDocument(row.canvasDocument, row.id);
+    const [thumbnail] = row.thumbnailStorageKey || thumbnailUploadId
       ? await this.database
           .select({ id: uploads.id })
           .from(uploads)
           .where(
             and(
               eq(uploads.workspaceId, row.workspaceId),
-              eq(uploads.storageKey, row.thumbnailStorageKey)
+              or(
+                ...(row.thumbnailStorageKey ? [eq(uploads.storageKey, row.thumbnailStorageKey)] : []),
+                ...(thumbnailUploadId ? [eq(uploads.id, thumbnailUploadId)] : [])
+              )
             )
           )
           .limit(1)
@@ -174,6 +178,13 @@ export class ProjectService {
       canvasDocument: parseCanvasDocument(row.canvasDocument, row.id)
     };
   }
+}
+
+function thumbnailUploadIdFromDocument(value: Record<string, unknown>, projectId: string): string | null {
+  const document = normalizeCanvasDocument(migrateCanvasSnapshot(value, projectId), projectId);
+  const image = document.nodes.find((node) => node.kind === "image");
+  const match = image && /^\/api\/v1\/uploads\/([^/]+)\/content$/.exec(image.sourceUrl);
+  return match?.[1] ?? null;
 }
 
 function normalizeTitle(title: string): string {

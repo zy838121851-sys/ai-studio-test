@@ -51,7 +51,7 @@ An item is complete only when its status is approved and evidence points to pass
 | PROJ-003 | Open | Document, thumbnail and recent time restore | automated | React receiver component tests restore project title and persisted document |
 | PROJ-004 | Delete | Confirm, backend delete and failure rollback | partial | Workspace-scoped delete now returns backend truth; project-library confirmation UI remains in the next project-library migration. |
 | PROJ-005 | Snapshot | Versioned CanvasDocument save and restore | automated | Canvas v0 snapshots upgrade through an explicit registry; reads and writes normalize and serialize only registered persistent nodes. |
-| PROJ-006 | Thumbnail | Home/library thumbnail remains stable | not-started | |
+| PROJ-006 | Thumbnail | Home/library thumbnail remains stable | automated | Generated output persists a protected thumbnail key; old and asset-inserted documents recover the first protected image URL as a stable fallback. |
 | PROJ-007 | Recovery | Invalid or temporary nodes do not restore | automated | Unknown or malformed nodes are filtered, while unrestoreable nonempty snapshots fail closed rather than silently replacing user content. |
 
 ## Canvas Viewport And Selection
