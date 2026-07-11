@@ -8,6 +8,7 @@ import {
   createIdentityProviders,
   ConversationService,
   IdentityService,
+  OrderPaymentService,
   loadRewriteConfig,
   ProjectService,
   RewriteInfrastructure,
@@ -32,6 +33,7 @@ export class PlatformService implements OnApplicationShutdown {
   readonly assets: AssetService;
   readonly catalog: CatalogService;
   readonly conversations: ConversationService;
+  readonly orderPayments: OrderPaymentService;
 
   constructor() {
     this.config = loadRewriteConfig(process.env);
@@ -50,6 +52,7 @@ export class PlatformService implements OnApplicationShutdown {
     this.assets = new AssetService(this.infrastructure.database);
     this.catalog = new CatalogService(this.infrastructure.database);
     this.conversations = new ConversationService(this.infrastructure.database);
+    this.orderPayments = new OrderPaymentService(this.infrastructure.database, this.config.nodeEnvironment);
   }
 
   checkReadiness(): Promise<ReadinessResult> {

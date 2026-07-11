@@ -112,6 +112,16 @@ export interface CreditQuoteDto {
   totalCredits: number;
 }
 
+export interface OrderPaymentDto {
+  orderId: string;
+  paymentId: string;
+  provider: "wechat" | "alipay";
+  status: "pending" | "succeeded" | "failed" | "refunded" | "cancelled";
+  amountFen: number;
+  currency: string;
+  checkoutPayload: Record<string, unknown>;
+}
+
 export interface CanvasNodeDto {
   id: string;
   kind: string;

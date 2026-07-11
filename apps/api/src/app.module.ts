@@ -3,6 +3,7 @@ import { ConfigModule } from "@nestjs/config";
 
 import { AiJobsController } from "./ai-jobs/ai-jobs.controller.js";
 import { AssetsController } from "./assets.controller.js";
+import { BillingController } from "./billing.controller.js";
 import { SessionAuthGuard } from "./auth/auth-context.js";
 import { AuthController } from "./auth/auth.controller.js";
 import { CapabilitiesController } from "./capabilities.controller.js";
@@ -34,6 +35,7 @@ import { UploadsController } from "./uploads.controller.js";
     ProjectsController,
     UploadsController,
     AssetsController,
+    BillingController,
     AiJobsController,
     HomeController
   ],

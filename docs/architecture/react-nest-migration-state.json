@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "8",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-8.2-order-payment",
+  "nextWorkPackage": "WP-8.3-wechat-pay",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -57,13 +57,14 @@
     "WP-7.4-asset-collections",
     "WP-7.5-thumbnails",
     "WP-7.6-orphan-audit",
-    "WP-8.1-plan-entitlement"
+    "WP-8.1-plan-entitlement",
+    "WP-8.2-order-payment"
   ],
-  "lastCompletedWorkPackage": "WP-8.1-plan-entitlement",
+  "lastCompletedWorkPackage": "WP-8.2-order-payment",
   "lastVerification": {
-    "workPackage": "WP-8.1-plan-entitlement",
+    "workPackage": "WP-8.2-order-payment",
     "commands": [
-      "npm run governance:verify -- WP-8.1-plan-entitlement"
+      "npm run governance:verify -- WP-8.2-order-payment"
     ],
     "result": "passed",
     "verifiedAt": "2026-07-11"
@@ -124,6 +125,7 @@
     "Rewrite-only visual polish is constrained by react-visual-delta-allowlist.json; Legacy remains read-only.",
     "The concentrated React home and minimal canvas polish pass is complete with named Lucide imports, reduced-motion-safe micro interactions, responsive visual evidence, and no Legacy mutation.",
     "The rewrite capability registry and /api/v1/capabilities expose credential-free readiness; production actions remain fail-closed unless a capability is verified.",
+    "Provider-neutral checkout now creates idempotent pending orders and payment attempts; only a signature-verified payment.succeeded webhook can mark an order paid, activate credits entitlement, and append a credit grant ledger entry. Production payment provider placeholders still fail closed with PROVIDER_NOT_CONFIGURED until merchant integrations are verified.",
     "Identity provider contracts use deterministic development implementations and production fail-closed placeholders; real provider delivery, OAuth callbacks, and live verification remain deferred.",
     "Moderation, notification, and audit records now have workspace-scoped PostgreSQL persistence, idempotency keys, retry timestamps, and worker recovery seams; real external providers remain deferred.",
     "Billing domain foundation now defines integer-fen money, explicit order/payment/subscription state machines, and durable catalog/order/payment/subscription/entitlement/refund/invoice/event tables; merchant integrations remain deferred.",
