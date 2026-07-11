@@ -12,6 +12,14 @@ export interface WeChatPayConfig {
   liveVerified: boolean;
 }
 
+export interface AlipayConfig {
+  appId: string;
+  appPrivateKey: string;
+  alipayPublicKey: string;
+  notifyUrl: URL;
+  liveVerified: boolean;
+}
+
 export type RewriteNodeEnvironment = "development" | "test" | "production";
 
 export interface LocalStorageConfig {
@@ -42,6 +50,7 @@ export interface RewriteConfig {
     | { provider: "apimart"; apiKey: string; baseUrl: URL };
   workerConcurrency: number;
   wechatPay?: WeChatPayConfig;
+  alipay?: AlipayConfig;
 }
 
 const LOCAL_DATABASE_URL =
@@ -165,6 +174,7 @@ export function loadRewriteConfig(environment: NodeJS.ProcessEnv): RewriteConfig
   }
 
   const wechatPay = readWeChatPayConfig(environment, isProduction);
+  const alipay = readAlipayConfig(environment, isProduction);
 
   return {
     nodeEnvironment,
@@ -178,6 +188,21 @@ export function loadRewriteConfig(environment: NodeJS.ProcessEnv): RewriteConfig
     imageProvider,
     workerConcurrency,
     ...(wechatPay ? { wechatPay } : {})
+    , ...(alipay ? { alipay } : {})
+  };
+}
+
+function readAlipayConfig(environment: NodeJS.ProcessEnv, production: boolean): AlipayConfig | undefined {
+  const keys = ["ALIPAY_APP_ID", "ALIPAY_APP_PRIVATE_KEY", "ALIPAY_PUBLIC_KEY", "ALIPAY_NOTIFY_URL"] as const;
+  const supplied = keys.filter((key) => Boolean(environment[key]?.trim()));
+  if (supplied.length === 0) return undefined;
+  if (supplied.length !== keys.length) throw new Error(`Alipay configuration is incomplete: missing ${keys.filter((key) => !environment[key]?.trim()).join(", ")}.`);
+  return {
+    appId: requireValue(environment, "ALIPAY_APP_ID"),
+    appPrivateKey: requireValue(environment, "ALIPAY_APP_PRIVATE_KEY").replaceAll("\\n", "\n"),
+    alipayPublicKey: requireValue(environment, "ALIPAY_PUBLIC_KEY").replaceAll("\\n", "\n"),
+    notifyUrl: parseUrl(requireValue(environment, "ALIPAY_NOTIFY_URL"), "ALIPAY_NOTIFY_URL", production ? ["https:"] : ["http:", "https:"]),
+    liveVerified: environment.ALIPAY_LIVE_VERIFIED === "true"
   };
 }
 

@@ -56,7 +56,7 @@ export class PlatformService implements OnApplicationShutdown {
     this.orderPayments = new OrderPaymentService(
       this.infrastructure.database,
       this.config.nodeEnvironment,
-      createPaymentProviders(this.config.nodeEnvironment, "", this.config.wechatPay),
+      createPaymentProviders(this.config.nodeEnvironment, "", this.config.wechatPay, this.config.alipay),
       this.capabilities
     );
   }

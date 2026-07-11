@@ -2,6 +2,8 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { ApplicationError } from "../application/application-error.js";
 import type { WeChatPayConfig } from "../config/rewrite-config.js";
+import type { AlipayConfig } from "../config/rewrite-config.js";
+import { AlipayProvider } from "./alipay-provider.js";
 import { WeChatPayProvider } from "./wechat-pay-provider.js";
 
 export type PaymentProviderName = "wechat" | "alipay" | "renewal";
@@ -33,13 +35,14 @@ export interface PaymentProviders {
 export function createPaymentProviders(
   environment: "development" | "test" | "production",
   secret = "",
-  wechatPay?: WeChatPayConfig
+  wechatPay?: WeChatPayConfig,
+  alipay?: AlipayConfig
 ):
   PaymentProviders {
   if (environment === "production") {
     return {
       wechat: wechatPay ? new WeChatPayProvider(wechatPay) : new UnconfiguredPaymentProvider("wechat"),
-      alipay: new UnconfiguredPaymentProvider("alipay"),
+      alipay: alipay ? new AlipayProvider(alipay) : new UnconfiguredPaymentProvider("alipay"),
       renewal: new UnconfiguredPaymentProvider("renewal")
     };
   }

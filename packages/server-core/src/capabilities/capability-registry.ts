@@ -109,7 +109,7 @@ export function createCapabilityRegistry(config: RewriteConfig): CapabilityRegis
     "sms-notification": hasDevelopmentIdentityProviders ? "development" : "disabled",
     "audit-log": hasDevelopmentIdentityProviders ? "development" : "disabled",
     "wechat-pay": config.wechatPay ? (config.wechatPay.liveVerified ? "verified" : "configured") : hasDevelopmentIdentityProviders ? "development" : "disabled",
-    alipay: hasDevelopmentIdentityProviders ? "development" : "disabled",
+    alipay: config.alipay ? (config.alipay.liveVerified ? "verified" : "configured") : hasDevelopmentIdentityProviders ? "development" : "disabled",
     "automatic-renewal": "disabled"
   });
 }
