@@ -1690,7 +1690,7 @@
       "prerequisites": [
         "WP-6.4-image-generation"
       ],
-      "successor": "WP-6.6-video-generation",
+      "successor": "WP-G.3-video-scope-correction",
       "allowedAreas": [
         "apps/web/",
         "apps/api/",
@@ -1724,18 +1724,51 @@
       "visualDeltaIds": []
     },
     {
+      "id": "WP-G.3-video-scope-correction",
+      "stage": "6",
+      "title": "Video migration scope correction",
+      "objective": "Correct the video work-package boundary so durable Canvas video nodes are governed with the generation workflow.",
+      "prerequisites": [
+        "WP-6.5-image-edit"
+      ],
+      "successor": "WP-6.6-video-generation",
+      "allowedAreas": [
+        "docs/architecture/"
+      ],
+      "allowedDependencyFamilies": [],
+      "deliverables": [
+        "Video work package explicitly includes Canvas document support"
+      ],
+      "parityIds": [],
+      "targetedChecks": [
+        "npm run governance:check",
+        "npm run governance:verify -- WP-G.3-video-scope-correction"
+      ],
+      "acceptance": [
+        "WP-6.6 scope permits typed video node persistence without widening Legacy or unrelated packages"
+      ],
+      "legacyMutationAllowed": false,
+      "externalVerification": {
+        "mode": "none"
+      },
+      "verificationTier": "docs",
+      "verificationCommands": [],
+      "visualDeltaIds": []
+    },
+    {
       "id": "WP-6.6-video-generation",
       "stage": "6",
       "title": "Video generation workflow",
       "objective": "Migrate lazy video generation, polling, output, and recovery.",
       "prerequisites": [
-        "WP-6.5-image-edit"
+        "WP-G.3-video-scope-correction"
       ],
       "successor": "WP-6.7-heavy-3d-viewer",
       "allowedAreas": [
         "apps/web/",
         "apps/api/",
         "apps/worker/",
+        "packages/canvas-engine/",
         "packages/server-core/",
         "packages/contracts/",
         "docs/architecture/"

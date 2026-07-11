@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "6",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-6.6-video-generation",
+  "nextWorkPackage": "WP-G.3-video-scope-correction",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
