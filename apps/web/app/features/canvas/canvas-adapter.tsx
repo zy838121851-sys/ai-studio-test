@@ -1,6 +1,11 @@
 import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import {
   moveNodes,
+  penPathData,
+  appendPenPoint,
+  finishPenStroke,
+  startPenStroke,
+  upsertCanvasNode,
   selectNode,
   updateTextNode,
   type CanvasDocument,
@@ -14,10 +19,12 @@ import { useCanvasReceiverStore } from "./canvas-store.js";
 
 export function CanvasAdapter({
   document,
-  job
+  job,
+  activeTool = "select"
 }: {
   document: CanvasDocument;
   job: AiJobDto | undefined;
+  activeTool?: string;
 }) {
   const setDocument = useCanvasReceiverStore((state) => state.setDocument);
   const [selection, setSelection] = useState<SelectionState>({ selectedIds: [], focusedId: null });
@@ -28,6 +35,7 @@ export function CanvasAdapter({
     startX: number;
     startY: number;
   } | null>(null);
+  const penRef = useRef<ReturnType<typeof startPenStroke> | null>(null);
   const onPointerDown = (event: ReactPointerEvent<HTMLElement>, nodeId: string) => {
     if (event.button !== 0) return;
     event.stopPropagation();
@@ -43,6 +51,10 @@ export function CanvasAdapter({
     event.currentTarget.setPointerCapture(event.pointerId);
   };
   const onPointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+    if (activeTool === "pen" && penRef.current) {
+      penRef.current = appendPenPoint(penRef.current, { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY, pressure: event.pressure });
+      return;
+    }
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     nodesRef.current
@@ -53,6 +65,12 @@ export function CanvasAdapter({
       );
   };
   const onPointerUp = (event: ReactPointerEvent<HTMLElement>) => {
+    if (activeTool === "pen" && penRef.current) {
+      const completed = finishPenStroke(appendPenPoint(penRef.current, { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY, pressure: event.pressure }));
+      penRef.current = null;
+      if (completed) setDocument(upsertCanvasNode(document, completed));
+      return;
+    }
     const drag = dragRef.current;
     if (!drag || drag.pointerId !== event.pointerId) return;
     const dx = event.clientX - drag.startX;
@@ -76,7 +94,14 @@ export function CanvasAdapter({
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
-      onPointerDown={() => setSelection({ selectedIds: [], focusedId: null })}
+      onPointerDown={(event) => {
+        if (activeTool === "pen") {
+          penRef.current = startPenStroke(crypto.randomUUID(), { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY, pressure: event.pressure });
+          event.currentTarget.setPointerCapture(event.pointerId);
+          return;
+        }
+        setSelection({ selectedIds: [], focusedId: null });
+      }}
     >
       {document.nodes.map((node) => (
         <CanvasAdapterNode
@@ -131,6 +156,7 @@ function CanvasAdapterNode({
       </figure>
     );
   if (node.kind === "text") return <div ref={register} className={`canvas-text-node${selected ? " is-selected" : ""}`} style={{ ...style, color: node.color, fontFamily: node.fontFamily, fontSize: node.fontSize, fontWeight: node.fontWeight === "regular" ? 400 : node.fontWeight === "medium" ? 500 : 700, textAlign: node.align }} contentEditable suppressContentEditableWarning onBlur={(event) => onTextCommit(node.id, event.currentTarget.textContent ?? "")} onPointerDown={(event) => onPointerDown(event, node.id)}>{node.text}</div>;
+  if (node.kind === "pen") return <svg className={`canvas-pen-node${selected ? " is-selected" : ""}`} style={{ left: 0, top: 0, width: "100%", height: "100%" }} data-node-kind="pen"><path d={penPathData(node.points)} fill="none" stroke={node.color} strokeWidth={node.strokeWidth} strokeLinecap="round" strokeLinejoin="round" /></svg>;
   if (node.kind !== "pending-image") return null;
   const failed = job?.id === node.jobId && job.status === "failed";
   return (

@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "5",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-5.4-pen-tool",
+  "nextWorkPackage": "WP-5.5-laser-eraser",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -34,13 +34,14 @@
     "WP-4.7-canvas-performance-gate",
     "WP-5.1-tool-rail",
     "WP-5.2-shapes-arrows",
-    "WP-5.3-text-tool"
+    "WP-5.3-text-tool",
+    "WP-5.4-pen-tool"
   ],
-  "lastCompletedWorkPackage": "WP-5.3-text-tool",
+  "lastCompletedWorkPackage": "WP-5.4-pen-tool",
   "lastVerification": {
-    "workPackage": "WP-5.3-text-tool",
+    "workPackage": "WP-5.4-pen-tool",
     "commands": [
-      "npm run governance:verify -- WP-5.3-text-tool"
+      "npm run governance:verify -- WP-5.4-pen-tool"
     ],
     "result": "passed-with-local-infrastructure-blocker",
     "verifiedAt": "2026-07-11"
@@ -117,6 +118,7 @@
     "Rewrite Canvas tool rail now preserves tool identifiers, active/collapse state, submenu anchors, and mobile touch targets; shape and pen geometry remain in dedicated successor packages.",
     "Rewrite Canvas now has a registered shape/arrow engine, deterministic pointer-derived arrow geometry, and complete shape submenu IDs.",
     "Rewrite Canvas now has a registered text node with validated content and font formatting fields; Legacy text behavior remains untouched.",
+    "Rewrite Canvas pen now records actual pointer samples, commits a validated stroke on pointerup, and renders the same sampled SVG path.",
     "Stage 3.5 builds fail-closed SaaS provider, commercial, and compliance foundations before full canvas migration.",
     "The legacy runtime remains the default and is unchanged."
   ]

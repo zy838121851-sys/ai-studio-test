@@ -1,7 +1,8 @@
 import { SHAPE_REGISTRY, type CanvasArrowNode, type CanvasShapeNode } from "./shapes.js";
 import type { CanvasTextNode } from "./text.js";
+import type { CanvasPenNode } from "./pen.js";
 
-export type CanvasNode = CanvasImageNode | CanvasPendingImageNode | CanvasShapeNode | CanvasArrowNode | CanvasTextNode;
+export type CanvasNode = CanvasImageNode | CanvasPendingImageNode | CanvasShapeNode | CanvasArrowNode | CanvasTextNode | CanvasPenNode;
 
 export type { CanvasNodeDefinition, CanvasNodeKind, CanvasSnapshotMigration } from "./document-registry.js";
 
@@ -97,6 +98,7 @@ export * from "./selection.js";
 export * from "./transforms.js";
 export * from "./shapes.js";
 export * from "./text.js";
+export * from "./pen.js";
 
 export function fitCanvasNodeSize(
   width: number,
@@ -153,6 +155,11 @@ function normalizeCanvasNode(value: unknown): CanvasNode | null {
       color: typeof value.color === "string" ? value.color : "#1b2330",
       align: value.align === "center" || value.align === "right" ? value.align : "left"
     };
+  }
+
+  if (value.kind === "pen" && Array.isArray(value.points) && isNonEmptyString(value.color) && isPositiveFiniteNumber(value.strokeWidth)) {
+    const points = value.points.flatMap((point) => isRecord(point) && isFiniteNumber(point.x) && isFiniteNumber(point.y) && isFiniteNumber(point.pressure) ? [{ x: point.x, y: point.y, pressure: point.pressure }] : []);
+    return points.length >= 2 ? { ...base, kind: "pen", points, color: value.color, strokeWidth: value.strokeWidth } : null;
   }
 
   return null;

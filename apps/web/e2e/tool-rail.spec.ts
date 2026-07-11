@@ -30,3 +30,17 @@ test("mobile tool rail keeps touch-sized buttons", async ({ page }) => {
   expect(box?.width ?? 0).toBeGreaterThanOrEqual(44);
   expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
 });
+
+test("pen path follows sampled pointer movement", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/canvas/project-1");
+  await page.getByRole("button", { name: "Pen" }).click();
+  const surface = page.locator(".canvas-adapter");
+  const box = await surface.boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.move((box?.x ?? 0) + 100, (box?.y ?? 0) + 100);
+  await page.mouse.down();
+  await page.mouse.move((box?.x ?? 0) + 160, (box?.y ?? 0) + 145);
+  await page.mouse.up();
+  await expect(page.locator('[data-node-kind="pen"] path')).toHaveAttribute("d", /M.*L/);
+});

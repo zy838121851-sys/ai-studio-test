@@ -1261,6 +1261,7 @@
       "successor": "WP-5.5-laser-eraser",
       "allowedAreas": [
         "apps/web/app/features/canvas/",
+        "apps/web/e2e/",
         "packages/canvas-engine/",
         "docs/architecture/"
       ],

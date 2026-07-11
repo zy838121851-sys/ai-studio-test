@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { fitCanvasNodeSize, type CanvasNode } from "@ai-studio/canvas-engine";
 import type { AiJobDto } from "@ai-studio/contracts";
 import { ArrowLeft, CircleAlert, LoaderCircle } from "lucide-react";
@@ -13,6 +13,7 @@ import { CanvasToolRail } from "./tool-rail.js";
 import "./canvas.css";
 
 export function CanvasPage() {
+  const [activeTool, setActiveTool] = useState("select");
   const { projectId = "" } = useParams();
   const [searchParameters] = useSearchParams();
   const requestedJobId = searchParameters.get("jobId") ?? "";
@@ -68,7 +69,7 @@ export function CanvasPage() {
 
   return (
     <main className="canvas-receiver">
-      <CanvasToolRail />
+      <CanvasToolRail onToolChange={setActiveTool} />
       <header className="canvas-receiver__header">
         <Link className="canvas-receiver__brand" to="/" aria-label="返回 AI Studio 首页">
           D
@@ -85,7 +86,7 @@ export function CanvasPage() {
 
       <section className="canvas-receiver__surface" aria-label="项目画布">
         <div className="canvas-receiver__document">
-          {document ? <CanvasAdapter document={document} job={job} /> : null}
+          {document ? <CanvasAdapter document={document} job={job} activeTool={activeTool} /> : null}
           {document && document.nodes.length === 0 ? (
             <p className="canvas-receiver__empty">空白画布</p>
           ) : null}
