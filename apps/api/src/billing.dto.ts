@@ -7,3 +7,18 @@ export class CreateOrderPaymentDto {
   @IsIn(["wechat", "alipay"])
   provider!: "wechat" | "alipay";
 }
+
+export class CreateRefundDto {
+  @IsUUID()
+  paymentId!: string;
+
+  amountFen!: number;
+  reason = "";
+}
+
+export class CreateInvoiceRequestDto {
+  @IsUUID()
+  orderId!: string;
+  invoiceType!: string;
+  recipient!: Record<string, unknown>;
+}

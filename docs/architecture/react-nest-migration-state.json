@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "8",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-8.6-refunds-invoices",
+  "nextWorkPackage": "WP-8.7-reconciliation",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -61,13 +61,14 @@
     "WP-8.2-order-payment",
     "WP-8.3-wechat-pay",
     "WP-8.4-alipay",
-    "WP-8.5-subscriptions"
+    "WP-8.5-subscriptions",
+    "WP-8.6-refunds-invoices"
   ],
-  "lastCompletedWorkPackage": "WP-8.5-subscriptions",
+  "lastCompletedWorkPackage": "WP-8.6-refunds-invoices",
   "lastVerification": {
-    "workPackage": "WP-8.5-subscriptions",
+    "workPackage": "WP-8.6-refunds-invoices",
     "commands": [
-      "npm run governance:verify -- WP-8.5-subscriptions"
+      "npm run governance:verify -- WP-8.6-refunds-invoices"
     ],
     "result": "passed",
     "verifiedAt": "2026-07-11"
@@ -79,7 +80,8 @@
     "WP-3.5.5-payment-provider-contracts",
     "WP-8.3-wechat-pay",
     "WP-8.4-alipay",
-    "WP-8.5-subscriptions"
+    "WP-8.5-subscriptions",
+    "WP-8.6-refunds-invoices"
   ],
   "cutoverAllowed": false,
   "blockers": [
@@ -135,6 +137,7 @@
     "WeChat Pay now has a Native checkout, query, refund, request-signing, callback-signature, and AES-GCM notification-decryption adapter with deterministic cryptographic fixtures. Configured production capability remains disabled until WECHATPAY_LIVE_VERIFIED is set only after merchant-environment evidence; live merchant verification remains deferred to Stage 11.",
     "Alipay now has a precreate QR checkout, RSA2 form signing, asynchronous notification verification, query, and refund adapter with deterministic cryptographic fixtures. Configured production capability remains disabled until ALIPAY_LIVE_VERIFIED is set after merchant-environment evidence; live merchant verification remains deferred to Stage 11.",
     "Subscription lifecycle now has deterministic reminder, grace, cancellation, and expiry evaluation, workspace-scoped cancellation endpoints, and Worker-driven due-date scanning. Real automatic-renewal provider evidence remains deferred to Stage 11.",
+    "Refund requests now enforce workspace ownership, captured-payment status, idempotency, and cumulative amount limits before invoking the configured provider; invoice requests are restricted to paid orders. Provider live verification remains deferred to Stage 11.",
     "Identity provider contracts use deterministic development implementations and production fail-closed placeholders; real provider delivery, OAuth callbacks, and live verification remain deferred.",
     "Moderation, notification, and audit records now have workspace-scoped PostgreSQL persistence, idempotency keys, retry timestamps, and worker recovery seams; real external providers remain deferred.",
     "Billing domain foundation now defines integer-fen money, explicit order/payment/subscription state machines, and durable catalog/order/payment/subscription/entitlement/refund/invoice/event tables; merchant integrations remain deferred.",

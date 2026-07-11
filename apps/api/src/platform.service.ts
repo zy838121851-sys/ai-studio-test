@@ -10,6 +10,7 @@ import {
   ConversationService,
   IdentityService,
   OrderPaymentService,
+  RefundInvoiceService,
   SubscriptionService,
   loadRewriteConfig,
   ProjectService,
@@ -37,6 +38,7 @@ export class PlatformService implements OnApplicationShutdown {
   readonly conversations: ConversationService;
   readonly orderPayments: OrderPaymentService;
   readonly subscriptions: SubscriptionService;
+  readonly refundsInvoices: RefundInvoiceService;
 
   constructor() {
     this.config = loadRewriteConfig(process.env);
@@ -62,6 +64,10 @@ export class PlatformService implements OnApplicationShutdown {
       this.capabilities
     );
     this.subscriptions = new SubscriptionService(this.infrastructure.database);
+    this.refundsInvoices = new RefundInvoiceService(
+      this.infrastructure.database,
+      createPaymentProviders(this.config.nodeEnvironment, "", this.config.wechatPay, this.config.alipay)
+    );
   }
 
   checkReadiness(): Promise<ReadinessResult> {

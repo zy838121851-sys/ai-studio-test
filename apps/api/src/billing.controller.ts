@@ -5,7 +5,7 @@ import { ApplicationError } from "@ai-studio/server-core";
 import type { AuthContext, PaymentProviderName } from "@ai-studio/server-core";
 
 import { CurrentAuth, SessionAuthGuard } from "./auth/auth-context.js";
-import type { CreateOrderPaymentDto } from "./billing.dto.js";
+import type { CreateInvoiceRequestDto, CreateOrderPaymentDto, CreateRefundDto } from "./billing.dto.js";
 import { PlatformService } from "./platform.service.js";
 
 @ApiTags("billing")
@@ -67,6 +67,22 @@ export class BillingController {
     @Param("subscriptionId") subscriptionId: string
   ) {
     return this.platform.subscriptions.cancel(auth, subscriptionId);
+  }
+
+  @Post("refunds")
+  @UseGuards(SessionAuthGuard)
+  @ApiHeader({ name: "Idempotency-Key", required: true })
+  @ApiOperation({ summary: "Create a provider-backed refund request" })
+  createRefund(@CurrentAuth() auth: AuthContext, @Headers("idempotency-key") idempotencyKey: string | undefined, @Body() body: CreateRefundDto) {
+    if (!idempotencyKey) throw new ApplicationError("IDEMPOTENCY_KEY_REQUIRED", 400, "Idempotency-Key is required.");
+    return this.platform.refundsInvoices.requestRefund(auth, { ...body, idempotencyKey });
+  }
+
+  @Post("invoices")
+  @UseGuards(SessionAuthGuard)
+  @ApiOperation({ summary: "Request an invoice for a paid order" })
+  createInvoice(@CurrentAuth() auth: AuthContext, @Body() body: CreateInvoiceRequestDto) {
+    return this.platform.refundsInvoices.requestInvoice(auth, body);
   }
 }
 

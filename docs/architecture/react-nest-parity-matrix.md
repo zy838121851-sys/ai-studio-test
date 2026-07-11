@@ -133,7 +133,7 @@ An item is complete only when its status is approved and evidence points to pass
 | BILL-005 | Reminder | Pre-renewal notification evidence | not-started | |
 | BILL-006 | Cancel | Immediate accessible cancellation | not-started | |
 | BILL-007 | Refund | Request, provider result and ledger | partial | WeChat API v3 and Alipay refund request/response contracts are implemented; refund workflow, ledger reversal, and live merchant verification remain pending. |
-| BILL-008 | Invoice | Request and status | not-started | |
+| BILL-008 | Invoice | Request and status | partial | Workspace-scoped invoice requests are limited to paid orders; provider issuance and download remain pending. |
 | COMP-001 | Legal | Terms, privacy and refund rules | not-started | |
 | COMP-002 | Model disclosure | Model, provider and filing number | not-started | |
 | COMP-003 | Content safety | Input/output moderation and appeal | not-started | |
