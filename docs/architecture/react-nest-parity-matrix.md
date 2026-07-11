@@ -87,7 +87,7 @@ An item is complete only when its status is approved and evidence points to pass
 
 | ID | Surface | Required Behavior | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| MEDIA-001 | Upload node | Image/video/model node placement | not-started | |
+| MEDIA-001 | Upload node | Image/video/model node placement | partial | Protected image upload and workspace-scoped metadata/content routes are available; broader media node placement continues in dedicated media packages. |
 | MEDIA-002 | Pending image | Loading preview and status | automated | Durable job creation appends its own pending node; React route and generation recovery evidence cover the restored status. |
 | MEDIA-003 | Result image | Pending replacement, size and metadata | automated | Worker replaces only its matching pending node, preserving other canvas nodes; route and result-history Playwright evidence cover restoration. |
 | MEDIA-004 | Image toolbar | Crop, upscale, background, expand, text and 3D | not-started | |
@@ -95,7 +95,7 @@ An item is complete only when its status is approved and evidence points to pass
 | MEDIA-006 | Image edit | References, prompt and replacement | automated | Source image is validated and supplied as a protected Worker reference; edit prompt, replacement and failure recovery are covered by browser tests. |
 | MEDIA-007 | Video generator | Lazy form, pending, recovery and result | partial | Canvas composer exposes enabled video models; APIMART task creation, polling, protected result storage, and persistent video nodes are implemented. Live provider verification remains deferred. |
 | MEDIA-008 | 3D viewer | Lazy Three.js viewer and controls | partial | Three.js, GLTFLoader, and OrbitControls lazy-load only for model nodes; pointer controls, resize handling, double-click reset, fallback geometry, and failure status are preserved. |
-| MEDIA-009 | Download | Authenticated source and stable filename | not-started | |
+| MEDIA-009 | Download | Authenticated source and stable filename | automated | Upload-ID routes provide authenticated inline and attachment responses with stable filename, private cache, and nosniff headers. |
 
 ## Chat And Task Log
 
@@ -114,13 +114,13 @@ An item is complete only when its status is approved and evidence points to pass
 
 | ID | Surface | Required Behavior | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| ASSET-001 | Upload | Upload and server registration | not-started | |
+| ASSET-001 | Upload | Upload and server registration | automated | Workspace-scoped image upload persists metadata and a stable protected upload-ID URL. |
 | ASSET-002 | Collections | Create, list and move | not-started | |
 | ASSET-003 | Library | Masonry/list, preview and pagination | not-started | |
 | ASSET-004 | Canvas insert | Insert at expected world position | not-started | |
 | ASSET-005 | Favorite/save | Save generated media to a collection | not-started | |
 | ASSET-006 | Delete | Backend delete with failure handling | not-started | |
-| ASSET-007 | Protected read | Cross-workspace access denied | not-started | |
+| ASSET-007 | Protected read | Cross-workspace access denied | automated | Metadata, inline content, and attachment download resolve through workspace-scoped upload IDs without exposing storage keys. |
 
 ## Commercial And Compliance
 

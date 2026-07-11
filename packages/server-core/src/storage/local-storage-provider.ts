@@ -2,7 +2,6 @@ import { mkdir, readFile, rm, stat, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 import {
-  encodeStorageKey,
   normalizeStorageKey,
   type PutStorageObject,
   type StorageObjectMetadata,
@@ -64,8 +63,8 @@ export class LocalStorageProvider implements StorageProvider {
     await rm(this.resolvePath(this.normalizeKey(key)), { force: true });
   }
 
-  async createReadUrl(key: string): Promise<string> {
-    return `/api/v1/uploads/content/${encodeStorageKey(key)}`;
+  async createReadUrl(): Promise<string> {
+    throw new Error("Protected media URLs must be resolved through UploadService by upload id.");
   }
 
   async createUploadUrl(): Promise<string> {

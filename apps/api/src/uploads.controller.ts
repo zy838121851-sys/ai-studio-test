@@ -58,9 +58,31 @@ export class UploadsController {
     @Res() reply: FastifyReply
   ): Promise<void> {
     const content = await this.platform.uploads.getContent(auth, uploadId);
-    reply.header("content-type", content.contentType);
-    reply.header("content-disposition", `inline; filename="${encodeURIComponent(content.originalName)}"`);
-    reply.header("cache-control", "private, max-age=300");
+    applyProtectedMediaHeaders(reply, content, "inline");
     await reply.send(content.body);
   }
+
+  @Get(":uploadId/download")
+  @ApiOperation({ summary: "Download protected upload content" })
+  async download(
+    @CurrentAuth() auth: AuthContext,
+    @Param("uploadId") uploadId: string,
+    @Res() reply: FastifyReply
+  ): Promise<void> {
+    const content = await this.platform.uploads.getDownload(auth, uploadId);
+    applyProtectedMediaHeaders(reply, content, "attachment");
+    await reply.send(content.body);
+  }
+}
+
+function applyProtectedMediaHeaders(
+  reply: FastifyReply,
+  content: { contentType: string; originalName: string },
+  disposition: "inline" | "attachment"
+): void {
+  const filename = encodeURIComponent(content.originalName).replaceAll("'", "%27");
+  reply.header("content-type", content.contentType);
+  reply.header("content-disposition", `${disposition}; filename*=UTF-8''${filename}`);
+  reply.header("cache-control", "private, max-age=300");
+  reply.header("x-content-type-options", "nosniff");
 }
