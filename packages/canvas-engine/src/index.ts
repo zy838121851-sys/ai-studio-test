@@ -6,8 +6,9 @@ import {
 } from "./shapes.js";
 import type { CanvasTextNode } from "./text.js";
 import type { CanvasPenNode } from "./pen.js";
+import type { CanvasModelNode } from "./model.js";
 
-export type CanvasNode = CanvasImageNode | CanvasPendingImageNode | CanvasShapeNode | CanvasArrowNode | CanvasTextNode | CanvasPenNode;
+export type CanvasNode = CanvasImageNode | CanvasPendingImageNode | CanvasShapeNode | CanvasArrowNode | CanvasTextNode | CanvasPenNode | CanvasModelNode;
 
 export type { CanvasNodeDefinition, CanvasNodeKind, CanvasSnapshotMigration } from "./document-registry.js";
 
@@ -106,6 +107,7 @@ export * from "./text.js";
 export * from "./pen.js";
 export * from "./laser-eraser.js";
 export * from "./image-transform.js";
+export * from "./model.js";
 
 export function fitCanvasNodeSize(
   width: number,
@@ -139,6 +141,10 @@ function normalizeCanvasNode(value: unknown): CanvasNode | null {
       sourceUrl: value.sourceUrl,
       alt: typeof value.alt === "string" && value.alt.trim() ? value.alt : "生成图片"
     };
+  }
+
+  if (value.kind === "model" && isNonEmptyString(value.sourceUrl)) {
+    return { ...base, kind: "model", sourceUrl: value.sourceUrl, title: typeof value.title === "string" ? value.title : "3D model" };
   }
 
   if (value.kind === "shape" && isNonEmptyString(value.shapeType) && SHAPE_REGISTRY.includes(value.shapeType as CanvasShapeNode["shapeType"])) {

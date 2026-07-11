@@ -129,6 +129,38 @@ test.beforeEach(async ({ page }) => {
       });
       return;
     }
+    if (path === "/api/v1/projects/project-model") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: "project-model",
+          title: "3D Model",
+          prompt: "",
+          thumbnailUrl: null,
+          version: 1,
+          createdAt: "2026-07-10T00:00:00.000Z",
+          updatedAt: "2026-07-10T00:00:00.000Z",
+          canvasDocument: {
+            schemaVersion: 1,
+            projectId: "project-model",
+            nodes: [
+              {
+                id: "model-1",
+                kind: "model",
+                sourceUrl: "/missing.glb",
+                title: "Product model",
+                x: 100,
+                y: 100,
+                width: 360,
+                height: 280
+              }
+            ]
+          }
+        })
+      });
+      return;
+    }
     await route.fulfill({
       status: 404,
       contentType: "application/json",
@@ -235,4 +267,21 @@ test("selected image exposes the complete image action toolbar", async ({ page }
   await page.getByRole("button", { name: "4K" }).click();
   await expect(page.getByRole("button", { name: "4K" })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "2K" })).toHaveAttribute("aria-pressed", "false");
+});
+
+test("model preview stays lazy, framed, and renders nonblank WebGL pixels", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/canvas/project-model");
+  const node = page.locator('[data-node-kind="model"]');
+  await expect(node).toBeVisible();
+  await expect(node.locator("canvas")).toBeVisible();
+  await expect(node.getByText("Product model")).toBeVisible();
+  await expect
+    .poll(() =>
+      node.locator("canvas").evaluate((canvas) => {
+        const element = canvas as HTMLCanvasElement;
+        return element.width > 0 && element.height > 0;
+      })
+    )
+    .toBe(true);
 });

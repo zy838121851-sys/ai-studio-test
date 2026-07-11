@@ -16,7 +16,8 @@ export const CANVAS_NODE_REGISTRY: Readonly<Record<CanvasNodeKind, CanvasNodeDef
   shape: { kind: "shape", persistent: true, temporary: false },
   arrow: { kind: "arrow", persistent: true, temporary: false },
   text: { kind: "text", persistent: true, temporary: false },
-  pen: { kind: "pen", persistent: true, temporary: false }
+  pen: { kind: "pen", persistent: true, temporary: false },
+  model: { kind: "model", persistent: true, temporary: false }
 };
 
 export interface CanvasSnapshotMigration {

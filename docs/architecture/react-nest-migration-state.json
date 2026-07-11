@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "5",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-5.9-model-3d",
+  "nextWorkPackage": "WP-5.10-keyboard-stack",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -39,13 +39,14 @@
     "WP-5.5-laser-eraser",
     "WP-5.6-format-toolbars",
     "WP-5.7-image-toolbar",
-    "WP-5.8-crop-upscale-expand"
+    "WP-5.8-crop-upscale-expand",
+    "WP-5.9-model-3d"
   ],
-  "lastCompletedWorkPackage": "WP-5.8-crop-upscale-expand",
+  "lastCompletedWorkPackage": "WP-5.9-model-3d",
   "lastVerification": {
-    "workPackage": "WP-5.8-crop-upscale-expand",
+    "workPackage": "WP-5.9-model-3d",
     "commands": [
-      "npm run governance:verify -- WP-5.8-crop-upscale-expand"
+      "npm run governance:verify -- WP-5.9-model-3d"
     ],
     "result": "passed",
     "verifiedAt": "2026-07-11"
@@ -127,6 +128,7 @@
     "Rewrite Canvas shape and text format toolbars now appear only for a selected compatible node and update persistent node style fields without Legacy mutation.",
     "Rewrite Canvas image nodes now expose the legacy action set through a typed toolbar command boundary; crop, upscale, expansion, and 3D execution remain in their dedicated successor packages.",
     "Rewrite image transformation jobs now persist a typed source-node reference, dispatch through the Worker provider seam, and replace only the source image on completion.",
+    "Rewrite Canvas model nodes now restore as persistent business nodes and load Three.js plus GLTFLoader only when a visible model preview mounts.",
     "Stage 3.5 builds fail-closed SaaS provider, commercial, and compliance foundations before full canvas migration.",
     "The legacy runtime remains the default and is unchanged."
   ]

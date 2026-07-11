@@ -1,4 +1,11 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import {
+  lazy,
+  Suspense,
+  useEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent
+} from "react";
 import {
   LASER_TRAIL_MS,
   appendLaserPoint,
@@ -24,6 +31,10 @@ import { CircleAlert, LoaderCircle } from "lucide-react";
 
 import { useCanvasReceiverStore } from "./canvas-store.js";
 import { ImageToolbar, type ImageToolbarCommand } from "./image-toolbar.js";
+
+const ModelPreview = lazy(() =>
+  import("./model-preview.js").then((module) => ({ default: module.ModelPreview }))
+);
 
 export function CanvasAdapter({
   document,
@@ -320,6 +331,20 @@ function CanvasAdapterNode({
           strokeLinejoin="round"
         />
       </svg>
+    );
+  if (node.kind === "model")
+    return (
+      <section
+        ref={register}
+        className={`canvas-model-node${selected ? " is-selected" : ""}`}
+        style={style}
+        data-node-kind="model"
+        onPointerDown={(event) => onPointerDown(event, node.id)}
+      >
+        <Suspense fallback={<div className="canvas-model-preview">Loading 3D</div>}>
+          <ModelPreview sourceUrl={node.sourceUrl} title={node.title} />
+        </Suspense>
+      </section>
     );
   if (node.kind === "shape")
     return (

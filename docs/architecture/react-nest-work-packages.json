@@ -1452,6 +1452,7 @@
       "successor": "WP-5.10-keyboard-stack",
       "allowedAreas": [
         "apps/web/",
+        "package-lock.json",
         "packages/canvas-engine/",
         "packages/contracts/",
         "docs/architecture/"

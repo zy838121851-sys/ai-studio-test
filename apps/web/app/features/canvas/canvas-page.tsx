@@ -34,6 +34,9 @@ export function CanvasPage() {
   const jobQuery = useCanvasJobQuery(activeJobId);
   const refreshedTerminalJob = useRef("");
   const submitImageCommand = async (command: ImageToolbarCommand) => {
+    if (command.action === "generate-3d") {
+      return;
+    }
     const transformKind =
       command.action === "upscale"
         ? "upscale"
