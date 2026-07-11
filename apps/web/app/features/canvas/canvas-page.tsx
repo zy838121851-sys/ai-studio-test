@@ -14,6 +14,7 @@ import {
 } from "./canvas-api.js";
 import { CanvasChatComposer, type ChatAttachment } from "./chat-composer.js";
 import { CanvasConversationHistory } from "./conversation-history.js";
+import { ImageEditDialog } from "./image-edit-dialog.js";
 import type { CanvasImageReference } from "./canvas-reference.js";
 import { useCanvasReceiverStore } from "./canvas-store.js";
 import { CanvasAdapter } from "./canvas-adapter.js";
@@ -25,6 +26,8 @@ import "./canvas.css";
 export function CanvasPage() {
   const [activeTool, setActiveTool] = useState("select");
   const [canvasReferences, setCanvasReferences] = useState<CanvasImageReference[]>([]);
+  const [editNodeId, setEditNodeId] = useState<string | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const { projectId = "" } = useParams();
   const [searchParameters] = useSearchParams();
   const requestedJobId = searchParameters.get("jobId") ?? "";
@@ -71,6 +74,10 @@ export function CanvasPage() {
     }
   });
   const submitImageCommand = async (command: ImageToolbarCommand) => {
+    if (command.action === "edit-text") {
+      setEditNodeId(command.nodeId);
+      return;
+    }
     if (command.action === "generate-3d") {
       return;
     }
@@ -81,11 +88,9 @@ export function CanvasPage() {
           ? "remove-background"
           : command.action === "expand"
             ? "expand"
-            : command.action === "edit-text"
-              ? "edit-text"
-              : command.action === "crop"
-                ? "crop"
-                : null;
+            : command.action === "crop"
+              ? "crop"
+              : null;
     if (!transformKind) return;
     await createAiJob({
       projectId,
@@ -97,6 +102,25 @@ export function CanvasPage() {
       transformKind
     });
     await projectQuery.refetch();
+  };
+  const submitImageEdit = async (prompt: string) => {
+    if (!editNodeId) return;
+    setIsEditing(true);
+    try {
+      await createAiJob({
+        projectId,
+        modelId: "gpt-image-2",
+        prompt,
+        uploadIds: [],
+        idempotencyKey: crypto.randomUUID(),
+        transformSourceNodeId: editNodeId,
+        transformKind: "edit-text"
+      });
+      setEditNodeId(null);
+      await Promise.all([projectQuery.refetch(), conversationQuery.refetch()]);
+    } finally {
+      setIsEditing(false);
+    }
   };
 
   useEffect(() => {
@@ -176,6 +200,12 @@ export function CanvasPage() {
           onSubmit={(input) => chatGenerationMutation.mutateAsync(input).then(() => undefined)}
         />
       </aside>
+      <ImageEditDialog
+        open={Boolean(editNodeId)}
+        submitting={isEditing}
+        onClose={() => setEditNodeId(null)}
+        onSubmit={submitImageEdit}
+      />
     </main>
   );
 }

@@ -94,15 +94,21 @@ export class AiJobService {
         project.id,
         context.userId
       );
+      const sourceUploadId = input.transformSourceNodeId
+        ? uploadIdFromCanvasNode(project.canvasDocument, project.id, input.transformSourceNodeId)
+        : null;
+      const jobUploadIds = sourceUploadId
+        ? [...new Set([...uploadIds, sourceUploadId])]
+        : uploadIds;
 
-      if (uploadIds.length > 0) {
+      if (jobUploadIds.length > 0) {
         const ownedUploads = await transaction
           .select({ id: uploads.id })
           .from(uploads)
           .where(
-            and(eq(uploads.workspaceId, context.workspaceId), inArray(uploads.id, uploadIds))
+            and(eq(uploads.workspaceId, context.workspaceId), inArray(uploads.id, jobUploadIds))
           );
-        if (ownedUploads.length !== uploadIds.length) {
+        if (ownedUploads.length !== jobUploadIds.length) {
           throw new ApplicationError("UPLOAD_NOT_FOUND", 404, "参考图不存在或无权访问");
         }
       }
@@ -148,7 +154,7 @@ export class AiJobService {
           modelId: model.id,
           input: {
             prompt,
-            uploadIds,
+            uploadIds: jobUploadIds,
             ...(input.transformSourceNodeId ? { transformSourceNodeId: input.transformSourceNodeId } : {}),
             ...(input.transformKind ? { transformKind: input.transformKind } : {})
           },
@@ -166,7 +172,7 @@ export class AiJobService {
           role: "user",
           status: "completed",
           content: prompt,
-          attachmentUploadIds: uploadIds
+          attachmentUploadIds: jobUploadIds
         },
         {
           workspaceId: context.workspaceId,
@@ -635,6 +641,23 @@ function parseJobInput(value: Record<string, unknown>): {
         ? value.transformKind
         : null
   };
+}
+
+function uploadIdFromCanvasNode(
+  canvasDocument: Record<string, unknown>,
+  projectId: string,
+  nodeId: string
+): string | null {
+  const document = normalizeCanvasDocument(canvasDocument, projectId);
+  const node = document.nodes.find((candidate) => candidate.id === nodeId);
+  if (!node || node.kind !== "image") {
+    throw new ApplicationError("IMAGE_SOURCE_NOT_FOUND", 404, "The selected image is unavailable.");
+  }
+  const match = /^\/api\/v1\/uploads\/([^/]+)\/content$/.exec(node.sourceUrl);
+  if (!match?.[1]) {
+    throw new ApplicationError("IMAGE_SOURCE_NOT_EDITABLE", 400, "The selected image cannot be edited.");
+  }
+  return match[1];
 }
 
 export function toAiJobDto(job: AiJobRow): AiJobDto {

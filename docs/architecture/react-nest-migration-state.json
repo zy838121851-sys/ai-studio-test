@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "6",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-6.5-image-edit",
+  "nextWorkPackage": "WP-6.6-video-generation",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -45,13 +45,14 @@
     "WP-6.1-chat-composer",
     "WP-6.2-canvas-reference",
     "WP-6.3-conversation-persistence",
-    "WP-6.4-image-generation"
+    "WP-6.4-image-generation",
+    "WP-6.5-image-edit"
   ],
-  "lastCompletedWorkPackage": "WP-6.4-image-generation",
+  "lastCompletedWorkPackage": "WP-6.5-image-edit",
   "lastVerification": {
-    "workPackage": "WP-6.4-image-generation",
+    "workPackage": "WP-6.5-image-edit",
     "commands": [
-      "npm run governance:verify -- WP-6.4-image-generation"
+      "npm run governance:verify -- WP-6.5-image-edit"
     ],
     "result": "passed",
     "verifiedAt": "2026-07-11"

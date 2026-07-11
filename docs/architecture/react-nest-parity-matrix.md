@@ -92,7 +92,7 @@ An item is complete only when its status is approved and evidence points to pass
 | MEDIA-003 | Result image | Pending replacement, size and metadata | automated | Worker replaces only its matching pending node, preserving other canvas nodes; route and result-history Playwright evidence cover restoration. |
 | MEDIA-004 | Image toolbar | Crop, upscale, background, expand, text and 3D | not-started | |
 | MEDIA-005 | Image generator | Form, references, model, count and result | automated | Canvas composer accepts prompt, references and selected model; durable job/credit workflow restores pending and final results. |
-| MEDIA-006 | Image edit | References, prompt and replacement | not-started | |
+| MEDIA-006 | Image edit | References, prompt and replacement | automated | Source image is validated and supplied as a protected Worker reference; edit prompt, replacement and failure recovery are covered by browser tests. |
 | MEDIA-007 | Video generator | Lazy form, pending, recovery and result | not-started | |
 | MEDIA-008 | 3D viewer | Lazy Three.js viewer and controls | not-started | |
 | MEDIA-009 | Download | Authenticated source and stable filename | not-started | |

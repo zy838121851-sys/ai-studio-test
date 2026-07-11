@@ -294,3 +294,52 @@ test("canvas restores a completed image result in conversation history", async (
     "/uploads/result.png"
   );
 });
+
+test("image edit opens a prompt dialog and creates a source-bound edit job", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  let jobPayload: Record<string, unknown> | undefined;
+  await page.route("**/api/v1/ai-jobs", async (route) => {
+    jobPayload = route.request().postDataJSON() as Record<string, unknown>;
+    await route.fulfill({
+      status: 201,
+      contentType: "application/json",
+      body: JSON.stringify({ id: "job-edit", projectId: "project-chat-image", status: "queued" })
+    });
+  });
+  await page.goto("/canvas/project-chat-image");
+  await page.locator('[data-node-kind="image"]').click({ position: { x: 40, y: 40 } });
+  const toolbar = page.getByRole("toolbar");
+  await toolbar.getByRole("button").nth(4).click();
+  const dialog = page.getByRole("dialog", { name: "Edit image" });
+  await expect(dialog).toBeVisible();
+  await dialog.getByLabel("Edit prompt").fill("Replace the background with blue sky");
+  await dialog.getByRole("button", { name: "Apply" }).click();
+  await expect.poll(() => jobPayload).toBeDefined();
+  expect(jobPayload).toMatchObject({
+    projectId: "project-chat-image",
+    transformSourceNodeId: "image-1",
+    transformKind: "edit-text",
+    prompt: "Replace the background with blue sky"
+  });
+});
+
+test("image edit preserves the prompt and reports a task creation failure", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.route("**/api/v1/ai-jobs", async (route) => {
+    await route.fulfill({
+      status: 400,
+      contentType: "application/json",
+      body: JSON.stringify({
+        error: { code: "IMAGE_SOURCE_NOT_EDITABLE", message: "Image cannot be edited" }
+      })
+    });
+  });
+  await page.goto("/canvas/project-chat-image");
+  await page.locator('[data-node-kind="image"]').click({ position: { x: 40, y: 40 } });
+  await page.getByRole("toolbar").getByRole("button").nth(4).click();
+  const dialog = page.getByRole("dialog", { name: "Edit image" });
+  await dialog.getByLabel("Edit prompt").fill("Change the color");
+  await dialog.getByRole("button", { name: "Apply" }).click();
+  await expect(dialog.getByRole("alert")).toHaveText("Image cannot be edited");
+  await expect(dialog.getByLabel("Edit prompt")).toHaveValue("Change the color");
+});
