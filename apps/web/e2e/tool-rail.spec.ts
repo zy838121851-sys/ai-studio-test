@@ -4,10 +4,58 @@ test.beforeEach(async ({ page }) => {
   await page.route("**/api/v1/**", async (route) => {
     const path = new URL(route.request().url()).pathname;
     if (path === "/api/v1/projects/project-1") {
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ id: "project-1", title: "Fresh Ideas", prompt: "", thumbnailUrl: null, version: 1, createdAt: "2026-07-10T00:00:00.000Z", updatedAt: "2026-07-10T00:00:00.000Z", canvasDocument: { schemaVersion: 1, projectId: "project-1", nodes: [] } }) });
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: "project-1",
+          title: "Fresh Ideas",
+          prompt: "",
+          thumbnailUrl: null,
+          version: 1,
+          createdAt: "2026-07-10T00:00:00.000Z",
+          updatedAt: "2026-07-10T00:00:00.000Z",
+          canvasDocument: { schemaVersion: 1, projectId: "project-1", nodes: [] }
+        })
+      });
       return;
     }
-    await route.fulfill({ status: 404, contentType: "application/json", body: JSON.stringify({ error: { code: "NOT_FOUND", message: "not found" } }) });
+    if (path === "/api/v1/projects/project-eraser") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: "project-eraser",
+          title: "Eraser",
+          prompt: "",
+          thumbnailUrl: null,
+          version: 1,
+          createdAt: "2026-07-10T00:00:00.000Z",
+          updatedAt: "2026-07-10T00:00:00.000Z",
+          canvasDocument: {
+            schemaVersion: 1,
+            projectId: "project-eraser",
+            nodes: [
+              {
+                id: "pending-1",
+                kind: "pending-image",
+                jobId: "job-1",
+                x: 100,
+                y: 100,
+                width: 100,
+                height: 100
+              }
+            ]
+          }
+        })
+      });
+      return;
+    }
+    await route.fulfill({
+      status: 404,
+      contentType: "application/json",
+      body: JSON.stringify({ error: { code: "NOT_FOUND", message: "not found" } })
+    });
   });
 });
 
@@ -43,4 +91,33 @@ test("pen path follows sampled pointer movement", async ({ page }) => {
   await page.mouse.move((box?.x ?? 0) + 160, (box?.y ?? 0) + 145);
   await page.mouse.up();
   await expect(page.locator('[data-node-kind="pen"] path')).toHaveAttribute("d", /M.*L/);
+});
+
+test("laser path follows sampled pointer movement", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/canvas/project-1");
+  await page.getByRole("button", { name: "Laser" }).click();
+  const surface = page.locator(".canvas-adapter");
+  const box = await surface.boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.move((box?.x ?? 0) + 100, (box?.y ?? 0) + 100);
+  await page.mouse.down();
+  await page.mouse.move((box?.x ?? 0) + 160, (box?.y ?? 0) + 145);
+  await expect(page.locator(".canvas-laser-overlay polyline")).toHaveAttribute(
+    "points",
+    /100,100.*160,145/
+  );
+  await page.mouse.up();
+});
+
+test("eraser only removes the node at the sampled pointer location", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/canvas/project-eraser");
+  await expect(page.locator('[data-node-kind="pending-image"]')).toBeVisible();
+  await page.getByRole("button", { name: "Eraser" }).click();
+  const surface = page.locator(".canvas-adapter");
+  const box = await surface.boundingBox();
+  expect(box).not.toBeNull();
+  await page.mouse.click((box?.x ?? 0) + 130, (box?.y ?? 0) + 130);
+  await expect(page.locator('[data-node-kind="pending-image"]')).toHaveCount(0);
 });

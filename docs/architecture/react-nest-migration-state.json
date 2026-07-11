@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "5",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-5.5-laser-eraser",
+  "nextWorkPackage": "WP-5.6-format-toolbars",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -35,15 +35,16 @@
     "WP-5.1-tool-rail",
     "WP-5.2-shapes-arrows",
     "WP-5.3-text-tool",
-    "WP-5.4-pen-tool"
+    "WP-5.4-pen-tool",
+    "WP-5.5-laser-eraser"
   ],
-  "lastCompletedWorkPackage": "WP-5.4-pen-tool",
+  "lastCompletedWorkPackage": "WP-5.5-laser-eraser",
   "lastVerification": {
-    "workPackage": "WP-5.4-pen-tool",
+    "workPackage": "WP-5.5-laser-eraser",
     "commands": [
-      "npm run governance:verify -- WP-5.4-pen-tool"
+      "npm run governance:verify -- WP-5.5-laser-eraser"
     ],
-    "result": "passed-with-local-infrastructure-blocker",
+    "result": "passed",
     "verifiedAt": "2026-07-11"
   },
   "deferredExternalWorkPackages": [
@@ -119,6 +120,7 @@
     "Rewrite Canvas now has a registered shape/arrow engine, deterministic pointer-derived arrow geometry, and complete shape submenu IDs.",
     "Rewrite Canvas now has a registered text node with validated content and font formatting fields; Legacy text behavior remains untouched.",
     "Rewrite Canvas pen now records actual pointer samples, commits a validated stroke on pointerup, and renders the same sampled SVG path.",
+    "Rewrite Canvas laser and eraser now use the canvas-relative pointer coordinates for transient trails and circular node hit testing; the laser tail expires after 420 milliseconds.",
     "Stage 3.5 builds fail-closed SaaS provider, commercial, and compliance foundations before full canvas migration.",
     "The legacy runtime remains the default and is unchanged."
   ]

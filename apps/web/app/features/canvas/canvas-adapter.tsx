@@ -1,12 +1,16 @@
-import { useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import {
-  moveNodes,
-  penPathData,
+  LASER_TRAIL_MS,
+  appendLaserPoint,
+  eraseAt,
   appendPenPoint,
   finishPenStroke,
+  moveNodes,
+  penPathData,
+  selectNode,
+  pruneLaserPoints,
   startPenStroke,
   upsertCanvasNode,
-  selectNode,
   updateTextNode,
   type CanvasDocument,
   type CanvasNode,
@@ -28,6 +32,11 @@ export function CanvasAdapter({
 }) {
   const setDocument = useCanvasReceiverStore((state) => state.setDocument);
   const [selection, setSelection] = useState<SelectionState>({ selectedIds: [], focusedId: null });
+  const [laserPoints, setLaserPoints] = useState<readonly { x: number; y: number; at: number }[]>(
+    []
+  );
+  const adapterRef = useRef<HTMLDivElement>(null);
+  const documentRef = useRef(document);
   const nodesRef = useRef(new Map<string, HTMLElement>());
   const dragRef = useRef<{
     nodeId: string;
@@ -36,9 +45,48 @@ export function CanvasAdapter({
     startY: number;
   } | null>(null);
   const penRef = useRef<ReturnType<typeof startPenStroke> | null>(null);
+  useEffect(() => {
+    documentRef.current = document;
+  }, [document]);
+  useEffect(() => {
+    const newest = laserPoints.at(-1);
+    if (!newest) return;
+    const delay = Math.max(0, LASER_TRAIL_MS - (Date.now() - newest.at));
+    const timeout = window.setTimeout(
+      () => setLaserPoints((points) => pruneLaserPoints(points, Date.now())),
+      delay + 1
+    );
+    return () => window.clearTimeout(timeout);
+  }, [laserPoints]);
+  const canvasPoint = (event: ReactPointerEvent<HTMLElement>) => {
+    const bounds = adapterRef.current?.getBoundingClientRect();
+    return {
+      x: event.clientX - (bounds?.left ?? 0),
+      y: event.clientY - (bounds?.top ?? 0)
+    };
+  };
+  const startLaser = (event: ReactPointerEvent<HTMLElement>) => {
+    const now = Date.now();
+    setLaserPoints([{ ...canvasPoint(event), at: now }]);
+  };
+  const eraseAtPointer = (event: ReactPointerEvent<HTMLElement>) => {
+    const next = eraseAt(documentRef.current, canvasPoint(event), 18);
+    documentRef.current = next;
+    setDocument(next);
+  };
   const onPointerDown = (event: ReactPointerEvent<HTMLElement>, nodeId: string) => {
     if (event.button !== 0) return;
     event.stopPropagation();
+    if (activeTool === "laser") {
+      startLaser(event);
+      event.currentTarget.setPointerCapture(event.pointerId);
+      return;
+    }
+    if (activeTool === "eraser") {
+      eraseAtPointer(event);
+      event.currentTarget.setPointerCapture(event.pointerId);
+      return;
+    }
     setSelection((current) =>
       selectNode(current, nodeId, { additive: event.shiftKey || event.metaKey || event.ctrlKey })
     );
@@ -51,8 +99,22 @@ export function CanvasAdapter({
     event.currentTarget.setPointerCapture(event.pointerId);
   };
   const onPointerMove = (event: ReactPointerEvent<HTMLElement>) => {
+    if (activeTool === "laser" && event.buttons) {
+      const now = Date.now();
+      setLaserPoints((points) =>
+        pruneLaserPoints(appendLaserPoint(points, { ...canvasPoint(event), at: now }), now)
+      );
+      return;
+    }
+    if (activeTool === "eraser" && event.buttons) {
+      eraseAtPointer(event);
+      return;
+    }
     if (activeTool === "pen" && penRef.current) {
-      penRef.current = appendPenPoint(penRef.current, { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY, pressure: event.pressure });
+      penRef.current = appendPenPoint(penRef.current, {
+        ...canvasPoint(event),
+        pressure: event.pressure
+      });
       return;
     }
     const drag = dragRef.current;
@@ -66,7 +128,9 @@ export function CanvasAdapter({
   };
   const onPointerUp = (event: ReactPointerEvent<HTMLElement>) => {
     if (activeTool === "pen" && penRef.current) {
-      const completed = finishPenStroke(appendPenPoint(penRef.current, { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY, pressure: event.pressure }));
+      const completed = finishPenStroke(
+        appendPenPoint(penRef.current, { ...canvasPoint(event), pressure: event.pressure })
+      );
       penRef.current = null;
       if (completed) setDocument(upsertCanvasNode(document, completed));
       return;
@@ -90,13 +154,28 @@ export function CanvasAdapter({
   };
   return (
     <div
+      ref={adapterRef}
       className="canvas-adapter"
       onPointerMove={onPointerMove}
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
       onPointerDown={(event) => {
+        if (event.button !== 0) return;
+        if (activeTool === "laser") {
+          startLaser(event);
+          event.currentTarget.setPointerCapture(event.pointerId);
+          return;
+        }
+        if (activeTool === "eraser") {
+          eraseAtPointer(event);
+          event.currentTarget.setPointerCapture(event.pointerId);
+          return;
+        }
         if (activeTool === "pen") {
-          penRef.current = startPenStroke(crypto.randomUUID(), { x: event.nativeEvent.offsetX, y: event.nativeEvent.offsetY, pressure: event.pressure });
+          penRef.current = startPenStroke(crypto.randomUUID(), {
+            ...canvasPoint(event),
+            pressure: event.pressure
+          });
           event.currentTarget.setPointerCapture(event.pointerId);
           return;
         }
@@ -114,9 +193,23 @@ export function CanvasAdapter({
             else nodesRef.current.delete(node.id);
           }}
           onPointerDown={onPointerDown}
-          onTextCommit={(nodeId, text) => setDocument({ ...document, nodes: document.nodes.map((candidate) => candidate.id === nodeId && candidate.kind === "text" ? updateTextNode(candidate, { text }) : candidate) })}
+          onTextCommit={(nodeId, text) =>
+            setDocument({
+              ...document,
+              nodes: document.nodes.map((candidate) =>
+                candidate.id === nodeId && candidate.kind === "text"
+                  ? updateTextNode(candidate, { text })
+                  : candidate
+              )
+            })
+          }
         />
       ))}
+      {laserPoints.length > 1 ? (
+        <svg className="canvas-laser-overlay" aria-hidden="true">
+          <polyline points={laserPoints.map((point) => `${point.x},${point.y}`).join(" ")} />
+        </svg>
+      ) : null}
     </div>
   );
 }
@@ -126,8 +219,8 @@ function CanvasAdapterNode({
   job,
   selected,
   register,
-  onPointerDown
-  , onTextCommit
+  onPointerDown,
+  onTextCommit
 }: {
   node: CanvasNode;
   job: AiJobDto | undefined;
@@ -155,8 +248,45 @@ function CanvasAdapterNode({
         <img src={node.sourceUrl} alt={node.alt} draggable={false} />
       </figure>
     );
-  if (node.kind === "text") return <div ref={register} className={`canvas-text-node${selected ? " is-selected" : ""}`} style={{ ...style, color: node.color, fontFamily: node.fontFamily, fontSize: node.fontSize, fontWeight: node.fontWeight === "regular" ? 400 : node.fontWeight === "medium" ? 500 : 700, textAlign: node.align }} contentEditable suppressContentEditableWarning onBlur={(event) => onTextCommit(node.id, event.currentTarget.textContent ?? "")} onPointerDown={(event) => onPointerDown(event, node.id)}>{node.text}</div>;
-  if (node.kind === "pen") return <svg className={`canvas-pen-node${selected ? " is-selected" : ""}`} style={{ left: 0, top: 0, width: "100%", height: "100%" }} data-node-kind="pen"><path d={penPathData(node.points)} fill="none" stroke={node.color} strokeWidth={node.strokeWidth} strokeLinecap="round" strokeLinejoin="round" /></svg>;
+  if (node.kind === "text")
+    return (
+      <div
+        ref={register}
+        className={`canvas-text-node${selected ? " is-selected" : ""}`}
+        style={{
+          ...style,
+          color: node.color,
+          fontFamily: node.fontFamily,
+          fontSize: node.fontSize,
+          fontWeight:
+            node.fontWeight === "regular" ? 400 : node.fontWeight === "medium" ? 500 : 700,
+          textAlign: node.align
+        }}
+        contentEditable
+        suppressContentEditableWarning
+        onBlur={(event) => onTextCommit(node.id, event.currentTarget.textContent ?? "")}
+        onPointerDown={(event) => onPointerDown(event, node.id)}
+      >
+        {node.text}
+      </div>
+    );
+  if (node.kind === "pen")
+    return (
+      <svg
+        className={`canvas-pen-node${selected ? " is-selected" : ""}`}
+        style={{ left: 0, top: 0, width: "100%", height: "100%" }}
+        data-node-kind="pen"
+      >
+        <path
+          d={penPathData(node.points)}
+          fill="none"
+          stroke={node.color}
+          strokeWidth={node.strokeWidth}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    );
   if (node.kind !== "pending-image") return null;
   const failed = job?.id === node.jobId && job.status === "failed";
   return (

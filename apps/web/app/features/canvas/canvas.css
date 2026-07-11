@@ -127,10 +127,45 @@
   cursor: grabbing;
 }
 
-.canvas-text-node { position: absolute; overflow: hidden; padding: 8px; border: 1px solid transparent; border-radius: 6px; line-height: 1.2; white-space: pre-wrap; outline: none; cursor: text; }
-.canvas-text-node.is-selected { border-color: #3478f6; box-shadow: 0 0 0 2px rgb(52 120 246 / 20%); }
-.canvas-pen-node { position: absolute; overflow: visible; pointer-events: auto; }
-.canvas-pen-node.is-selected { filter: drop-shadow(0 0 2px rgb(52 120 246 / 70%)); }
+.canvas-text-node {
+  position: absolute;
+  overflow: hidden;
+  padding: 8px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  line-height: 1.2;
+  white-space: pre-wrap;
+  outline: none;
+  cursor: text;
+}
+.canvas-text-node.is-selected {
+  border-color: #3478f6;
+  box-shadow: 0 0 0 2px rgb(52 120 246 / 20%);
+}
+.canvas-pen-node {
+  position: absolute;
+  overflow: visible;
+  pointer-events: auto;
+}
+.canvas-pen-node.is-selected {
+  filter: drop-shadow(0 0 2px rgb(52 120 246 / 70%));
+}
+
+.canvas-laser-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.canvas-laser-overlay polyline {
+  fill: none;
+  stroke: #ff4d6d;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
 
 .canvas-result-node img {
   display: block;
