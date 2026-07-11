@@ -103,10 +103,10 @@ An item is complete only when its status is approved and evidence points to pass
 | --- | --- | --- | --- | --- |
 | CHAT-001 | Composer | Prompt, files, model and send | not-started | |
 | CHAT-002 | Canvas reference | Selected image appears as reference thumbnail | automated | Canvas selection adapter unit test plus `chat-composer.spec.ts` verifies instant thumbnail creation and removal. |
-| CHAT-003 | Thinking | Step status and failure progression | not-started | |
-| CHAT-004 | Results | Image/video/model result cards | not-started | |
-| CHAT-005 | History | Conversation persistence and selection | not-started | |
-| CHAT-006 | Recovery | Reload restores active/finished jobs | not-started | |
+| CHAT-003 | Thinking | Step status and failure progression | partial | Durable queued/running/succeeded/failed state is restored in the conversation stream; detailed thinking steps remain with generation workflows. |
+| CHAT-004 | Results | Image/video/model result cards | partial | Assistant messages retain the linked durable job and terminal state; rich result cards remain with generation workflows. |
+| CHAT-005 | History | Conversation persistence and selection | automated | Workspace-scoped project conversations and messages are persisted; `chat-composer.spec.ts` verifies restore. |
+| CHAT-006 | Recovery | Reload restores active/finished jobs | automated | Conversation retrieval joins workspace-scoped jobs and polls queued/running states; browser restore test covers an active job. |
 | TASK-001 | Task log | List, filters, details and refresh | not-started | |
 | TASK-002 | Job state | Queued, running, success, failed and cancelled | not-started | |
 

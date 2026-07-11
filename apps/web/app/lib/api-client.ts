@@ -1,5 +1,6 @@
 import type {
   AiJobDto,
+  ConversationDto,
   ModelCatalogEntryDto,
   PaginatedHomeFeedDto,
   ProjectDetailDto,
@@ -134,6 +135,10 @@ export function createAiJob(input: {
 
 export function getAiJob(jobId: string): Promise<AiJobDto> {
   return request(`/api/v1/ai-jobs/${encodeURIComponent(jobId)}`);
+}
+
+export function getProjectConversation(projectId: string): Promise<ConversationDto> {
+  return request(`/api/v1/projects/${encodeURIComponent(projectId)}/conversation`);
 }
 
 export function getHomeFeed(input: {

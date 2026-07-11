@@ -176,6 +176,34 @@ export interface AiJobDto {
   updatedAt: string;
 }
 
+export type ConversationMessageRoleDto = "user" | "assistant";
+export type ConversationMessageStatusDto =
+  | "completed"
+  | "queued"
+  | "running"
+  | "succeeded"
+  | "failed"
+  | "cancelled";
+
+export interface ConversationMessageDto {
+  id: string;
+  role: ConversationMessageRoleDto;
+  status: ConversationMessageStatusDto;
+  content: string;
+  attachmentUploadIds: string[];
+  job: AiJobDto | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ConversationDto {
+  id: string;
+  projectId: string;
+  messages: ConversationMessageDto[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface HomeFeedItemDto {
   id: string;
   channel: string;

@@ -31,6 +31,15 @@ export const aiJobStatus = pgEnum("ai_job_status", [
   "failed",
   "cancelled"
 ]);
+export const conversationMessageRole = pgEnum("conversation_message_role", ["user", "assistant"]);
+export const conversationMessageStatus = pgEnum("conversation_message_status", [
+  "completed",
+  "queued",
+  "running",
+  "succeeded",
+  "failed",
+  "cancelled"
+]);
 export const creditEntryType = pgEnum("credit_entry_type", [
   "grant",
   "reserve",
@@ -264,6 +273,50 @@ export const aiJobs = pgTable(
     index("ai_jobs_status_idx").on(table.status, table.createdAt),
     check("ai_jobs_reserved_credits_nonnegative", sql`${table.reservedCredits} >= 0`),
     check("ai_jobs_charged_credits_nonnegative", sql`${table.chargedCredits} >= 0`)
+  ]
+);
+
+export const conversations = pgTable(
+  "conversations",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    projectId: uuid("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    createdByUserId: uuid("created_by_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "restrict" }),
+    ...timestamps
+  },
+  (table) => [
+    uniqueIndex("conversations_workspace_project_unique").on(table.workspaceId, table.projectId),
+    index("conversations_workspace_idx").on(table.workspaceId, table.updatedAt)
+  ]
+);
+
+export const conversationMessages = pgTable(
+  "conversation_messages",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    conversationId: uuid("conversation_id")
+      .notNull()
+      .references(() => conversations.id, { onDelete: "cascade" }),
+    role: conversationMessageRole("role").notNull(),
+    status: conversationMessageStatus("status").notNull(),
+    content: text("content").default("").notNull(),
+    attachmentUploadIds: jsonb("attachment_upload_ids").$type<string[]>().default([]).notNull(),
+    jobId: uuid("job_id").references(() => aiJobs.id, { onDelete: "set null" }),
+    ...timestamps
+  },
+  (table) => [
+    index("conversation_messages_conversation_idx").on(table.conversationId, table.createdAt),
+    index("conversation_messages_workspace_job_idx").on(table.workspaceId, table.jobId)
   ]
 );
 

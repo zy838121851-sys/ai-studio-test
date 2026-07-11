@@ -13,12 +13,14 @@ import type { AuthContext } from "../application/auth-context.js";
 import type { RewriteDatabase } from "../database/client.js";
 import {
   aiJobs,
+  conversationMessages,
   creditAccounts,
   creditLedger,
   outboxEvents,
   projects,
   uploads
 } from "../database/schema.js";
+import { ensureProjectConversation } from "../conversations/conversation-service.js";
 import { findModel, quoteModel } from "../models/model-catalog.js";
 import type { StorageProvider } from "../storage/storage-provider.js";
 
@@ -86,6 +88,12 @@ export class AiJobService {
       if (!project) {
         throw new ApplicationError("PROJECT_NOT_FOUND", 404, "项目不存在");
       }
+      const conversation = await ensureProjectConversation(
+        transaction,
+        context.workspaceId,
+        project.id,
+        context.userId
+      );
 
       if (uploadIds.length > 0) {
         const ownedUploads = await transaction
@@ -151,6 +159,25 @@ export class AiJobService {
       if (!created) {
         throw new ApplicationError("AI_JOB_CREATE_FAILED", 500, "生成任务创建失败");
       }
+      await transaction.insert(conversationMessages).values([
+        {
+          workspaceId: context.workspaceId,
+          conversationId: conversation.id,
+          role: "user",
+          status: "completed",
+          content: prompt,
+          attachmentUploadIds: uploadIds
+        },
+        {
+          workspaceId: context.workspaceId,
+          conversationId: conversation.id,
+          role: "assistant",
+          status: "queued",
+          content: "Generating image",
+          attachmentUploadIds: [],
+          jobId
+        }
+      ]);
 
       await transaction
         .update(projects)
@@ -237,6 +264,10 @@ export class AiJobService {
       .returning();
 
     if (job) {
+      await this.database
+        .update(conversationMessages)
+        .set({ status: "running", updatedAt: new Date() })
+        .where(eq(conversationMessages.jobId, job.id));
       return toAiJobDto(job);
     }
 
@@ -426,6 +457,10 @@ export class AiJobService {
         if (!updatedJob) {
           throw new ApplicationError("AI_JOB_COMPLETE_FAILED", 500, "任务完成状态保存失败");
         }
+        await transaction
+          .update(conversationMessages)
+          .set({ status: "succeeded", updatedAt: new Date() })
+          .where(eq(conversationMessages.jobId, job.id));
 
         const [project] = await transaction
           .select({ version: projects.version, canvasDocument: projects.canvasDocument })
@@ -547,6 +582,10 @@ export class AiJobService {
       if (!updated) {
         throw new ApplicationError("AI_JOB_FAIL_UPDATE_FAILED", 500, "任务失败状态保存失败");
       }
+      await transaction
+        .update(conversationMessages)
+        .set({ status: "failed", updatedAt: new Date() })
+        .where(eq(conversationMessages.jobId, job.id));
       return updated;
     });
 
@@ -594,7 +633,7 @@ function parseJobInput(value: Record<string, unknown>): {
   };
 }
 
-function toAiJobDto(job: AiJobRow): AiJobDto {
+export function toAiJobDto(job: AiJobRow): AiJobDto {
   const input = parseJobInput(job.input);
   const output = parseJobOutput(job.output);
   return {

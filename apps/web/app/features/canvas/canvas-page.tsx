@@ -7,8 +7,13 @@ import { Link, useParams, useSearchParams } from "react-router";
 
 import { ApiClientError, createAiJob, uploadReference } from "../../lib/api-client.js";
 import { useModelsQuery } from "../home/home-api.js";
-import { useCanvasJobQuery, useCanvasProjectQuery } from "./canvas-api.js";
+import {
+  useCanvasConversationQuery,
+  useCanvasJobQuery,
+  useCanvasProjectQuery
+} from "./canvas-api.js";
 import { CanvasChatComposer, type ChatAttachment } from "./chat-composer.js";
+import { CanvasConversationHistory } from "./conversation-history.js";
 import type { CanvasImageReference } from "./canvas-reference.js";
 import { useCanvasReceiverStore } from "./canvas-store.js";
 import { CanvasAdapter } from "./canvas-adapter.js";
@@ -25,6 +30,7 @@ export function CanvasPage() {
   const requestedJobId = searchParameters.get("jobId") ?? "";
   const projectQuery = useCanvasProjectQuery(projectId);
   const modelsQuery = useModelsQuery();
+  const conversationQuery = useCanvasConversationQuery(projectId);
   const hydrate = useCanvasReceiverStore((state) => state.hydrate);
   const clear = useCanvasReceiverStore((state) => state.clear);
   const storedDocument = useCanvasReceiverStore((state) => state.document);
@@ -59,7 +65,10 @@ export function CanvasPage() {
         idempotencyKey: crypto.randomUUID()
       });
     },
-    onSuccess: () => projectQuery.refetch()
+    onSuccess: () => {
+      void projectQuery.refetch();
+      void conversationQuery.refetch();
+    }
   });
   const submitImageCommand = async (command: ImageToolbarCommand) => {
     if (command.action === "generate-3d") {
@@ -158,12 +167,15 @@ export function CanvasPage() {
           ) : null}
         </div>
       </section>
-      <CanvasChatComposer
-        models={modelsQuery.data ?? []}
-        submitting={chatGenerationMutation.isPending}
-        canvasReferences={canvasReferences}
-        onSubmit={(input) => chatGenerationMutation.mutateAsync(input).then(() => undefined)}
-      />
+      <aside className="canvas-chat-panel" aria-label="Canvas chat">
+        <CanvasConversationHistory conversation={conversationQuery.data} />
+        <CanvasChatComposer
+          models={modelsQuery.data ?? []}
+          submitting={chatGenerationMutation.isPending}
+          canvasReferences={canvasReferences}
+          onSubmit={(input) => chatGenerationMutation.mutateAsync(input).then(() => undefined)}
+        />
+      </aside>
     </main>
   );
 }

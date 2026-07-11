@@ -28,6 +28,15 @@ describe("CanvasRoute", () => {
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
         const url = String(input);
+        if (url.includes("/api/v1/projects/project-1/conversation")) {
+          return Response.json({
+            id: "conversation-1",
+            projectId: "project-1",
+            messages: [],
+            createdAt: "2026-07-10T00:00:00.000Z",
+            updatedAt: "2026-07-10T00:00:00.000Z"
+          });
+        }
         if (url.includes("/api/v1/projects/project-1")) {
           return Response.json({
             ...PROJECT_BASE,
@@ -86,6 +95,15 @@ describe("CanvasRoute", () => {
       "fetch",
       vi.fn(async (input: RequestInfo | URL) => {
         const url = String(input);
+        if (url.includes("/api/v1/projects/project-1/conversation")) {
+          return Response.json({
+            id: "conversation-1",
+            projectId: "project-1",
+            messages: [],
+            createdAt: "2026-07-10T00:00:00.000Z",
+            updatedAt: "2026-07-10T00:00:00.000Z"
+          });
+        }
         if (url.includes("/api/v1/projects/project-1")) {
           return Response.json({
             ...PROJECT_BASE,

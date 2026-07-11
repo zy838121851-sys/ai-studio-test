@@ -4,6 +4,7 @@ import {
   CreditService,
   createCapabilityRegistry,
   createIdentityProviders,
+  ConversationService,
   IdentityService,
   loadRewriteConfig,
   ProjectService,
@@ -26,6 +27,7 @@ export class PlatformService implements OnApplicationShutdown {
   readonly projects: ProjectService;
   readonly uploads: UploadService;
   readonly aiJobs: AiJobService;
+  readonly conversations: ConversationService;
 
   constructor() {
     this.config = loadRewriteConfig(process.env);
@@ -41,6 +43,7 @@ export class PlatformService implements OnApplicationShutdown {
     this.projects = new ProjectService(this.infrastructure.database);
     this.uploads = new UploadService(this.infrastructure.database, this.infrastructure.storage);
     this.aiJobs = new AiJobService(this.infrastructure.database, this.infrastructure.storage);
+    this.conversations = new ConversationService(this.infrastructure.database);
   }
 
   checkReadiness(): Promise<ReadinessResult> {

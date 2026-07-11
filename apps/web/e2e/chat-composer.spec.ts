@@ -15,6 +15,61 @@ test.beforeEach(async ({ page }) => {
   await page.route("**/api/v1/**", async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
+    if (path === "/api/v1/projects/project-chat-history/conversation") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: "conversation-1",
+          projectId: "project-chat-history",
+          createdAt: "2026-07-11T00:00:00.000Z",
+          updatedAt: "2026-07-11T00:00:00.000Z",
+          messages: [
+            {
+              id: "message-user",
+              role: "user",
+              status: "completed",
+              content: "A ceramic vase",
+              attachmentUploadIds: [],
+              job: null,
+              createdAt: "2026-07-11T00:00:00.000Z",
+              updatedAt: "2026-07-11T00:00:00.000Z"
+            },
+            {
+              id: "message-assistant",
+              role: "assistant",
+              status: "running",
+              content: "Generating image",
+              attachmentUploadIds: [],
+              job: {
+                id: "job-history",
+                projectId: "project-chat-history",
+                modelId: "gpt-image-2",
+                status: "running",
+                prompt: "A ceramic vase",
+                reservedCredits: 8,
+                chargedCredits: 0,
+                output: null,
+                error: null,
+                createdAt: "2026-07-11T00:00:00.000Z",
+                updatedAt: "2026-07-11T00:00:00.000Z"
+              },
+              createdAt: "2026-07-11T00:00:00.000Z",
+              updatedAt: "2026-07-11T00:00:00.000Z"
+            }
+          ]
+        })
+      });
+      return;
+    }
+    if (path === "/api/v1/projects/project-chat-history") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({ ...project, id: "project-chat-history" })
+      });
+      return;
+    }
     if (path === "/api/v1/projects/project-chat") {
       await route.fulfill({
         status: 200,
@@ -169,4 +224,12 @@ test("selected canvas image instantly becomes a removable chat reference", async
   await expect(reference).toBeVisible();
   await composer.getByRole("button", { name: "Remove Generated canvas image" }).click();
   await expect(reference).toHaveCount(0);
+});
+
+test("canvas restores persisted conversation messages and active job status", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/canvas/project-chat-history");
+  const history = page.getByRole("region", { name: "Conversation history" });
+  await expect(history.getByText("A ceramic vase")).toBeVisible();
+  await expect(history.getByText("Generating", { exact: true })).toBeVisible();
 });
