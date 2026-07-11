@@ -1,6 +1,8 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 
 import { ApplicationError } from "../application/application-error.js";
+import type { WeChatPayConfig } from "../config/rewrite-config.js";
+import { WeChatPayProvider } from "./wechat-pay-provider.js";
 
 export type PaymentProviderName = "wechat" | "alipay" | "renewal";
 
@@ -15,7 +17,7 @@ export interface PaymentProvider {
     providerRefundId: string;
   }>;
   createMandate(input: { userId: string; returnUrl: string }): Promise<{ providerMandateId: string }>;
-  verifyWebhook(input: { body: string; signature: string; timestamp: string; nonce: string }): Promise<{
+  verifyWebhook(input: { body: string; signature: string; timestamp: string; nonce: string; serial?: string }): Promise<{
     eventId: string;
     eventType: string;
     payload: Record<string, unknown>;
@@ -28,11 +30,15 @@ export interface PaymentProviders {
   renewal: PaymentProvider;
 }
 
-export function createPaymentProviders(environment: "development" | "test" | "production", secret = ""):
+export function createPaymentProviders(
+  environment: "development" | "test" | "production",
+  secret = "",
+  wechatPay?: WeChatPayConfig
+):
   PaymentProviders {
   if (environment === "production") {
     return {
-      wechat: new UnconfiguredPaymentProvider("wechat"),
+      wechat: wechatPay ? new WeChatPayProvider(wechatPay) : new UnconfiguredPaymentProvider("wechat"),
       alipay: new UnconfiguredPaymentProvider("alipay"),
       renewal: new UnconfiguredPaymentProvider("renewal")
     };

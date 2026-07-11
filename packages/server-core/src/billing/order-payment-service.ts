@@ -5,6 +5,7 @@ import { and, eq } from "drizzle-orm";
 import { ApplicationError } from "../application/application-error.js";
 import type { AuthContext } from "../application/auth-context.js";
 import type { RewriteNodeEnvironment } from "../config/rewrite-config.js";
+import type { CapabilityRegistry } from "../capabilities/capability-registry.js";
 import type { RewriteDatabase } from "../database/client.js";
 import {
   billingOrders,
@@ -48,12 +49,14 @@ export class OrderPaymentService {
   constructor(
     private readonly database: RewriteDatabase,
     environment: RewriteNodeEnvironment,
-    providers = createPaymentProviders(environment)
+    providers = createPaymentProviders(environment),
+    private readonly capabilities?: CapabilityRegistry
   ) {
     this.providers = providers;
   }
 
   async create(context: AuthContext, input: CreateOrderPaymentInput): Promise<OrderPaymentDto> {
+    this.capabilities?.assertActionAllowed(input.provider === "wechat" ? "wechat-pay" : "alipay");
     const idempotencyKey = normalizeIdempotencyKey(input.idempotencyKey);
     const provider = this.providers[input.provider];
     const [existing] = await this.database

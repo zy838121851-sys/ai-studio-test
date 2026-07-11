@@ -1,5 +1,17 @@
 import path from "node:path";
 
+export interface WeChatPayConfig {
+  merchantId: string;
+  appId: string;
+  merchantSerialNumber: string;
+  merchantPrivateKey: string;
+  platformCertificate: string;
+  platformCertificateSerial: string;
+  apiV3Key: string;
+  notifyUrl: URL;
+  liveVerified: boolean;
+}
+
 export type RewriteNodeEnvironment = "development" | "test" | "production";
 
 export interface LocalStorageConfig {
@@ -29,6 +41,7 @@ export interface RewriteConfig {
     | { provider: "development" }
     | { provider: "apimart"; apiKey: string; baseUrl: URL };
   workerConcurrency: number;
+  wechatPay?: WeChatPayConfig;
 }
 
 const LOCAL_DATABASE_URL =
@@ -151,6 +164,8 @@ export function loadRewriteConfig(environment: NodeJS.ProcessEnv): RewriteConfig
     throw new Error("REWRITE_WORKER_CONCURRENCY must be an integer between 1 and 20.");
   }
 
+  const wechatPay = readWeChatPayConfig(environment, isProduction);
+
   return {
     nodeEnvironment,
     apiHost: environment.REWRITE_API_HOST?.trim() || "127.0.0.1",
@@ -161,6 +176,39 @@ export function loadRewriteConfig(environment: NodeJS.ProcessEnv): RewriteConfig
     sessionSecret,
     storage,
     imageProvider,
-    workerConcurrency
+    workerConcurrency,
+    ...(wechatPay ? { wechatPay } : {})
+  };
+}
+
+function readWeChatPayConfig(environment: NodeJS.ProcessEnv, production: boolean): WeChatPayConfig | undefined {
+  const keys = [
+    "WECHATPAY_MCH_ID",
+    "WECHATPAY_APP_ID",
+    "WECHATPAY_MERCHANT_SERIAL",
+    "WECHATPAY_MERCHANT_PRIVATE_KEY",
+    "WECHATPAY_PLATFORM_CERTIFICATE",
+    "WECHATPAY_PLATFORM_CERTIFICATE_SERIAL",
+    "WECHATPAY_API_V3_KEY",
+    "WECHATPAY_NOTIFY_URL"
+  ] as const;
+  const supplied = keys.filter((key) => Boolean(environment[key]?.trim()));
+  if (supplied.length === 0) return undefined;
+  if (supplied.length !== keys.length) {
+    throw new Error(`WeChat Pay configuration is incomplete: missing ${keys.filter((key) => !environment[key]?.trim()).join(", ")}.`);
+  }
+  const apiV3Key = requireValue(environment, "WECHATPAY_API_V3_KEY");
+  if (Buffer.byteLength(apiV3Key, "utf8") !== 32) throw new Error("WECHATPAY_API_V3_KEY must be exactly 32 UTF-8 bytes.");
+  const notifyUrl = parseUrl(requireValue(environment, "WECHATPAY_NOTIFY_URL"), "WECHATPAY_NOTIFY_URL", production ? ["https:"] : ["http:", "https:"]);
+  return {
+    merchantId: requireValue(environment, "WECHATPAY_MCH_ID"),
+    appId: requireValue(environment, "WECHATPAY_APP_ID"),
+    merchantSerialNumber: requireValue(environment, "WECHATPAY_MERCHANT_SERIAL"),
+    merchantPrivateKey: requireValue(environment, "WECHATPAY_MERCHANT_PRIVATE_KEY").replaceAll("\\n", "\n"),
+    platformCertificate: requireValue(environment, "WECHATPAY_PLATFORM_CERTIFICATE").replaceAll("\\n", "\n"),
+    platformCertificateSerial: requireValue(environment, "WECHATPAY_PLATFORM_CERTIFICATE_SERIAL"),
+    apiV3Key,
+    notifyUrl,
+    liveVerified: environment.WECHATPAY_LIVE_VERIFIED === "true"
   };
 }

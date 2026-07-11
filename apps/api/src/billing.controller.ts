@@ -36,6 +36,7 @@ export class BillingController {
     @Headers("x-payment-signature") signature: string | undefined,
     @Headers("x-payment-timestamp") timestamp: string | undefined,
     @Headers("x-payment-nonce") nonce: string | undefined,
+    @Headers("wechatpay-serial") serial: string | undefined,
     @Body() body: Record<string, unknown>
   ): Promise<{ duplicate: boolean }> {
     if (!isPaymentProviderName(provider) || !signature || !timestamp || !nonce) {
@@ -46,6 +47,7 @@ export class BillingController {
       signature,
       timestamp,
       nonce,
+      ...(serial ? { serial } : {}),
       body: JSON.stringify(body)
     });
   }

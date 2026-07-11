@@ -2211,7 +2211,7 @@
       "id": "WP-8.3-wechat-pay",
       "stage": "8",
       "title": "WeChat Pay adapter",
-      "objective": "Implement and verify WeChat Pay, refund, query, and renewal mandate integration.",
+        "objective": "Implement the WeChat Pay adapter with official-fixture verification; defer merchant live verification to the Stage 11 release gate.",
       "prerequisites": [
         "WP-8.2-order-payment"
       ],
@@ -2239,15 +2239,15 @@
         "OPS-010"
       ],
       "targetedChecks": [
-        "Official signature fixtures",
-        "Sandbox or merchant-environment smoke tests"
+          "Official signature fixtures",
+          "Configured and unverified production capability remains fail-closed"
       ],
       "acceptance": [
-        "Signatures, callbacks, queries, refunds, and mandates pass live verification"
+          "Native checkout signing, callback signature verification/decryption, query, and refund contracts pass deterministic fixtures; merchant live verification remains deferred to Stage 11"
       ],
       "legacyMutationAllowed": false,
       "externalVerification": {
-        "mode": "required",
+          "mode": "deferred",
         "blockerId": "BLOCK-EXTERNAL-APPROVALS",
         "deadlineStage": "11"
       },

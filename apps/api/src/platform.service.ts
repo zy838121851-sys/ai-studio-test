@@ -6,6 +6,7 @@ import {
   CreditService,
   createCapabilityRegistry,
   createIdentityProviders,
+  createPaymentProviders,
   ConversationService,
   IdentityService,
   OrderPaymentService,
@@ -52,7 +53,12 @@ export class PlatformService implements OnApplicationShutdown {
     this.assets = new AssetService(this.infrastructure.database);
     this.catalog = new CatalogService(this.infrastructure.database);
     this.conversations = new ConversationService(this.infrastructure.database);
-    this.orderPayments = new OrderPaymentService(this.infrastructure.database, this.config.nodeEnvironment);
+    this.orderPayments = new OrderPaymentService(
+      this.infrastructure.database,
+      this.config.nodeEnvironment,
+      createPaymentProviders(this.config.nodeEnvironment, "", this.config.wechatPay),
+      this.capabilities
+    );
   }
 
   checkReadiness(): Promise<ReadinessResult> {

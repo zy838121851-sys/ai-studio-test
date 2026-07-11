@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "8",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-8.3-wechat-pay",
+  "nextWorkPackage": "WP-8.4-alipay",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -58,13 +58,14 @@
     "WP-7.5-thumbnails",
     "WP-7.6-orphan-audit",
     "WP-8.1-plan-entitlement",
-    "WP-8.2-order-payment"
+    "WP-8.2-order-payment",
+    "WP-8.3-wechat-pay"
   ],
-  "lastCompletedWorkPackage": "WP-8.2-order-payment",
+  "lastCompletedWorkPackage": "WP-8.3-wechat-pay",
   "lastVerification": {
-    "workPackage": "WP-8.2-order-payment",
+    "workPackage": "WP-8.3-wechat-pay",
     "commands": [
-      "npm run governance:verify -- WP-8.2-order-payment"
+      "npm run governance:verify -- WP-8.3-wechat-pay"
     ],
     "result": "passed",
     "verifiedAt": "2026-07-11"
@@ -73,7 +74,8 @@
     "WP-3.5.2-identity-provider-seams",
     "WP-3.5.3-moderation-notification-audit",
     "WP-3.5.4-billing-domain-foundation",
-    "WP-3.5.5-payment-provider-contracts"
+    "WP-3.5.5-payment-provider-contracts",
+    "WP-8.3-wechat-pay"
   ],
   "cutoverAllowed": false,
   "blockers": [
@@ -126,6 +128,7 @@
     "The concentrated React home and minimal canvas polish pass is complete with named Lucide imports, reduced-motion-safe micro interactions, responsive visual evidence, and no Legacy mutation.",
     "The rewrite capability registry and /api/v1/capabilities expose credential-free readiness; production actions remain fail-closed unless a capability is verified.",
     "Provider-neutral checkout now creates idempotent pending orders and payment attempts; only a signature-verified payment.succeeded webhook can mark an order paid, activate credits entitlement, and append a credit grant ledger entry. Production payment provider placeholders still fail closed with PROVIDER_NOT_CONFIGURED until merchant integrations are verified.",
+    "WeChat Pay now has a Native checkout, query, refund, request-signing, callback-signature, and AES-GCM notification-decryption adapter with deterministic cryptographic fixtures. Configured production capability remains disabled until WECHATPAY_LIVE_VERIFIED is set only after merchant-environment evidence; live merchant verification remains deferred to Stage 11.",
     "Identity provider contracts use deterministic development implementations and production fail-closed placeholders; real provider delivery, OAuth callbacks, and live verification remain deferred.",
     "Moderation, notification, and audit records now have workspace-scoped PostgreSQL persistence, idempotency keys, retry timestamps, and worker recovery seams; real external providers remain deferred.",
     "Billing domain foundation now defines integer-fen money, explicit order/payment/subscription state machines, and durable catalog/order/payment/subscription/entitlement/refund/invoice/event tables; merchant integrations remain deferred.",

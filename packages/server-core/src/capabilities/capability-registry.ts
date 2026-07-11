@@ -107,7 +107,10 @@ export function createCapabilityRegistry(config: RewriteConfig): CapabilityRegis
     "content-moderation": hasDevelopmentIdentityProviders ? "development" : "disabled",
     "email-notification": hasDevelopmentIdentityProviders ? "development" : "disabled",
     "sms-notification": hasDevelopmentIdentityProviders ? "development" : "disabled",
-    "audit-log": hasDevelopmentIdentityProviders ? "development" : "disabled"
+    "audit-log": hasDevelopmentIdentityProviders ? "development" : "disabled",
+    "wechat-pay": config.wechatPay ? (config.wechatPay.liveVerified ? "verified" : "configured") : hasDevelopmentIdentityProviders ? "development" : "disabled",
+    alipay: hasDevelopmentIdentityProviders ? "development" : "disabled",
+    "automatic-renewal": "disabled"
   });
 }
 
