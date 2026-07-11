@@ -1,4 +1,9 @@
-import { SHAPE_REGISTRY, type CanvasArrowNode, type CanvasShapeNode } from "./shapes.js";
+import {
+  defaultShapeStyle,
+  SHAPE_REGISTRY,
+  type CanvasArrowNode,
+  type CanvasShapeNode
+} from "./shapes.js";
 import type { CanvasTextNode } from "./text.js";
 import type { CanvasPenNode } from "./pen.js";
 
@@ -136,13 +141,18 @@ function normalizeCanvasNode(value: unknown): CanvasNode | null {
   }
 
   if (value.kind === "shape" && isNonEmptyString(value.shapeType) && SHAPE_REGISTRY.includes(value.shapeType as CanvasShapeNode["shapeType"])) {
-    return { ...base, kind: "shape", shapeType: value.shapeType as CanvasShapeNode["shapeType"] };
+    return {
+      ...base,
+      kind: "shape",
+      shapeType: value.shapeType as CanvasShapeNode["shapeType"],
+      style: normalizeShapeStyle(value.style)
+    };
   }
 
   const arrowValues = [value.startX, value.startY, value.endX, value.endY];
   if (value.kind === "arrow" && arrowValues.every(isFiniteNumber)) {
     const [startX, startY, endX, endY] = arrowValues as [number, number, number, number];
-    return { ...base, kind: "arrow", startX, startY, endX, endY };
+    return { ...base, kind: "arrow", startX, startY, endX, endY, style: normalizeShapeStyle(value.style, true) };
   }
 
   if (value.kind === "text" && typeof value.text === "string") {
@@ -164,6 +174,16 @@ function normalizeCanvasNode(value: unknown): CanvasNode | null {
   }
 
   return null;
+}
+
+function normalizeShapeStyle(value: unknown, linear = false) {
+  const defaults = defaultShapeStyle();
+  const style = isRecord(value) ? value : {};
+  return {
+    fill: typeof style.fill === "string" ? style.fill : linear ? "transparent" : defaults.fill,
+    stroke: typeof style.stroke === "string" ? style.stroke : defaults.stroke,
+    strokeWidth: isPositiveFiniteNumber(style.strokeWidth) ? style.strokeWidth : defaults.strokeWidth
+  };
 }
 
 function normalizeCanvasNodeBase(value: Record<string, unknown>): CanvasNodeBase | null {

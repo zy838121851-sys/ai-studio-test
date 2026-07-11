@@ -1,11 +1,21 @@
 import { describe, expect, it } from "vitest";
 
-import { createArrowGeometry, createArrowNode, createShapeNode, SHAPE_REGISTRY } from "./index.js";
+import {
+  createArrowGeometry,
+  createArrowNode,
+  createShapeNode,
+  SHAPE_REGISTRY,
+  updateShapeStyle
+} from "./index.js";
 
 describe("shape and arrow registry", () => {
   it("creates every registered shape with stable geometry", () => {
     expect(SHAPE_REGISTRY).toEqual(["rectangle", "ellipse", "diamond", "triangle", "star"]);
-    expect(createShapeNode("shape-1", "diamond", 10, 20, 80, 60)).toMatchObject({ kind: "shape", shapeType: "diamond" });
+    expect(createShapeNode("shape-1", "diamond", 10, 20, 80, 60)).toMatchObject({
+      kind: "shape",
+      shapeType: "diamond",
+      style: { fill: "#ffffff", stroke: "#1f2933", strokeWidth: 3 }
+    });
   });
 
   it("keeps arrow angle and length tied to actual pointer endpoints", () => {
@@ -13,5 +23,13 @@ describe("shape and arrow registry", () => {
     expect(geometry.length).toBe(5);
     expect(geometry.angle).toBeCloseTo(Math.atan2(4, 3));
     expect(createArrowNode("arrow-1", { x: 20, y: 30 }, { x: 5, y: 10 })).toMatchObject({ x: 5, y: 10, width: 15, height: 20 });
+  });
+
+  it("keeps formatting constrained to valid values", () => {
+    const node = createShapeNode("shape-1", "rectangle", 0, 0, 80, 60);
+    expect(updateShapeStyle(node, { fill: "#4f6f9f", strokeWidth: 6 })).toMatchObject({
+      style: { fill: "#4f6f9f", strokeWidth: 6 }
+    });
+    expect(updateShapeStyle(node, { strokeWidth: 0 }).style.strokeWidth).toBe(3);
   });
 });

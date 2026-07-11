@@ -10,10 +10,13 @@ import {
   selectNode,
   pruneLaserPoints,
   startPenStroke,
+  updateShapeStyle,
   upsertCanvasNode,
   updateTextNode,
   type CanvasDocument,
   type CanvasNode,
+  type CanvasShapeNode,
+  type CanvasTextNode,
   type SelectionState
 } from "@ai-studio/canvas-engine";
 import type { AiJobDto } from "@ai-studio/contracts";
@@ -152,6 +155,14 @@ export function CanvasAdapter({
         )
       );
   };
+  const selectedNode =
+    selection.selectedIds.length === 1
+      ? document.nodes.find((node) => node.id === selection.selectedIds[0])
+      : undefined;
+  const updateSelectedNode = (node: CanvasNode) => {
+    documentRef.current = upsertCanvasNode(documentRef.current, node);
+    setDocument(documentRef.current);
+  };
   return (
     <div
       ref={adapterRef}
@@ -205,6 +216,18 @@ export function CanvasAdapter({
           }
         />
       ))}
+      {selectedNode?.kind === "shape" || selectedNode?.kind === "arrow" ? (
+        <ShapeFormatToolbar
+          node={selectedNode}
+          onChange={(patch) => updateSelectedNode(updateShapeStyle(selectedNode, patch))}
+        />
+      ) : null}
+      {selectedNode?.kind === "text" ? (
+        <TextFormatToolbar
+          node={selectedNode}
+          onChange={(patch) => updateSelectedNode(updateTextNode(selectedNode, patch))}
+        />
+      ) : null}
       {laserPoints.length > 1 ? (
         <svg className="canvas-laser-overlay" aria-hidden="true">
           <polyline points={laserPoints.map((point) => `${point.x},${point.y}`).join(" ")} />
@@ -253,6 +276,7 @@ function CanvasAdapterNode({
       <div
         ref={register}
         className={`canvas-text-node${selected ? " is-selected" : ""}`}
+        data-node-kind="text"
         style={{
           ...style,
           color: node.color,
@@ -287,6 +311,30 @@ function CanvasAdapterNode({
         />
       </svg>
     );
+  if (node.kind === "shape")
+    return (
+      <div
+        ref={register}
+        className={`canvas-shape-node${selected ? " is-selected" : ""}`}
+        style={style}
+        data-node-kind="shape"
+        onPointerDown={(event) => onPointerDown(event, node.id)}
+      >
+        <ShapeGraphic node={node} />
+      </div>
+    );
+  if (node.kind === "arrow")
+    return (
+      <div
+        ref={register}
+        className={`canvas-shape-node canvas-arrow-node${selected ? " is-selected" : ""}`}
+        style={style}
+        data-node-kind="arrow"
+        onPointerDown={(event) => onPointerDown(event, node.id)}
+      >
+        <ArrowGraphic node={node} />
+      </div>
+    );
   if (node.kind !== "pending-image") return null;
   const failed = job?.id === node.jobId && job.status === "failed";
   return (
@@ -318,4 +366,194 @@ function CanvasAdapterNode({
       </p>
     </article>
   );
+}
+
+function ShapeGraphic({ node }: { node: CanvasShapeNode }) {
+  const { fill, stroke, strokeWidth } = node.style;
+  const common = { fill, stroke, strokeWidth, vectorEffect: "non-scaling-stroke" as const };
+  return (
+    <svg viewBox={`0 0 ${node.width} ${node.height}`} aria-hidden="true">
+      {node.shapeType === "rectangle" ? (
+        <rect
+          x={strokeWidth / 2}
+          y={strokeWidth / 2}
+          width={node.width - strokeWidth}
+          height={node.height - strokeWidth}
+          rx={8}
+          {...common}
+        />
+      ) : null}
+      {node.shapeType === "ellipse" ? (
+        <ellipse
+          cx={node.width / 2}
+          cy={node.height / 2}
+          rx={Math.max(1, (node.width - strokeWidth) / 2)}
+          ry={Math.max(1, (node.height - strokeWidth) / 2)}
+          {...common}
+        />
+      ) : null}
+      {node.shapeType === "diamond" ? (
+        <polygon
+          points={`${node.width / 2},${strokeWidth / 2} ${node.width - strokeWidth / 2},${node.height / 2} ${node.width / 2},${node.height - strokeWidth / 2} ${strokeWidth / 2},${node.height / 2}`}
+          {...common}
+        />
+      ) : null}
+      {node.shapeType === "triangle" ? (
+        <polygon
+          points={`${node.width / 2},${strokeWidth / 2} ${node.width - strokeWidth / 2},${node.height - strokeWidth / 2} ${strokeWidth / 2},${node.height - strokeWidth / 2}`}
+          {...common}
+        />
+      ) : null}
+      {node.shapeType === "star" ? (
+        <polygon points={starPoints(node.width, node.height)} {...common} />
+      ) : null}
+    </svg>
+  );
+}
+
+function ArrowGraphic({ node }: { node: Extract<CanvasNode, { kind: "arrow" }> }) {
+  const startX = node.startX - node.x;
+  const startY = node.startY - node.y;
+  const endX = node.endX - node.x;
+  const endY = node.endY - node.y;
+  const angle = Math.atan2(endY - startY, endX - startX);
+  const wing = 12;
+  const left = `${endX - wing * Math.cos(angle - Math.PI / 6)},${endY - wing * Math.sin(angle - Math.PI / 6)}`;
+  const right = `${endX - wing * Math.cos(angle + Math.PI / 6)},${endY - wing * Math.sin(angle + Math.PI / 6)}`;
+  return (
+    <svg viewBox={`0 0 ${node.width} ${node.height}`} aria-hidden="true">
+      <path
+        d={`M${startX} ${startY} L${endX} ${endY} M${left} L${endX} ${endY} L${right}`}
+        fill="none"
+        stroke={node.style.stroke}
+        strokeWidth={node.style.strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
+
+function ShapeFormatToolbar({
+  node,
+  onChange
+}: {
+  node: Extract<CanvasNode, { kind: "shape" | "arrow" }>;
+  onChange: (patch: Partial<CanvasShapeNode["style"]>) => void;
+}) {
+  const isArrow = node.kind === "arrow";
+  return (
+    <div
+      className="canvas-format-toolbar canvas-shape-format-toolbar"
+      style={formatToolbarPosition(node)}
+      role="toolbar"
+      aria-label="Shape formatting"
+    >
+      {!isArrow ? (
+        <label title="Fill color">
+          <span className="sr-only">Fill color</span>
+          <input
+            aria-label="Fill color"
+            type="color"
+            value={node.style.fill === "transparent" ? "#ffffff" : node.style.fill}
+            onChange={(event) => onChange({ fill: event.target.value })}
+          />
+        </label>
+      ) : null}
+      <label title="Stroke color">
+        <span className="sr-only">Stroke color</span>
+        <input
+          aria-label="Stroke color"
+          type="color"
+          value={node.style.stroke}
+          onChange={(event) => onChange({ stroke: event.target.value })}
+        />
+      </label>
+      <label className="canvas-format-toolbar__range">
+        <span>Stroke</span>
+        <input
+          aria-label="Stroke width"
+          type="range"
+          min="1"
+          max="12"
+          value={node.style.strokeWidth}
+          onChange={(event) => onChange({ strokeWidth: Number(event.target.value) })}
+        />
+      </label>
+    </div>
+  );
+}
+
+function TextFormatToolbar({
+  node,
+  onChange
+}: {
+  node: CanvasTextNode;
+  onChange: (
+    patch: Partial<Pick<CanvasTextNode, "fontFamily" | "fontSize" | "fontWeight" | "color">>
+  ) => void;
+}) {
+  return (
+    <div
+      className="canvas-format-toolbar canvas-text-format-toolbar"
+      style={formatToolbarPosition(node)}
+      role="toolbar"
+      aria-label="Text formatting"
+    >
+      <label title="Text color">
+        <span className="sr-only">Text color</span>
+        <input
+          aria-label="Text color"
+          type="color"
+          value={node.color}
+          onChange={(event) => onChange({ color: event.target.value })}
+        />
+      </label>
+      <select
+        aria-label="Font family"
+        value={node.fontFamily}
+        onChange={(event) => onChange({ fontFamily: event.target.value })}
+      >
+        <option value="Inter">Inter</option>
+        <option value="Arial">Arial</option>
+        <option value="Georgia">Georgia</option>
+        <option value="Courier New">Mono</option>
+      </select>
+      <select
+        aria-label="Font weight"
+        value={node.fontWeight}
+        onChange={(event) =>
+          onChange({ fontWeight: event.target.value as CanvasTextNode["fontWeight"] })
+        }
+      >
+        <option value="regular">Regular</option>
+        <option value="medium">Medium</option>
+        <option value="bold">Bold</option>
+      </select>
+      <select
+        aria-label="Font size"
+        value={node.fontSize}
+        onChange={(event) => onChange({ fontSize: Number(event.target.value) })}
+      >
+        {[32, 48, 64, 80, 96, 120].map((size) => (
+          <option key={size} value={size}>
+            {size}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+function formatToolbarPosition(node: CanvasNode) {
+  return { left: node.x + node.width / 2, top: Math.max(10, node.y - 56) };
+}
+
+function starPoints(width: number, height: number) {
+  return Array.from({ length: 10 }, (_, index) => {
+    const radius = index % 2 === 0 ? 0.48 : 0.2;
+    const angle = -Math.PI / 2 + (Math.PI * index) / 5;
+    return `${width / 2 + width * radius * Math.cos(angle)},${height / 2 + height * radius * Math.sin(angle)}`;
+  }).join(" ");
 }

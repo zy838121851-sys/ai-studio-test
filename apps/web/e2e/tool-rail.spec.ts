@@ -51,6 +51,52 @@ test.beforeEach(async ({ page }) => {
       });
       return;
     }
+    if (path === "/api/v1/projects/project-format") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify({
+          id: "project-format",
+          title: "Formatting",
+          prompt: "",
+          thumbnailUrl: null,
+          version: 1,
+          createdAt: "2026-07-10T00:00:00.000Z",
+          updatedAt: "2026-07-10T00:00:00.000Z",
+          canvasDocument: {
+            schemaVersion: 1,
+            projectId: "project-format",
+            nodes: [
+              {
+                id: "shape-1",
+                kind: "shape",
+                shapeType: "rectangle",
+                x: 100,
+                y: 100,
+                width: 160,
+                height: 100,
+                style: { fill: "#ffffff", stroke: "#1f2933", strokeWidth: 3 }
+              },
+              {
+                id: "text-1",
+                kind: "text",
+                text: "Format me",
+                x: 380,
+                y: 100,
+                width: 240,
+                height: 80,
+                fontFamily: "Inter",
+                fontSize: 32,
+                fontWeight: "regular",
+                color: "#1b2330",
+                align: "left"
+              }
+            ]
+          }
+        })
+      });
+      return;
+    }
     await route.fulfill({
       status: 404,
       contentType: "application/json",
@@ -120,4 +166,25 @@ test("eraser only removes the node at the sampled pointer location", async ({ pa
   expect(box).not.toBeNull();
   await page.mouse.click((box?.x ?? 0) + 130, (box?.y ?? 0) + 130);
   await expect(page.locator('[data-node-kind="pending-image"]')).toHaveCount(0);
+});
+
+test("shape and text formatting stay bound to the selected node", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/canvas/project-format");
+
+  await page.locator('[data-node-kind="shape"]').click({ position: { x: 40, y: 40 } });
+  await expect(page.getByRole("toolbar", { name: "Shape formatting" })).toBeVisible();
+  const strokeWidth = page.locator('[aria-label="Stroke width"]');
+  await strokeWidth.focus();
+  await strokeWidth.press("ArrowRight");
+  await strokeWidth.press("ArrowRight");
+  await strokeWidth.press("ArrowRight");
+  await strokeWidth.press("ArrowRight");
+  await strokeWidth.press("ArrowRight");
+  await expect(page.locator('[data-node-kind="shape"] rect')).toHaveAttribute("stroke-width", "8");
+
+  await page.locator('[data-node-kind="text"]').click({ position: { x: 30, y: 30 } });
+  await expect(page.getByRole("toolbar", { name: "Text formatting" })).toBeVisible();
+  await page.locator('[aria-label="Font size"]').selectOption("64");
+  await expect(page.locator('[data-node-kind="text"]')).toHaveCSS("font-size", "64px");
 });
