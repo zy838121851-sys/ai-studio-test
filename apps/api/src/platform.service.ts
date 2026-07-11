@@ -2,6 +2,7 @@ import { Injectable, type OnApplicationShutdown } from "@nestjs/common";
 import {
   AiJobService,
   AssetService,
+  CatalogService,
   CreditService,
   createCapabilityRegistry,
   createIdentityProviders,
@@ -29,6 +30,7 @@ export class PlatformService implements OnApplicationShutdown {
   readonly uploads: UploadService;
   readonly aiJobs: AiJobService;
   readonly assets: AssetService;
+  readonly catalog: CatalogService;
   readonly conversations: ConversationService;
 
   constructor() {
@@ -46,6 +48,7 @@ export class PlatformService implements OnApplicationShutdown {
     this.uploads = new UploadService(this.infrastructure.database, this.infrastructure.storage);
     this.aiJobs = new AiJobService(this.infrastructure.database, this.infrastructure.storage);
     this.assets = new AssetService(this.infrastructure.database);
+    this.catalog = new CatalogService(this.infrastructure.database);
     this.conversations = new ConversationService(this.infrastructure.database);
   }
 

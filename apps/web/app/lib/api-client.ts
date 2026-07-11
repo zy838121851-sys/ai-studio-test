@@ -142,6 +142,9 @@ export function getAiJob(jobId: string): Promise<AiJobDto> {
   return request(`/api/v1/ai-jobs/${encodeURIComponent(jobId)}`);
 }
 
+export interface PlanCatalogItemDto { planId: string; code: string; name: string; description: string; priceId: string; priceCode: string; currency: string; amountFen: number; credits: number; interval: string | null; }
+export function listPlans(): Promise<PlanCatalogItemDto[]> { return request("/api/v1/catalog/plans"); }
+
 export interface AssetItemDto {
   id: string;
   collectionId: string | null;

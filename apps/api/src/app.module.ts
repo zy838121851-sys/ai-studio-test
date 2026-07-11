@@ -6,6 +6,7 @@ import { AssetsController } from "./assets.controller.js";
 import { SessionAuthGuard } from "./auth/auth-context.js";
 import { AuthController } from "./auth/auth.controller.js";
 import { CapabilitiesController } from "./capabilities.controller.js";
+import { CatalogController } from "./catalog.controller.js";
 import { ConversationsController } from "./conversations/conversations.controller.js";
 import { CreditsController } from "./credits.controller.js";
 import { HealthController } from "./health.controller.js";
@@ -25,6 +26,7 @@ import { UploadsController } from "./uploads.controller.js";
   controllers: [
     HealthController,
     CapabilitiesController,
+    CatalogController,
     ConversationsController,
     AuthController,
     ModelsController,

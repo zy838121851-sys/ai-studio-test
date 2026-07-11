@@ -126,9 +126,9 @@ An item is complete only when its status is approved and evidence points to pass
 
 | ID | Surface | Required Behavior | Status | Evidence |
 | --- | --- | --- | --- | --- |
-| BILL-001 | Plans | Current plans and entitlements | not-started | |
+| BILL-001 | Plans | Current plans and entitlements | partial | Active plan/price catalog and workspace entitlement evaluation are database-backed; live commercial catalog population remains a release operation. |
 | BILL-002 | Checkout | WeChat and Alipay | not-started | |
-| BILL-003 | Credits | Purchase and authoritative ledger | not-started | |
+| BILL-003 | Credits | Purchase and authoritative ledger | partial | Existing integer credit ledger remains authoritative; purchase activation waits for payment orchestration. |
 | BILL-004 | Subscription | Sign, renew, grace and entitlement | not-started | |
 | BILL-005 | Reminder | Pre-renewal notification evidence | not-started | |
 | BILL-006 | Cancel | Immediate accessible cancellation | not-started | |

@@ -4,6 +4,7 @@ export * from "./assets/asset-service.js";
 export * from "./assets/orphan-audit.js";
 export * from "./capabilities/capability-registry.js";
 export * from "./billing/billing-domain.js";
+export * from "./billing/catalog-service.js";
 export * from "./billing/payment-providers.js";
 export * from "./config/rewrite-config.js";
 export * from "./compliance/compliance-providers.js";

@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "8",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-8.1-plan-entitlement",
+  "nextWorkPackage": "WP-8.2-order-payment",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -56,13 +56,14 @@
     "WP-7.3-protected-media",
     "WP-7.4-asset-collections",
     "WP-7.5-thumbnails",
-    "WP-7.6-orphan-audit"
+    "WP-7.6-orphan-audit",
+    "WP-8.1-plan-entitlement"
   ],
-  "lastCompletedWorkPackage": "WP-7.6-orphan-audit",
+  "lastCompletedWorkPackage": "WP-8.1-plan-entitlement",
   "lastVerification": {
-    "workPackage": "WP-7.6-orphan-audit",
+    "workPackage": "WP-8.1-plan-entitlement",
     "commands": [
-      "npm run governance:verify -- WP-7.6-orphan-audit"
+      "npm run governance:verify -- WP-8.1-plan-entitlement"
     ],
     "result": "passed",
     "verifiedAt": "2026-07-11"
