@@ -240,6 +240,46 @@ export const projects = pgTable(
   (table) => [index("projects_workspace_recent_idx").on(table.workspaceId, table.updatedAt)]
 );
 
+export const assetCollections = pgTable(
+  "asset_collections",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    name: varchar("name", { length: 120 }).notNull(),
+    ...timestamps
+  },
+  (table) => [
+    uniqueIndex("asset_collections_workspace_name_unique").on(table.workspaceId, table.name),
+    index("asset_collections_workspace_idx").on(table.workspaceId, table.updatedAt)
+  ]
+);
+
+export const assets = pgTable(
+  "assets",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    workspaceId: uuid("workspace_id")
+      .notNull()
+      .references(() => workspaces.id, { onDelete: "cascade" }),
+    uploadId: uuid("upload_id")
+      .notNull()
+      .references(() => uploads.id, { onDelete: "restrict" }),
+    collectionId: uuid("collection_id").references(() => assetCollections.id, {
+      onDelete: "set null"
+    }),
+    favorite: integer("favorite").default(0).notNull(),
+    ...timestamps
+  },
+  (table) => [
+    uniqueIndex("assets_workspace_upload_unique").on(table.workspaceId, table.uploadId),
+    index("assets_workspace_recent_idx").on(table.workspaceId, table.updatedAt),
+    index("assets_collection_idx").on(table.workspaceId, table.collectionId),
+    check("assets_favorite_valid", sql`${table.favorite} IN (0, 1)`)
+  ]
+);
+
 export const aiJobs = pgTable(
   "ai_jobs",
   {

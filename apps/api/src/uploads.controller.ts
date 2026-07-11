@@ -34,11 +34,13 @@ export class UploadsController {
       throw new ApplicationError("UPLOAD_REQUIRED", 400, "请选择要上传的图片");
     }
 
-    return this.platform.uploads.store(auth, {
+    const upload = await this.platform.uploads.store(auth, {
       originalName: file.filename,
       contentType: file.mimetype,
       body: await file.toBuffer()
     });
+    await this.platform.assets.addUpload(auth, upload.id);
+    return upload;
   }
 
   @Get(":uploadId")

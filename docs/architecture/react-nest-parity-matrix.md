@@ -115,11 +115,11 @@ An item is complete only when its status is approved and evidence points to pass
 | ID | Surface | Required Behavior | Status | Evidence |
 | --- | --- | --- | --- | --- |
 | ASSET-001 | Upload | Upload and server registration | automated | Workspace-scoped image upload persists metadata and a stable protected upload-ID URL. |
-| ASSET-002 | Collections | Create, list and move | not-started | |
-| ASSET-003 | Library | Masonry/list, preview and pagination | not-started | |
-| ASSET-004 | Canvas insert | Insert at expected world position | not-started | |
-| ASSET-005 | Favorite/save | Save generated media to a collection | not-started | |
-| ASSET-006 | Delete | Backend delete with failure handling | not-started | |
+| ASSET-002 | Collections | Create, list and move | automated | Workspace-scoped collection creation, listing, and movement persist in PostgreSQL. |
+| ASSET-003 | Library | Masonry/list, preview and pagination | partial | Protected preview grid and collection controls are available; pagination follows in the media scale package. |
+| ASSET-004 | Canvas insert | Insert at expected world position | partial | Current-canvas asset side panel inserts an image node through versioned project save. |
+| ASSET-005 | Favorite/save | Save generated media to a collection | automated | Workspace-scoped favorite state and upload-to-asset registration are persisted. |
+| ASSET-006 | Delete | Backend delete with failure handling | automated | Asset record deletion is workspace-scoped and keeps physical upload retention explicit. |
 | ASSET-007 | Protected read | Cross-workspace access denied | automated | Metadata, inline content, and attachment download resolve through workspace-scoped upload IDs without exposing storage keys. |
 
 ## Commercial And Compliance

@@ -114,7 +114,7 @@ export interface CreditQuoteDto {
 
 export interface CanvasNodeDto {
   id: string;
-  kind: "pending-image" | "image";
+  kind: string;
   x: number;
   y: number;
   width: number;
@@ -122,6 +122,7 @@ export interface CanvasNodeDto {
   jobId?: string;
   sourceUrl?: string;
   alt?: string;
+  title?: string;
 }
 
 export interface CanvasDocumentDto {

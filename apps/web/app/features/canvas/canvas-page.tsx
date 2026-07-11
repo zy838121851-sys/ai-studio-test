@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
-import { fitCanvasNodeSize, type CanvasNode } from "@ai-studio/canvas-engine";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { fitCanvasNodeSize, upsertCanvasNode, type CanvasNode } from "@ai-studio/canvas-engine";
 import type { AiJobDto } from "@ai-studio/contracts";
 import { ArrowLeft, CircleAlert, LoaderCircle } from "lucide-react";
 import { Link, useParams, useSearchParams } from "react-router";
 
-import { ApiClientError, createAiJob, uploadReference } from "../../lib/api-client.js";
+import { ApiClientError, createAiJob, listAssets, updateProject, uploadReference } from "../../lib/api-client.js";
 import { useModelsQuery } from "../home/home-api.js";
 import {
   useCanvasConversationQuery,
@@ -72,6 +72,20 @@ export function CanvasPage() {
       void projectQuery.refetch();
       void conversationQuery.refetch();
     }
+  });
+  const assetsQuery = useQuery({ queryKey: ["assets"], queryFn: listAssets });
+  const insertAssetMutation = useMutation({
+    mutationFn: async (asset: { uploadId: string; url: string; name: string }) => {
+      if (!document || !projectQuery.data) throw new Error("Project document is unavailable.");
+      const next = upsertCanvasNode(document, {
+        id: crypto.randomUUID(), kind: "image", sourceUrl: asset.url, alt: asset.name,
+        x: 180 + (document.nodes.length % 5) * 32, y: 140 + (document.nodes.length % 5) * 32,
+        width: 480, height: 480
+      });
+      const saved = await updateProject(projectId, { expectedVersion: projectQuery.data.version, canvasDocument: next });
+      return saved.canvasDocument;
+    },
+    onSuccess: (canvasDocument) => { hydrate(canvasDocument, projectId); void projectQuery.refetch(); }
   });
   const submitImageCommand = async (command: ImageToolbarCommand) => {
     if (command.action === "edit-text") {
@@ -199,6 +213,9 @@ export function CanvasPage() {
           canvasReferences={canvasReferences}
           onSubmit={(input) => chatGenerationMutation.mutateAsync(input).then(() => undefined)}
         />
+      </aside>
+      <aside className="canvas-asset-panel" aria-label="Project assets">
+        {assetsQuery.data?.map((asset) => <button key={asset.id} type="button" title={`Insert ${asset.name}`} onClick={() => insertAssetMutation.mutate(asset)}><img src={asset.url} alt={asset.name}/></button>)}
       </aside>
       <ImageEditDialog
         open={Boolean(editNodeId)}
