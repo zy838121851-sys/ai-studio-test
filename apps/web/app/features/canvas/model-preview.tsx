@@ -15,9 +15,11 @@ export function ModelPreview({ sourceUrl, title }: { sourceUrl: string; title: s
     let cleanup = () => {};
     setStatus("loading");
 
-    void initializePreview(canvas, sourceUrl, (next) => !disposed && setStatus(next)).then((next) => {
-      cleanup = next;
-    }).catch(() => !disposed && setStatus("failed"));
+    void initializePreview(canvas, sourceUrl, (next) => !disposed && setStatus(next))
+      .then((next) => {
+        cleanup = next;
+      })
+      .catch(() => !disposed && setStatus("failed"));
 
     return () => {
       disposed = true;
@@ -29,7 +31,9 @@ export function ModelPreview({ sourceUrl, title }: { sourceUrl: string; title: s
     <div className="canvas-model-preview" aria-label={`${title} 3D preview`}>
       <canvas ref={canvasRef} aria-label={`${title} 3D model`} />
       <strong>{title}</strong>
-      {status !== "ready" ? <span role={status === "failed" ? "alert" : undefined}>{statusLabel(status)}</span> : null}
+      {status !== "ready" ? (
+        <span role={status === "failed" ? "alert" : undefined}>{statusLabel(status)}</span>
+      ) : null}
     </div>
   );
 }
@@ -44,7 +48,12 @@ async function initializePreview(
     import("three/addons/loaders/GLTFLoader.js"),
     import("three/addons/controls/OrbitControls.js")
   ]);
-  const renderer = new THREE.WebGLRenderer({ canvas, alpha: false, antialias: true, powerPreference: "high-performance" });
+  const renderer = new THREE.WebGLRenderer({
+    canvas,
+    alpha: false,
+    antialias: true,
+    powerPreference: "high-performance"
+  });
   renderer.setClearColor(0x101827, 1);
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   const scene = new THREE.Scene();
@@ -115,9 +124,17 @@ async function initializePreview(
 }
 
 function fallbackMesh(three: typeof ThreeModule) {
-  return new three.Mesh(new three.BoxGeometry(1.35, 1.35, 1.35), new three.MeshStandardMaterial({ color: 0x6c8ed9, roughness: 0.42, metalness: 0.08 }));
+  return new three.Mesh(
+    new three.BoxGeometry(1.35, 1.35, 1.35),
+    new three.MeshStandardMaterial({ color: 0x6c8ed9, roughness: 0.42, metalness: 0.08 })
+  );
 }
-function frameModel(three: typeof ThreeModule, camera: ThreeModule.PerspectiveCamera, controls: OrbitControls, object: ThreeModule.Object3D) {
+function frameModel(
+  three: typeof ThreeModule,
+  camera: ThreeModule.PerspectiveCamera,
+  controls: OrbitControls,
+  object: ThreeModule.Object3D
+) {
   const box = new three.Box3().setFromObject(object);
   if (box.isEmpty()) return;
   const center = box.getCenter(new three.Vector3());
@@ -137,10 +154,14 @@ function disposeObject(three: typeof ThreeModule, object: ThreeModule.Object3D) 
   object.traverse((entry) => {
     if (!(entry instanceof three.Mesh)) return;
     entry.geometry.dispose();
-    (Array.isArray(entry.material) ? entry.material : [entry.material]).forEach((material) => material.dispose());
+    (Array.isArray(entry.material) ? entry.material : [entry.material]).forEach((material) =>
+      material.dispose()
+    );
   });
 }
-function preventDefault(event: Event) { event.preventDefault(); }
+function preventDefault(event: Event) {
+  event.preventDefault();
+}
 function statusLabel(status: PreviewStatus): string {
   if (status === "loading") return "Loading 3D model";
   if (status === "fallback") return "Model unavailable";

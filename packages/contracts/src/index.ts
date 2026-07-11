@@ -176,6 +176,14 @@ export interface AiJobDto {
   updatedAt: string;
 }
 
+export interface AiJobListDto {
+  jobs: AiJobDto[];
+  total: number;
+  limit: number;
+  offset: number;
+  hasMore: boolean;
+}
+
 export type ConversationMessageRoleDto = "user" | "assistant";
 export type ConversationMessageStatusDto =
   | "completed"

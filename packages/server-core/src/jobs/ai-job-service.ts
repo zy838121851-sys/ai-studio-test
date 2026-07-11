@@ -6,7 +6,7 @@ import {
   replaceImageTransformResult
 } from "@ai-studio/canvas-engine";
 import type { AiJobDto } from "@ai-studio/contracts";
-import { and, asc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
 
 import { ApplicationError } from "../application/application-error.js";
 import type { AuthContext } from "../application/auth-context.js";
@@ -37,6 +37,13 @@ export interface CreateAiJobInput {
 export interface PendingOutboxEvent {
   id: string;
   jobId: string;
+}
+
+export interface ListAiJobsInput {
+  limit?: number;
+  offset?: number;
+  status?: AiJobRow["status"];
+  modelId?: string;
 }
 
 type AiJobRow = typeof aiJobs.$inferSelect;
@@ -234,6 +241,27 @@ export class AiJobService {
     }
 
     return toAiJobDto(job);
+  }
+
+  async list(context: AuthContext, input: ListAiJobsInput = {}): Promise<{
+    jobs: AiJobDto[];
+    total: number;
+    limit: number;
+    offset: number;
+    hasMore: boolean;
+  }> {
+    const limit = Number.isFinite(input.limit) ? Math.min(Math.max(input.limit as number, 1), 50) : 20;
+    const offset = Number.isFinite(input.offset) ? Math.max(input.offset as number, 0) : 0;
+    const filters = [eq(aiJobs.workspaceId, context.workspaceId)];
+    if (input.status) filters.push(eq(aiJobs.status, input.status));
+    if (input.modelId) filters.push(eq(aiJobs.modelId, input.modelId));
+    const where = and(...filters);
+    const [rows, count] = await Promise.all([
+      this.database.select().from(aiJobs).where(where).orderBy(desc(aiJobs.createdAt)).limit(limit).offset(offset),
+      this.database.select({ count: sql<number>`count(*)::int` }).from(aiJobs).where(where)
+    ]);
+    const total = count[0]?.count ?? 0;
+    return { jobs: rows.map(toAiJobDto), total, limit, offset, hasMore: offset + rows.length < total };
   }
 
   async listPendingOutbox(limit = 100): Promise<PendingOutboxEvent[]> {

@@ -14,5 +14,6 @@ export default [
   route("legal/ai-disclosure", "routes/commercial.tsx", { id: "legal-ai-disclosure" }),
   route("support/report", "routes/commercial.tsx", { id: "support-report" }),
   route("support/appeal", "routes/commercial.tsx", { id: "support-appeal" }),
+  route("tasks", "routes/tasks.tsx"),
   route("canvas/:projectId", "routes/canvas.tsx")
 ] satisfies RouteConfig;

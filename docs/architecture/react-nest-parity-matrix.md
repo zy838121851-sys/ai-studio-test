@@ -107,8 +107,8 @@ An item is complete only when its status is approved and evidence points to pass
 | CHAT-004 | Results | Image/video/model result cards | automated | Assistant result cards render durable image output after restoration; video/model cards remain their dedicated workflow packages. |
 | CHAT-005 | History | Conversation persistence and selection | automated | Workspace-scoped project conversations and messages are persisted; `chat-composer.spec.ts` verifies restore. |
 | CHAT-006 | Recovery | Reload restores active/finished jobs | automated | Conversation retrieval joins workspace-scoped jobs and polls queued/running states; browser restore test covers an active job. |
-| TASK-001 | Task log | List, filters, details and refresh | not-started | |
-| TASK-002 | Job state | Queued, running, success, failed and cancelled | not-started | |
+| TASK-001 | Task log | List, filters, details and refresh | partial | Workspace-scoped rewrite task list supports status filtering, pagination, detail modal, output link, and active-job refresh. |
+| TASK-002 | Job state | Queued, running, success, failed and cancelled | partial | Durable AI job states are listed from PostgreSQL and recoverable jobs are re-enqueued by the Worker; local Docker integration is now available. |
 
 ## Asset Library
 

@@ -1,5 +1,6 @@
 import type {
   AiJobDto,
+  AiJobListDto,
   ConversationDto,
   ModelCatalogEntryDto,
   PaginatedHomeFeedDto,
@@ -135,6 +136,18 @@ export function createAiJob(input: {
 
 export function getAiJob(jobId: string): Promise<AiJobDto> {
   return request(`/api/v1/ai-jobs/${encodeURIComponent(jobId)}`);
+}
+
+export function listAiJobs(
+  input: { limit?: number; offset?: number; status?: string; modelId?: string } = {}
+): Promise<AiJobListDto> {
+  const query = new URLSearchParams({
+    limit: String(input.limit ?? 20),
+    offset: String(input.offset ?? 0)
+  });
+  if (input.status) query.set("status", input.status);
+  if (input.modelId) query.set("modelId", input.modelId);
+  return request(`/api/v1/ai-jobs?${query.toString()}`);
 }
 
 export function getProjectConversation(projectId: string): Promise<ConversationDto> {

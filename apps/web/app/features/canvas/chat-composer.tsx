@@ -53,7 +53,8 @@ export function CanvasChatComposer({
   const generationModels = models.filter(
     (model) => (model.modality === "image" || model.modality === "video") && model.enabled
   );
-  const selectedModel = generationModels.find((model) => model.id === modelId) ?? generationModels[0];
+  const selectedModel =
+    generationModels.find((model) => model.id === modelId) ?? generationModels[0];
   const visibleCanvasReferences = canvasReferences
     .filter((reference) => !dismissedCanvasReferenceIds.has(reference.nodeId))
     .map<CanvasChatAttachment>((reference) => ({
