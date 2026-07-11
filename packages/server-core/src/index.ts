@@ -9,6 +9,8 @@ export * from "./billing/payment-providers.js";
 export * from "./billing/wechat-pay-provider.js";
 export * from "./billing/alipay-provider.js";
 export * from "./billing/order-payment-service.js";
+export * from "./billing/subscription-lifecycle.js";
+export * from "./billing/subscription-service.js";
 export * from "./config/rewrite-config.js";
 export * from "./compliance/compliance-providers.js";
 export * from "./compliance/compliance-service.js";

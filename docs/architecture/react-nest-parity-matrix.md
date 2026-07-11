@@ -129,7 +129,7 @@ An item is complete only when its status is approved and evidence points to pass
 | BILL-001 | Plans | Current plans and entitlements | partial | Active plan/price catalog and workspace entitlement evaluation are database-backed; live commercial catalog population remains a release operation. |
 | BILL-002 | Checkout | WeChat and Alipay | partial | Provider-neutral idempotent order/payment orchestration is available. WeChat Native and Alipay precreate checkout plus signed callback verification are fixture-tested; live merchant verification remains pending. |
 | BILL-003 | Credits | Purchase and authoritative ledger | partial | A verified payment.succeeded event atomically marks the order paid, activates a credits entitlement, and appends one credit grant ledger entry; live merchant verification remains pending. |
-| BILL-004 | Subscription | Sign, renew, grace and entitlement | not-started | |
+| BILL-004 | Subscription | Sign, renew, grace and entitlement | partial | Deterministic active, cancellation, grace, expiry, reminder, and entitlement transitions plus Worker due-date scan are implemented; real provider mandate and renewal remain pending. |
 | BILL-005 | Reminder | Pre-renewal notification evidence | not-started | |
 | BILL-006 | Cancel | Immediate accessible cancellation | not-started | |
 | BILL-007 | Refund | Request, provider result and ledger | partial | WeChat API v3 and Alipay refund request/response contracts are implemented; refund workflow, ledger reversal, and live merchant verification remain pending. |

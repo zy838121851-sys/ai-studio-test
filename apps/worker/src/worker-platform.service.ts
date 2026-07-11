@@ -11,6 +11,7 @@ import {
   ApimartVideoProvider,
   loadRewriteConfig,
   RewriteInfrastructure
+  , SubscriptionService
 } from "@ai-studio/server-core";
 
 @Injectable()
@@ -22,6 +23,7 @@ export class WorkerPlatformService implements OnModuleInit, OnApplicationShutdow
     this.infrastructure.database,
     createComplianceProviders(this.config.nodeEnvironment)
   );
+  readonly subscriptions = new SubscriptionService(this.infrastructure.database);
   readonly imageProvider = createImageProvider(this.config);
   readonly videoProvider =
     this.config.imageProvider.provider === "apimart"

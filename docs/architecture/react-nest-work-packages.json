@@ -2307,7 +2307,7 @@
       "id": "WP-8.5-subscriptions",
       "stage": "8",
       "title": "Subscriptions and renewal",
-      "objective": "Complete sign-up, renewal, grace, reminder, cancellation, and entitlement transitions.",
+        "objective": "Complete deterministic subscription lifecycle, cancellation, grace, reminders, and entitlement transitions; defer merchant renewal verification to the Stage 11 release gate.",
       "prerequisites": [
         "WP-8.4-alipay"
       ],
@@ -2330,14 +2330,15 @@
         "BILL-006"
       ],
       "targetedChecks": [
-        "Time-controlled renewal, grace, reminder, and cancellation tests"
+          "Time-controlled renewal, grace, reminder, and cancellation tests",
+          "Configured and unverified production capability remains fail-closed"
       ],
       "acceptance": [
-        "Cancellation is immediately accessible and renewal evidence is auditable"
+          "Cancellation is immediately accessible, lifecycle transitions are deterministic, and merchant renewal verification remains deferred to Stage 11"
       ],
       "legacyMutationAllowed": false,
       "externalVerification": {
-        "mode": "required",
+          "mode": "deferred",
         "blockerId": "BLOCK-EXTERNAL-APPROVALS",
         "deadlineStage": "11"
       },

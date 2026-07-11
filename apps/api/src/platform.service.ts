@@ -10,6 +10,7 @@ import {
   ConversationService,
   IdentityService,
   OrderPaymentService,
+  SubscriptionService,
   loadRewriteConfig,
   ProjectService,
   RewriteInfrastructure,
@@ -35,6 +36,7 @@ export class PlatformService implements OnApplicationShutdown {
   readonly catalog: CatalogService;
   readonly conversations: ConversationService;
   readonly orderPayments: OrderPaymentService;
+  readonly subscriptions: SubscriptionService;
 
   constructor() {
     this.config = loadRewriteConfig(process.env);
@@ -59,6 +61,7 @@ export class PlatformService implements OnApplicationShutdown {
       createPaymentProviders(this.config.nodeEnvironment, "", this.config.wechatPay, this.config.alipay),
       this.capabilities
     );
+    this.subscriptions = new SubscriptionService(this.infrastructure.database);
   }
 
   checkReadiness(): Promise<ReadinessResult> {

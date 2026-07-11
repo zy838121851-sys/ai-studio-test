@@ -1,4 +1,4 @@
-import { Body, Controller, Headers, Inject, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Headers, Inject, Param, Post, UseGuards } from "@nestjs/common";
 import { ApiHeader, ApiOperation, ApiTags } from "@nestjs/swagger";
 import type { OrderPaymentDto } from "@ai-studio/contracts";
 import { ApplicationError } from "@ai-studio/server-core";
@@ -50,6 +50,23 @@ export class BillingController {
       ...(serial ? { serial } : {}),
       body: JSON.stringify(body)
     });
+  }
+
+  @Get("subscriptions")
+  @UseGuards(SessionAuthGuard)
+  @ApiOperation({ summary: "List workspace subscriptions" })
+  listSubscriptions(@CurrentAuth() auth: AuthContext) {
+    return this.platform.subscriptions.list(auth);
+  }
+
+  @Post("subscriptions/:subscriptionId/cancel")
+  @UseGuards(SessionAuthGuard)
+  @ApiOperation({ summary: "Cancel renewal at the current period end" })
+  cancelSubscription(
+    @CurrentAuth() auth: AuthContext,
+    @Param("subscriptionId") subscriptionId: string
+  ) {
+    return this.platform.subscriptions.cancel(auth, subscriptionId);
   }
 }
 

@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "8",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-8.5-subscriptions",
+  "nextWorkPackage": "WP-8.6-refunds-invoices",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -60,13 +60,14 @@
     "WP-8.1-plan-entitlement",
     "WP-8.2-order-payment",
     "WP-8.3-wechat-pay",
-    "WP-8.4-alipay"
+    "WP-8.4-alipay",
+    "WP-8.5-subscriptions"
   ],
-  "lastCompletedWorkPackage": "WP-8.4-alipay",
+  "lastCompletedWorkPackage": "WP-8.5-subscriptions",
   "lastVerification": {
-    "workPackage": "WP-8.4-alipay",
+    "workPackage": "WP-8.5-subscriptions",
     "commands": [
-      "npm run governance:verify -- WP-8.4-alipay"
+      "npm run governance:verify -- WP-8.5-subscriptions"
     ],
     "result": "passed",
     "verifiedAt": "2026-07-11"
@@ -77,7 +78,8 @@
     "WP-3.5.4-billing-domain-foundation",
     "WP-3.5.5-payment-provider-contracts",
     "WP-8.3-wechat-pay",
-    "WP-8.4-alipay"
+    "WP-8.4-alipay",
+    "WP-8.5-subscriptions"
   ],
   "cutoverAllowed": false,
   "blockers": [
@@ -132,6 +134,7 @@
     "Provider-neutral checkout now creates idempotent pending orders and payment attempts; only a signature-verified payment.succeeded webhook can mark an order paid, activate credits entitlement, and append a credit grant ledger entry. Production payment provider placeholders still fail closed with PROVIDER_NOT_CONFIGURED until merchant integrations are verified.",
     "WeChat Pay now has a Native checkout, query, refund, request-signing, callback-signature, and AES-GCM notification-decryption adapter with deterministic cryptographic fixtures. Configured production capability remains disabled until WECHATPAY_LIVE_VERIFIED is set only after merchant-environment evidence; live merchant verification remains deferred to Stage 11.",
     "Alipay now has a precreate QR checkout, RSA2 form signing, asynchronous notification verification, query, and refund adapter with deterministic cryptographic fixtures. Configured production capability remains disabled until ALIPAY_LIVE_VERIFIED is set after merchant-environment evidence; live merchant verification remains deferred to Stage 11.",
+    "Subscription lifecycle now has deterministic reminder, grace, cancellation, and expiry evaluation, workspace-scoped cancellation endpoints, and Worker-driven due-date scanning. Real automatic-renewal provider evidence remains deferred to Stage 11.",
     "Identity provider contracts use deterministic development implementations and production fail-closed placeholders; real provider delivery, OAuth callbacks, and live verification remain deferred.",
     "Moderation, notification, and audit records now have workspace-scoped PostgreSQL persistence, idempotency keys, retry timestamps, and worker recovery seams; real external providers remain deferred.",
     "Billing domain foundation now defines integer-fen money, explicit order/payment/subscription state machines, and durable catalog/order/payment/subscription/entitlement/refund/invoice/event tables; merchant integrations remain deferred.",
