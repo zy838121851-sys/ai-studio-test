@@ -96,7 +96,9 @@ export class AiJobConsumerService implements OnModuleInit, OnApplicationShutdown
         prompt: input.prompt,
         references: input.references
       };
-      const image = input.transformKind && input.transformSourceNodeId
+      const image = input.modality === "video"
+        ? await this.generateVideo(request)
+        : input.transformKind && input.transformSourceNodeId
         ? await this.platform.imageProvider.transform({
             ...request,
             kind: input.transformKind,
@@ -117,5 +119,17 @@ export class AiJobConsumerService implements OnModuleInit, OnApplicationShutdown
       }
       throw error;
     }
+  }
+
+  private async generateVideo(request: {
+    jobId: string;
+    modelId: string;
+    prompt: string;
+    references: { contentType: string; body: Buffer }[];
+  }) {
+    if (!this.platform.videoProvider) {
+      throw new Error("VIDEO_PROVIDER_NOT_CONFIGURED");
+    }
+    return this.platform.videoProvider.generate(request);
   }
 }

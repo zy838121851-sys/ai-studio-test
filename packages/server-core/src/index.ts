@@ -20,6 +20,7 @@ export * from "./jobs/ai-job-service.js";
 export * from "./models/model-catalog.js";
 export * from "./projects/project-service.js";
 export * from "./providers/apimart-image-provider.js";
+export * from "./providers/apimart-video-provider.js";
 export * from "./providers/development-image-provider.js";
 export * from "./providers/image-provider.js";
 export * from "./queue/ai-job-queue.js";

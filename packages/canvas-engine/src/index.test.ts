@@ -83,4 +83,17 @@ describe("CanvasDocument", () => {
     expect(fitCanvasNodeSize(1616, 2048)).toEqual({ width: 505, height: 640 });
     expect(fitCanvasNodeSize(320, 240)).toEqual({ width: 320, height: 240 });
   });
+
+  it("normalizes persistent video nodes for restored job output", () => {
+    const document = normalizeCanvasDocument({
+      schemaVersion: 1,
+      projectId: "project-1",
+      nodes: [
+        { id: "video-1", kind: "video", sourceUrl: "/api/v1/uploads/video/content", x: 10, y: 20, width: 640, height: 360 }
+      ]
+    }, "project-1");
+    expect(document.nodes).toEqual([
+      { id: "video-1", kind: "video", sourceUrl: "/api/v1/uploads/video/content", title: "Generated video", x: 10, y: 20, width: 640, height: 360 }
+    ]);
+  });
 });

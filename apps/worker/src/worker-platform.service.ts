@@ -8,6 +8,7 @@ import {
   ComplianceService,
   createComplianceProviders,
   createImageProvider,
+  ApimartVideoProvider,
   loadRewriteConfig,
   RewriteInfrastructure
 } from "@ai-studio/server-core";
@@ -22,6 +23,10 @@ export class WorkerPlatformService implements OnModuleInit, OnApplicationShutdow
     createComplianceProviders(this.config.nodeEnvironment)
   );
   readonly imageProvider = createImageProvider(this.config);
+  readonly videoProvider =
+    this.config.imageProvider.provider === "apimart"
+      ? new ApimartVideoProvider(this.config.imageProvider.apiKey, this.config.imageProvider.baseUrl)
+      : null;
 
   async onModuleInit(): Promise<void> {
     const readiness = await this.infrastructure.checkReadiness();

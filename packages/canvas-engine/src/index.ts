@@ -7,8 +7,9 @@ import {
 import type { CanvasTextNode } from "./text.js";
 import type { CanvasPenNode } from "./pen.js";
 import type { CanvasModelNode } from "./model.js";
+import type { CanvasVideoNode } from "./video.js";
 
-export type CanvasNode = CanvasImageNode | CanvasPendingImageNode | CanvasShapeNode | CanvasArrowNode | CanvasTextNode | CanvasPenNode | CanvasModelNode;
+export type CanvasNode = CanvasImageNode | CanvasPendingImageNode | CanvasShapeNode | CanvasArrowNode | CanvasTextNode | CanvasPenNode | CanvasModelNode | CanvasVideoNode;
 
 export type { CanvasNodeDefinition, CanvasNodeKind, CanvasSnapshotMigration } from "./document-registry.js";
 
@@ -108,6 +109,7 @@ export * from "./pen.js";
 export * from "./laser-eraser.js";
 export * from "./image-transform.js";
 export * from "./model.js";
+export * from "./video.js";
 export * from "./editor-commands.js";
 
 export function fitCanvasNodeSize(
@@ -141,6 +143,15 @@ function normalizeCanvasNode(value: unknown): CanvasNode | null {
       kind: "image",
       sourceUrl: value.sourceUrl,
       alt: typeof value.alt === "string" && value.alt.trim() ? value.alt : "生成图片"
+    };
+  }
+
+  if (value.kind === "video" && isNonEmptyString(value.sourceUrl)) {
+    return {
+      ...base,
+      kind: "video",
+      sourceUrl: value.sourceUrl,
+      title: typeof value.title === "string" && value.title.trim() ? value.title : "Generated video"
     };
   }
 

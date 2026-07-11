@@ -21,6 +21,7 @@ describe("canvas document registry", () => {
 
     expect(Object.keys(CANVAS_NODE_REGISTRY)).toEqual([
       "image",
+      "video",
       "pending-image",
       "shape",
       "arrow",

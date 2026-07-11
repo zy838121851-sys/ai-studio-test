@@ -49,7 +49,7 @@ export class AiJobService {
 
   async create(context: AuthContext, input: CreateAiJobInput): Promise<AiJobDto> {
     const model = findModel(input.modelId);
-    if (model.modality !== "image") {
+    if (model.modality !== "image" && model.modality !== "video") {
       throw new ApplicationError(
         "HOME_MODEL_NOT_SUPPORTED",
         400,
@@ -57,6 +57,9 @@ export class AiJobService {
       );
     }
     const prompt = normalizePrompt(input.prompt);
+    if (model.modality === "video" && input.transformSourceNodeId) {
+      throw new ApplicationError("VIDEO_TRANSFORM_NOT_SUPPORTED", 400, "Video transforms are not supported.");
+    }
     const idempotencyKey = normalizeIdempotencyKey(input.idempotencyKey);
     const uploadIds = [...new Set(input.uploadIds)].slice(0, 8);
     const quote = quoteModel(model.id, 1);
@@ -179,7 +182,7 @@ export class AiJobService {
           conversationId: conversation.id,
           role: "assistant",
           status: "queued",
-          content: "Generating image",
+          content: model.modality === "video" ? "Generating video" : "Generating image",
           attachmentUploadIds: [],
           jobId
         }
@@ -290,6 +293,7 @@ export class AiJobService {
     status: AiJobRow["status"];
     references: { contentType: string; body: Buffer }[];
     transformKind: "crop" | "upscale" | "remove-background" | "expand" | "edit-text" | null;
+    modality: "image" | "video" | "3d";
     transformSourceNodeId: string | null;
   }> {
     const [job] = await this.database.select().from(aiJobs).where(eq(aiJobs.id, jobId)).limit(1);
@@ -322,6 +326,7 @@ export class AiJobService {
       projectId: job.projectId,
       prompt: input.prompt,
       modelId: job.modelId,
+      modality: findModel(job.modelId).modality,
       status: job.status,
       references,
       transformKind: input.transformKind,
@@ -351,7 +356,8 @@ export class AiJobService {
       return toAiJobDto(existing);
     }
 
-    const extension = result.contentType === "image/svg+xml" ? ".svg" : ".png";
+    const isVideo = result.contentType.startsWith("video/");
+    const extension = isVideo ? ".mp4" : result.contentType === "image/svg+xml" ? ".svg" : ".png";
     const storageKey = `${existing.workspaceId}/results/${existing.id}${extension}`;
     let createdStorageObject = false;
     if (!(await this.storage.exists(storageKey))) {
@@ -446,7 +452,8 @@ export class AiJobService {
           uploadId: upload.id,
           url: `/api/v1/uploads/${upload.id}/content`,
           width: result.width,
-          height: result.height
+          height: result.height,
+          mediaType: isVideo ? "video" : "image"
         };
         const canvasNodeSize = fitCanvasNodeSize(result.width, result.height);
         const [updatedJob] = await transaction
@@ -500,16 +507,9 @@ export class AiJobService {
               ...currentDocument.nodes.filter(
                 (node) => node.kind !== "pending-image" || node.jobId !== job.id
               ),
-              {
-                id: `result-${job.id}`,
-                kind: "image" as const,
-                sourceUrl: output.url,
-                alt: "Generated image",
-                x: 120,
-                y: 100,
-                width: canvasNodeSize.width,
-                height: canvasNodeSize.height
-              }
+              isVideo
+                ? { id: `result-${job.id}`, kind: "video" as const, sourceUrl: output.url, title: "Generated video", x: 120, y: 100, width: canvasNodeSize.width, height: canvasNodeSize.height }
+                : { id: `result-${job.id}`, kind: "image" as const, sourceUrl: output.url, alt: "Generated image", x: 120, y: 100, width: canvasNodeSize.width, height: canvasNodeSize.height }
             ]
           };
           await transaction

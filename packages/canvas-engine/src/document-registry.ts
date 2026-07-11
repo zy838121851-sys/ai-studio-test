@@ -12,6 +12,7 @@ export interface CanvasNodeDefinition {
 
 export const CANVAS_NODE_REGISTRY: Readonly<Record<CanvasNodeKind, CanvasNodeDefinition>> = {
   image: { kind: "image", persistent: true, temporary: false },
+  video: { kind: "video", persistent: true, temporary: false },
   "pending-image": { kind: "pending-image", persistent: true, temporary: false },
   shape: { kind: "shape", persistent: true, temporary: false },
   arrow: { kind: "arrow", persistent: true, temporary: false },

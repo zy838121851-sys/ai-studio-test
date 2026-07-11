@@ -322,6 +322,14 @@
   background: #fff;
 }
 
+.canvas-result-node video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: #111827;
+  object-fit: contain;
+}
+
 .canvas-pending-node {
   display: grid;
   place-content: center;

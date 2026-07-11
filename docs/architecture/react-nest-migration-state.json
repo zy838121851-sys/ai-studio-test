@@ -5,7 +5,7 @@
   "programStatus": "active",
   "activeStage": "6",
   "activeWorkPackage": null,
-  "nextWorkPackage": "WP-G.3-video-scope-correction",
+  "nextWorkPackage": "WP-6.7-heavy-3d-viewer",
   "completedWorkPackages": [
     "WP-0.1-governance-baseline",
     "WP-0.2-governance-check",
@@ -46,13 +46,15 @@
     "WP-6.2-canvas-reference",
     "WP-6.3-conversation-persistence",
     "WP-6.4-image-generation",
-    "WP-6.5-image-edit"
+    "WP-6.5-image-edit",
+    "WP-G.3-video-scope-correction",
+    "WP-6.6-video-generation"
   ],
-  "lastCompletedWorkPackage": "WP-6.5-image-edit",
+  "lastCompletedWorkPackage": "WP-6.6-video-generation",
   "lastVerification": {
-    "workPackage": "WP-6.5-image-edit",
+    "workPackage": "WP-6.6-video-generation",
     "commands": [
-      "npm run governance:verify -- WP-6.5-image-edit"
+      "npm run governance:verify -- WP-6.6-video-generation"
     ],
     "result": "passed",
     "verifiedAt": "2026-07-11"
@@ -137,6 +139,7 @@
     "Rewrite Canvas model nodes now restore as persistent business nodes and load Three.js plus GLTFLoader only when a visible model preview mounts.",
     "Canvas Stage 5 now includes focus-safe keyboard commands, internal clipboard duplication, deletion, edge alignment, stacking, and front/back ordering through framework-independent engine commands.",
     "Stage 3.5 builds fail-closed SaaS provider, commercial, and compliance foundations before full canvas migration.",
-    "The legacy runtime remains the default and is unchanged."
+    "The legacy runtime remains the default and is unchanged.",
+    "Video generation now reuses the existing APIMART task model through the rewrite Worker, persists a protected video result, and restores it as a typed Canvas video node; live provider verification remains deferred."
   ]
 }

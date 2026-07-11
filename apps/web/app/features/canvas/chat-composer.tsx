@@ -50,8 +50,10 @@ export function CanvasChatComposer({
   );
   const inputRef = useRef<HTMLInputElement>(null);
   const attachmentsRef = useRef<UploadedChatAttachment[]>([]);
-  const imageModels = models.filter((model) => model.modality === "image" && model.enabled);
-  const selectedModel = imageModels.find((model) => model.id === modelId) ?? imageModels[0];
+  const generationModels = models.filter(
+    (model) => (model.modality === "image" || model.modality === "video") && model.enabled
+  );
+  const selectedModel = generationModels.find((model) => model.id === modelId) ?? generationModels[0];
   const visibleCanvasReferences = canvasReferences
     .filter((reference) => !dismissedCanvasReferenceIds.has(reference.nodeId))
     .map<CanvasChatAttachment>((reference) => ({
@@ -177,7 +179,7 @@ export function CanvasChatComposer({
           aria-label="Generation model"
           onChange={(event) => setModelId(event.target.value)}
         >
-          {imageModels.map((model) => (
+          {generationModels.map((model) => (
             <option key={model.id} value={model.id}>
               {model.label}
             </option>

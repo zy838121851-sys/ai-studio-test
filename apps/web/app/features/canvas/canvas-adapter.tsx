@@ -352,6 +352,18 @@ function CanvasAdapterNode({
         <img src={node.sourceUrl} alt={node.alt} draggable={false} />
       </figure>
     );
+  if (node.kind === "video")
+    return (
+      <figure
+        ref={register}
+        className={`canvas-result-node canvas-video-node${selected ? " is-selected" : ""}`}
+        style={style}
+        data-node-kind="video"
+        onPointerDown={(event) => onPointerDown(event, node.id)}
+      >
+        <video src={node.sourceUrl} aria-label={node.title} controls preload="metadata" />
+      </figure>
+    );
   if (node.kind === "text")
     return (
       <div
